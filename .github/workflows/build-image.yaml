@@ -1,0 +1,47 @@
+name: "Build Docker Image"
+on:
+  workflow_dispatch:
+    inputs:
+      RegistryEnv:
+        type: environment
+        description: "Select Env"
+        required: true
+      imageTag:
+        description: "Release version"
+        required: true
+        default: "latest"
+
+jobs:
+  docker-build:
+    environment: ${{ inputs.RegistryEnv }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Github Checkout"
+        uses: actions/checkout@v3
+
+      - name: "Login via Azure CLI"
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: "Build and push image"
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ vars.REGISTRY_LOGIN_SERVER }}
+          username: ${{ vars.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - run: |
+          docker build . -t ${{ vars.REGISTRY_LOGIN_SERVER }}/sampleapp:${{ vars.imageTag }}
+          docker push ${{ vars.REGISTRY_LOGIN_SERVER }}/sampleapp:${{ vars.imageTag }}
+
+      # - name: "Deploy to Azure Container Instances"
+      #   uses: "azure/aci-deploy@v1"
+      #   with:
+      #     resource-group: ${{ vars.RESOURCE_GROUP }}
+      #     dns-name-label: ${{ vars.RESOURCE_GROUP }}${{ github.run_number }}
+      #     image: ${{ vars.REGISTRY_LOGIN_SERVER }}/sampleapp:${{ github.sha }}
+      #     registry-login-server: ${{ vars.REGISTRY_LOGIN_SERVER }}
+      #     registry-username: ${{ vars.REGISTRY_USERNAME }}
+      #     registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+      #     name: aci-sampleapp
+      #     location: "west us"

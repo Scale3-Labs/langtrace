@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["jsonProtocol"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  // shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING") // used for migrations
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model User {
+  id            String       @id @default(cuid())
+  name          String?
+  email         String?      @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  teamId        String?
+  Team          Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  status        String?      @default("active") // invited, active
+  role          Role?        @default(member)
+  createdAt     DateTime     @default(now())
+  Evaluation    Evaluation[]
+}
+
+model Evaluation {
+  id            String    @id @default(cuid())
+  spanStartTime DateTime?
+  spanId        String?
+  traceId       String?
+  model         String?
+  userId        String
+  projectId     String
+  score         Int
+  prompt        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  User          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Prompt {
+  id          String    @id @default(cuid())
+  value       String
+  note        String?
+  promptsetId String
+  spanId      String?
+  promptset   Promptset @relation(fields: [promptsetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Data {
+  id        String   @id @default(cuid())
+  input     String
+  output    String
+  note      String?
+  datasetId String
+  spanId    String?
+  dataset   Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Dataset {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  projectId   String
+  Project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Data        Data[]
+}
+
+model Promptset {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  projectId   String
+  Project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Prompt      Prompt[]
+}
+
+model Team {
+  id         String       @id @default(cuid())
+  name       String?
+  users      User[]
+  status     String?      @default("active")
+  TeamInvite TeamInvite[]
+  projects   Project[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model Project {
+  id          String       @id @default(cuid())
+  name        String?
+  description String?
+  teamId      String?
+  apiKeyHash  String?      @unique
+  Team        Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  Evaluation  Evaluation[]
+  Dataset     Dataset[]
+  Promptset   Promptset[]
+}
+
+model TeamInvite {
+  email     String
+  expires   DateTime
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+  createdAt DateTime @default(now())
+
+  @@unique([email, teamId])
+  @@index([teamId])
+}
+
+enum Role {
+  owner
+  member
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
