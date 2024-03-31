@@ -20,9 +20,14 @@ import { serviceTypeColor, vendorBadgeColor } from "../shared/vendor-metadata";
 import TraceGraph from "../traces/trace_graph";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
+import { useBottomScrollListener } from 'react-bottom-scroll-listener';
+
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(2);
+  const [showLoader, setShowLoader] = useState(false);
 
   const fetchProject = useQuery({
     queryKey: ["fetch-project-query"],
@@ -47,8 +52,21 @@ export default function Traces({ email }: { email: string }) {
     queryFn: async () => {
       const response = await fetch(`/api/trace?projectId=${project_id}`);
       const result = await response.json();
+      if (totalPages !== result.metadata.total_pages) {
+        setTotalPages(result.metadata.total_pages);
+      }
+      setPage(page + 1);
+      setShowLoader(false);
       return result;
     },
+  });
+
+  useBottomScrollListener(() => {
+    if (fetchTraces.isRefetching) return;
+    if (page < totalPages) {
+      setShowLoader(true);
+      fetchTraces.refetch();
+    }
   });
 
   if (
@@ -57,7 +75,8 @@ export default function Traces({ email }: { email: string }) {
     fetchUser.isLoading ||
     !fetchUser.data ||
     fetchTraces.isLoading ||
-    !fetchTraces.data
+    !fetchTraces.data ||
+    showLoader
   ) {
     return <div>Loading...</div>;
   }
