@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { id, name, teamId, role } = data;
+  const { id, name, teamId, role, status } = data;
 
   if ("teamId" in data) {
     const user = await prisma.user.update({
@@ -82,6 +82,21 @@ export async function PUT(req: NextRequest) {
     });
   }
 
+  if ("status" in data) {
+    console.log("updating status");
+    const user = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        status,
+      },
+    });
+    return NextResponse.json({
+      data: user,
+    });
+  }
+
   const user = await prisma.user.update({
     where: {
       id,
@@ -96,7 +111,6 @@ export async function PUT(req: NextRequest) {
   });
 }
 
-// may not work / be necessary if users only get created through google auth
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
@@ -104,17 +118,37 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { email, name, team_id } = data;
+  const { email, name, team_id, status, role } = data;
 
   const user = await prisma.user.create({
     data: {
       email,
       name,
       teamId: team_id,
+      status,
+      role,
     },
   });
 
   return NextResponse.json({
     data: user,
   });
+}
+
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    redirect("/login");
+  }
+
+  const data = await req.json();
+  const { id } = data;
+
+  const user = await prisma.user.delete({
+    where: {
+      id,
+    },
+  });
+
+  return NextResponse.json({});
 }
