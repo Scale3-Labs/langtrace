@@ -90,9 +90,11 @@ export default function PageClient({ email }: { email: string }) {
 }
 
 function ProjectCard({
+  key,
   project,
   teamId,
 }: {
+  key: number;
   project: Project;
   teamId: string;
 }) {
@@ -111,7 +113,7 @@ function ProjectCard({
     return <div>Loading...</div>;
   }
   return (
-    <div className="relative">
+    <div className="relative" key={key}>
       <div className="flex items-center flex-row gap-2 absolute top-2 right-2 z-10">
         {!fetchProjecStats.isLoading &&
           fetchProjecStats.data &&
