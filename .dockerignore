@@ -3,7 +3,9 @@ docker-compose.yml
 docker-compose.yaml
 .env
 node_modules/
-cli/
 .next/
 .dockerignore
 .gitignore
+.github/
+README.md
+SECURITY.md

@@ -24,8 +24,8 @@ const ProjectNavLinks = (id: string) => [
     href: `/project/${id}/traces`,
   },
   {
-    name: "Eval",
-    href: `/project/${id}/eval`,
+    name: "Evaluations",
+    href: `/project/${id}/evaluations`,
   },
   {
     name: "Datasets",
