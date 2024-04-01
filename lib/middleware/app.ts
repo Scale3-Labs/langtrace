@@ -28,20 +28,22 @@ export default async function AppMiddleware(req: NextRequest) {
     );
     const response = await userReq.json();
     const user = response.data;
-    if (user && !user.teamId) {
-      // create a team
-      await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/team`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: "My Team",
-          userId: user.id,
-          role: "owner",
-          status: "active",
-        }),
-      });
+    if (user) {
+      if (!user.teamId) {
+        // create a team
+        await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/team`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: "My Team",
+            userId: user.id,
+            role: "owner",
+            status: "active",
+          }),
+        });
+      }
     }
 
     // if there's a session

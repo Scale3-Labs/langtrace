@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { id, name, teamId, role } = data;
+  const { id, name, teamId, role, status } = data;
 
   if ("teamId" in data) {
     const user = await prisma.user.update({
@@ -75,6 +75,21 @@ export async function PUT(req: NextRequest) {
       },
       data: {
         role,
+      },
+    });
+    return NextResponse.json({
+      data: user,
+    });
+  }
+
+  if ("status" in data) {
+    console.log("updating status");
+    const user = await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        status,
       },
     });
     return NextResponse.json({
@@ -118,4 +133,22 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     data: user,
   });
+}
+
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    redirect("/login");
+  }
+
+  const data = await req.json();
+  const { id } = data;
+
+  const user = await prisma.user.delete({
+    where: {
+      id,
+    },
+  });
+
+  return NextResponse.json({});
 }
