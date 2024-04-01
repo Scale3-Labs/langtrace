@@ -21,13 +21,16 @@ import TraceGraph from "../traces/trace_graph";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { useBottomScrollListener } from 'react-bottom-scroll-listener';
+import { Spinner } from '../shared/spinner';
 
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(2);
+  const pageSize = 15;
   const [showLoader, setShowLoader] = useState(false);
+  const [data, setData] = useState<any>(null);
 
   const fetchProject = useQuery({
     queryKey: ["fetch-project-query"],
@@ -50,19 +53,31 @@ export default function Traces({ email }: { email: string }) {
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/trace?projectId=${project_id}`);
+      const response = await fetch(`/api/trace?projectId=${project_id}&page=${page}&pageSize=${pageSize}`);
       const result = await response.json();
-      if (totalPages !== result.metadata.total_pages) {
-        setTotalPages(result.metadata.total_pages);
-      }
-      setPage(page + 1);
-      setShowLoader(false);
       return result;
+    },
+    onSuccess: (result) => {
+      // Only update data if result.result is not empty
+      if (totalPages !== result.traces.metadata.total_pages) {
+        setTotalPages(result.traces.metadata.total_pages);
+      }
+      if (result) {
+        if (data) {
+          setData((prevData: any) => [...prevData, ...result.traces.result]);
+        } else {
+          setData(result.traces.result);
+        }
+      }
+      setPage((currentPage) => currentPage + 1);
+      setShowLoader(false);
     },
   });
 
   useBottomScrollListener(() => {
-    if (fetchTraces.isRefetching) return;
+    if (fetchTraces.isRefetching) {
+      return;
+    }
     if (page < totalPages) {
       setShowLoader(true);
       fetchTraces.refetch();
@@ -75,8 +90,7 @@ export default function Traces({ email }: { email: string }) {
     fetchUser.isLoading ||
     !fetchUser.data ||
     fetchTraces.isLoading ||
-    !fetchTraces.data ||
-    showLoader
+    !fetchTraces.data
   ) {
     return <div>Loading...</div>;
   }
@@ -98,7 +112,7 @@ export default function Traces({ email }: { email: string }) {
         </div>
         {!fetchTraces.isLoading &&
           fetchTraces.data &&
-          fetchTraces.data?.traces?.result?.map((trace: any, i: number) => {
+          data.map((trace: any, i: number) => {
             return (
               <div key={i} className="flex flex-col gap-3 px-3">
                 <TraceRow trace={trace} /> <Separator />
@@ -116,6 +130,11 @@ export default function Traces({ email }: { email: string }) {
               <SetupInstructions project_id={project_id} />
             </div>
           )}
+          {showLoader && (
+          <div className='flex justify-center py-8'>
+            <Spinner className='h-8 w-8 text-center' />
+          </div>
+        )}
       </div>
     </div>
   );
