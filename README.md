@@ -26,18 +26,15 @@ To use the managed SaaS version of Langtrace, follow the steps below:
 5. The code for installing and setting up the SDK is shown below:
 
 
-If your application is built using **typescript/javascript**:
-```
-npm i @langtrase/typescript-sdk
-```
+### If your application is built using **typescript/javascript**:
 
-```
-import { init } from '@langtrace-init/init';
-init({ api_key: process.env.LANGTRACE_API_KEY });
-```
+1. `npm i @langtrase/typescript-sdk`
+   
+2. `import * as Langtrace from '@langtrase/typescript-sdk; // Must precede any llm module imports`
+   
+3. `Langtrace.init({ api_key: <your_api_key> })` **OR** `LangTrace.init() // LANGTRACE_API_KEY as an ENVIRONMENT variable`
 
-
-If your application is built using **python**:
+### If your application is built using **python**:
 ```
 pip install langtrace-python-sdk
 ```
