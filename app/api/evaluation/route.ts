@@ -119,16 +119,13 @@ export async function GET(req: NextRequest) {
     });
 
     if (!evaluations) {
-      return NextResponse.json(
-        {
-          error: "No evaluation found",
-        },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        evaluations: [],
+      });
     }
 
     return NextResponse.json({
-      evaluations,
+      evaluations: [evaluations],
     });
   }
 
@@ -140,16 +137,13 @@ export async function GET(req: NextRequest) {
     });
 
     if (!evaluations) {
-      return NextResponse.json(
-        {
-          error: "No evaluations found",
-        },
-        { status: 404 }
-      );
+      return NextResponse.json({
+        evaluations: [],
+      });
     }
 
     return NextResponse.json({
-      evaluations,
+      evaluations: [evaluations],
     });
   }
 

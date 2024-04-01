@@ -41,7 +41,7 @@ export function CreateData({
   const schema = z.object({
     input: z.string().min(2, "Too short").max(200, "Too long"),
     output: z.string().min(2, "Too short").max(2000, "Too long"),
-    note: z.string().min(2, "Too short").max(25, "Too long").optional(),
+    note: z.string().max(25, "Too long").optional(),
   });
   const CreateDataForm = useForm({
     resolver: zodResolver(schema),
@@ -186,7 +186,7 @@ export function CreatePrompt({
   const [busy, setBusy] = useState<boolean>(false);
   const schema = z.object({
     value: z.string().min(2, "Too short").max(2000, "Too long"),
-    note: z.string().min(2, "Too short").max(25, "Too long").optional(),
+    note: z.string().max(25, "Too long").optional(),
   });
   const CreatePromptsetForm = useForm({
     resolver: zodResolver(schema),

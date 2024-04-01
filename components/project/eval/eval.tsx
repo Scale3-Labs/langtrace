@@ -126,8 +126,11 @@ const EvalRow = ({
     queryFn: async () => {
       const response = await fetch(`/api/evaluation?spanId=${prompt.span_id}`);
       const result = await response.json();
-      setEvaluation(result.evaluations);
-      setScore(result.evaluations?.score || -100);
+      console.log(result);
+      setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
+      setScore(
+        result.evaluations.length > 0 ? result.evaluations[0].score : -100
+      );
       return result;
     },
   });
@@ -185,9 +188,9 @@ const EvalRow = ({
 
   // score evaluation
   const evaluateSpan = async (newScore: number) => {
-    if (score === -100) {
+    if (!evaluation?.id) {
       // Evaluate
-      fetch("/api/evaluation", {
+      await fetch("/api/evaluation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -203,7 +206,7 @@ const EvalRow = ({
         }),
       });
     } else {
-      fetch("/api/evaluation", {
+      await fetch("/api/evaluation", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -216,7 +219,7 @@ const EvalRow = ({
     }
 
     // Invalidate the evaluations query to refetch the updated evaluations
-    queryClient.invalidateQueries("fetch-evaluations-query");
+    queryClient.invalidateQueries(`fetch-evaluation-query-${prompt.span_id}`);
   };
 
   return (
