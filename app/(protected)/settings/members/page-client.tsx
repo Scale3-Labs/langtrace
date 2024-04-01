@@ -76,6 +76,8 @@ export function InviteMember({ user }: { user: any }) {
           email: data.email,
           name: data.name,
           team_id: user.teamId,
+          role: "member",
+          status: "invited",
         }),
       });
 

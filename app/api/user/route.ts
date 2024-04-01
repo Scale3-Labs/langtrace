@@ -96,7 +96,6 @@ export async function PUT(req: NextRequest) {
   });
 }
 
-// may not work / be necessary if users only get created through google auth
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
@@ -104,13 +103,15 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { email, name, team_id } = data;
+  const { email, name, team_id, status, role } = data;
 
   const user = await prisma.user.create({
     data: {
       email,
       name,
       teamId: team_id,
+      status,
+      role,
     },
   });
 

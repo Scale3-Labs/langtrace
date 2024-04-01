@@ -16,7 +16,7 @@ export default async function AppMiddleware(req: NextRequest) {
     email?: string;
     user?: User;
   };
-  if (session && path === "/login") {
+  if (session && (path === "/login" || path === "/signup")) {
     const userReq = await fetch(
       `${process.env.NEXT_PUBLIC_HOST}/api/user?email=${session?.email}`,
       {
@@ -38,6 +38,8 @@ export default async function AppMiddleware(req: NextRequest) {
         body: JSON.stringify({
           name: "My Team",
           userId: user.id,
+          role: "owner",
+          status: "active",
         }),
       });
     }
