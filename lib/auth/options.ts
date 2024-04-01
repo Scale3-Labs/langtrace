@@ -40,6 +40,8 @@ export const authOptions: NextAuthOptions = {
               email: process.env.ADMIN_EMAIL,
               name: "Admin",
               image: null,
+              role: "owner",
+              status: "active",
             },
           });
         }

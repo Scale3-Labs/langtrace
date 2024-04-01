@@ -76,6 +76,8 @@ export function InviteMember({ user }: { user: any }) {
           email: data.email,
           name: data.name,
           team_id: user.teamId,
+          role: "member",
+          status: "invited",
         }),
       });
 
@@ -215,11 +217,11 @@ function ManageRole({ member }: { member: any }) {
           defaultValue={type}
         >
           <div className="flex items-center space-x-2 py-4">
-            <RadioGroupItem value="user" id="r2" />
+            <RadioGroupItem value="member" id="r2" />
             <div className="flex flex-col gap-1">
               <Label htmlFor="r2">Member</Label>
               <p className="text-sm text-muted-foreground">
-                Create projects and deploy AI models.
+                Standard-level permissions. Can view and edit projects.
               </p>
             </div>
           </div>
@@ -254,21 +256,19 @@ function ManageRole({ member }: { member: any }) {
 
 function RemoveMemberDialog({ member }: { member: any }) {
   const [busy, setBusy] = useState(false);
-  const [type, setType] = useState(member.role);
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const removeUser = async (member: any) => {
     try {
       setBusy(true);
-      await fetch(`/api/user?id=${member.id}`, {
-        method: "PUT",
+      await fetch("/api/user", {
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           id: member.id,
-          teamId: null,
         }),
       });
       queryClient.invalidateQueries({ queryKey: ["getUsers"] }).then(() => {
