@@ -32,12 +32,12 @@ To use the managed SaaS version of Langtrace, follow the steps below:
 npm i @langtrase/typescript-sdk
 ```
 ``` typescript
-import * as Langtrace from '@langtrase/typescript-sdk; // Must precede any llm module imports
+import * as Langtrace from '@langtrase/typescript-sdk // Must precede any llm module imports
 Langtrace.init({ api_key: <your_api_key> })
 ```
 OR
 ``` typescript
-import * as Langtrace from '@langtrase/typescript-sdk; // Must precede any llm module imports
+import * as Langtrace from '@langtrase/typescript-sdk // Must precede any llm module imports
 LangTrace.init() // LANGTRACE_API_KEY as an ENVIRONMENT variable
 ```
 
