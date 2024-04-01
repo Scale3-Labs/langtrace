@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  langtrace-app:
+    container_name: langtrace
+    image: scale3labs/langtrace-client:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    env_file:
+      - .env
+    command: /bin/sh -c "npm run create-tables && npm run dev"
+    ports:
+      - "3000:3000"
+    # Uncmment this for development
+    # volumes:
+    #   - .:/app
+    depends_on:
+      postgres-db:
+        condition: service_started
+        required: true
+      clickhouse-init:
+        condition: service_completed_successfully
+        required: true
+
+  postgres-db:
+    container_name: langtrace-postgres
+    image: postgres:16.2-bookworm
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  clickhouse-db:
+    container_name: langtrace-clickhouse
+    image: clickhouse/clickhouse-server:23.3.20.27-alpine
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      retries: 3
+      start_period: 30s
+      start_interval: 5s
+      interval: 1m
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+
+  clickhouse-init:
+    container_name: langtrace-clickhouse-init
+    image: clickhouse/clickhouse-server:23.3.20.27-alpine
+    env_file:
+      - .env
+    depends_on:
+      clickhouse-db:
+        condition: service_healthy
+        required: true
+    command: clickhouse-client --host langtrace-clickhouse --query 'CREATE DATABASE IF NOT EXISTS $CLICK_HOUSE_DATABASE_NAME;'
+
+volumes:
+  postgres-data:
+  clickhouse-data:
