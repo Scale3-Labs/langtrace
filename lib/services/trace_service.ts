@@ -229,8 +229,7 @@ export class TraceService implements ITraceService {
         throw Error("Page number is greater than total pages");
       }
       const query = sql.select(
-        `* FROM ${project_id} WHERE attributes LIKE '%${attribute}%' ORDER BY 'start_time' DESC LIMIT ${pageSize} OFFSET ${
-          (page - 1) * pageSize
+        `* FROM ${project_id} WHERE attributes LIKE '%${attribute}%' ORDER BY 'start_time' DESC LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize
         };`
       );
       let spans: Span[] = await this.client.find<Span[]>(query);
@@ -303,8 +302,7 @@ export class TraceService implements ITraceService {
         throw Error("Page number is greater than total pages");
       }
       const query = sql.select(
-        `* FROM ${project_id} ORDER BY 'createdAt' DESC LIMIT ${pageSize} OFFSET ${
-          (page - 1) * pageSize
+        `* FROM ${project_id} ORDER BY 'createdAt' DESC LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize
         };`
       );
 
@@ -344,8 +342,7 @@ export class TraceService implements ITraceService {
       const md = { page, page_size: pageSize, total_pages: totalPages };
       // get all spans grouped by trace_id and sort by start_time in descending order
       const query = sql.select(
-        `trace_id, MIN(start_time) AS earliest_start_time FROM ${project_id} GROUP BY trace_id ORDER BY earliest_start_time DESC LIMIT ${pageSize} OFFSET ${
-          (page - 1) * pageSize
+        `trace_id, MIN(start_time) AS earliest_start_time FROM ${project_id} GROUP BY trace_id ORDER BY earliest_start_time DESC LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize
         };`
       );
       const spans: Span[] = await this.client.find<Span[]>(query);
@@ -485,16 +482,16 @@ export class TraceService implements ITraceService {
             "input_tokens" in llmTokenCounts
               ? llmTokenCounts.input_tokens
               : "prompt_tokens" in llmTokenCounts
-              ? llmTokenCounts.prompt_tokens
-              : 0;
+                ? llmTokenCounts.prompt_tokens
+                : 0;
           inputTokens += input_token_count;
 
           const output_token_count =
             "output_tokens" in llmTokenCounts
               ? llmTokenCounts.output_tokens
               : "completion_tokens" in llmTokenCounts
-              ? llmTokenCounts.completion_tokens
-              : 0;
+                ? llmTokenCounts.completion_tokens
+                : 0;
           outputTokens += output_token_count;
         });
         return {
