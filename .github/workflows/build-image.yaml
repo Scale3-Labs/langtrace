@@ -1,47 +1,55 @@
 name: "Build Docker Image"
+run-name: "Version: ${{ inputs.imageTag }} --> Latest: ${{ inputs.isLatest }}"
+
 on:
   workflow_dispatch:
     inputs:
-      RegistryEnv:
-        type: environment
-        description: "Select Env"
-        required: true
       imageTag:
-        description: "Release version"
+        description: Release version
         required: true
-        default: "latest"
+        default: example
+      isLatest:
+        description: Is this the latest version?
+        type: boolean
+        required: true
+        default: false
 
 jobs:
   docker-build:
-    environment: ${{ inputs.RegistryEnv }}
     runs-on: ubuntu-latest
+    env:
+      DOCKER_REGISTRY: scale3labs/langtrace-client
     steps:
-      - name: "Github Checkout"
-        uses: actions/checkout@v3
+      - name: Github Checkout
+        # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
-      - name: "Login via Azure CLI"
-        uses: azure/login@v1
+      - name: Log in to Docker Hub
+        # v3.1.0
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: "Build and push image"
-        uses: azure/docker-login@v1
+      - name: Build and push Docker image with latest tag
+        # v5.3.0
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         with:
-          login-server: ${{ vars.REGISTRY_LOGIN_SERVER }}
-          username: ${{ vars.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-      - run: |
-          docker build . -t ${{ vars.REGISTRY_LOGIN_SERVER }}/sampleapp:${{ vars.imageTag }}
-          docker push ${{ vars.REGISTRY_LOGIN_SERVER }}/sampleapp:${{ vars.imageTag }}
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}:${{ inputs.imageTag }}
+            ${{ env.DOCKER_REGISTRY }}:latest
+          labels: ${{ inputs.imageTag }}
+        if: ${{ inputs.isLatest }}
 
-      # - name: "Deploy to Azure Container Instances"
-      #   uses: "azure/aci-deploy@v1"
-      #   with:
-      #     resource-group: ${{ vars.RESOURCE_GROUP }}
-      #     dns-name-label: ${{ vars.RESOURCE_GROUP }}${{ github.run_number }}
-      #     image: ${{ vars.REGISTRY_LOGIN_SERVER }}/sampleapp:${{ github.sha }}
-      #     registry-login-server: ${{ vars.REGISTRY_LOGIN_SERVER }}
-      #     registry-username: ${{ vars.REGISTRY_USERNAME }}
-      #     registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-      #     name: aci-sampleapp
-      #     location: "west us"
+      - name: Build and push Docker image without latest tag
+        # v5.3.0
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}:${{ inputs.imageTag }}
+        if: ${{ !inputs.isLatest }}
