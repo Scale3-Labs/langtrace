@@ -9,7 +9,6 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import { useQuery } from "react-query";
-import SetupInstructions from "../../shared/setup-instructions";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
 
@@ -90,17 +89,14 @@ export default function Prompts({ email }: { email: string }) {
               />
             );
           })}
-          {!fetchPrompts.isLoading &&
-            fetchPrompts.data &&
-            !fetchPrompts.data?.prompts?.result && (
-              <div className="flex flex-col gap-3 items-center justify-center p-4">
-                <p className="text-muted-foreground text-sm mb-3">
-                  No prompts available. Get started by setting up Langtrace in
-                  your application.
-                </p>
-                <SetupInstructions project_id={project_id} />
-              </div>
-            )}
+          {dedupedPrompts?.length === 0 && (
+            <div className="flex flex-col gap-3 items-center justify-center p-4">
+              <p className="text-muted-foreground font-semibold text-md mb-3">
+                No prompts available. Use the system role with your LLM API
+                calls to capture prompts automatically.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );

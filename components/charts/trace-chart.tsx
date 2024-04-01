@@ -1,6 +1,6 @@
 "use client";
 
-import { AreaChart } from "@tremor/react";
+import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
 
 export function TraceSpanChart({ projectId }: { projectId: string }) {
@@ -46,7 +46,10 @@ export function TraceSpanChart({ projectId }: { projectId: string }) {
     const data = traceData?.map((trace: any, index: number) => {
       return {
         ...trace,
-        "Span Count": spanData && spanData.length > 0 && spanData[index] !== undefined ? spanData[index]["Span Count"] : 0,
+        "Span Count":
+          spanData && spanData.length > 0 && spanData[index] !== undefined
+            ? spanData[index]["Span Count"]
+            : 0,
       };
     });
 
@@ -67,7 +70,7 @@ export function TraceSpanChart({ projectId }: { projectId: string }) {
               Spans are individual events that represent a single operation.
             </p>
           </div>
-          <AreaChart
+          <BarChart
             className="mt-2 h-72"
             data={data}
             index="date"
@@ -113,7 +116,7 @@ export function SpanChart({ projectId }: { projectId: string }) {
               Spans are individual events that represent a single operation.
             </p>
           </div>
-          <AreaChart
+          <BarChart
             className="mt-2 h-72"
             data={fetchMetricsUsageSpan.data.spans.map((data: any) => ({
               date: data.date,

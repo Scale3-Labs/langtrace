@@ -1,6 +1,6 @@
 "use client";
 
-import { AreaChart } from "@tremor/react";
+import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
 
 export function TokenChart({ projectId }: { projectId: string }) {
@@ -36,7 +36,7 @@ export function TokenChart({ projectId }: { projectId: string }) {
               Total Tokens: {fetchMetricsUsageToken.data.totalTokens || 0}
             </p>
           </div>
-          <AreaChart
+          <BarChart
             className="mt-2 h-72"
             data={fetchMetricsUsageToken.data?.usage?.map((data: any) => ({
               date: data.date,
@@ -94,7 +94,7 @@ export function CostChart({ projectId }: { projectId: string }) {
               Total Cost: ${fetchMetricsUsageCost.data?.total?.toFixed(6) || 0}
             </p>
           </div>
-          <AreaChart
+          <BarChart
             className="mt-2 h-72"
             data={fetchMetricsUsageCost.data?.cost?.map((data: any) => ({
               date: data?.date,
