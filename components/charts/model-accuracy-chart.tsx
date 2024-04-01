@@ -1,6 +1,6 @@
 "use client";
 
-import { AreaChart } from "@tremor/react";
+import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { Info } from "../shared/info";
 
@@ -90,7 +90,7 @@ export function ModelAccuracyChart({ projectId }: { projectId: string }) {
               {r.model} Overall Accuracy: {r.overallAccuracy.toFixed(2)}%
             </p>
           ))}
-          <AreaChart
+          <BarChart
             className="mt-2 h-72"
             data={sortedArray}
             index="date"

@@ -78,6 +78,7 @@ export function CreateDataset({
                 await queryClient.invalidateQueries(
                   "fetch-datasets-stats-query"
                 );
+                await queryClient.invalidateQueries("fetch-datasets-query");
                 toast("Dataset created!", {
                   description: "Your dataset has been created.",
                 });
@@ -204,6 +205,7 @@ export function CreatePromptset({
                 await queryClient.invalidateQueries(
                   "fetch-promptsets-stats-query"
                 );
+                await queryClient.invalidateQueries("fetch-promptsets-query");
                 toast("Promptset created!", {
                   description: "Your promptset has been created.",
                 });
