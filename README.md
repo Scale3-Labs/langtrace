@@ -28,11 +28,18 @@ To use the managed SaaS version of Langtrace, follow the steps below:
 
 ### If your application is built using **typescript/javascript**:
 
-1. `npm i @langtrase/typescript-sdk`
-   
-2. `import * as Langtrace from '@langtrase/typescript-sdk; // Must precede any llm module imports`
-   
-3. `Langtrace.init({ api_key: <your_api_key> })` **OR** `LangTrace.init() // LANGTRACE_API_KEY as an ENVIRONMENT variable`
+``` typescript
+npm i @langtrase/typescript-sdk
+```
+``` typescript
+import * as Langtrace from '@langtrase/typescript-sdk; // Must precede any llm module imports
+Langtrace.init({ api_key: <your_api_key> })
+```
+OR
+``` typescript
+import * as Langtrace from '@langtrase/typescript-sdk; // Must precede any llm module imports
+LangTrace.init() // LANGTRACE_API_KEY as an ENVIRONMENT variable
+```
 
 ### If your application is built using **python**:
 
