@@ -67,12 +67,12 @@ export default function SetupInstructions({
             className="text-xs p-2 rounded-md bg-muted select-all selection:bg-orange-400 dark:selection:bg-orange-600"
             onClick={() => {
               copyToClipboard(
-                "import { init } from '@langtrace-init/init';\n\ninit({ api_key: process.env.LANGTRACE_API_KEY });"
+                "import { init } from '@langtrace-init/init';\n\ninit({ api_key: <api-key-from-step-2> });"
               );
             }}
           >
             {"import { init } from '@langtrace-init/init';\n\n"}
-            {"init({ api_key: process.env.LANGTRACE_API_KEY });"}
+            {"init({ api_key: <api-key-from-step-2> });"}
           </pre>
         )}
         {sdk === "python" && (
@@ -80,12 +80,12 @@ export default function SetupInstructions({
             className="text-xs p-2 rounded-md bg-muted select-all selection:bg-orange-400 dark:selection:bg-orange-600"
             onClick={() => {
               copyToClipboard(
-                "from langtrace_python_sdk import langtrace\n\nlangtrace.init(api_key=process.env.LANGTRACE_API_KEY)"
+                "from langtrace_python_sdk import langtrace\n\nlangtrace.init(api_key=<api-key-from-step-2>)"
               );
             }}
           >
             {"from langtrace_python_sdk import langtrace\n\n"}
-            {"langtrace.init(api_key=process.env.LANGTRACE_API_KEY)"}
+            {"langtrace.init(api_key=<api-key-from-step-2>)"}
           </pre>
         )}
       </div>
