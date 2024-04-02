@@ -11,6 +11,8 @@ import Markdown from "react-markdown";
 import { useQuery } from "react-query";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
+import { useBottomScrollListener } from 'react-bottom-scroll-listener';
+import { Spinner } from '../../shared/spinner';
 
 interface CheckedData {
   value: string;
@@ -20,6 +22,11 @@ interface CheckedData {
 export default function Prompts({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(2);
+  const pageSize = 15;
+  const [showLoader, setShowLoader] = useState(false);
+  const [data, setData] = useState<any>(null);
 
   const onCheckedChange = (data: CheckedData, checked: boolean) => {
     if (checked) {
@@ -32,18 +39,43 @@ export default function Prompts({ email }: { email: string }) {
   const fetchPrompts = useQuery({
     queryKey: ["fetch-prompts-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/prompt?projectId=${project_id}`);
+      const response = await fetch(`/api/prompt?projectId=${project_id}&page=${page}&pageSize=${pageSize}`);
       const result = await response.json();
       return result;
     },
+    onSuccess: (result) => {
+      // Only update data if result.result is not empty
+      if (totalPages !== result.prompts.metadata.total_pages) {
+        setTotalPages(result.prompts.metadata.total_pages);
+      }
+      if (result) {
+        if (data) {
+          setData((prevData: any) => [...prevData, ...result.prompts.result]);
+        } else {
+          setData(result.prompts.result);
+        }
+      }
+      setPage((currentPage) => currentPage + 1);
+      setShowLoader(false);
+    },
   });
 
-  if (fetchPrompts.isLoading || !fetchPrompts.data) {
+  useBottomScrollListener(() => {
+    if (fetchPrompts.isRefetching) {
+      return;
+    }
+    if (page < totalPages) {
+      setShowLoader(true);
+      fetchPrompts.refetch();
+    }
+  });
+
+  if (fetchPrompts.isLoading || !fetchPrompts.data || !data) {
     return <div>Loading...</div>;
   } else {
     // Deduplicate prompts
     const seenPrompts: string[] = [];
-    const prompts = fetchPrompts.data?.prompts?.result || [];
+    const prompts = data || [];
     const dedupedPrompts = prompts.filter((prompt: any) => {
       const attributes = prompt.attributes ? JSON.parse(prompt.attributes) : {};
       const prompts: any[] = JSON.parse(attributes["llm.prompts"]) || "[]";
@@ -89,6 +121,11 @@ export default function Prompts({ email }: { email: string }) {
               />
             );
           })}
+          {showLoader && (
+            <div className='flex justify-center py-8'>
+              <Spinner className='h-8 w-8 text-center' />
+            </div>
+          )}
           {dedupedPrompts?.length === 0 && (
             <div className="flex flex-col gap-3 items-center justify-center p-4">
               <p className="text-muted-foreground font-semibold text-md mb-3">
