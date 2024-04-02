@@ -7,22 +7,54 @@ import { Separator } from "@/components/ui/separator";
 import { ChevronLeft } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
+import { useState } from "react";
+import { useBottomScrollListener } from 'react-bottom-scroll-listener';
+import { Spinner } from '@/components/shared/spinner';
 
 export default function Promptset() {
   const promptset_id = useParams()?.promptset_id as string;
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(2);
+  const pageSize = 15;
+  const [showLoader, setShowLoader] = useState(false);
+  const [data, setData] = useState<any>(null);
+
+  useBottomScrollListener(() => {
+    if (fetchPromptset.isRefetching) {
+      return;
+    }
+    if (page <= totalPages) {
+      setShowLoader(true);
+      fetchPromptset.refetch();
+    }
+  });
 
   const fetchPromptset = useQuery({
     queryKey: [promptset_id],
     queryFn: async () => {
       const response = await fetch(
-        `/api/promptset?promptset_id=${promptset_id}`
+        `/api/promptset?promptset_id=${promptset_id}&page=${page}&pageSize=${pageSize}`
       );
       const result = await response.json();
       return result;
     },
+    onSuccess: (result) => {
+      if (totalPages !== result.metadata.total_pages) {
+        setTotalPages(result.metadata.total_pages);
+      }
+      if (result) {
+        if (data) {
+          setData((prevData: any) => [...prevData, ...result.promptsets.Prompt]);
+        } else {
+          setData(result.promptsets.Prompt);
+        }
+      }
+      setPage((currentPage) => currentPage + 1);
+      setShowLoader(false);
+    }
   });
 
-  if (fetchPromptset.isLoading || !fetchPromptset.data) {
+  if (fetchPromptset.isLoading || !fetchPromptset.data || !data) {
     return <div>Loading...</div>;
   } else {
     return (
@@ -50,7 +82,7 @@ export default function Promptset() {
               </div>
             )}
           {fetchPromptset.data?.promptsets &&
-            fetchPromptset.data?.promptsets?.Prompt?.map(
+            data.map(
               (prompt: any, i: number) => {
                 return (
                   <div className="flex flex-col" key={i}>
@@ -70,6 +102,11 @@ export default function Promptset() {
                 );
               }
             )}
+            {showLoader && (
+            <div className='flex justify-center py-8'>
+              <Spinner className='h-8 w-8 text-center' />
+            </div>
+          )}
         </div>
       </div>
     );

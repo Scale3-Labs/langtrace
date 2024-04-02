@@ -43,7 +43,7 @@ export default function Traces({ email }: { email: string }) {
     if (fetchTraces.isRefetching) {
       return;
     }
-    if (page < totalPages) {
+    if (page <= totalPages) {
       setShowLoader(true);
       fetchTraces.refetch();
     }
@@ -61,13 +61,11 @@ export default function Traces({ email }: { email: string }) {
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
-      console.log('fetching')
       const response = await fetch(`/api/trace?projectId=${project_id}&page=${page}&pageSize=${pageSize}`);
       const result = await response.json();
       return result;
     },
     onSuccess: (result) => {
-      console.log(result)
       // Only update data if result.result is not empty
       if (totalPages !== result.traces.metadata.total_pages) {
         setTotalPages(result.traces.metadata.total_pages);
@@ -75,7 +73,6 @@ export default function Traces({ email }: { email: string }) {
       if (result) {
         if (data) {
           setData((prevData: any) => [...prevData, ...result.traces.result]);
-          console.log(data.length)
         } else {
           setData(result.traces.result);
         }
