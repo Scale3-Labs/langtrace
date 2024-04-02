@@ -1,4 +1,3 @@
-import CheckSession from "@/components/shared/check-session";
 import { authOptions } from "@/lib/auth/options";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -18,7 +17,6 @@ export default async function Page() {
 
   return (
     <>
-      <CheckSession checkActiveSession={false} routeTo="/login" />
       <PageClient team={user.data.Team} email={email} />
     </>
   );

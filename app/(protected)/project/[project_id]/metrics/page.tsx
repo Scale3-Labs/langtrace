@@ -1,5 +1,4 @@
 import Metrics from "@/components/project/metrics";
-import CheckSession from "@/components/shared/check-session";
 import { authOptions } from "@/lib/auth/options";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
@@ -19,7 +18,6 @@ export default async function Page() {
 
   return (
     <>
-      <CheckSession checkActiveSession={false} routeTo="/login" />
       <Metrics email={user.email as string} />
     </>
   );
