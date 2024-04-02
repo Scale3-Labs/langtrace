@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={redHatDisplay.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="system">
           <QueryProvider>{children}</QueryProvider>
         </ThemeProvider>
       </body>
