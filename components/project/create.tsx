@@ -80,6 +80,7 @@ export function Create({
                   description: "Your project has been created.",
                 });
                 setOpen(false);
+                CreateProjectForm.reset();
               } catch (error: any) {
                 toast("Error creating your project!", {
                   description: `There was an error creating your project: ${error.message}`,
