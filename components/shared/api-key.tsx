@@ -12,9 +12,10 @@ import { ClipboardIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function GenerateApiKey({ projectId }: { projectId: string }) {
+export default function GenerateApiKey({ projectId, onApiKeyGenerated }: { projectId: string; onApiKeyGenerated?: (apiKey: string) => void }) {
   const [busy, setBusy] = useState(false);
   const [apiKey, setApiKey] = useState("");
+
   return (
     <Dialog>
       <DialogTrigger>
@@ -62,6 +63,7 @@ export default function GenerateApiKey({ projectId }: { projectId: string }) {
                 });
                 const result = await response.json();
                 setApiKey(result.data.apiKey);
+                onApiKeyGenerated?.(result.data.apiKey);
                 toast("Copy your API Key!", {
                   description:
                     "Please copy your API key. It will not be shown again.",
