@@ -36,8 +36,9 @@ export function ApiKeyDialog({
       <DialogContent className="sm:max-w-[580px]">
         <DialogHeader>
           <DialogTitle>Generate API Key</DialogTitle>
-          <DialogDescription>
-            Note: If you already have an API key, it will be replaced.
+          <DialogDescription className="text-red-600 font-bold">
+            Note: Click to copy this API key as it will NOT be shown again. If
+            you already have an API key, it will be replaced.
           </DialogDescription>
           {apiKey && (
             <div className="flex items-center bg-muted p-2 rounded-md justify-between">
