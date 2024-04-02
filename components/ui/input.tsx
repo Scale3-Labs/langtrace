@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     return (
       <input
@@ -22,4 +22,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 )
 Input.displayName = "Input"
 
-export { Input }
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+
+export const InputLarge = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <textarea
+        className={cn(
+          "flex h-20 w-full resize-none rounded-md border border-input bg-transparent p-3 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+);
+InputLarge.displayName = "InputLarge";

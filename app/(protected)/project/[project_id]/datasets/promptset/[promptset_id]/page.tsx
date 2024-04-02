@@ -2,14 +2,14 @@
 
 import { CreatePrompt } from "@/components/project/dataset/create-data";
 import { EditPrompt } from "@/components/project/dataset/edit-data";
+import { Spinner } from '@/components/shared/spinner';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ChevronLeft } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useQuery } from "react-query";
 import { useState } from "react";
 import { useBottomScrollListener } from 'react-bottom-scroll-listener';
-import { Spinner } from '@/components/shared/spinner';
+import { useQuery } from "react-query";
 
 export default function Promptset() {
   const promptset_id = useParams()?.promptset_id as string;

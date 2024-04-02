@@ -83,6 +83,7 @@ export function CreateDataset({
                   description: "Your dataset has been created.",
                 });
                 setOpen(false);
+                CreateDatasetForm.reset();
               } catch (error: any) {
                 toast("Error creating your dataset!", {
                   description: `There was an error creating your dataset: ${error.message}`,
@@ -210,6 +211,7 @@ export function CreatePromptset({
                   description: "Your promptset has been created.",
                 });
                 setOpen(false);
+                CreatePromptsetForm.reset();
               } catch (error: any) {
                 toast("Error creating your promptset!", {
                   description: `There was an error creating your promptset: ${error.message}`,
