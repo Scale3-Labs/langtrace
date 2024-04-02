@@ -17,7 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Input, InputLarge } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
@@ -86,6 +86,7 @@ export function CreateData({
                   description: "Your data has been added.",
                 });
                 setOpen(false);
+                CreateDataForm.reset();
               } catch (error: any) {
                 toast("Error added your data!", {
                   description: `There was an error added your data: ${error.message}`,
@@ -225,6 +226,7 @@ export function CreatePrompt({
                   description: "Your prompt has been added.",
                 });
                 setOpen(false);
+                CreatePromptsetForm.reset();
               } catch (error: any) {
                 toast("Error creating your prompt!", {
                   description: `There was an error creating your prompt: ${error.message}`,
@@ -249,8 +251,9 @@ export function CreatePrompt({
                     />
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <InputLarge
                       placeholder="You are a documentation writer. Answer in a courteous manner."
+                      // className="w-full h-20"
                       {...field}
                     />
                   </FormControl>

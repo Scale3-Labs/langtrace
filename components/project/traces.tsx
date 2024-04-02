@@ -70,8 +70,8 @@ export default function Traces({ email }: { email: string }) {
     },
     onSuccess: (result) => {
       // Only update data if result.result is not empty
-      if (totalPages !== result.traces.metadata.total_pages) {
-        setTotalPages(result.traces.metadata.total_pages);
+      if (totalPages !== result?.traces?.metadata?.total_pages) {
+        setTotalPages(result?.traces?.metadata?.total_pages);
       }
       if (result) {
         if (data) {

@@ -2,14 +2,14 @@
 
 import { CreatePrompt } from "@/components/project/dataset/create-data";
 import { EditPrompt } from "@/components/project/dataset/edit-data";
+import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ChevronLeft } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useQuery } from "react-query";
 import { useState } from "react";
-import { useBottomScrollListener } from 'react-bottom-scroll-listener';
-import { Spinner } from '@/components/shared/spinner';
+import { useBottomScrollListener } from "react-bottom-scroll-listener";
+import { useQuery } from "react-query";
 
 export default function Promptset() {
   const promptset_id = useParams()?.promptset_id as string;
@@ -39,19 +39,22 @@ export default function Promptset() {
       return result;
     },
     onSuccess: (result) => {
-      if (totalPages !== result.metadata.total_pages) {
-        setTotalPages(result.metadata.total_pages);
+      if (totalPages !== result?.metadata?.total_pages) {
+        setTotalPages(result?.metadata?.total_pages);
       }
       if (result) {
         if (data) {
-          setData((prevData: any) => [...prevData, ...result.promptsets.Prompt]);
+          setData((prevData: any) => [
+            ...prevData,
+            ...result.promptsets.Prompt,
+          ]);
         } else {
           setData(result.promptsets.Prompt);
         }
       }
       setPage((currentPage) => currentPage + 1);
       setShowLoader(false);
-    }
+    },
   });
 
   if (fetchPromptset.isLoading || !fetchPromptset.data || !data) {
@@ -82,29 +85,24 @@ export default function Promptset() {
               </div>
             )}
           {fetchPromptset.data?.promptsets &&
-            data.map(
-              (prompt: any, i: number) => {
-                return (
-                  <div className="flex flex-col" key={i}>
-                    <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">
-                      <p className="text-xs">{prompt.createdAt}</p>
-                      <p className="text-xs">{prompt.value}</p>
-                      <p className="text-xs text-end">{prompt.note}</p>
-                      <div className="text-end">
-                        <EditPrompt
-                          prompt={prompt}
-                          promptSetId={promptset_id}
-                        />
-                      </div>
+            data.map((prompt: any, i: number) => {
+              return (
+                <div className="flex flex-col" key={i}>
+                  <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">
+                    <p className="text-xs">{prompt.createdAt}</p>
+                    <p className="text-xs">{prompt.value}</p>
+                    <p className="text-xs text-end">{prompt.note}</p>
+                    <div className="text-end">
+                      <EditPrompt prompt={prompt} promptSetId={promptset_id} />
                     </div>
-                    <Separator orientation="horizontal" />
                   </div>
-                );
-              }
-            )}
-            {showLoader && (
-            <div className='flex justify-center py-8'>
-              <Spinner className='h-8 w-8 text-center' />
+                  <Separator orientation="horizontal" />
+                </div>
+              );
+            })}
+          {showLoader && (
+            <div className="flex justify-center py-8">
+              <Spinner className="h-8 w-8 text-center" />
             </div>
           )}
         </div>
