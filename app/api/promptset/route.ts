@@ -12,6 +12,11 @@ export async function GET(req: NextRequest) {
 
   const id = req.nextUrl.searchParams.get("id") as string;
   const promptsetId = req.nextUrl.searchParams.get("promptset_id") as string;
+  const pageParam = req.nextUrl.searchParams.get("page");
+  const page = pageParam ? parseInt(pageParam, 10) : 1;
+  const pageSizeParam = req.nextUrl.searchParams.get("pageSize");
+  const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
+
   if (!promptsetId && !id) {
     return NextResponse.json(
       {
@@ -41,14 +46,28 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // If dataset exists, fetch related Data records ordered by createdAt
+    const totalLen = await prisma.prompt.count({
+      where: {
+        promptsetId: promptset.id,
+      },
+    });
+
+    const totalPages = Math.ceil(totalLen / pageSize) === 0 ? 1 : Math.ceil(totalLen / pageSize);
+    const md = { page, page_size: pageSize, total_pages: totalPages };
+
+    if (page! > totalPages) {
+      throw Error("Page number is greater than total pages");
+    }
+
     const relatedPrompt = await prisma.prompt.findMany({
       where: {
         promptsetId: promptset.id,
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: 'desc',
       },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
     });
 
     // Combine dataset with its related, ordered Data
@@ -59,6 +78,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       promptsets: promptsetWithOrderedData,
+      metadata: md,
     });
   }
 

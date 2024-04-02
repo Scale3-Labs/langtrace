@@ -3,12 +3,7 @@ import { TraceService } from "@/lib/services/trace_service";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
-
-//curl "http://localhost:3000/api/trace?projectId=dylan_test_table&traceId=15132931e76a38ffcff2707b38e75e20"
-// example curl for getting specific trace from a project
-
-// curl "http://localhost:3000/api/trace?projectId=dylan_test_table&attribute=llm.model"
-// example curl for getting traces with specific attribute from a project
+import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -49,4 +44,23 @@ export async function GET(req: NextRequest) {
       status: 400,
     });
   }
+}
+
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user) {
+    redirect("/login");
+  }
+  
+  const data = await req.json();
+  const { id } = data;
+
+  const prompt = await prisma.prompt.delete({
+    where: {
+      id,
+    },
+  });
+
+  return NextResponse.json({});
 }
