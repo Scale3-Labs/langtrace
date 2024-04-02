@@ -34,7 +34,7 @@ export default function Traces({ email }: { email: string }) {
   const fetchProject = useQuery({
     queryKey: ["fetch-project-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/trace?projectId=${project_id}`);
+      const response = await fetch(`/api/project?id=${project_id}`);
       const result = await response.json();
       return result;
     },});
