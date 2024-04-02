@@ -34,26 +34,10 @@ export default function Traces({ email }: { email: string }) {
   const fetchProject = useQuery({
     queryKey: ["fetch-project-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/trace?projectId=${project_id}&page=${page}&pageSize=${pageSize}`);
+      const response = await fetch(`/api/trace?projectId=${project_id}`);
       const result = await response.json();
       return result;
-    },
-    onSuccess: (result) => {
-      // Only update data if result.result is not empty
-      if (totalPages !== result.traces.metadata.total_pages) {
-        setTotalPages(result.traces.metadata.total_pages);
-      }
-      if (result) {
-        if (data) {
-          setData((prevData: any) => [...prevData, ...result.traces.result]);
-        } else {
-          setData(result.traces.result);
-        }
-      }
-      setPage((currentPage) => currentPage + 1);
-      setShowLoader(false);
-    },
-  });
+    }});
 
   useBottomScrollListener(() => {
     if (fetchTraces.isRefetching) {
@@ -61,6 +45,7 @@ export default function Traces({ email }: { email: string }) {
     }
     if (page < totalPages) {
       setShowLoader(true);
+      console.log(page)
       fetchTraces.refetch();
     }
   });
@@ -77,9 +62,27 @@ export default function Traces({ email }: { email: string }) {
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/trace?projectId=${project_id}`);
+      console.log('fetching')
+      const response = await fetch(`/api/trace?projectId=${project_id}&page=${page}&pageSize=${pageSize}`);
       const result = await response.json();
       return result;
+    },
+    onSuccess: (result) => {
+      console.log(result)
+      // Only update data if result.result is not empty
+      if (totalPages !== result.traces.metadata.total_pages) {
+        setTotalPages(result.traces.metadata.total_pages);
+      }
+      if (result) {
+        if (data) {
+          setData((prevData: any) => [...prevData, ...result.traces.result]);
+          console.log(data.length)
+        } else {
+          setData(result.traces.result);
+        }
+      }
+      setPage((currentPage) => currentPage + 1);
+      setShowLoader(false);
     },
   });
 
@@ -89,7 +92,8 @@ export default function Traces({ email }: { email: string }) {
     fetchUser.isLoading ||
     !fetchUser.data ||
     fetchTraces.isLoading ||
-    !fetchTraces.data
+    !fetchTraces.data ||
+    !data
   ) {
     return <div>Loading...</div>;
   }
