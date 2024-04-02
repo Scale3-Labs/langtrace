@@ -45,7 +45,6 @@ export default function Traces({ email }: { email: string }) {
     }
     if (page < totalPages) {
       setShowLoader(true);
-      console.log(page)
       fetchTraces.refetch();
     }
   });
@@ -123,10 +122,10 @@ export default function Traces({ email }: { email: string }) {
             );
           })}
           {showLoader && (
-          <div className='flex justify-center py-8'>
-            <Spinner className='h-8 w-8 text-center' />
-          </div>
-        )}
+            <div className='flex justify-center py-8'>
+              <Spinner className='h-8 w-8 text-center' />
+            </div>
+          )}
         {!fetchTraces.isLoading &&
           fetchTraces.data &&
           !fetchTraces.data?.traces?.result && (

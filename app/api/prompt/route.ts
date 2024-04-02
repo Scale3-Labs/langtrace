@@ -55,7 +55,6 @@ export async function DELETE(req: NextRequest) {
   
   const data = await req.json();
   const { id } = data;
-  // console.log(promptId);
 
   const prompt = await prisma.prompt.delete({
     where: {
