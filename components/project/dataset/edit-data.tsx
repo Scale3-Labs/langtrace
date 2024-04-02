@@ -33,8 +33,6 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useBottomScrollListener } from 'react-bottom-scroll-listener';
-import { Spinner } from '@/components/shared/spinner';
 
 export function EditData({
   idata,
@@ -139,6 +137,7 @@ export function EditData({
                     description: "Your data has been saved.",
                   });
                   setOpen(false);
+                  EditDataForm.reset();
                 } catch (error: any) {
                   toast("Error saving your dataset!", {
                     description: `There was an error saving your dataset: ${error.message}`,
@@ -371,6 +370,7 @@ export function EditPrompt({
                     description: "Your prompt has been saved.",
                   });
                   setOpen(false);
+                  EditPromptSetForm.reset();
                 } catch (error: any) {
                   toast("Error saving your prompt!", {
                     description: `There was an error saving your prompt: ${error.message}`,
