@@ -14,14 +14,14 @@ import {
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import SetupInstructions from "../shared/setup-instructions";
+import { Spinner } from "../shared/spinner";
 import { serviceTypeColor, vendorBadgeColor } from "../shared/vendor-metadata";
 import TraceGraph from "../traces/trace_graph";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
-import { useBottomScrollListener } from 'react-bottom-scroll-listener';
-import { Spinner } from '../shared/spinner';
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -37,7 +37,8 @@ export default function Traces({ email }: { email: string }) {
       const response = await fetch(`/api/project?id=${project_id}`);
       const result = await response.json();
       return result;
-    },});
+    },
+  });
 
   useBottomScrollListener(() => {
     if (fetchTraces.isRefetching) {
@@ -61,7 +62,9 @@ export default function Traces({ email }: { email: string }) {
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/trace?projectId=${project_id}&page=${page}&pageSize=${pageSize}`);
+      const response = await fetch(
+        `/api/trace?projectId=${project_id}&page=${page}&pageSize=${pageSize}`
+      );
       const result = await response.json();
       return result;
     },
@@ -88,7 +91,8 @@ export default function Traces({ email }: { email: string }) {
     fetchUser.isLoading ||
     !fetchUser.data ||
     fetchTraces.isLoading ||
-    !fetchTraces.data
+    !fetchTraces.data ||
+    !data
   ) {
     return <div>Loading...</div>;
   }
@@ -117,9 +121,9 @@ export default function Traces({ email }: { email: string }) {
               </div>
             );
           })}
-          {showLoader && (
-          <div className='flex justify-center py-8'>
-            <Spinner className='h-8 w-8 text-center' />
+        {showLoader && (
+          <div className="flex justify-center py-8">
+            <Spinner className="h-8 w-8 text-center" />
           </div>
         )}
         {!fetchTraces.isLoading &&
