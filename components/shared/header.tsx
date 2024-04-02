@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SCHEDULE_CALL_LINK } from "@/lib/constants";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
-import { LogOutIcon } from "lucide-react";
+import { FileIcon, LogOutIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { useQuery } from "react-query";
@@ -47,6 +47,13 @@ export async function Header({
           Langtrace AI
         </Link>
         <div className="flex items-end gap-3">
+        <Link href={'https://docs.langtrace.ai/introduction'} target='_blank'>
+          <Button variant={'secondary'} size={'sm'}>
+            <FileIcon className='mr-2 h-4 w-4' />
+            Docs
+            <ArrowTopRightIcon className='ml-2 h-5 w-5' />
+          </Button>
+        </Link>
           <div className="flex flex-col mr-4">
             <p className="text-sm text-muted-foreground">
               Total Spans Ingested

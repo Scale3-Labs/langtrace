@@ -140,12 +140,17 @@ export class TraceService implements ITraceService {
   async GetTotalSpansPerDayPerProject(
     project_id: string,
     lastNDays = 7
-  ): Promise<number> {
+  ): Promise<any> {
     const nDaysAgo = format(
       new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
       "yyyy-MM-dd"
     );
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
@@ -187,12 +192,17 @@ export class TraceService implements ITraceService {
   async GetTotalTracePerDayPerProject(
     project_id: string,
     lastNDays = 7
-  ): Promise<number> {
+  ): Promise<any> {
     const nDaysAgo = format(
       new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
       "yyyy-MM-dd"
     );
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
@@ -218,6 +228,14 @@ export class TraceService implements ITraceService {
     pageSize: number
   ): Promise<PaginationResult<Span>> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return {
+          result: [],
+          metadata: { page, page_size: pageSize, total_pages: 1 },
+        };
+      }
+
       const totalLen = await this.GetTotalSpansPerProject(project_id);
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
@@ -292,6 +310,13 @@ export class TraceService implements ITraceService {
     pageSize: number
   ): Promise<PaginationResult<Span>> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return {
+          result: [],
+          metadata: { page, page_size: pageSize, total_pages: 1 },
+        };
+      }
       const totalLen = await this.GetTotalSpansPerProject(project_id);
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
@@ -335,6 +360,13 @@ export class TraceService implements ITraceService {
     pageSize: number
   ): Promise<PaginationResult<Span[]>> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return {
+          result: [],
+          metadata: { page, page_size: pageSize, total_pages: 1 },
+        };
+      }
       const totalLen = await this.GetTotalTracesPerProject(project_id);
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
@@ -349,7 +381,6 @@ export class TraceService implements ITraceService {
         };`
       );
       const spans: Span[] = await this.client.find<Span[]>(query);
-
       // get all traces
       const traces: Span[][] = [];
       for (const span of spans) {
@@ -369,6 +400,15 @@ export class TraceService implements ITraceService {
     lastNDays = 7
   ): Promise<any> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return {
+          averageLatencies: [],
+          p99Latencies: [],
+          p95Latencies: [],
+        };
+      }
+
       const nDaysAgo = format(
         new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
         "yyyy-MM-dd"
@@ -447,8 +487,13 @@ export class TraceService implements ITraceService {
   async GetTokensUsedPerDayPerProject(
     project_id: string,
     lastNDays = 7
-  ): Promise<number> {
+  ): Promise<any> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+
       const nDaysAgo = format(
         new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
         "yyyy-MM-dd"
@@ -516,8 +561,13 @@ export class TraceService implements ITraceService {
   async GetTokensCostPerDayPerProject(
     project_id: string,
     lastNDays = 7
-  ): Promise<number> {
+  ): Promise<any> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+
       const nDaysAgo = format(
         new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
         "yyyy-MM-dd"
@@ -569,6 +619,15 @@ export class TraceService implements ITraceService {
 
   async GetTokensCostPerProject(project_id: string): Promise<any> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return {
+          total: 0,
+          input: 0,
+          output: 0,
+        };
+      }
+
       const query = sql
         .select()
         .from(project_id)
@@ -606,6 +665,15 @@ export class TraceService implements ITraceService {
 
   async GetTokensUsedPerProject(project_id: string): Promise<any> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return {
+          totalTokens: 0,
+          totalInputTokens: 0,
+          totalOutputTokens: 0,
+        };
+      }
+
       const query = sql
         .select()
         .from(project_id)
