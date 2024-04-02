@@ -292,6 +292,10 @@ export class TraceService implements ITraceService {
     pageSize: number
   ): Promise<PaginationResult<Span>> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return { result: [], metadata: { page, page_size: pageSize, total_pages: 1 } };
+      }
       const totalLen = await this.GetTotalSpansPerProject(project_id);
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
@@ -335,6 +339,10 @@ export class TraceService implements ITraceService {
     pageSize: number
   ): Promise<PaginationResult<Span[]>> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return { result: [], metadata: { page, page_size: pageSize, total_pages: 1 } };
+      }
       const totalLen = await this.GetTotalTracesPerProject(project_id);
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
@@ -349,7 +357,6 @@ export class TraceService implements ITraceService {
         };`
       );
       const spans: Span[] = await this.client.find<Span[]>(query);
-
       // get all traces
       const traces: Span[][] = [];
       for (const span of spans) {
