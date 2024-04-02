@@ -15,13 +15,13 @@ import { CheckCircledIcon, DotFilledIcon } from "@radix-ui/react-icons";
 import { ChevronDown, ChevronRight, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import Markdown from "react-markdown";
 import { useQuery, useQueryClient } from "react-query";
 import SetupInstructions from "../../shared/setup-instructions";
+import { Spinner } from "../../shared/spinner";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
-import { useBottomScrollListener } from 'react-bottom-scroll-listener';
-import { Spinner } from '../../shared/spinner';
 
 interface CheckedData {
   input: string;
@@ -49,14 +49,16 @@ export default function Eval({ email }: { email: string }) {
   const fetchPrompts = useQuery({
     queryKey: ["fetch-prompts-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/prompt?projectId=${project_id}&page=${page}&pageSize=${pageSize}`);
+      const response = await fetch(
+        `/api/prompt?projectId=${project_id}&page=${page}&pageSize=${pageSize}`
+      );
       const result = await response.json();
       return result;
     },
     onSuccess: (result) => {
       // Only update data if result.result is not empty
-      if (totalPages !== result.prompts.metadata.total_pages) {
-        setTotalPages(result.prompts.metadata.total_pages);
+      if (totalPages !== result?.prompts?.metadata?.total_pages) {
+        setTotalPages(result?.prompts?.metadata?.total_pages);
       }
       if (result) {
         if (data) {
@@ -119,11 +121,11 @@ export default function Eval({ email }: { email: string }) {
               </div>
             );
           })}
-          {showLoader && (
-            <div className='flex justify-center py-8'>
-              <Spinner className='h-8 w-8 text-center' />
-            </div>
-          )}
+        {showLoader && (
+          <div className="flex justify-center py-8">
+            <Spinner className="h-8 w-8 text-center" />
+          </div>
+        )}
         {!fetchPrompts.isLoading &&
           fetchPrompts.data &&
           !fetchPrompts.data?.prompts?.result && (
