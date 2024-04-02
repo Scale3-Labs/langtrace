@@ -126,17 +126,15 @@ export default function Traces({ email }: { email: string }) {
             <Spinner className="h-8 w-8 text-center" />
           </div>
         )}
-        {!fetchTraces.isLoading &&
-          fetchTraces.data &&
-          !data?.traces?.result && (
-            <div className="flex flex-col gap-3 items-center justify-center p-4">
-              <p className="text-muted-foreground text-sm mb-3">
-                No traces available. Get started by setting up Langtrace in your
-                application.
-              </p>
-              <SetupInstructions project_id={project_id} />
-            </div>
-          )}
+        {!fetchTraces.isLoading && fetchTraces.data && data.length === 0 && (
+          <div className="flex flex-col gap-3 items-center justify-center p-4">
+            <p className="text-muted-foreground text-sm mb-3">
+              No traces available. Get started by setting up Langtrace in your
+              application.
+            </p>
+            <SetupInstructions project_id={project_id} />
+          </div>
+        )}
       </div>
     </div>
   );
