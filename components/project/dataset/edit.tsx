@@ -134,6 +134,7 @@ export function EditDataSet({
                     description: "Your dataset has been saved.",
                   });
                   setOpen(false);
+                  EditDataSetForm.reset();
                 } catch (error: any) {
                   toast("Error saving your dataset!", {
                     description: `There was an error saving your dataset: ${error.message}`,
@@ -347,6 +348,7 @@ export function EditPromptSet({
                     description: "Your promptset has been saved.",
                   });
                   setOpen(false);
+                  EditPromptSetForm.reset();
                 } catch (error: any) {
                   toast("Error saving your promptset!", {
                     description: `There was an error saving your promptset: ${error.message}`,
