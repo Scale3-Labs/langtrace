@@ -128,7 +128,7 @@ export default function Traces({ email }: { email: string }) {
         )}
         {!fetchTraces.isLoading &&
           fetchTraces.data &&
-          !fetchTraces.data?.traces?.result && (
+          !data?.traces?.result && (
             <div className="flex flex-col gap-3 items-center justify-center p-4">
               <p className="text-muted-foreground text-sm mb-3">
                 No traces available. Get started by setting up Langtrace in your
