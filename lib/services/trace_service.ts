@@ -335,7 +335,7 @@ export class TraceService implements ITraceService {
     pageSize: number
   ): Promise<PaginationResult<Span[]>> {
     try {
-      const totalLen = await this.GetTotalSpansPerProject(project_id);
+      const totalLen = await this.GetTotalTracesPerProject(project_id);
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
           ? 1

@@ -39,7 +39,7 @@ export type LangTraceAttributes = LLMSpanAttributes &
 export type SpanStatusCode = "UNSET" | "OK" | "ERROR";
 
 export const CLICK_HOUSE_CONSTANTS = {
-  database: "langtrace_dev",
+  database: process.env.CLICK_HOUSE_DATABASE_NAME,
 };
 
 // cost per 1000 tokens

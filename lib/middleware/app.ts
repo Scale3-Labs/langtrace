@@ -52,7 +52,6 @@ export default async function AppMiddleware(req: NextRequest) {
     !session &&
     path !== "/login" &&
     path !== "/signup" &&
-    path !== "/enterprise" &&
     path !== "/"
   ) {
     // if there's no session

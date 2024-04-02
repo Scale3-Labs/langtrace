@@ -20,6 +20,8 @@ import { useQuery, useQueryClient } from "react-query";
 import SetupInstructions from "../../shared/setup-instructions";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
+import { useBottomScrollListener } from 'react-bottom-scroll-listener';
+import { Spinner } from '../../shared/spinner';
 
 interface CheckedData {
   input: string;
@@ -30,6 +32,11 @@ interface CheckedData {
 export default function Eval({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(2);
+  const pageSize = 15;
+  const [showLoader, setShowLoader] = useState(false);
+  const [data, setData] = useState<any>(null);
 
   const onCheckedChange = (data: CheckedData, checked: boolean) => {
     if (checked) {
@@ -42,13 +49,38 @@ export default function Eval({ email }: { email: string }) {
   const fetchPrompts = useQuery({
     queryKey: ["fetch-prompts-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/prompt?projectId=${project_id}`);
+      const response = await fetch(`/api/prompt?projectId=${project_id}&page=${page}&pageSize=${pageSize}`);
       const result = await response.json();
       return result;
     },
+    onSuccess: (result) => {
+      // Only update data if result.result is not empty
+      if (totalPages !== result.prompts.metadata.total_pages) {
+        setTotalPages(result.prompts.metadata.total_pages);
+      }
+      if (result) {
+        if (data) {
+          setData((prevData: any) => [...prevData, ...result.prompts.result]);
+        } else {
+          setData(result.prompts.result);
+        }
+      }
+      setPage((currentPage) => currentPage + 1);
+      setShowLoader(false);
+    },
   });
 
-  if (fetchPrompts.isLoading || !fetchPrompts.data) {
+  useBottomScrollListener(() => {
+    if (fetchPrompts.isRefetching) {
+      return;
+    }
+    if (page < totalPages) {
+      setShowLoader(true);
+      fetchPrompts.refetch();
+    }
+  });
+
+  if (fetchPrompts.isLoading || !fetchPrompts.data || !data) {
     return <div>Loading...</div>;
   }
 
@@ -74,7 +106,7 @@ export default function Eval({ email }: { email: string }) {
         </div>
         {!fetchPrompts.isLoading &&
           fetchPrompts.data &&
-          fetchPrompts.data?.prompts?.result?.map((prompt: any, i: number) => {
+          data.map((prompt: any, i: number) => {
             return (
               <div className="flex flex-col" key={i}>
                 <EvalRow
@@ -87,6 +119,11 @@ export default function Eval({ email }: { email: string }) {
               </div>
             );
           })}
+          {showLoader && (
+            <div className='flex justify-center py-8'>
+              <Spinner className='h-8 w-8 text-center' />
+            </div>
+          )}
         {!fetchPrompts.isLoading &&
           fetchPrompts.data &&
           !fetchPrompts.data?.prompts?.result && (
@@ -126,7 +163,6 @@ const EvalRow = ({
     queryFn: async () => {
       const response = await fetch(`/api/evaluation?spanId=${prompt.span_id}`);
       const result = await response.json();
-      console.log(result);
       setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
       setScore(
         result.evaluations.length > 0 ? result.evaluations[0].score : -100
