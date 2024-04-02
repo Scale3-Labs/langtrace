@@ -126,17 +126,15 @@ export default function Eval({ email }: { email: string }) {
             <Spinner className="h-8 w-8 text-center" />
           </div>
         )}
-        {!fetchPrompts.isLoading &&
-          fetchPrompts.data &&
-          !fetchPrompts.data?.prompts?.result && (
-            <div className="flex flex-col gap-3 items-center justify-center p-4">
-              <p className="text-muted-foreground text-sm mb-3">
-                No prompts available. Get started by setting up Langtrace in
-                your application.
-              </p>
-              <SetupInstructions project_id={project_id} />
-            </div>
-          )}
+        {!fetchPrompts.isLoading && fetchPrompts.data && data.length === 0 && (
+          <div className="flex flex-col gap-3 items-center justify-center p-4">
+            <p className="text-muted-foreground text-sm mb-3">
+              No prompts available. Get started by setting up Langtrace in your
+              application.
+            </p>
+            <SetupInstructions project_id={project_id} />
+          </div>
+        )}
       </div>
     </div>
   );
