@@ -75,10 +75,10 @@ export function Header({ email }: { email: string }) {
           <DropdownMenu>
             {!fetchUser.isLoading && fetchUser.data && (
               <DropdownMenuTrigger asChild>
-                {fetchUser.data.user?.avatar ? (
+                {fetchUser.data?.data?.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={fetchUser.data.user?.avatar}
+                    src={fetchUser.data?.data?.image}
                     alt="User Avatar"
                     className="rounded-full w-10 cursor-pointer"
                   />
@@ -93,7 +93,9 @@ export function Header({ email }: { email: string }) {
             <DropdownMenuContent className="h-full w-56 mx-12 mt-1 overflow-x-auto">
               <DropdownMenuLabel className="flex flex-col gap-1 break-all">
                 {!fetchUser.isLoading && fetchUser.data && (
-                  <p className="font-semibold">{fetchUser.data?.name || ""}</p>
+                  <p className="font-semibold">
+                    {fetchUser.data?.data?.name || ""}
+                  </p>
                 )}
                 <p className="font-normal">{email}</p>
               </DropdownMenuLabel>
