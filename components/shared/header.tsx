@@ -19,19 +19,20 @@ import { useQuery } from "react-query";
 import { ModeToggle } from "./mode-toggle";
 import Nav from "./nav";
 
-export async function Header({
-  name,
-  email,
-  avatar,
-}: {
-  name: string;
-  email: string;
-  avatar: string;
-}) {
+export function Header({ email }: { email: string }) {
   const fetchAccountStats = useQuery({
-    queryKey: [`fetch-account-stats-${email}`],
+    queryKey: ["fetch-account-stats"],
     queryFn: async () => {
       const response = await fetch(`/api/stats/account?email=${email}`);
+      const result = await response.json();
+      return result;
+    },
+  });
+
+  const fetchUser = useQuery({
+    queryKey: ["fetch-user-query"],
+    queryFn: async () => {
+      const response = await fetch(`/api/user?email=${email}`);
       const result = await response.json();
       return result;
     },
@@ -47,13 +48,13 @@ export async function Header({
           Langtrace AI
         </Link>
         <div className="flex items-end gap-3">
-        <Link href={'https://docs.langtrace.ai/introduction'} target='_blank'>
-          <Button variant={'secondary'} size={'sm'}>
-            <FileIcon className='mr-2 h-4 w-4' />
-            Docs
-            <ArrowTopRightIcon className='ml-2 h-5 w-5' />
-          </Button>
-        </Link>
+          <Link href={"https://docs.langtrace.ai/introduction"} target="_blank">
+            <Button variant={"secondary"} size={"sm"}>
+              <FileIcon className="mr-2 h-4 w-4" />
+              Docs
+              <ArrowTopRightIcon className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
           <div className="flex flex-col mr-4">
             <p className="text-sm text-muted-foreground">
               Total Spans Ingested
@@ -72,24 +73,30 @@ export async function Header({
           </div>
           <ModeToggle />
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              {avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={avatar}
-                  alt="User Avatar"
-                  className="rounded-full w-10 cursor-pointer"
-                />
-              ) : (
-                <Button
-                  variant="outline"
-                  className="rounded-full w-10 bg-gradient-to-tr from-slate-600 via-slate-200 to-slate-800"
-                ></Button>
-              )}
-            </DropdownMenuTrigger>
+            {!fetchUser.isLoading && fetchUser.data && (
+              <DropdownMenuTrigger asChild>
+                {fetchUser.data?.data?.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={fetchUser.data?.data?.image}
+                    alt="User Avatar"
+                    className="rounded-full w-10 cursor-pointer"
+                  />
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="rounded-full w-10 bg-gradient-to-tr from-slate-600 via-slate-200 to-slate-800"
+                  ></Button>
+                )}
+              </DropdownMenuTrigger>
+            )}
             <DropdownMenuContent className="h-full w-56 mx-12 mt-1 overflow-x-auto">
               <DropdownMenuLabel className="flex flex-col gap-1 break-all">
-                <p className="font-semibold">{name}</p>
+                {!fetchUser.isLoading && fetchUser.data && (
+                  <p className="font-semibold">
+                    {fetchUser.data?.data?.name || ""}
+                  </p>
+                )}
                 <p className="font-normal">{email}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
