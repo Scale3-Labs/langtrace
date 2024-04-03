@@ -1,6 +1,6 @@
 # [Langtrace](https://www.langtrace.ai)
 
-## Open Source & Open Telemetry(OTEL) Observability for LLM applications.
+## Open Source & Open Telemetry(OTEL) Observability for LLM applications
 
 ![Static Badge](https://img.shields.io/badge/License-AGPL--3.0-blue) ![Static Badge](https://img.shields.io/badge/npm_@langtrase/typescript--sdk-1.2.9-green) ![Static Badge](https://img.shields.io/badge/pip_langtrace--python--sdk-1.2.8-green) ![Static Badge](https://img.shields.io/badge/Development_status-Active-green)
 
@@ -26,22 +26,25 @@ To use the managed SaaS version of Langtrace, follow the steps below:
 4. In your application, install the Langtrace SDK and initialize it with the API key you generated in the step 3.
 5. The code for installing and setting up the SDK is shown below:
 
-### If your application is built using **typescript/javascript**:
+### If your application is built using **typescript/javascript**
 
 ``` typescript
 npm i @langtrase/typescript-sdk
 ```
+
 ``` typescript
-import * as Langtrace from '@langtrase/typescript-sdk // Must precede any llm module imports
+import * as Langtrace from '@langtrase/typescript-sdk' // Must precede any llm module imports
 Langtrace.init({ api_key: <your_api_key> })
 ```
+
 OR
+
 ``` typescript
-import * as Langtrace from '@langtrase/typescript-sdk // Must precede any llm module imports
+import * as Langtrace from '@langtrase/typescript-sdk' // Must precede any llm module imports
 LangTrace.init() // LANGTRACE_API_KEY as an ENVIRONMENT variable
 ```
 
-### If your application is built using **python**:
+### If your application is built using **python**
 
 ```
 pip install langtrace-python-sdk
@@ -118,6 +121,7 @@ The following are some commands that may come handy during setup and debugging.
   ```bash
   docker exec -it langtrace-clickhouse clickhouse-client
   ```
+
 </details>
 
 <details>
@@ -126,10 +130,13 @@ The following are some commands that may come handy during setup and debugging.
   ```bash
   docker logs langtrace
   ```
+
   If you want to follow the logs
+
   ```bash
   docker logs -f langtrace
   ```
+
 </details>
 
 <details>
@@ -138,6 +145,7 @@ The following are some commands that may come handy during setup and debugging.
   ```bash
   docker exec -it langtrace npm run create-tables
   ```
+
 </details>
 
 #### Common issues for local setup
@@ -149,6 +157,7 @@ The following are some commands that may come handy during setup and debugging.
   ```bash
   docker exec -it langtrace npm run create-tables
   ```
+
 </details>
 
 <details>
@@ -158,6 +167,7 @@ The following are some commands that may come handy during setup and debugging.
   ```bash
   docker exec -it langtrace npm run create-tables
   ```
+
 </details>
 
 <details>
@@ -218,7 +228,7 @@ We welcome contributions to this project. To get started, fork this repository a
 
 ## Security
 
-To report security vulnerabilites, email us at security@scale3labs.com. You can read more on security [here](https://github.com/Scale3-Labs/langtrace/blob/development/SECURITY.md).
+To report security vulnerabilites, email us at <security@scale3labs.com>. You can read more on security [here](https://github.com/Scale3-Labs/langtrace/blob/development/SECURITY.md).
 
 ---
 
