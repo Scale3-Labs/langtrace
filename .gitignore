@@ -27,7 +27,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env.local
 
 # vercel
 .vercel
@@ -40,5 +40,3 @@ next-env.d.ts
 cli/config*.ini
 cli/build/*
 cli/dist/*
-
-.env
