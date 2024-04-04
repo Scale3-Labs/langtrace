@@ -46,14 +46,23 @@ LangTrace.init() // LANGTRACE_API_KEY as an ENVIRONMENT variable
 
 ### If your application is built using **python**
 
-```
+```python
 pip install langtrace-python-sdk
 ```
 
-```
+```python
 from langtrace_python_sdk import langtrace
-langtrace.init(api_key=process.env.LANGTRACE_API_KEY)
+langtrace.init(api_key=<your_api_key>)
 ```
+
+OR
+
+```python
+from langtrace_python_sdk import langtrace
+langtrace.init() # LANGTRACE_API_KEY as an ENVIRONMENT variable
+```
+
+
 
 ### Langtrace self hosted
 
