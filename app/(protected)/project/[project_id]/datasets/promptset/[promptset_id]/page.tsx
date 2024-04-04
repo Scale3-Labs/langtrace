@@ -39,15 +39,19 @@ export default function Promptset() {
       return result;
     },
     onSuccess: (result) => {
+      console.log(result)
       if (totalPages !== result?.metadata?.total_pages) {
         setTotalPages(result?.metadata?.total_pages);
       }
       if (result) {
+        const newData = result?.promptsets?.Prompt || [];
         if (data) {
-          setData((prevData: any) => [
-            ...prevData,
-            ...result.promptsets.Prompt,
-          ]);
+          // setData((prevData: any) => [
+          //   ...prevData,
+          //   ...result.promptsets.Prompt,
+          // ]);
+          const updatedData = [...data, ...newData.filter((newItem: any) => !data.some((existingItem: any) => existingItem.id === newItem.id))];
+          setData(updatedData);
         } else {
           setData(result.promptsets.Prompt);
         }
@@ -55,6 +59,7 @@ export default function Promptset() {
       setPage((currentPage) => currentPage + 1);
       setShowLoader(false);
     },
+    // refetchOnWindowFocus: false,
   });
 
   if (fetchPromptset.isLoading || !fetchPromptset.data || !data) {
