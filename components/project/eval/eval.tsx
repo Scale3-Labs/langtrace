@@ -2,6 +2,7 @@
 
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PAGE_SIZE } from "@/lib/constants";
 import detectPII from "@/lib/pii";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import {
@@ -33,10 +34,9 @@ export default function Eval({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(2);
-  const pageSize = 15;
-  const [showLoader, setShowLoader] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [currentData, setCurrentData] = useState<any>([]);
+  const [busy, setBusy] = useState(false);
 
   const onCheckedChange = (data: CheckedData, checked: boolean) => {
     if (checked) {
@@ -50,25 +50,37 @@ export default function Eval({ email }: { email: string }) {
     queryKey: ["fetch-prompts-query"],
     queryFn: async () => {
       const response = await fetch(
-        `/api/prompt?projectId=${project_id}&page=${page}&pageSize=${pageSize}`
+        `/api/prompt?projectId=${project_id}&page=${page}&pageSize=${PAGE_SIZE}`
       );
       const result = await response.json();
       return result;
     },
-    onSuccess: (result) => {
-      // Only update data if result.result is not empty
-      if (totalPages !== result?.prompts?.metadata?.total_pages) {
-        setTotalPages(result?.prompts?.metadata?.total_pages);
+    onSuccess: (data) => {
+      // Get the newly fetched data and metadata
+      const newData = data?.prompts?.result || [];
+      const metadata = data?.prompts?.metadata || {};
+
+      // Update the total pages and current page number
+      setTotalPages(parseInt(metadata?.total_pages) || 1);
+      if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
+        setPage(parseInt(metadata?.page) + 1);
       }
-      if (result) {
-        if (data) {
-          setData((prevData: any) => [...prevData, ...result?.prompts?.result || []]);
-        } else {
-          setData(result?.prompts?.result || []);
-        }
+
+      // Merge the new data with the existing data
+      if (currentData.length > 0) {
+        const updatedData = [...currentData, ...newData];
+
+        // Remove duplicates
+        const uniqueData = updatedData.filter(
+          (v: any, i: number, a: any) =>
+            a.findIndex((t: any) => t.span_id === v.span_id) === i
+        );
+
+        setCurrentData(uniqueData);
+      } else {
+        setCurrentData(newData);
       }
-      setPage((currentPage) => currentPage + 1);
-      setShowLoader(false);
+      setBusy(false);
     },
   });
 
@@ -76,13 +88,13 @@ export default function Eval({ email }: { email: string }) {
     if (fetchPrompts.isRefetching) {
       return;
     }
-    if (page < totalPages) {
-      setShowLoader(true);
+    if (page <= totalPages) {
+      setBusy(true);
       fetchPrompts.refetch();
     }
   });
 
-  if (fetchPrompts.isLoading || !fetchPrompts.data || !data) {
+  if (fetchPrompts.isLoading || !fetchPrompts.data || !currentData) {
     return <div>Loading...</div>;
   }
 
@@ -108,7 +120,7 @@ export default function Eval({ email }: { email: string }) {
         </div>
         {!fetchPrompts.isLoading &&
           fetchPrompts.data &&
-          data.map((prompt: any, i: number) => {
+          currentData.map((prompt: any, i: number) => {
             return (
               <div className="flex flex-col" key={i}>
                 <EvalRow
@@ -121,20 +133,22 @@ export default function Eval({ email }: { email: string }) {
               </div>
             );
           })}
-        {showLoader && (
+        {busy && (
           <div className="flex justify-center py-8">
             <Spinner className="h-8 w-8 text-center" />
           </div>
         )}
-        {!fetchPrompts.isLoading && fetchPrompts.data && data.length === 0 && (
-          <div className="flex flex-col gap-3 items-center justify-center p-4">
-            <p className="text-muted-foreground text-sm mb-3">
-              No prompts available. Get started by setting up Langtrace in your
-              application.
-            </p>
-            <SetupInstructions project_id={project_id} />
-          </div>
-        )}
+        {!fetchPrompts.isLoading &&
+          fetchPrompts.data &&
+          currentData.length === 0 && (
+            <div className="flex flex-col gap-3 items-center justify-center p-4">
+              <p className="text-muted-foreground text-sm mb-3">
+                No prompts available. Get started by setting up Langtrace in
+                your application.
+              </p>
+              <SetupInstructions project_id={project_id} />
+            </div>
+          )}
       </div>
     </div>
   );
