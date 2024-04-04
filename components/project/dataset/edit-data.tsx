@@ -79,11 +79,6 @@ export function EditData({
                   e.preventDefault();
                   e.stopPropagation();
                   setOpenDelete(false);
-                  EditDataForm.reset({
-                    input: idata.input || "",
-                    output: idata.output || "",
-                    note: idata.note || "",
-                  });
                   setOpen(true);
                   setOpenEdit(true);
                 }}
@@ -374,7 +369,6 @@ export function EditPrompt({
                     description: "Your prompt has been saved.",
                   });
                   setOpen(false);
-                  EditPromptSetForm.reset();
                 } catch (error: any) {
                   toast("Error saving your prompt!", {
                     description: `There was an error saving your prompt: ${error.message}`,
