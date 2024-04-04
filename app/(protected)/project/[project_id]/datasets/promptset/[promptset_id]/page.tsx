@@ -46,10 +46,6 @@ export default function Promptset() {
       if (result) {
         const newData = result?.promptsets?.Prompt || [];
         if (data) {
-          // setData((prevData: any) => [
-          //   ...prevData,
-          //   ...result.promptsets.Prompt,
-          // ]);
           const updatedData = [
             ...data,
             ...newData.filter(
@@ -67,7 +63,7 @@ export default function Promptset() {
       setPage((currentPage) => currentPage + 1);
       setShowLoader(false);
     },
-    // refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false,
   });
 
   if (fetchPromptset.isLoading || !fetchPromptset.data || !data) {
