@@ -137,7 +137,6 @@ export function EditData({
                     description: "Your data has been saved.",
                   });
                   setOpen(false);
-                  EditDataForm.reset();
                 } catch (error: any) {
                   toast("Error saving your dataset!", {
                     description: `There was an error saving your dataset: ${error.message}`,
@@ -370,7 +369,6 @@ export function EditPrompt({
                     description: "Your prompt has been saved.",
                   });
                   setOpen(false);
-                  EditPromptSetForm.reset();
                 } catch (error: any) {
                   toast("Error saving your prompt!", {
                     description: `There was an error saving your prompt: ${error.message}`,
