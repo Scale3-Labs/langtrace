@@ -78,6 +78,15 @@ export function EditData({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+
+                  // Reset the form to the data values
+                  // to prevent stale data in the form
+                  EditDataForm.reset({
+                    input: idata.input || "",
+                    output: idata.output || "",
+                    note: idata.note || "",
+                  });
+
                   setOpenDelete(false);
                   setOpen(true);
                   setOpenEdit(true);
@@ -311,6 +320,14 @@ export function EditPrompt({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+
+                  // Reset the form to the data values
+                  // to prevent stale data in the form
+                  EditPromptSetForm.reset({
+                    value: prompt.value || "",
+                    note: prompt.note || "",
+                  });
+
                   setOpen(true);
                   setOpenDelete(false);
                   setOpenEdit(true);
