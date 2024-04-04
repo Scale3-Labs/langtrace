@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id") as string;
   const promptsetId = req.nextUrl.searchParams.get("promptset_id") as string;
   const pageParam = req.nextUrl.searchParams.get("page");
-  const page = pageParam ? parseInt(pageParam, 10) : 1;
+  let page = pageParam ? parseInt(pageParam, 10) : 1;
   const pageSizeParam = req.nextUrl.searchParams.get("pageSize");
   const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
 
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
     const md = { page, page_size: pageSize, total_pages: totalPages };
 
     if (page! > totalPages) {
-      throw Error("Page number is greater than total pages");
+      page = totalPages;
     }
 
     const relatedPrompt = await prisma.prompt.findMany({
