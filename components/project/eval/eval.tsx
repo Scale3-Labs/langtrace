@@ -63,7 +63,15 @@ export default function Eval({ email }: { email: string }) {
       if (result) {
         const newData = result?.prompts?.result || [];
         if (data) {
-          const updatedData = [...data, ...newData.filter((newItem: { id: any; }) => !data.some((existingItem: { id: any; }) => existingItem.id === newItem.id))];
+          const updatedData = [
+            ...data,
+            ...newData.filter(
+              (newItem: { id: any }) =>
+                !data.some(
+                  (existingItem: { id: any }) => existingItem.id === newItem.id
+                )
+            ),
+          ];
           setData(updatedData);
         } else {
           setData(result?.prompts?.result || []);

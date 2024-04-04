@@ -23,7 +23,7 @@ export default function Promptset() {
     if (fetchPromptset.isRefetching) {
       return;
     }
-    if (page <= totalPages) {
+    if (page < totalPages) {
       setShowLoader(true);
       fetchPromptset.refetch();
     }
@@ -39,7 +39,7 @@ export default function Promptset() {
       return result;
     },
     onSuccess: (result) => {
-      console.log(result)
+      console.log(result);
       if (totalPages !== result?.metadata?.total_pages) {
         setTotalPages(result?.metadata?.total_pages);
       }
@@ -50,7 +50,15 @@ export default function Promptset() {
           //   ...prevData,
           //   ...result.promptsets.Prompt,
           // ]);
-          const updatedData = [...data, ...newData.filter((newItem: any) => !data.some((existingItem: any) => existingItem.id === newItem.id))];
+          const updatedData = [
+            ...data,
+            ...newData.filter(
+              (newItem: any) =>
+                !data.some(
+                  (existingItem: any) => existingItem.id === newItem.id
+                )
+            ),
+          ];
           setData(updatedData);
         } else {
           setData(result.promptsets.Prompt);

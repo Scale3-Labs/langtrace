@@ -52,7 +52,8 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const totalPages = Math.ceil(totalLen / pageSize) === 0 ? 1 : Math.ceil(totalLen / pageSize);
+    const totalPages =
+      Math.ceil(totalLen / pageSize) === 0 ? 1 : Math.ceil(totalLen / pageSize);
     const md = { page, page_size: pageSize, total_pages: totalPages };
 
     if (page! > totalPages) {
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
         promptsetId: promptset.id,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       take: pageSize,
       skip: (page - 1) * pageSize,
