@@ -13,6 +13,7 @@ import { useQuery } from "react-query";
 import { Spinner } from "../../shared/spinner";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
+import { PAGE_SIZE } from "@/lib/constants";
 
 interface CheckedData {
   value: string;
@@ -24,7 +25,6 @@ export default function Prompts({ email }: { email: string }) {
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(2);
-  const pageSize = 15;
   const [showLoader, setShowLoader] = useState(false);
   const [data, setData] = useState<any>(null);
 
@@ -40,7 +40,7 @@ export default function Prompts({ email }: { email: string }) {
     queryKey: ["fetch-prompts-query"],
     queryFn: async () => {
       const response = await fetch(
-        `/api/prompt?projectId=${project_id}&page=${page}&pageSize=${pageSize}`
+        `/api/prompt?projectId=${project_id}&page=${page}&pageSize=${PAGE_SIZE}`
       );
       const result = await response.json();
       return result;
