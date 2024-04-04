@@ -79,6 +79,11 @@ export function EditData({
                   e.preventDefault();
                   e.stopPropagation();
                   setOpenDelete(false);
+                  EditDataForm.reset({
+                    input: idata.input || "",
+                    output: idata.output || "",
+                    note: idata.note || "",
+                  });
                   setOpen(true);
                   setOpenEdit(true);
                 }}

@@ -61,7 +61,7 @@ export default function Dataset() {
                     </p>
                     <p className="text-xs text-end">{data.note}</p>
                     <div className="text-end">
-                      <EditData idata={data} datasetId={dataset_id} />
+                      <EditData key={data.id} idata={data} datasetId={dataset_id} />
                     </div>
                   </div>
                   <Separator orientation="horizontal" />
