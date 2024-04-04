@@ -82,7 +82,6 @@ export default function Eval({ email }: { email: string }) {
       }
       setBusy(false);
     },
-    refetchOnWindowFocus: false,
   });
 
   useBottomScrollListener(() => {

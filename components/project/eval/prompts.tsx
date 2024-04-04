@@ -2,6 +2,7 @@
 
 import { AddtoPromptset } from "@/components/shared/add-to-promptset";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PAGE_SIZE } from "@/lib/constants";
 import { extractPromptFromLlmInputs } from "@/lib/utils";
 import { CheckCircledIcon } from "@radix-ui/react-icons";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -13,7 +14,6 @@ import { useQuery } from "react-query";
 import { Spinner } from "../../shared/spinner";
 import { Button } from "../../ui/button";
 import { Separator } from "../../ui/separator";
-import { PAGE_SIZE } from "@/lib/constants";
 
 interface CheckedData {
   value: string;
@@ -24,9 +24,9 @@ export default function Prompts({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(2);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [showLoader, setShowLoader] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [currentData, setCurrentData] = useState<any>([]);
 
   const onCheckedChange = (data: CheckedData, checked: boolean) => {
     if (checked) {
@@ -45,19 +45,31 @@ export default function Prompts({ email }: { email: string }) {
       const result = await response.json();
       return result;
     },
-    onSuccess: (result) => {
-      // Only update data if result.result is not empty
-      if (totalPages !== result?.prompts?.metadata?.total_pages) {
-        setTotalPages(result?.prompts?.metadata?.total_pages);
+    onSuccess: (data) => {
+      // Get the newly fetched data and metadata
+      const newData = data?.prompts?.result || [];
+      const metadata = data?.prompts?.metadata || {};
+
+      // Update the total pages and current page number
+      setTotalPages(parseInt(metadata?.total_pages) || 1);
+      if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
+        setPage(parseInt(metadata?.page) + 1);
       }
-      if (result) {
-        if (data) {
-          setData((prevData: any) => [...prevData, ...result?.prompts?.result || []]);
-        } else {
-          setData(result?.prompts?.result || []);
-        }
+
+      // Merge the new data with the existing data
+      if (currentData.length > 0) {
+        const updatedData = [...currentData, ...newData];
+
+        // Remove duplicates
+        const uniqueData = updatedData.filter(
+          (v: any, i: number, a: any) =>
+            a.findIndex((t: any) => t.span_id === v.span_id) === i
+        );
+
+        setCurrentData(uniqueData);
+      } else {
+        setCurrentData(newData);
       }
-      setPage((currentPage) => currentPage + 1);
       setShowLoader(false);
     },
   });
@@ -66,18 +78,18 @@ export default function Prompts({ email }: { email: string }) {
     if (fetchPrompts.isRefetching) {
       return;
     }
-    if (page < totalPages) {
+    if (page <= totalPages) {
       setShowLoader(true);
       fetchPrompts.refetch();
     }
   });
 
-  if (fetchPrompts.isLoading || !fetchPrompts.data || !data) {
+  if (fetchPrompts.isLoading || !fetchPrompts.data || !currentData) {
     return <div>Loading...</div>;
   } else {
     // Deduplicate prompts
     const seenPrompts: string[] = [];
-    const prompts = data || [];
+    const prompts = currentData || [];
     const dedupedPrompts = prompts.filter((prompt: any) => {
       const attributes = prompt.attributes ? JSON.parse(prompt.attributes) : {};
       const prompts: any[] = JSON.parse(attributes["llm.prompts"]) || "[]";
