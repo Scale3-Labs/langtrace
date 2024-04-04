@@ -244,7 +244,7 @@ export class TraceService implements ITraceService {
 
       const md = { page, page_size: pageSize, total_pages: totalPages };
       if (page! > totalPages) {
-        throw Error("Page number is greater than total pages");
+        page = totalPages;
       }
       const query = sql.select(
         `* FROM ${project_id} WHERE attributes LIKE '%${attribute}%' ORDER BY 'start_time' DESC LIMIT ${pageSize} OFFSET ${
@@ -325,7 +325,7 @@ export class TraceService implements ITraceService {
 
       const md = { page, page_size: pageSize, total_pages: totalPages };
       if (page! > totalPages) {
-        throw Error("Page number is greater than total pages");
+        page = totalPages;
       }
       const query = sql.select(
         `* FROM ${project_id} ORDER BY 'createdAt' DESC LIMIT ${pageSize} OFFSET ${

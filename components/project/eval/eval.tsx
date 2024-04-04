@@ -62,9 +62,9 @@ export default function Eval({ email }: { email: string }) {
       }
       if (result) {
         if (data) {
-          setData((prevData: any) => [...prevData, ...result.prompts.result]);
+          setData((prevData: any) => [...prevData, ...result?.prompts?.result || []]);
         } else {
-          setData(result.prompts.result);
+          setData(result?.prompts?.result || []);
         }
       }
       setPage((currentPage) => currentPage + 1);
