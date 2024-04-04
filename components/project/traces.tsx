@@ -1,5 +1,6 @@
 "use client";
 
+import { PAGE_SIZE } from "@/lib/constants";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
@@ -26,10 +27,9 @@ import { Separator } from "../ui/separator";
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(2);
-  const pageSize = 15;
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [currentData, setCurrentData] = useState<any>([]);
   const [showLoader, setShowLoader] = useState(false);
-  const [data, setData] = useState<any>(null);
 
   const fetchProject = useQuery({
     queryKey: ["fetch-project-query"],
@@ -44,7 +44,7 @@ export default function Traces({ email }: { email: string }) {
     if (fetchTraces.isRefetching) {
       return;
     }
-    if (page < totalPages) {
+    if (page <= totalPages) {
       setShowLoader(true);
       fetchTraces.refetch();
     }
@@ -63,26 +63,43 @@ export default function Traces({ email }: { email: string }) {
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
       const response = await fetch(
-        `/api/trace?projectId=${project_id}&page=${page}&pageSize=${pageSize}`
+        `/api/trace?projectId=${project_id}&page=${page}&pageSize=${PAGE_SIZE}`
       );
       const result = await response.json();
       return result;
     },
-    onSuccess: (result) => {
-      // Only update data if result.result is not empty
-      if (totalPages !== result?.traces?.metadata?.total_pages) {
-        setTotalPages(result?.traces?.metadata?.total_pages);
+    onSuccess: (data) => {
+      // Get the newly fetched data and metadata
+      const newData = data?.traces?.result || [];
+      const metadata = data?.traces?.metadata || {};
+
+      // Update the total pages and current page number
+      setTotalPages(parseInt(metadata?.total_pages) || 1);
+      if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
+        setPage(parseInt(metadata?.page) + 1);
       }
-      if (result) {
-        if (data) {
-          setData((prevData: any) => [...prevData, ...result.traces.result]);
-        } else {
-          setData(result.traces.result);
-        }
+
+      // Merge the new data with the existing data
+      console.log("currentData", currentData);
+      console.log("newData", newData);
+      if (currentData.length > 0) {
+        const updatedData = [...currentData, ...newData];
+
+        // TODO(Karthik): The results are an array of span arrays, so
+        // we need to figure out how to merge them correctly.
+        // Remove duplicates
+        // const uniqueData = updatedData.filter(
+        //   (v: any, i: number, a: any) =>
+        //     a.findIndex((t: any) => t.span_id === v.span_id) === i
+        // );
+
+        setCurrentData(updatedData);
+      } else {
+        setCurrentData(newData);
       }
-      setPage((currentPage) => currentPage + 1);
       setShowLoader(false);
     },
+    refetchOnWindowFocus: false,
   });
 
   if (
@@ -92,7 +109,7 @@ export default function Traces({ email }: { email: string }) {
     !fetchUser.data ||
     fetchTraces.isLoading ||
     !fetchTraces.data ||
-    !data
+    !currentData
   ) {
     return <div>Loading...</div>;
   }
@@ -114,7 +131,7 @@ export default function Traces({ email }: { email: string }) {
         </div>
         {!fetchTraces.isLoading &&
           fetchTraces.data &&
-          data.map((trace: any, i: number) => {
+          currentData.map((trace: any, i: number) => {
             return (
               <div key={i} className="flex flex-col gap-3 px-3">
                 <TraceRow trace={trace} /> <Separator />
@@ -126,15 +143,17 @@ export default function Traces({ email }: { email: string }) {
             <Spinner className="h-8 w-8 text-center" />
           </div>
         )}
-        {!fetchTraces.isLoading && fetchTraces.data && data.length === 0 && (
-          <div className="flex flex-col gap-3 items-center justify-center p-4">
-            <p className="text-muted-foreground text-sm mb-3">
-              No traces available. Get started by setting up Langtrace in your
-              application.
-            </p>
-            <SetupInstructions project_id={project_id} />
-          </div>
-        )}
+        {!fetchTraces.isLoading &&
+          fetchTraces.data &&
+          currentData.length === 0 && (
+            <div className="flex flex-col gap-3 items-center justify-center p-4">
+              <p className="text-muted-foreground text-sm mb-3">
+                No traces available. Get started by setting up Langtrace in your
+                application.
+              </p>
+              <SetupInstructions project_id={project_id} />
+            </div>
+          )}
       </div>
     </div>
   );

@@ -36,6 +36,10 @@ export interface ITraceService {
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (project_id: string) => Promise<number>;
   GetTotalSpansPerProject: (project_id: string) => Promise<number>;
+  GetTotalSpansWithAttributesPerProject: (
+    project_id: string,
+    attribute: string
+  ) => Promise<number>;
   GetTotalSpansPerAccount: (project_ids: string[]) => Promise<number>;
   GetSpansInProjectPaginated: (
     project_id: string,
@@ -128,6 +132,30 @@ export class TraceService implements ITraceService {
       }
 
       const query = sql.select("count()").from(project_id);
+      const result = await this.client.find<any>(query);
+      return parseInt(result[0]["count()"], 10);
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the total spans ${error}`
+      );
+    }
+  }
+
+  async GetTotalSpansWithAttributesPerProject(
+    project_id: string,
+    attribute: string
+  ): Promise<number> {
+    try {
+      // check if the table exists
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return 0;
+      }
+
+      const query = sql
+        .select("count()")
+        .from(project_id)
+        .where(sql.like("attributes", `%${attribute}%`));
       const result = await this.client.find<any>(query);
       return parseInt(result[0]["count()"], 10);
     } catch (error) {
@@ -236,7 +264,10 @@ export class TraceService implements ITraceService {
         };
       }
 
-      const totalLen = await this.GetTotalSpansPerProject(project_id);
+      const totalLen = await this.GetTotalSpansWithAttributesPerProject(
+        project_id,
+        attribute
+      );
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
           ? 1
