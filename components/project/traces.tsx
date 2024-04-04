@@ -22,12 +22,12 @@ import { serviceTypeColor, vendorBadgeColor } from "../shared/vendor-metadata";
 import TraceGraph from "../traces/trace_graph";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
+import { PAGE_SIZE } from "@/lib/constants";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(2);
-  const pageSize = 15;
   const [showLoader, setShowLoader] = useState(false);
   const [data, setData] = useState<any>(null);
 
@@ -63,7 +63,7 @@ export default function Traces({ email }: { email: string }) {
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
       const response = await fetch(
-        `/api/trace?projectId=${project_id}&page=${page}&pageSize=${pageSize}`
+        `/api/trace?projectId=${project_id}&page=${page}&pageSize=${PAGE_SIZE}`
       );
       const result = await response.json();
       return result;

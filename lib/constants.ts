@@ -105,3 +105,5 @@ export const ANTHROPIC_PRICING: Record<string, any> = {
     output: 0.0024,
   },
 };
+
+export const PAGE_SIZE = 15;
