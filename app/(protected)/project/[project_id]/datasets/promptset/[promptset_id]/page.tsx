@@ -6,6 +6,7 @@ import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PAGE_SIZE } from "@/lib/constants";
+import { Prompt } from "@prisma/client";
 import { ChevronLeft } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -15,15 +16,15 @@ import { useQuery } from "react-query";
 export default function Promptset() {
   const promptset_id = useParams()?.promptset_id as string;
   const [page, setPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(2);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [showLoader, setShowLoader] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [currentData, setCurrentData] = useState<Prompt[]>([]);
 
   useBottomScrollListener(() => {
     if (fetchPromptset.isRefetching) {
       return;
     }
-    if (page < totalPages) {
+    if (page <= totalPages) {
       setShowLoader(true);
       fetchPromptset.refetch();
     }
@@ -38,34 +39,37 @@ export default function Promptset() {
       const result = await response.json();
       return result;
     },
-    onSuccess: (result) => {
-      if (totalPages !== result?.metadata?.total_pages) {
-        setTotalPages(result?.metadata?.total_pages);
+    onSuccess: (data) => {
+      // Get the newly fetched data and metadata
+      const newData: Prompt[] = data?.promptsets?.Prompt || [];
+      const metadata = data?.metadata || {};
+
+      // Update the total pages and current page number
+      setTotalPages(parseInt(metadata?.total_pages) || 1);
+      if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
+        setPage(parseInt(metadata?.page) + 1);
       }
-      if (result) {
-        const newData = result?.promptsets?.Prompt || [];
-        if (data) {
-          const updatedData = [
-            ...data,
-            ...newData.filter(
-              (newItem: any) =>
-                !data.some(
-                  (existingItem: any) => existingItem.id === newItem.id
-                )
-            ),
-          ];
-          setData(updatedData);
-        } else {
-          setData(result.promptsets.Prompt);
-        }
+
+      // Merge the new data with the existing data
+      if (currentData.length > 0) {
+        const updatedData = [...currentData, ...newData];
+
+        // Remove duplicates
+        const uniqueData = updatedData.filter(
+          (v: any, i: number, a: any) =>
+            a.findIndex((t: any) => t.id === v.id) === i
+        );
+
+        setCurrentData(uniqueData);
+      } else {
+        setCurrentData(newData);
       }
-      setPage((currentPage) => currentPage + 1);
+
       setShowLoader(false);
     },
-    refetchOnWindowFocus: false,
   });
 
-  if (fetchPromptset.isLoading || !fetchPromptset.data || !data) {
+  if (fetchPromptset.isLoading || !fetchPromptset.data || !currentData) {
     return <div>Loading...</div>;
   } else {
     return (
@@ -84,16 +88,16 @@ export default function Promptset() {
             <p className="text-xs font-medium text-left">Note</p>
             <p className="text-xs font-medium text-end"></p>
           </div>
-          {fetchPromptset.data?.promptsets &&
-            fetchPromptset.data?.promptsets?.Prompt?.length === 0 && (
-              <div className="flex items-center justify-center">
-                <p className="text-muted-foreground">
-                  No prompts found in this promptset
-                </p>
-              </div>
-            )}
-          {fetchPromptset.data?.promptsets &&
-            data.map((prompt: any, i: number) => {
+          {!fetchPromptset.isLoading && currentData.length === 0 && (
+            <div className="flex items-center justify-center">
+              <p className="text-muted-foreground">
+                No prompts found in this promptset
+              </p>
+            </div>
+          )}
+          {!fetchPromptset.isLoading &&
+            currentData.length > 0 &&
+            currentData.map((prompt: any, i: number) => {
               return (
                 <div className="flex flex-col" key={i}>
                   <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">
