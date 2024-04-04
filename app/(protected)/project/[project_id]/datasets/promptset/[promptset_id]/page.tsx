@@ -39,7 +39,6 @@ export default function Promptset() {
       return result;
     },
     onSuccess: (result) => {
-      console.log(result);
       if (totalPages !== result?.metadata?.total_pages) {
         setTotalPages(result?.metadata?.total_pages);
       }
