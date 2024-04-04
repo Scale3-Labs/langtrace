@@ -61,8 +61,10 @@ export default function Eval({ email }: { email: string }) {
         setTotalPages(result?.prompts?.metadata?.total_pages);
       }
       if (result) {
+        const newData = result?.prompts?.result || [];
         if (data) {
-          setData((prevData: any) => [...prevData, ...result?.prompts?.result || []]);
+          const updatedData = [...data, ...newData.filter((newItem: { id: any; }) => !data.some((existingItem: { id: any; }) => existingItem.id === newItem.id))];
+          setData(updatedData);
         } else {
           setData(result?.prompts?.result || []);
         }
@@ -70,6 +72,7 @@ export default function Eval({ email }: { email: string }) {
       setPage((currentPage) => currentPage + 1);
       setShowLoader(false);
     },
+    refetchOnWindowFocus: false,
   });
 
   useBottomScrollListener(() => {
