@@ -328,7 +328,6 @@ export function calculatePriceFromUsage(
 ): any {
   if (!model) return { total: 0, input: 0, output: 0 };
   if (vendor === "openai") {
-
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
     if (!OPENAI_PRICING.hasOwnProperty(model)) {
