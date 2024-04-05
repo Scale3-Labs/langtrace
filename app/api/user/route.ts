@@ -83,7 +83,6 @@ export async function PUT(req: NextRequest) {
   }
 
   if ("status" in data) {
-    console.log("updating status");
     const user = await prisma.user.update({
       where: {
         id,

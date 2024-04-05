@@ -80,8 +80,6 @@ export default function Traces({ email }: { email: string }) {
       }
 
       // Merge the new data with the existing data
-      console.log("currentData", currentData);
-      console.log("newData", newData);
       if (currentData.length > 0) {
         const updatedData = [...currentData, ...newData];
 
