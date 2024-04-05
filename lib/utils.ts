@@ -328,7 +328,15 @@ export function calculatePriceFromUsage(
 ): any {
   if (!model) return { total: 0, input: 0, output: 0 };
   if (vendor === "openai") {
-    const costTable = OPENAI_PRICING[model.includes("gpt-4") ? "gpt-4" : model];
+    // check if model is present as key in OPENAI_PRICING
+    let correctModel = model;
+    if (!OPENAI_PRICING.hasOwnProperty(model)) {
+      if (model.includes("gpt-4")) {
+        correctModel = "gpt-4";
+      }
+    }
+
+    const costTable = OPENAI_PRICING[correctModel];
     if (costTable) {
       const total =
         (costTable.input * usage?.input_tokens +

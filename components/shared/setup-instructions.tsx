@@ -9,7 +9,7 @@ export default function SetupInstructions({
   project_id: string;
 }) {
   const [sdk, setSdk] = useState("typescript");
-  const [apiKey, setApiKey] = useState('<LANGTRACE_API_KEY>');
+  const [apiKey, setApiKey] = useState("<LANGTRACE_API_KEY>");
 
   const handleApiKeyGenerated = (newApiKey: string) => {
     setApiKey(newApiKey);
@@ -59,7 +59,10 @@ export default function SetupInstructions({
         <p className="text-sm text-muted-foreground">
           2. Generate and copy your API key.
         </p>
-        <GenerateApiKey projectId={project_id} onApiKeyGenerated={handleApiKeyGenerated}/>
+        <GenerateApiKey
+          projectId={project_id}
+          onApiKeyGenerated={handleApiKeyGenerated}
+        />
       </div>
       <div className="flex flex-col gap-3">
         <p className="text-sm text-muted-foreground">
@@ -70,13 +73,17 @@ export default function SetupInstructions({
             className="text-xs p-2 rounded-md bg-muted select-all selection:bg-orange-400 dark:selection:bg-orange-600"
             onClick={() => {
               copyToClipboard(
-                `//Must precede any llm module imports\n\nimport * as Langtrace from '@langtrase/typescript-sdk'\n\nLangtrace.init({ api_key: '${apiKey ?? '<LANGTRACE_API_KEY>'}' })`
+                `//Must precede any llm module imports\n\nimport * as Langtrace from '@langtrase/typescript-sdk'\n\nLangtrace.init({ api_key: '${
+                  apiKey ?? "<LANGTRACE_API_KEY>"
+                }' })`
               );
             }}
           >
             {"// Must precede any llm module imports\n\n"}
             {"import * as Langtrace from '@langtrase/typescript-sdk'\n\n"}
-            {`Langtrace.init({ api_key: '${apiKey ?? '<LANGTRACE_API_KEY>'}' })`}
+            {`Langtrace.init({ api_key: '${
+              apiKey ?? "<LANGTRACE_API_KEY>"
+            }' })`}
           </pre>
         )}
         {sdk === "python" && (
@@ -84,13 +91,15 @@ export default function SetupInstructions({
             className="text-xs p-2 rounded-md bg-muted select-all selection:bg-orange-400 dark:selection:bg-orange-600"
             onClick={() => {
               copyToClipboard(
-                `# Must precede any llm module imports\n\nfrom langtrace_python_sdk import langtrace\n\nlangtrace.init({ api_key = '${apiKey ?? '<LANGTRACE_API_KEY>'}')`
+                `# Must precede any llm module imports\n\nfrom langtrace_python_sdk import langtrace\n\nlangtrace.init(api_key = '${
+                  apiKey ?? "<LANGTRACE_API_KEY>"
+                }')`
               );
             }}
           >
             {"# Must precede any llm module imports\n\n"}
             {"from langtrace_python_sdk import langtrace\n\n"}
-            {`langtrace.init({ api_key = '${apiKey ?? '<LANGTRACE_API_KEY>'}')`}
+            {`langtrace.init(api_key = '${apiKey ?? "<LANGTRACE_API_KEY>"}')`}
           </pre>
         )}
       </div>
