@@ -416,21 +416,35 @@ const EvalRow = ({
                 className="text-xs bg-muted w-fit p-1 rounded-md leading-6"
               >
                 <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
-                  {prompt.role || "Q"}:
+                  {prompt?.role
+                    ? prompt?.role === "function"
+                      ? `${prompt?.role} - ${prompt?.name}`
+                      : prompt?.role
+                    : "Q"}
+                  :
+                  {prompt?.content
+                    ? " (content)"
+                    : prompt?.function_call
+                    ? " (function call)"
+                    : ""}
                 </span>{" "}
                 <Markdown
                   className={cn(
-                    detectPII(prompt.content || "").length > 0 &&
+                    detectPII(prompt?.content || "").length > 0 &&
                       "underline decoration-red-600 decoration-[3px]"
                   )}
                 >
-                  {prompt.content || ""}
+                  {prompt?.content
+                    ? prompt?.content
+                    : prompt?.function_call
+                    ? JSON.stringify(prompt?.function_call)
+                    : ""}
                 </Markdown>
               </p>
             ))}
           <p className="text-xs leading-6 w-fit p-1 rounded-md bg-muted">
-            <span className="font-semibold dark:text-red-400 text-red-600">
-              Assistant:
+            <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
+              {JSON.parse(responses)[0]?.message?.role || "Assistant"}:
             </span>{" "}
             {responses?.length > 0 ? (
               <Markdown
@@ -446,7 +460,7 @@ const EvalRow = ({
               >
                 {JSON.parse(responses)[0]?.message?.content ||
                   JSON.parse(responses)[0]?.text ||
-                  JSON.parse(responses)[0]?.content}
+                  JSON.parse(responses)[0]?.content || JSON.parse(responses).message?.content}
               </Markdown>
             ) : (
               ""

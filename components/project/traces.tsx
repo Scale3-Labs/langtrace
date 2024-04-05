@@ -253,7 +253,7 @@ const TraceRow = ({ trace }: { trace: any }) => {
             <p className="text-xs font-semibold">{traceHierarchy[0].name}</p>
           </div>
         </div>
-        <div className="grid grid-cols-4 font-semibold">
+        <div className="grid grid-cols-4 items-center font-semibold">
           <p className="text-xs font-semibold">{userId}</p>
           <div className="flex flex-row items-center gap-3">
             <p className="text-xs">
@@ -410,7 +410,7 @@ const LogsView = ({ span }: { span: any }) => {
         )}
       </div>
       {!collapsed && (
-        <pre className="text-xs bg-muted p-2 rounded-md">
+        <pre className="text-xs bg-muted p-2 rounded-md whitespace-pre-wrap">
           {parseNestedJsonFields(span.attributes)}
         </pre>
       )}
