@@ -326,6 +326,7 @@ export function calculatePriceFromUsage(
     output_tokens: number;
   }
 ): any {
+  if (!model) return { total: 0, input: 0, output: 0 };
   if (vendor === "openai") {
     const costTable = OPENAI_PRICING[model.includes("gpt-4") ? "gpt-4" : model];
     if (costTable) {
