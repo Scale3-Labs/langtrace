@@ -175,17 +175,14 @@ export default function Traces({ email }: { email: string }) {
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-2 items-center gap-48 p-3 bg-muted">
-        <div className="grid grid-cols-2 gap-3 items-center">
-          <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
-          <p className="text-xs font-medium">Namespace</p>
-        </div>
-        <div className="grid grid-cols-4 gap-3 items-center">
-          <p className="text-xs font-medium">User ID</p>
-          <p className="text-xs font-medium">Input / Output / Total Tokens</p>
-          <p className="text-xs font-medium">Token Cost</p>
-          <p className="text-xs font-medium">Duration(ms)</p>
-        </div>
+      <div className="grid grid-cols-7 items-center gap-6 p-3 bg-muted">
+        <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
+        <p className="text-xs font-medium">Namespace</p>
+        <p className="text-xs font-medium">Model</p>
+        <p className="text-xs font-medium">User ID</p>
+        <p className="text-xs font-medium">Input / Output / Total Tokens</p>
+        <p className="text-xs font-medium">Token Cost</p>
+        <p className="text-xs font-medium">Duration(ms)</p>
       </div>
       {fetchProject.isLoading ||
       !fetchProject.data ||
@@ -289,68 +286,65 @@ const TraceRow = ({ trace }: { trace: any }) => {
   return (
     <div className="flex flex-col gap-3">
       <div
-        className="grid grid-cols-2 items-center gap-48 cursor-pointer"
+        className="grid grid-cols-7 items-center gap-6 cursor-pointer"
         onClick={() => setCollapsed(!collapsed)}
       >
-        <div className="grid grid-cols-2 gap-0 items-center">
-          <div className="flex flex-row items-center gap-2">
-            <Button
-              variant={"ghost"}
-              size={"icon"}
-              onClick={() => setCollapsed(!collapsed)}
-            >
-              {collapsed && (
-                <ChevronRight className="text-muted-foreground w-5 h-5" />
-              )}
-              {!collapsed && (
-                <ChevronDown className="text-muted-foreground w-5 h-5" />
-              )}
-            </Button>
-            <p className="text-xs text-muted-foreground font-semibold">
-              {formatDateTime(
-                correctTimestampFormat(traceHierarchy[0].start_time)
-              )}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {traceHierarchy[0].status !== "ERROR" && (
-              <Separator
-                orientation="vertical"
-                className="bg-green-400 h-6 w-1 rounded-md"
-              />
+        <div className="flex flex-row items-center gap-2">
+          <Button
+            variant={"ghost"}
+            size={"icon"}
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed && (
+              <ChevronRight className="text-muted-foreground w-5 h-5" />
             )}
-            {traceHierarchy[0].status === "ERROR" && (
-              <Separator
-                orientation="vertical"
-                className="bg-red-400 h-6 w-1 rounded-md"
-              />
+            {!collapsed && (
+              <ChevronDown className="text-muted-foreground w-5 h-5" />
             )}
-            <p className="text-xs font-semibold">{traceHierarchy[0].name}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-4 items-center font-semibold">
-          <p className="text-xs font-semibold">{userId}</p>
-          <div className="flex flex-row items-center gap-3">
-            <p className="text-xs">
-              {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
-            </p>
-            {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "+" : ""}
-            <p className="text-xs">
-              {tokenCounts?.output_tokens || tokenCounts?.completion_tokens}{" "}
-            </p>
-            {tokenCounts?.output_tokens || tokenCounts?.completion_tokens
-              ? "="
-              : ""}
-            <p className="text-xs">{tokenCounts?.total_tokens}</p>
-          </div>
-          <p className="text-xs font-semibold">
-            {cost.total.toFixed(6) !== "0.000000"
-              ? `\$${cost.total.toFixed(6)}`
-              : ""}
+          </Button>
+          <p className="text-xs text-muted-foreground font-semibold">
+            {formatDateTime(
+              correctTimestampFormat(traceHierarchy[0].start_time)
+            )}
           </p>
-          <div className="text-xs text-muted-foreground font-semibold">
-            {totalTime}ms
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {traceHierarchy[0].status !== "ERROR" && (
+            <Separator
+              orientation="vertical"
+              className="bg-green-400 h-6 w-1 rounded-md"
+            />
+          )}
+          {traceHierarchy[0].status === "ERROR" && (
+            <Separator
+              orientation="vertical"
+              className="bg-red-400 h-6 w-1 rounded-md"
+            />
+          )}
+          <p className="text-xs font-semibold">{traceHierarchy[0].name}</p>
+        </div>
+        <p className="text-xs font-semibold">{model}</p>
+        <p className="text-xs font-semibold">{userId}</p>
+        <div className="flex flex-row items-center gap-3">
+          <p className="text-xs">
+            {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
+          </p>
+          {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "+" : ""}
+          <p className="text-xs">
+            {tokenCounts?.output_tokens || tokenCounts?.completion_tokens}{" "}
+          </p>
+          {tokenCounts?.output_tokens || tokenCounts?.completion_tokens
+            ? "="
+            : ""}
+          <p className="text-xs">{tokenCounts?.total_tokens}</p>
+        </div>
+        <p className="text-xs font-semibold">
+          {cost.total.toFixed(6) !== "0.000000"
+            ? `\$${cost.total.toFixed(6)}`
+            : ""}
+        </p>
+        <div className="text-xs text-muted-foreground font-semibold">
+          {totalTime}ms
         </div>
       </div>
       {!collapsed && (
