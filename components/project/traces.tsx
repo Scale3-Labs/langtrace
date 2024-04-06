@@ -14,7 +14,7 @@ import {
 } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import SetupInstructions from "../shared/setup-instructions";
@@ -40,7 +40,7 @@ export default function Traces({ email }: { email: string }) {
     },
   });
 
-  useBottomScrollListener(() => {
+  const scrollableDivRef = useBottomScrollListener(() => {
     if (fetchTraces.isRefetching) {
       return;
     }
@@ -114,7 +114,6 @@ export default function Traces({ email }: { email: string }) {
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
-      <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
         <div className="grid grid-cols-2 items-center gap-48 p-3 bg-muted">
           <div className="grid grid-cols-2 gap-3 items-center">
             <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
@@ -127,6 +126,7 @@ export default function Traces({ email }: { email: string }) {
             <p className="text-xs font-medium">Duration(ms)</p>
           </div>
         </div>
+        <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll" ref={scrollableDivRef as any}>
         {!fetchTraces.isLoading &&
           fetchTraces.data &&
           currentData.map((trace: any, i: number) => {
