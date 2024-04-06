@@ -1,6 +1,7 @@
 "use client";
 
 import { PAGE_SIZE } from "@/lib/constants";
+import { AttributesFilter } from "@/lib/services/query_builder_service";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
@@ -14,7 +15,7 @@ import {
 } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import SetupInstructions from "../shared/setup-instructions";
@@ -22,6 +23,7 @@ import { Spinner } from "../shared/spinner";
 import { serviceTypeColor, vendorBadgeColor } from "../shared/vendor-metadata";
 import TraceGraph from "../traces/trace_graph";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import { Separator } from "../ui/separator";
 
 export default function Traces({ email }: { email: string }) {
@@ -30,15 +32,16 @@ export default function Traces({ email }: { email: string }) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
   const [showLoader, setShowLoader] = useState(false);
+  const [filters, setFilters] = useState<AttributesFilter[]>([]);
+  const [enableFetch, setEnableFetch] = useState(false);
 
-  const fetchProject = useQuery({
-    queryKey: ["fetch-project-query"],
-    queryFn: async () => {
-      const response = await fetch(`/api/project?id=${project_id}`);
-      const result = await response.json();
-      return result;
-    },
-  });
+  useEffect(() => {
+    setShowLoader(true);
+    setCurrentData([]);
+    setPage(1);
+    setTotalPages(1);
+    setEnableFetch(true);
+  }, [filters]);
 
   const scrollableDivRef = useBottomScrollListener(() => {
     if (fetchTraces.isRefetching) {
@@ -48,6 +51,15 @@ export default function Traces({ email }: { email: string }) {
       setShowLoader(true);
       fetchTraces.refetch();
     }
+  });
+
+  const fetchProject = useQuery({
+    queryKey: ["fetch-project-query"],
+    queryFn: async () => {
+      const response = await fetch(`/api/project?id=${project_id}`);
+      const result = await response.json();
+      return result;
+    },
   });
 
   const fetchUser = useQuery({
@@ -62,9 +74,22 @@ export default function Traces({ email }: { email: string }) {
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/trace?projectId=${project_id}&page=${page}&pageSize=${PAGE_SIZE}`
-      );
+      // convert filterserviceType to a string
+      const apiEndpoint = "/api/traces";
+      const body = {
+        page,
+        pageSize: PAGE_SIZE,
+        projectId: project_id,
+        filters: filters,
+      };
+
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
       const result = await response.json();
       return result;
     },
@@ -95,64 +120,114 @@ export default function Traces({ email }: { email: string }) {
       } else {
         setCurrentData(newData);
       }
+
+      setEnableFetch(false);
       setShowLoader(false);
     },
     refetchOnWindowFocus: false,
+    enabled: enableFetch,
   });
 
-  if (
-    fetchProject.isLoading ||
-    !fetchProject.data ||
-    fetchUser.isLoading ||
-    !fetchUser.data ||
-    fetchTraces.isLoading ||
-    !fetchTraces.data ||
-    !currentData
-  ) {
-    return <div>Loading...</div>;
-  }
+  const FILTERS = [
+    {
+      key: "llm",
+      value: "LLM Requests",
+    },
+    {
+      key: "vectordb",
+      value: "VectorDB Requests",
+    },
+    {
+      key: "framework",
+      value: "Framework Requests",
+    },
+  ];
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
-        <div className="grid grid-cols-2 items-center gap-48 p-3 bg-muted">
-          <div className="grid grid-cols-2 gap-3 items-center">
-            <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
-            <p className="text-xs font-medium">Namespace</p>
+      <div className="flex gap-8 items-center px-12 bg-muted py-4 rounded-md">
+        {FILTERS.map((item, i) => (
+          <div key={i} className="flex items-center space-x-2">
+            <Checkbox
+              disabled={showLoader}
+              id={item.key}
+              checked={filters.some((filter) => filter.value === item.key)}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  setFilters([
+                    ...filters,
+                    {
+                      key: "langtrace.service.type",
+                      operation: "EQUALS",
+                      value: item.key,
+                    },
+                  ]);
+                } else {
+                  setFilters(
+                    filters.filter((filter) => filter.value !== item.key)
+                  );
+                }
+              }}
+            />
+            <label htmlFor={item.key} className="text-xs font-semibold">
+              {item.value}
+            </label>
           </div>
-          <div className="grid grid-cols-4 gap-3 items-center">
-            <p className="text-xs font-medium">User ID</p>
-            <p className="text-xs font-medium">Input / Output / Total Tokens</p>
-            <p className="text-xs font-medium">Token Cost</p>
-            <p className="text-xs font-medium">Duration(ms)</p>
-          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 items-center gap-48 p-3 bg-muted">
+        <div className="grid grid-cols-2 gap-3 items-center">
+          <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
+          <p className="text-xs font-medium">Namespace</p>
         </div>
-        <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll" ref={scrollableDivRef as any}>
-        {!fetchTraces.isLoading &&
-          fetchTraces.data &&
-          currentData.map((trace: any, i: number) => {
-            return (
-              <div key={i} className="flex flex-col gap-3 px-3">
-                <TraceRow trace={trace} /> <Separator />
-              </div>
-            );
-          })}
-        {showLoader && (
-          <div className="flex justify-center py-8">
-            <Spinner className="h-8 w-8 text-center" />
-          </div>
-        )}
-        {!fetchTraces.isLoading &&
-          fetchTraces.data &&
-          currentData.length === 0 && (
-            <div className="flex flex-col gap-3 items-center justify-center p-4">
-              <p className="text-muted-foreground text-sm mb-3">
-                No traces available. Get started by setting up Langtrace in your
-                application.
-              </p>
-              <SetupInstructions project_id={project_id} />
+        <div className="grid grid-cols-4 gap-3 items-center">
+          <p className="text-xs font-medium">User ID</p>
+          <p className="text-xs font-medium">Input / Output / Total Tokens</p>
+          <p className="text-xs font-medium">Token Cost</p>
+          <p className="text-xs font-medium">Duration(ms)</p>
+        </div>
+      </div>
+      {fetchProject.isLoading ||
+      !fetchProject.data ||
+      fetchUser.isLoading ||
+      !fetchUser.data ||
+      fetchTraces.isLoading ||
+      !fetchTraces.data ||
+      !currentData ? (
+        <div>Loading...</div>
+      ) : (
+        <div
+          className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll"
+          ref={scrollableDivRef as any}
+        >
+          {!fetchTraces.isLoading &&
+            fetchTraces.data &&
+            currentData.map((trace: any, i: number) => {
+              return (
+                <div key={i} className="flex flex-col gap-3 px-3">
+                  <TraceRow trace={trace} /> <Separator />
+                </div>
+              );
+            })}
+          {showLoader && (
+            <div className="flex justify-center py-8">
+              <Spinner className="h-8 w-8 text-center" />
             </div>
           )}
-      </div>
+          {!fetchTraces.isLoading &&
+            fetchTraces.data &&
+            currentData.length === 0 &&
+            !showLoader && (
+              <div className="flex flex-col gap-3 items-center justify-center p-4">
+                <p className="text-muted-foreground text-sm mb-3">
+                  No traces available. Get started by setting up Langtrace in
+                  your application.
+                </p>
+                <SetupInstructions project_id={project_id} />
+              </div>
+            )}
+        </div>
+      )}
     </div>
   );
 }
