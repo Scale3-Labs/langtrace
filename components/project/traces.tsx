@@ -1,6 +1,7 @@
 "use client";
 
 import { PAGE_SIZE } from "@/lib/constants";
+import { AttributesFilter } from "@/lib/services/query_builder_service";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
@@ -14,7 +15,7 @@ import {
 } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import SetupInstructions from "../shared/setup-instructions";
@@ -22,7 +23,10 @@ import { Spinner } from "../shared/spinner";
 import { serviceTypeColor, vendorBadgeColor } from "../shared/vendor-metadata";
 import TraceGraph from "../traces/trace_graph";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
+import { Switch } from "../ui/switch";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -30,6 +34,27 @@ export default function Traces({ email }: { email: string }) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
   const [showLoader, setShowLoader] = useState(false);
+  const [filters, setFilters] = useState<AttributesFilter[]>([]);
+  const [enableFetch, setEnableFetch] = useState(false);
+  const [utcTime, setUtcTime] = useState(true);
+
+  useEffect(() => {
+    setShowLoader(true);
+    setCurrentData([]);
+    setPage(1);
+    setTotalPages(1);
+    setEnableFetch(true);
+  }, [filters]);
+
+  const scrollableDivRef = useBottomScrollListener(() => {
+    if (fetchTraces.isRefetching) {
+      return;
+    }
+    if (page <= totalPages) {
+      setShowLoader(true);
+      fetchTraces.refetch();
+    }
+  });
 
   const fetchProject = useQuery({
     queryKey: ["fetch-project-query"],
@@ -38,16 +63,6 @@ export default function Traces({ email }: { email: string }) {
       const result = await response.json();
       return result;
     },
-  });
-
-  useBottomScrollListener(() => {
-    if (fetchTraces.isRefetching) {
-      return;
-    }
-    if (page <= totalPages) {
-      setShowLoader(true);
-      fetchTraces.refetch();
-    }
   });
 
   const fetchUser = useQuery({
@@ -62,9 +77,22 @@ export default function Traces({ email }: { email: string }) {
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/trace?projectId=${project_id}&page=${page}&pageSize=${PAGE_SIZE}`
-      );
+      // convert filterserviceType to a string
+      const apiEndpoint = "/api/traces";
+      const body = {
+        page,
+        pageSize: PAGE_SIZE,
+        projectId: project_id,
+        filters: filters,
+      };
+
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
       const result = await response.json();
       return result;
     },
@@ -95,69 +123,129 @@ export default function Traces({ email }: { email: string }) {
       } else {
         setCurrentData(newData);
       }
+
+      setEnableFetch(false);
       setShowLoader(false);
     },
     refetchOnWindowFocus: false,
+    enabled: enableFetch,
   });
 
-  if (
-    fetchProject.isLoading ||
-    !fetchProject.data ||
-    fetchUser.isLoading ||
-    !fetchUser.data ||
-    fetchTraces.isLoading ||
-    !fetchTraces.data ||
-    !currentData
-  ) {
-    return <div>Loading...</div>;
-  }
+  const FILTERS = [
+    {
+      key: "llm",
+      value: "LLM Requests",
+    },
+    {
+      key: "vectordb",
+      value: "VectorDB Requests",
+    },
+    {
+      key: "framework",
+      value: "Framework Requests",
+    },
+  ];
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
-      <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-        <div className="grid grid-cols-2 items-center gap-48 p-3 bg-muted">
-          <div className="grid grid-cols-2 gap-3 items-center">
-            <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
-            <p className="text-xs font-medium">Namespace</p>
-          </div>
-          <div className="grid grid-cols-4 gap-3 items-center">
-            <p className="text-xs font-medium">User ID</p>
-            <p className="text-xs font-medium">Input / Output / Total Tokens</p>
-            <p className="text-xs font-medium">Token Cost</p>
-            <p className="text-xs font-medium">Duration(ms)</p>
-          </div>
+      <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
+        <div className="flex gap-8 items-center">
+          {FILTERS.map((item, i) => (
+            <div key={i} className="flex items-center space-x-2">
+              <Checkbox
+                disabled={showLoader}
+                id={item.key}
+                checked={filters.some((filter) => filter.value === item.key)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setFilters([
+                      ...filters,
+                      {
+                        key: "langtrace.service.type",
+                        operation: "EQUALS",
+                        value: item.key,
+                      },
+                    ]);
+                  } else {
+                    setFilters(
+                      filters.filter((filter) => filter.value !== item.key)
+                    );
+                  }
+                }}
+              />
+              <label htmlFor={item.key} className="text-xs font-semibold">
+                {item.value}
+              </label>
+            </div>
+          ))}
         </div>
-        {!fetchTraces.isLoading &&
-          fetchTraces.data &&
-          currentData.map((trace: any, i: number) => {
-            return (
-              <div key={i} className="flex flex-col gap-3 px-3">
-                <TraceRow trace={trace} /> <Separator />
-              </div>
-            );
-          })}
-        {showLoader && (
-          <div className="flex justify-center py-8">
-            <Spinner className="h-8 w-8 text-center" />
-          </div>
-        )}
-        {!fetchTraces.isLoading &&
-          fetchTraces.data &&
-          currentData.length === 0 && (
-            <div className="flex flex-col gap-3 items-center justify-center p-4">
-              <p className="text-muted-foreground text-sm mb-3">
-                No traces available. Get started by setting up Langtrace in your
-                application.
-              </p>
-              <SetupInstructions project_id={project_id} />
+        <div className="flex gap-2 items-center">
+          <Label>Local time</Label>
+          <Switch
+            id="timestamp"
+            checked={utcTime}
+            onCheckedChange={(check) => {
+              setUtcTime(check);
+            }}
+          />
+          <Label>UTC</Label>
+        </div>
+      </div>
+      <div className="grid grid-cols-7 items-center gap-6 p-3 bg-muted">
+        <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
+        <p className="text-xs font-medium">Namespace</p>
+        <p className="text-xs font-medium">Model</p>
+        <p className="text-xs font-medium">User ID</p>
+        <p className="text-xs font-medium">Input / Output / Total Tokens</p>
+        <p className="text-xs font-medium">Token Cost</p>
+        <p className="text-xs font-medium">Duration(ms)</p>
+      </div>
+      {fetchProject.isLoading ||
+      !fetchProject.data ||
+      fetchUser.isLoading ||
+      !fetchUser.data ||
+      fetchTraces.isLoading ||
+      !fetchTraces.data ||
+      !currentData ? (
+        <div>Loading...</div>
+      ) : (
+        <div
+          className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll"
+          ref={scrollableDivRef as any}
+        >
+          {!fetchTraces.isLoading &&
+            fetchTraces.data &&
+            currentData.map((trace: any, i: number) => {
+              return (
+                <div key={i} className="flex flex-col gap-3 px-3">
+                  <TraceRow trace={trace} utcTime={utcTime} /> <Separator />
+                </div>
+              );
+            })}
+          {showLoader && (
+            <div className="flex justify-center py-8">
+              <Spinner className="h-8 w-8 text-center" />
             </div>
           )}
-      </div>
+          {!fetchTraces.isLoading &&
+            fetchTraces.data &&
+            currentData.length === 0 &&
+            !showLoader && (
+              <div className="flex flex-col gap-3 items-center justify-center p-4">
+                <p className="text-muted-foreground text-sm mb-3">
+                  No traces available. Get started by setting up Langtrace in
+                  your application.
+                </p>
+                <SetupInstructions project_id={project_id} />
+              </div>
+            )}
+        </div>
+      )}
     </div>
   );
 }
 
-const TraceRow = ({ trace }: { trace: any }) => {
+const TraceRow = ({ trace, utcTime }: { trace: any; utcTime: boolean }) => {
   const traceHierarchy = convertTracesToHierarchy(trace);
   const totalTime = calculateTotalTime(trace);
   const startTime = trace[0].start_time;
@@ -214,68 +302,66 @@ const TraceRow = ({ trace }: { trace: any }) => {
   return (
     <div className="flex flex-col gap-3">
       <div
-        className="grid grid-cols-2 items-center gap-48 cursor-pointer"
+        className="grid grid-cols-7 items-center gap-6 cursor-pointer"
         onClick={() => setCollapsed(!collapsed)}
       >
-        <div className="grid grid-cols-2 gap-0 items-center">
-          <div className="flex flex-row items-center gap-2">
-            <Button
-              variant={"ghost"}
-              size={"icon"}
-              onClick={() => setCollapsed(!collapsed)}
-            >
-              {collapsed && (
-                <ChevronRight className="text-muted-foreground w-5 h-5" />
-              )}
-              {!collapsed && (
-                <ChevronDown className="text-muted-foreground w-5 h-5" />
-              )}
-            </Button>
-            <p className="text-xs text-muted-foreground font-semibold">
-              {formatDateTime(
-                correctTimestampFormat(traceHierarchy[0].start_time)
-              )}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            {traceHierarchy[0].status !== "ERROR" && (
-              <Separator
-                orientation="vertical"
-                className="bg-green-400 h-6 w-1 rounded-md"
-              />
+        <div className="flex flex-row items-center gap-2">
+          <Button
+            variant={"ghost"}
+            size={"icon"}
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed && (
+              <ChevronRight className="text-muted-foreground w-5 h-5" />
             )}
-            {traceHierarchy[0].status === "ERROR" && (
-              <Separator
-                orientation="vertical"
-                className="bg-red-400 h-6 w-1 rounded-md"
-              />
+            {!collapsed && (
+              <ChevronDown className="text-muted-foreground w-5 h-5" />
             )}
-            <p className="text-xs font-semibold">{traceHierarchy[0].name}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-4 items-center font-semibold">
-          <p className="text-xs font-semibold">{userId}</p>
-          <div className="flex flex-row items-center gap-3">
-            <p className="text-xs">
-              {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
-            </p>
-            {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "+" : ""}
-            <p className="text-xs">
-              {tokenCounts?.output_tokens || tokenCounts?.completion_tokens}{" "}
-            </p>
-            {tokenCounts?.output_tokens || tokenCounts?.completion_tokens
-              ? "="
-              : ""}
-            <p className="text-xs">{tokenCounts?.total_tokens}</p>
-          </div>
-          <p className="text-xs font-semibold">
-            {cost.total.toFixed(6) !== "0.000000"
-              ? `\$${cost.total.toFixed(6)}`
-              : ""}
+          </Button>
+          <p className="text-xs text-muted-foreground font-semibold">
+            {formatDateTime(
+              correctTimestampFormat(traceHierarchy[0].start_time),
+              !utcTime
+            )}
           </p>
-          <div className="text-xs text-muted-foreground font-semibold">
-            {totalTime}ms
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {traceHierarchy[0].status !== "ERROR" && (
+            <Separator
+              orientation="vertical"
+              className="bg-green-400 h-6 w-1 rounded-md"
+            />
+          )}
+          {traceHierarchy[0].status === "ERROR" && (
+            <Separator
+              orientation="vertical"
+              className="bg-red-400 h-6 w-1 rounded-md"
+            />
+          )}
+          <p className="text-xs font-semibold">{traceHierarchy[0].name}</p>
+        </div>
+        <p className="text-xs font-semibold">{model}</p>
+        <p className="text-xs font-semibold">{userId}</p>
+        <div className="flex flex-row items-center gap-3">
+          <p className="text-xs">
+            {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
+          </p>
+          {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "+" : ""}
+          <p className="text-xs">
+            {tokenCounts?.output_tokens || tokenCounts?.completion_tokens}{" "}
+          </p>
+          {tokenCounts?.output_tokens || tokenCounts?.completion_tokens
+            ? "="
+            : ""}
+          <p className="text-xs">{tokenCounts?.total_tokens}</p>
+        </div>
+        <p className="text-xs font-semibold">
+          {cost.total.toFixed(6) !== "0.000000"
+            ? `\$${cost.total.toFixed(6)}`
+            : ""}
+        </p>
+        <div className="text-xs text-muted-foreground font-semibold">
+          {totalTime}ms
         </div>
       </div>
       {!collapsed && (
@@ -330,7 +416,7 @@ const TraceRow = ({ trace }: { trace: any }) => {
           {selectedTab === "logs" && (
             <div className="flex flex-col px-4 mt-2">
               {trace.map((span: any, i: number) => {
-                return <LogsView key={i} span={span} />;
+                return <LogsView key={i} span={span} utcTime={utcTime} />;
               })}
             </div>
           )}
@@ -340,7 +426,7 @@ const TraceRow = ({ trace }: { trace: any }) => {
   );
 };
 
-const LogsView = ({ span }: { span: any }) => {
+const LogsView = ({ span, utcTime }: { span: any; utcTime: boolean }) => {
   const [collapsed, setCollapsed] = useState(true);
   const servTypeColor = serviceTypeColor(
     JSON.parse(span.attributes)["langtrace.service.type"]
@@ -368,7 +454,7 @@ const LogsView = ({ span }: { span: any }) => {
           )}
         </Button>
         <p className="text-xs font-semibold">
-          {formatDateTime(correctTimestampFormat(span.start_time))}
+          {formatDateTime(correctTimestampFormat(span.start_time), !utcTime)}
         </p>
         <p className="text-xs bg-muted p-1 rounded-md font-semibold">
           {span.name}

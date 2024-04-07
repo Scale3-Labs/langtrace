@@ -12,6 +12,11 @@ export async function GET(req: NextRequest) {
 
   const id = req.nextUrl.searchParams.get("id") as string;
   const datasetId = req.nextUrl.searchParams.get("dataset_id") as string;
+  const pageParam = req.nextUrl.searchParams.get("page");
+  let page = pageParam ? parseInt(pageParam, 10) : 1;
+  const pageSizeParam = req.nextUrl.searchParams.get("pageSize");
+  const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
+
   if (!datasetId && !id) {
     return NextResponse.json(
       {
@@ -41,6 +46,20 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const totalLen = await prisma.data.count({
+      where: {
+        datasetId: dataset.id,
+      },
+    });
+
+    const totalPages =
+      Math.ceil(totalLen / pageSize) === 0 ? 1 : Math.ceil(totalLen / pageSize);
+    const md = { page, page_size: pageSize, total_pages: totalPages };
+
+    if (page! > totalPages) {
+      page = totalPages;
+    }
+
     // If dataset exists, fetch related Data records ordered by createdAt
     const relatedData = await prisma.data.findMany({
       where: {
@@ -49,6 +68,8 @@ export async function GET(req: NextRequest) {
       orderBy: {
         createdAt: "desc",
       },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
     });
 
     // Combine dataset with its related, ordered Data
@@ -59,6 +80,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       datasets: datasetWithOrderedData,
+      metadata: md,
     });
   }
 
