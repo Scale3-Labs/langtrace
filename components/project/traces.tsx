@@ -24,7 +24,9 @@ import { serviceTypeColor, vendorBadgeColor } from "../shared/vendor-metadata";
 import TraceGraph from "../traces/trace_graph";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
+import { Switch } from "../ui/switch";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -34,6 +36,7 @@ export default function Traces({ email }: { email: string }) {
   const [showLoader, setShowLoader] = useState(false);
   const [filters, setFilters] = useState<AttributesFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
+  const [utcTime, setUtcTime] = useState(true);
 
   useEffect(() => {
     setShowLoader(true);
@@ -145,35 +148,48 @@ export default function Traces({ email }: { email: string }) {
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
-      <div className="flex gap-8 items-center px-12 bg-muted py-4 rounded-md">
-        {FILTERS.map((item, i) => (
-          <div key={i} className="flex items-center space-x-2">
-            <Checkbox
-              disabled={showLoader}
-              id={item.key}
-              checked={filters.some((filter) => filter.value === item.key)}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  setFilters([
-                    ...filters,
-                    {
-                      key: "langtrace.service.type",
-                      operation: "EQUALS",
-                      value: item.key,
-                    },
-                  ]);
-                } else {
-                  setFilters(
-                    filters.filter((filter) => filter.value !== item.key)
-                  );
-                }
-              }}
-            />
-            <label htmlFor={item.key} className="text-xs font-semibold">
-              {item.value}
-            </label>
-          </div>
-        ))}
+      <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
+        <div className="flex gap-8 items-center">
+          {FILTERS.map((item, i) => (
+            <div key={i} className="flex items-center space-x-2">
+              <Checkbox
+                disabled={showLoader}
+                id={item.key}
+                checked={filters.some((filter) => filter.value === item.key)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setFilters([
+                      ...filters,
+                      {
+                        key: "langtrace.service.type",
+                        operation: "EQUALS",
+                        value: item.key,
+                      },
+                    ]);
+                  } else {
+                    setFilters(
+                      filters.filter((filter) => filter.value !== item.key)
+                    );
+                  }
+                }}
+              />
+              <label htmlFor={item.key} className="text-xs font-semibold">
+                {item.value}
+              </label>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 items-center">
+          <Label>Local time</Label>
+          <Switch
+            id="timestamp"
+            checked={utcTime}
+            onCheckedChange={(check) => {
+              setUtcTime(check);
+            }}
+          />
+          <Label>UTC</Label>
+        </div>
       </div>
       <div className="grid grid-cols-7 items-center gap-6 p-3 bg-muted">
         <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
@@ -202,7 +218,7 @@ export default function Traces({ email }: { email: string }) {
             currentData.map((trace: any, i: number) => {
               return (
                 <div key={i} className="flex flex-col gap-3 px-3">
-                  <TraceRow trace={trace} /> <Separator />
+                  <TraceRow trace={trace} utcTime={utcTime} /> <Separator />
                 </div>
               );
             })}
@@ -229,7 +245,7 @@ export default function Traces({ email }: { email: string }) {
   );
 }
 
-const TraceRow = ({ trace }: { trace: any }) => {
+const TraceRow = ({ trace, utcTime }: { trace: any; utcTime: boolean }) => {
   const traceHierarchy = convertTracesToHierarchy(trace);
   const totalTime = calculateTotalTime(trace);
   const startTime = trace[0].start_time;
@@ -304,7 +320,8 @@ const TraceRow = ({ trace }: { trace: any }) => {
           </Button>
           <p className="text-xs text-muted-foreground font-semibold">
             {formatDateTime(
-              correctTimestampFormat(traceHierarchy[0].start_time)
+              correctTimestampFormat(traceHierarchy[0].start_time),
+              !utcTime
             )}
           </p>
         </div>
@@ -399,7 +416,7 @@ const TraceRow = ({ trace }: { trace: any }) => {
           {selectedTab === "logs" && (
             <div className="flex flex-col px-4 mt-2">
               {trace.map((span: any, i: number) => {
-                return <LogsView key={i} span={span} />;
+                return <LogsView key={i} span={span} utcTime={utcTime} />;
               })}
             </div>
           )}
@@ -409,7 +426,7 @@ const TraceRow = ({ trace }: { trace: any }) => {
   );
 };
 
-const LogsView = ({ span }: { span: any }) => {
+const LogsView = ({ span, utcTime }: { span: any; utcTime: boolean }) => {
   const [collapsed, setCollapsed] = useState(true);
   const servTypeColor = serviceTypeColor(
     JSON.parse(span.attributes)["langtrace.service.type"]
@@ -437,7 +454,7 @@ const LogsView = ({ span }: { span: any }) => {
           )}
         </Button>
         <p className="text-xs font-semibold">
-          {formatDateTime(correctTimestampFormat(span.start_time))}
+          {formatDateTime(correctTimestampFormat(span.start_time), !utcTime)}
         </p>
         <p className="text-xs bg-muted p-1 rounded-md font-semibold">
           {span.name}
