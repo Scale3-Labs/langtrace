@@ -184,9 +184,7 @@ export default function Traces({ email }: { email: string }) {
           <Switch
             id="timestamp"
             checked={utcTime}
-            onCheckedChange={(check) => {
-              setUtcTime(check);
-            }}
+            onCheckedChange={(check) => setUtcTime(check)}
           />
           <Label>UTC</Label>
         </div>
