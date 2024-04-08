@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import PageClient from "./page-client";
 
 export const metadata: Metadata = {
-  title: "Langtrace | Evaluations",
-  description: "Evaluate the responses of the LLMs.",
+  title: "Langtrace | Prompts",
+  description: "Manage all your prompts in one place.",
 };
 
 export default async function Page() {
@@ -14,11 +14,11 @@ export default async function Page() {
   if (!session || !session.user) {
     redirect("/login");
   }
-  const user = session?.user;
+  const email = session?.user?.email as string;
 
   return (
     <>
-      <PageClient email={user.email as string} />
+      <PageClient email={email} />
     </>
   );
 }

@@ -58,6 +58,17 @@ model User {
   Evaluation    Evaluation[]
 }
 
+model Test {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  projectId   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  Evaluation  Evaluation[]
+  Project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
 model Evaluation {
   id            String    @id @default(cuid())
   spanStartTime DateTime?
@@ -66,12 +77,14 @@ model Evaluation {
   model         String?
   userId        String
   projectId     String
+  testId        String
   score         Int
   prompt        String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   User          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   Project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  Test          Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
 }
 
 model Prompt {
@@ -142,6 +155,7 @@ model Project {
   Evaluation  Evaluation[]
   Dataset     Dataset[]
   Promptset   Promptset[]
+  Test        Test[]
 }
 
 model TeamInvite {

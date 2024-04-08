@@ -12,25 +12,27 @@ export async function POST(req: NextRequest) {
       redirect("/login");
     }
 
-    const { page, pageSize, projectId, filters } = await req.json();
+    const { page, pageSize, projectId, filters, filterOperation } =
+      await req.json();
     const traceService = new TraceService();
-    const traces = await traceService.GetTracesInProjectPaginated(
+    const spans = await traceService.GetSpansInProjectPaginated(
       projectId,
       page,
       pageSize,
-      filters
+      filters,
+      filterOperation
     );
 
     return NextResponse.json(
       {
-        traces,
+        spans,
       },
       { status: 200 }
     );
   } catch (error) {
     return NextResponse.json(
       {
-        error: "Something went wrong while fetching traces",
+        error: "Something went wrong while fetching spans",
       },
       { status: 400 }
     );

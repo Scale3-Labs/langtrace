@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
   }
 
   const projectId = req.nextUrl.searchParams.get("projectId") as string;
+  const testId = req.nextUrl.searchParams.get("testId") as string;
   const byModel = req.nextUrl.searchParams.get("by_model") as string;
 
   if (!projectId) {
@@ -57,15 +58,49 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  let evaluations: Evaluation[] = [];
+  let allEvaluations: Evaluation[] = [];
+  let average: number = 0;
+
   // get evalutaion for the last 7 days
-  const evaluations = await prisma.evaluation.findMany({
+  evaluations = await prisma.evaluation.findMany({
     where: {
       projectId,
+      testId,
       spanStartTime: {
         gte: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000),
       },
     },
   });
+
+  // get average evaluation for all evaluations
+  // get all evaluations where score is 1 or -1
+  allEvaluations = await prisma.evaluation.findMany({
+    where: {
+      projectId,
+      testId,
+      score: {
+        in: [1, -1],
+      },
+    },
+  });
+
+  const totalPositive = allEvaluations.reduce((acc, evaluation) => {
+    if (evaluation.score === 1) {
+      return acc + 1;
+    }
+    return acc;
+  }, 0);
+
+  const totalNegative = allEvaluations.reduce((acc, evaluation) => {
+    if (evaluation.score === -1) {
+      return acc + 1;
+    }
+    return acc;
+  }, 0);
+
+  // calculate average
+  average = (totalPositive / (totalPositive + totalNegative)) * 100;
 
   if (byModel === "true") {
     const evaluationsByModel = evaluations.reduce(
@@ -89,10 +124,11 @@ export async function GET(req: NextRequest) {
   }
 
   if (!evaluations) {
-    return NextResponse.json({ evalutions: [] }, { status: 200 });
+    return NextResponse.json({ evalutions: [], average: 0 }, { status: 200 });
   }
 
   return NextResponse.json({
     evaluations,
+    average,
   });
 }

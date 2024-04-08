@@ -17,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DEFAULT_TESTS } from "@/lib/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
@@ -64,7 +65,7 @@ export function Create({
             onSubmit={CreateProjectForm.handleSubmit(async (data) => {
               try {
                 setBusy(true);
-                await fetch("/api/project", {
+                const result = await fetch("/api/project", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -81,6 +82,22 @@ export function Create({
                 });
                 setOpen(false);
                 CreateProjectForm.reset();
+
+                // create default tests
+                const projectId = (await result.json()).data.id;
+                for (const test of DEFAULT_TESTS) {
+                  await fetch("/api/test", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      name: test.name?.toLowerCase(),
+                      description: test.description,
+                      projectId: projectId,
+                    }),
+                  });
+                }
               } catch (error: any) {
                 toast("Error creating your project!", {
                   description: `There was an error creating your project: ${error.message}`,
