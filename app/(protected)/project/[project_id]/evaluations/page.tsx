@@ -1,11 +1,12 @@
-import Parent from "@/components/project/eval/parent";
+// import Parent from "@/components/project/eval/parent";
 import { authOptions } from "@/lib/auth/options";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import PageClient from "./page-client";
 
 export const metadata: Metadata = {
-  title: "Langtrace | Eval",
+  title: "Langtrace | Evaluations",
   description: "Evaluate the responses of the LLMs.",
 };
 
@@ -18,7 +19,8 @@ export default async function Page() {
 
   return (
     <>
-      <Parent email={user.email as string} />
+      {/* <Parent email={user.email as string} /> */}
+      <PageClient email={user.email as string} />
     </>
   );
 }

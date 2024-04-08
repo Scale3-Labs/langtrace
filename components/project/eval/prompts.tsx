@@ -167,7 +167,7 @@ const PromptRow = ({
   const [accuracy, setAccuracy] = useState(0);
   const [addedToPromptset, setAddedToPromptset] = useState(false);
 
-  const fetchPromptData = useQuery({
+  useQuery({
     queryKey: [`fetch-promptdata-query-${prompt.span_id}`],
     queryFn: async () => {
       const response = await fetch(`/api/promptdata?spanId=${prompt.span_id}`);

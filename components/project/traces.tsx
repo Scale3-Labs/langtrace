@@ -18,7 +18,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
-import SetupInstructions from "../shared/setup-instructions";
+import { SetupInstructions } from "../shared/setup-instructions";
 import { Spinner } from "../shared/spinner";
 import { serviceTypeColor, vendorBadgeColor } from "../shared/vendor-metadata";
 import TraceGraph from "../traces/trace_graph";
