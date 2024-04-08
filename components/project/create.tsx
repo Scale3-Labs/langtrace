@@ -92,7 +92,7 @@ export function Create({
                       "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                      name: test.name,
+                      name: test.name?.toLowerCase(),
                       description: test.description,
                       projectId: projectId,
                     }),

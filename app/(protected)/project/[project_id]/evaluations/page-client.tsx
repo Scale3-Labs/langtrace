@@ -109,7 +109,7 @@ export default function PageClient({ email }: { email: string }) {
                     >
                       <p
                         className={cn(
-                          "text-sm text-muted-foreground font-semibold",
+                          "text-sm text-muted-foreground font-semibold capitalize",
                           selectedTest?.id === test.id ? "text-primary" : ""
                         )}
                       >
@@ -134,7 +134,7 @@ export default function PageClient({ email }: { email: string }) {
               <div className="flex flex-row">
                 <div className="flex flex-col gap-3 items-start w-[25rem]">
                   <div className="flex flex-col gap-1">
-                    <h1 className="text-xl font-semibold">
+                    <h1 className="text-xl font-semibold capitalize">
                       {selectedTest?.name} Evaluation
                     </h1>
                     <span className="text-xs font-semibold text-muted-foreground">
