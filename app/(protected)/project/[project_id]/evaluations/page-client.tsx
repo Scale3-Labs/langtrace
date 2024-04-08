@@ -121,7 +121,7 @@ export default function PageClient({ email }: { email: string }) {
                         size="sm"
                       >
                         <span className="text-[0.6rem] text-primary font-bold">
-                          {average}%
+                          {Math.round(average)}%
                         </span>
                       </ProgressCircle>
                     </div>
@@ -147,7 +147,7 @@ export default function PageClient({ email }: { email: string }) {
                     size="md"
                   >
                     <span className="text-sm text-primary font-bold">
-                      {testAverage}%
+                      {Math.round(testAverage)}%
                     </span>
                   </ProgressCircle>
                   <p className="text-sm text-muted-foreground">
