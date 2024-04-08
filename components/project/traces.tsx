@@ -18,7 +18,9 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
-import SetupInstructions from "../shared/setup-instructions";
+import { HoverCell } from "../shared/hover-cell";
+import { LLMView } from "../shared/llm-view";
+import { SetupInstructions } from "../shared/setup-instructions";
 import { Spinner } from "../shared/spinner";
 import { serviceTypeColor, vendorBadgeColor } from "../shared/vendor-metadata";
 import TraceGraph from "../traces/trace_graph";
@@ -184,17 +186,17 @@ export default function Traces({ email }: { email: string }) {
           <Switch
             id="timestamp"
             checked={utcTime}
-            onCheckedChange={(check) => {
-              setUtcTime(check);
-            }}
+            onCheckedChange={(check) => setUtcTime(check)}
           />
           <Label>UTC</Label>
         </div>
       </div>
-      <div className="grid grid-cols-7 items-center gap-6 p-3 bg-muted">
+      <div className="grid grid-cols-11 items-center gap-6 p-3 bg-muted">
         <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
         <p className="text-xs font-medium">Namespace</p>
         <p className="text-xs font-medium">Model</p>
+        <p className="text-xs font-medium col-span-2">Input</p>
+        <p className="text-xs font-medium col-span-2">Output</p>
         <p className="text-xs font-medium">User ID</p>
         <p className="text-xs font-medium">Input / Output / Total Tokens</p>
         <p className="text-xs font-medium">Token Cost</p>
@@ -257,11 +259,17 @@ const TraceRow = ({ trace, utcTime }: { trace: any; utcTime: boolean }) => {
   let model: string = "";
   let vendor: string = "";
   let userId: string = "";
+  let prompts: any = {};
+  let responses: any = {};
   let cost = { total: 0, input: 0, output: 0 };
   for (const span of trace) {
     if (span.attributes) {
       const attributes = JSON.parse(span.attributes);
       userId = attributes["user.id"];
+      if (attributes["llm.prompts"] && attributes["llm.responses"]) {
+        prompts = attributes["llm.prompts"];
+        responses = attributes["llm.responses"];
+      }
       if (attributes["llm.token.counts"]) {
         model = attributes["llm.model"];
         vendor = attributes["langtrace.service.name"].toLowerCase();
@@ -302,7 +310,7 @@ const TraceRow = ({ trace, utcTime }: { trace: any; utcTime: boolean }) => {
   return (
     <div className="flex flex-col gap-3">
       <div
-        className="grid grid-cols-7 items-center gap-6 cursor-pointer"
+        className="grid grid-cols-11 items-center gap-6 cursor-pointer"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex flex-row items-center gap-2">
@@ -341,6 +349,20 @@ const TraceRow = ({ trace, utcTime }: { trace: any; utcTime: boolean }) => {
           <p className="text-xs font-semibold">{traceHierarchy[0].name}</p>
         </div>
         <p className="text-xs font-semibold">{model}</p>
+        <HoverCell
+          value={prompts?.length > 0 ? JSON.parse(prompts)[0]?.content : ""}
+          className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+        />
+        <HoverCell
+          value={
+            responses?.length > 0
+              ? JSON.parse(responses)[0]?.message?.content ||
+                JSON.parse(responses)[0]?.text ||
+                JSON.parse(responses)[0]?.content
+              : ""
+          }
+          className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+        />
         <p className="text-xs font-semibold">{userId}</p>
         <div className="flex flex-row items-center gap-3">
           <p className="text-xs">
@@ -403,6 +425,24 @@ const TraceRow = ({ trace, utcTime }: { trace: any; utcTime: boolean }) => {
                 <Separator className="bg-primary h-[2px]" />
               )}
             </Button>
+            <Button
+              onClick={() => setSelectedTab("llm")}
+              variant={"ghost"}
+              className="flex flex-col justify-between pb-0"
+            >
+              <p
+                className={
+                  selectedTab === "llm"
+                    ? "text-xs text-primary font-medium"
+                    : "text-xs text-muted-foreground font-medium"
+                }
+              >
+                LLM Requests
+              </p>
+              {selectedTab === "llm" && (
+                <Separator className="bg-primary h-[2px]" />
+              )}
+            </Button>
           </div>
           <Separator />
           {selectedTab === "trace" && (
@@ -418,6 +458,11 @@ const TraceRow = ({ trace, utcTime }: { trace: any; utcTime: boolean }) => {
               {trace.map((span: any, i: number) => {
                 return <LogsView key={i} span={span} utcTime={utcTime} />;
               })}
+            </div>
+          )}
+          {selectedTab === "llm" && (
+            <div className="flex flex-col px-4 mt-2">
+              <LLMView prompts={prompts} responses={responses} />
             </div>
           )}
         </div>

@@ -3,6 +3,7 @@ import {
   FrameworkSpanAttributes,
   LLMSpanAttributes,
 } from "@langtrase/trace-attributes";
+import { Test } from "@prisma/client";
 import { TiktokenEncoding } from "js-tiktoken";
 
 export const SCHEDULE_CALL_LINK =
@@ -107,3 +108,31 @@ export const ANTHROPIC_PRICING: Record<string, any> = {
 };
 
 export const PAGE_SIZE = 15;
+
+export const DEFAULT_TESTS: Partial<Test>[] = [
+  {
+    name: "Factual Accuracy",
+    description:
+      "Evaluates the model's ability to provide factually correct answers, often involving comparison with verified data sources or databases.",
+  },
+  {
+    name: "Adversarial Testing",
+    description:
+      "Present the model with intentionally tricky or misleading inputs to test its robustness and ability to handle edge cases without producing nonsensical or incorrect outputs.",
+  },
+  {
+    name: "Consistency Checks",
+    description:
+      "Ensuring that the model provides consistent answers to the same question, even if phrased differently or asked at different times.",
+  },
+  {
+    name: "Quality",
+    description:
+      "Better for tasks like summarization where coverage and quality of the content is important.",
+  },
+  {
+    name: "Bias Detection",
+    description:
+      "Evaluating the responses for evidence of bias, including gender, racial, cultural, or ideological biases, to ensure the model's fairness and inclusivity.",
+  },
+];
