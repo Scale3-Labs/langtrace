@@ -2,6 +2,8 @@
 
 import { EvalChart } from "@/components/charts/eval-chart";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
+import { HoverCell } from "@/components/shared/hover-cell";
+import { LLMView } from "@/components/shared/llm-view";
 import { TestSetupInstructions } from "@/components/shared/setup-instructions";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
@@ -23,7 +25,6 @@ import { ChevronDown, ChevronRight, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
-import Markdown from "react-markdown";
 import { useQuery, useQueryClient } from "react-query";
 
 interface CheckedData {
@@ -298,8 +299,8 @@ function EvaluationTable({
             Timestamp (UTC)
           </p>
           <p className="text-xs font-medium">Model</p>
-          <p className="text-xs font-medium col-span-2">Input Message</p>
-          <p className="text-xs font-medium col-span-2">Response</p>
+          <p className="text-xs font-medium col-span-2">Input</p>
+          <p className="text-xs font-medium col-span-2">Output</p>
           <p className="text-xs font-medium">Cost</p>
           <p className="text-xs font-medium">PII Detected</p>
           <p className="text-xs font-medium">Duration</p>
@@ -469,10 +470,52 @@ function EvaluationRow({
       `fetch-accuracy-${projectId}-${testId}-query`
     );
   };
+
+  const LlmViewEvaluation = () => {
+    return (
+      <div className="flex flex-row items-center gap-3 justify-end mb-2 mr-2 mt-2">
+        <Button
+          size={"icon"}
+          variant={score === 1 ? "default" : "secondary"}
+          onClick={(e) => {
+            e.stopPropagation();
+
+            if (score === 1) {
+              evaluateSpan(0);
+              setScore(0);
+            } else {
+              evaluateSpan(1);
+              setScore(1);
+            }
+          }}
+        >
+          <ThumbsUp className={"h-5 w-5"} />
+        </Button>
+        <Button
+          size={"icon"}
+          variant={score === -1 ? "default" : "secondary"}
+          onClick={(e) => {
+            e.stopPropagation();
+
+            if (score === -1) {
+              evaluateSpan(0);
+              setScore(0);
+            } else {
+              evaluateSpan(-1);
+              setScore(-1);
+            }
+          }}
+        >
+          <ThumbsDown className={"h-5 w-5"} />
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col gap-3 w-full" key={key}>
       <div
-        className="grid grid-cols-13 items-start gap-3 py-3 px-4 w-full cursor-pointer"
+        className="grid grid-cols-13 items-center gap-3 py-3 px-4 w-full cursor-pointer"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div
@@ -517,16 +560,20 @@ function EvaluationRow({
           </p>
         </div>
         <p className="text-xs font-medium">{model}</p>
-        <p className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2">
-          {prompts?.length > 0 ? JSON.parse(prompts)[0]?.content : ""}
-        </p>
-        <p className="text-xs h-10 truncate overflow-y-scroll px-4 font-semibold col-span-2">
-          {responses?.length > 0
-            ? JSON.parse(responses)[0]?.message?.content ||
-              JSON.parse(responses)[0]?.text ||
-              JSON.parse(responses)[0]?.content
-            : ""}
-        </p>
+        <HoverCell
+          className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          value={prompts?.length > 0 ? JSON.parse(prompts)[0]?.content : ""}
+        />
+        <HoverCell
+          className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          value={
+            responses?.length > 0
+              ? JSON.parse(responses)[0]?.message?.content ||
+                JSON.parse(responses)[0]?.text ||
+                JSON.parse(responses)[0]?.content
+              : ""
+          }
+        />
         <p className="text-xs font-semibold">
           {cost.total.toFixed(6) !== "0.000000"
             ? `\$${cost.total.toFixed(6)}`
@@ -595,127 +642,12 @@ function EvaluationRow({
         )}
       </div>
       {!collapsed && (
-        <div className="flex flex-col gap-6 p-4 border-[1px] border-muted-foreground rounded-md">
-          {prompts?.length > 0 &&
-            JSON.parse(prompts).map((prompt: any, i: number) => (
-              <p
-                key={i}
-                className="text-xs bg-muted w-fit p-1 rounded-md leading-6"
-              >
-                <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
-                  {prompt?.role
-                    ? prompt?.role === "function"
-                      ? `${prompt?.role} - ${prompt?.name}`
-                      : prompt?.role
-                    : "Q"}
-                  :
-                  {prompt?.content
-                    ? " (content)"
-                    : prompt?.function_call
-                    ? " (function call)"
-                    : ""}
-                </span>{" "}
-                <Markdown
-                  className={cn(
-                    detectPII(prompt?.content || "").length > 0 &&
-                      "underline decoration-red-600 decoration-[3px]"
-                  )}
-                >
-                  {prompt?.content
-                    ? prompt?.content
-                    : prompt?.function_call
-                    ? JSON.stringify(prompt?.function_call)
-                    : ""}
-                </Markdown>
-              </p>
-            ))}
-          <p className="text-xs leading-6 w-fit p-1 rounded-md bg-muted">
-            <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
-              {JSON.parse(responses)[0]?.message?.role || "Assistant"}:
-            </span>{" "}
-            {responses?.length > 0 ? (
-              <Markdown
-                className={cn(
-                  detectPII(
-                    JSON.parse(responses)[0]?.message?.content ||
-                      JSON.parse(responses)[0]?.text ||
-                      JSON.parse(responses)[0]?.content ||
-                      ""
-                  ).length > 0 &&
-                    "underline decoration-red-600 decoration-[3px]"
-                )}
-              >
-                {JSON.parse(responses)[0]?.message?.content ||
-                  JSON.parse(responses)[0]?.text ||
-                  JSON.parse(responses)[0]?.content ||
-                  JSON.parse(responses).message?.content}
-              </Markdown>
-            ) : (
-              ""
-            )}
-            <div className="flex flex-row items-center gap-3 justify-end mb-2 mr-2 mt-2">
-              <Button
-                size={"icon"}
-                variant={score === 1 ? "default" : "secondary"}
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  if (score === 1) {
-                    evaluateSpan(0);
-                    setScore(0);
-                  } else {
-                    evaluateSpan(1);
-                    setScore(1);
-                  }
-                }}
-              >
-                <ThumbsUp className={"h-5 w-5"} />
-              </Button>
-              <Button
-                size={"icon"}
-                variant={score === -1 ? "default" : "secondary"}
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  if (score === -1) {
-                    evaluateSpan(0);
-                    setScore(0);
-                  } else {
-                    evaluateSpan(-1);
-                    setScore(-1);
-                  }
-                }}
-              >
-                <ThumbsDown className={"h-5 w-5"} />
-              </Button>
-            </div>
-          </p>
-          <div className="flex flex-col gap-0 bg-muted w-fit p-2 rounded-md">
-            <p className="text-sm font-semibold">Usage Details</p>
-            <div className="flex flex-row items-center gap-3">
-              <p className="text-xs font-semibold">Tokens:</p>
-              <p className="text-xs font-semibold">
-                {tokenCounts?.input_tokens} (input)
-              </p>
-              {tokenCounts?.input_tokens ? "+" : ""}
-              <p className="text-xs font-semibold">
-                {tokenCounts?.output_tokens} (output)
-              </p>
-              {tokenCounts?.output_tokens ? "=" : ""}
-              <p className="text-xs font-semibold">
-                {tokenCounts?.total_tokens}
-              </p>
-            </div>
-            <div className="flex flex-row items-center gap-3">
-              <p className="text-xs font-semibold">Cost:</p>
-              <p className="text-xs font-semibold">
-                {cost.total.toFixed(6) !== "0.000000"
-                  ? `\$${cost.total.toFixed(6)}`
-                  : ""}
-              </p>
-            </div>
-          </div>
-        </div>
+        <LLMView
+          responses={responses}
+          prompts={prompts}
+          doPiiDetection={true}
+          Evaluate={LlmViewEvaluation}
+        />
       )}
     </div>
   );
