@@ -41,7 +41,7 @@ export default function Metrics({ email }: { email: string }) {
   } else {
     // get test obj of factual accuracy test
     const test = fetchTests?.data?.tests?.find(
-      (test: any) => test.name === "Factual Accuracy"
+      (test: any) => test.name === "factual accuracy"
     );
     return (
       <div className="w-full flex flex-col gap-6 p-6">
