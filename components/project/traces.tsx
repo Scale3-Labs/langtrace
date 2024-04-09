@@ -426,6 +426,7 @@ const TraceRow = ({ trace, utcTime }: { trace: any; utcTime: boolean }) => {
               )}
             </Button>
             <Button
+              disabled={Object.keys(prompts).length === 0 || Object.keys(responses).length === 0}
               onClick={() => setSelectedTab("llm")}
               variant={"ghost"}
               className="flex flex-col justify-between pb-0"
