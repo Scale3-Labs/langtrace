@@ -101,7 +101,6 @@ The application will be available at `http://localhost:3000`.
 
 #### Take down the setup
 
-````bash
 
 To delete containers and volumes
 
