@@ -1,15 +1,22 @@
 "use client";
 
+import { Test } from "@prisma/client";
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { Info } from "../shared/info";
 
-export function ModelAccuracyChart({ projectId }: { projectId: string }) {
+export function ModelAccuracyChart({
+  projectId,
+  test,
+}: {
+  projectId: string;
+  test: Test;
+}) {
   const fetchAccuracy = useQuery({
-    queryKey: ["fetch-accuracy-model-query"],
+    queryKey: [`fetch-accuracy-model-${projectId}-${test.id}-query`],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/accuracy?projectId=${projectId}&by_model=true`
+        `/api/metrics/accuracy?projectId=${projectId}&testId=${test.id}&by_model=true`
       );
       const result = await response.json();
       return result;
@@ -87,7 +94,7 @@ export function ModelAccuracyChart({ projectId }: { projectId: string }) {
           </div>
           {result.map((r, i) => (
             <p key={i} className="text-sm text-start font-semibold underline">
-              {r.model} Overall Accuracy: {r.overallAccuracy.toFixed(2)}%
+              {r.model} Overall Accuracy: {r.overallAccuracy?.toFixed(2)}%
             </p>
           ))}
           <BarChart

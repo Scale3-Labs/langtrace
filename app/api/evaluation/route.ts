@@ -38,8 +38,16 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { traceId, spanId, projectId, model, score, spanStartTime, prompt } =
-    data;
+  const {
+    traceId,
+    spanId,
+    projectId,
+    model,
+    score,
+    spanStartTime,
+    prompt,
+    testId,
+  } = data;
 
   // check if this user has access to this project
   const project = await prisma.project.findFirst({
@@ -84,6 +92,7 @@ export async function POST(req: NextRequest) {
       model,
       score,
       prompt,
+      testId,
     },
   });
 
