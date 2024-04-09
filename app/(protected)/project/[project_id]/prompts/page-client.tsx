@@ -1,7 +1,10 @@
 "use client";
 
 import { AddtoPromptset } from "@/components/shared/add-to-promptset";
+import { Spinner } from "@/components/shared/spinner";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import { PAGE_SIZE } from "@/lib/constants";
 import { extractPromptFromLlmInputs } from "@/lib/utils";
 import { CheckCircledIcon } from "@radix-ui/react-icons";
@@ -11,16 +14,13 @@ import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import Markdown from "react-markdown";
 import { useQuery } from "react-query";
-import { Spinner } from "../../shared/spinner";
-import { Button } from "../../ui/button";
-import { Separator } from "../../ui/separator";
 
 interface CheckedData {
   value: string;
   spanId: string;
 }
 
-export default function Prompts({ email }: { email: string }) {
+export default function PageClient({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [page, setPage] = useState<number>(1);
@@ -167,7 +167,7 @@ const PromptRow = ({
   const [accuracy, setAccuracy] = useState(0);
   const [addedToPromptset, setAddedToPromptset] = useState(false);
 
-  const fetchPromptData = useQuery({
+  useQuery({
     queryKey: [`fetch-promptdata-query-${prompt.span_id}`],
     queryFn: async () => {
       const response = await fetch(`/api/promptdata?spanId=${prompt.span_id}`);

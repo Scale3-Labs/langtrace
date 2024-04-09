@@ -48,7 +48,10 @@ export function formatDate(isoDateString: string) {
   return formattedDate;
 }
 
-export function formatDateTime(isoString: string): string {
+export function formatDateTime(
+  isoString: string,
+  useLocalTime: boolean = false
+): string {
   // Create a Date object from the ISO string.
   const date = new Date(isoString);
 
@@ -68,12 +71,20 @@ export function formatDateTime(isoString: string): string {
     "Dec",
   ];
 
-  // Construct the formatted string using the Date object.
-  const formatted = `${
-    monthNames[date.getUTCMonth()]
-  } ${date.getUTCDate()}, ${date.getUTCFullYear()}, ${padZero(
-    date.getUTCHours()
-  )}:${padZero(date.getUTCMinutes())}:${padZero(date.getUTCSeconds())} UTC`;
+  // Use UTC or local time methods based on the useLocalTime parameter.
+  const monthMethod = useLocalTime ? "getMonth" : "getUTCMonth";
+  const dateMethod = useLocalTime ? "getDate" : "getUTCDate";
+  const yearMethod = useLocalTime ? "getFullYear" : "getUTCFullYear";
+  const hoursMethod = useLocalTime ? "getHours" : "getUTCHours";
+  const minutesMethod = useLocalTime ? "getMinutes" : "getUTCMinutes";
+  const secondsMethod = useLocalTime ? "getSeconds" : "getUTCSeconds";
+
+  // Construct the formatted string using the Date object and the selected methods.
+  const formatted = `${monthNames[date[monthMethod]()]} ${date[
+    dateMethod
+  ]()}, ${date[yearMethod]()}, ${padZero(date[hoursMethod]())}:${padZero(
+    date[minutesMethod]()
+  )}:${padZero(date[secondsMethod]())}${useLocalTime ? "" : " UTC"}`;
 
   // Return the formatted string.
   return formatted;

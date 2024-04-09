@@ -64,7 +64,6 @@ export default function Promptset() {
       } else {
         setCurrentData(newData);
       }
-
       setShowLoader(false);
     },
   });

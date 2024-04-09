@@ -3,6 +3,11 @@ import { format } from "date-fns";
 import sql from "sql-bricks";
 import { ClickhouseBaseClient } from "../clients/scale3_clickhouse/client/client";
 import { calculatePriceFromUsage } from "../utils";
+import {
+  AttributesFilter,
+  IQueryBuilderService,
+  QueryBuilderService,
+} from "./query_builder_service";
 
 // may want to think about how we want to store account_id in table or table name to prevent
 // having to pass in project_ids to get total spans per account
@@ -44,13 +49,15 @@ export interface ITraceService {
   GetSpansInProjectPaginated: (
     project_id: string,
     page: number,
-    pageSize: number
+    pageSize: number,
+    filters?: AttributesFilter[]
   ) => Promise<PaginationResult<Span>>;
   GetSpansInProject: (project_id: string) => Promise<Span[]>;
   GetTracesInProjectPaginated: (
     project_id: string,
     page: number,
-    pageSize: number
+    pageSize: number,
+    filters?: AttributesFilter[]
   ) => Promise<PaginationResult<Span[]>>;
   GetTokensUsedPerProject: (project_id: string) => Promise<any>;
   GetTokensUsedPerAccount: (project_ids: string[]) => Promise<number>;
@@ -74,8 +81,10 @@ export interface ITraceService {
 
 export class TraceService implements ITraceService {
   private readonly client: ClickhouseBaseClient;
+  private readonly queryBuilderService: IQueryBuilderService;
   constructor() {
     this.client = new ClickhouseBaseClient();
+    this.queryBuilderService = new QueryBuilderService();
   }
 
   async AddSpans(spans: Span[], project_id: string): Promise<void> {
@@ -338,7 +347,9 @@ export class TraceService implements ITraceService {
   async GetSpansInProjectPaginated(
     project_id: string,
     page: number,
-    pageSize: number
+    pageSize: number,
+    filters: AttributesFilter[] = [],
+    filterOperation: string = "OR"
   ): Promise<PaginationResult<Span>> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -348,7 +359,17 @@ export class TraceService implements ITraceService {
           metadata: { page, page_size: pageSize, total_pages: 1 },
         };
       }
-      const totalLen = await this.GetTotalSpansPerProject(project_id);
+
+      // build the pagination metadata
+      const getTotalSpansPerProjectQuery = sql.select(
+        this.queryBuilderService.CountFilteredSpanAttributesQuery(
+          project_id,
+          filters,
+          filterOperation
+        )
+      );
+      const result = await this.client.find<any>(getTotalSpansPerProjectQuery);
+      const totalLen = parseInt(result[0]["total_spans"], 10);
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
           ? 1
@@ -358,13 +379,18 @@ export class TraceService implements ITraceService {
       if (page! > totalPages) {
         page = totalPages;
       }
-      const query = sql.select(
-        `* FROM ${project_id} ORDER BY 'createdAt' DESC LIMIT ${pageSize} OFFSET ${
-          (page - 1) * pageSize
-        };`
-      );
 
-      const spans: Span[] = await this.client.find<Span[]>(query);
+      // get all spans sorted by start_time in descending order
+      const getSpansQuery = sql.select(
+        this.queryBuilderService.GetFilteredSpansAttributesQuery(
+          project_id,
+          filters,
+          pageSize,
+          (page - 1) * pageSize,
+          filterOperation
+        )
+      );
+      const spans: Span[] = await this.client.find<Span[]>(getSpansQuery);
       return { result: spans, metadata: md };
     } catch (error) {
       throw new Error(
@@ -388,7 +414,9 @@ export class TraceService implements ITraceService {
   async GetTracesInProjectPaginated(
     project_id: string,
     page: number,
-    pageSize: number
+    pageSize: number,
+    filters: AttributesFilter[] = [],
+    filterOperation: string = "OR"
   ): Promise<PaginationResult<Span[]>> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -398,24 +426,53 @@ export class TraceService implements ITraceService {
           metadata: { page, page_size: pageSize, total_pages: 1 },
         };
       }
-      const totalLen = await this.GetTotalTracesPerProject(project_id);
+
+      // Query strategy: get page offset, get trace ids, get the traces
+
+      // build the pagination metadata
+      const getTotalTracesPerProjectQuery = sql.select(
+        this.queryBuilderService.CountFilteredTraceAttributesQuery(
+          project_id,
+          filters,
+          filterOperation
+        )
+      );
+      const result = await this.client.find<any>(getTotalTracesPerProjectQuery);
+      const totalLen = parseInt(result[0]["total_traces"], 10);
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
           ? 1
           : Math.ceil(totalLen / pageSize);
 
       const md = { page, page_size: pageSize, total_pages: totalPages };
-      // get all spans grouped by trace_id and sort by start_time in descending order
-      const query = sql.select(
-        `trace_id, MIN(start_time) AS earliest_start_time FROM ${project_id} GROUP BY trace_id ORDER BY earliest_start_time DESC LIMIT ${pageSize} OFFSET ${
-          (page - 1) * pageSize
-        };`
+      if (page! > totalPages) {
+        page = totalPages;
+      }
+
+      // get all span IDs grouped by trace_id and sort by start_time in descending order
+      const getTraceIdsQuery = sql.select(
+        this.queryBuilderService.GetFilteredTraceAttributesQuery(
+          project_id,
+          filters,
+          pageSize,
+          (page - 1) * pageSize,
+          filterOperation
+        )
       );
-      const spans: Span[] = await this.client.find<Span[]>(query);
+      const spans: Span[] = await this.client.find<Span[]>(getTraceIdsQuery);
+
       // get all traces
       const traces: Span[][] = [];
       for (const span of spans) {
-        const trace = await this.GetTraceById(span.trace_id, project_id);
+        const getTraceByIdQuery = sql.select(
+          this.queryBuilderService.GetFilteredTraceAttributesTraceById(
+            project_id,
+            span.trace_id,
+            filters,
+            filterOperation
+          )
+        );
+        const trace = await this.client.find<Span[]>(getTraceByIdQuery);
         traces.push(trace);
       }
       return { result: traces, metadata: md };
