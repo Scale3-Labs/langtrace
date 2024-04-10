@@ -107,6 +107,37 @@ export const ANTHROPIC_PRICING: Record<string, any> = {
   },
 };
 
+// https://docs.perplexity.ai/docs/pricing --> slightly unclear
+// https://docs.perplexity.ai/changelog/api-updates-february-2024 --> diff prices
+export const PERPLEXITY_PRICING: Record<string, any> = {
+  "sonar-small-chat": {
+    input: 0.0002,
+    output: 0.0002,
+  },
+  "sonar-small-online": {
+    // + $5/K requests
+    input: 0.0002,
+    output: 0.0002,
+  },
+  "sonar-medium-chat": {
+    input: 0.0006,
+    output: 0.0006,
+  },
+  "sonar-medium-online": {
+    // + $5/K requests
+    input: 0.0006,
+    output: 0.0006,
+  },
+  "mistral-7b-instruct": {
+    input: 0.0002,
+    output: 0.0002,
+  },
+  "mixtral-8x7b-instruct": {
+    input: 0.0006,
+    output: 0.0018,
+  },
+};
+
 export const PAGE_SIZE = 15;
 
 export const DEFAULT_TESTS: Partial<Test>[] = [
