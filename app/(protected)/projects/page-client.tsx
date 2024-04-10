@@ -2,6 +2,7 @@
 
 import { Create } from "@/components/project/create";
 import { Edit } from "@/components/project/edit";
+import CardLoading from "@/components/shared/card-loading";
 import {
   Card,
   CardContent,
@@ -34,14 +35,14 @@ export default function PageClient({ email }: { email: string }) {
     },
   });
 
-  // if (
-  //   fetchProjects.isLoading ||
-  //   !fetchProjects.data ||
-  //   fetchUser.isLoading ||
-  //   !fetchUser.data
-  // ) {
-  //   return <PageLoading />;
-  // }
+  if (
+    fetchProjects.isLoading ||
+    !fetchProjects.data ||
+    fetchUser.isLoading ||
+    !fetchUser.data
+  ) {
+    return <PageLoading />;
+  }
 
   return (
     <div className="w-full flex flex-col">
@@ -185,6 +186,32 @@ function ProjectCard({
           </CardContent>
         </Card>
       </Link>
+    </div>
+  );
+}
+
+function PageLoading() {
+  return (
+    <div className="w-full flex flex-col">
+      <div className="md:px-52 px-12 py-12 flex justify-between bg-muted">
+        <h1 className="text-3xl font-semibold">Projects</h1>
+        <Create disabled={true} />
+      </div>
+      <div
+        className={cn(
+          "md:px-52 px-12 py-12 flex md:flex-row flex-col gap-2 items-center md:items-start"
+        )}
+      >
+        <div
+          className={cn(
+            "flex w-full gap-12 flex-wrap md:flex-row flex-wrap flex-col md:items-start items-center"
+          )}
+        >
+          {Array.from({ length: 3 }).map((_, index) => (
+            <CardLoading key={index} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
