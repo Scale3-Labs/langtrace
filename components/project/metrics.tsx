@@ -3,13 +3,13 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
 import { EvalChart } from "../charts/eval-chart";
+import LargeChartLoading from "../charts/large-chart-loading";
 import { TraceLatencyChart } from "../charts/latency-chart";
 import { ModelAccuracyChart } from "../charts/model-accuracy-chart";
+import SmallChartLoading from "../charts/small-chart-loading";
 import { CostChart, TokenChart } from "../charts/token-chart";
 import { TraceSpanChart } from "../charts/trace-chart";
 import { Info } from "../shared/info";
-import LargeChartLoading from "../shared/large-chart-loading";
-import SmallChartLoading from "../shared/small-chart-loading";
 import { Separator } from "../ui/separator";
 
 export default function Metrics({ email }: { email: string }) {

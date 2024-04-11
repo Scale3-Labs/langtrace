@@ -2,7 +2,7 @@
 
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
-import SmallChartLoading from "../shared/small-chart-loading";
+import SmallChartLoading from "./small-chart-loading";
 
 export function TraceSpanChart({ projectId }: { projectId: string }) {
   const fetchMetricsUsageTrace = useQuery({
