@@ -2,6 +2,7 @@
 
 import { Create } from "@/components/project/create";
 import { Edit } from "@/components/project/edit";
+import CardLoading from "@/components/shared/card-loading";
 import {
   Card,
   CardContent,
@@ -40,7 +41,7 @@ export default function PageClient({ email }: { email: string }) {
     fetchUser.isLoading ||
     !fetchUser.data
   ) {
-    return <div>Loading...</div>;
+    return <PageLoading />;
   }
 
   return (
@@ -109,9 +110,6 @@ function ProjectCard({
     },
   });
 
-  if (fetchProjecStats.isLoading || !fetchProjecStats.data) {
-    return <div>Loading...</div>;
-  }
   return (
     <div className="relative" key={key}>
       <div className="flex items-center flex-row gap-2 absolute top-2 right-2 z-10">
@@ -188,6 +186,32 @@ function ProjectCard({
           </CardContent>
         </Card>
       </Link>
+    </div>
+  );
+}
+
+function PageLoading() {
+  return (
+    <div className="w-full flex flex-col">
+      <div className="md:px-52 px-12 py-12 flex justify-between bg-muted">
+        <h1 className="text-3xl font-semibold">Projects</h1>
+        <Create disabled={true} />
+      </div>
+      <div
+        className={cn(
+          "md:px-52 px-12 py-12 flex md:flex-row flex-col gap-2 items-center md:items-start"
+        )}
+      >
+        <div
+          className={cn(
+            "flex w-full gap-12 flex-wrap md:flex-row flex-wrap flex-col md:items-start items-center"
+          )}
+        >
+          {Array.from({ length: 3 }).map((_, index) => (
+            <CardLoading key={index} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -29,10 +29,12 @@ import { Info } from "../shared/info";
 
 export function Create({
   teamId,
+  disabled = false,
   variant = "default",
   className = "",
 }: {
-  teamId: string;
+  teamId?: string;
+  disabled?: boolean;
   variant?: any;
   className?: string;
 }) {
@@ -49,7 +51,7 @@ export function Create({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} className={className}>
+        <Button disabled={disabled} variant={variant} className={className}>
           Create Project <PlusIcon className="ml-2" />
         </Button>
       </DialogTrigger>
