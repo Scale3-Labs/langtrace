@@ -5,6 +5,7 @@ import { EditPrompt } from "@/components/project/dataset/edit-data";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PAGE_SIZE } from "@/lib/constants";
 import { Prompt } from "@prisma/client";
 import { ChevronLeft } from "lucide-react";
@@ -69,7 +70,7 @@ export default function Promptset() {
   });
 
   if (fetchPromptset.isLoading || !fetchPromptset.data || !currentData) {
-    return <div>Loading...</div>;
+    return <PageLoading />;
   } else {
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
@@ -120,4 +121,52 @@ export default function Promptset() {
       </div>
     );
   }
+}
+
+function PageLoading() {
+  return (
+    <div className="w-full py-6 px-6 flex flex-col gap-4">
+      <div className="flex gap-4 items-center w-fit">
+        <Button
+          disabled={true}
+          variant="secondary"
+          onClick={() => window.history.back()}
+        >
+          <ChevronLeft className="mr-1" />
+          Back
+        </Button>
+        <CreatePrompt disabled={true} />
+      </div>
+      <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
+        <div className="grid grid-cols-4 items-center justify-stretch gap-3 py-3 px-4 bg-muted">
+          <p className="text-xs font-medium">Created at</p>
+          <p className="text-xs font-medium">Value</p>
+          <p className="text-xs font-medium text-left">Note</p>
+          <p className="text-xs font-medium text-end"></p>
+        </div>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <RowSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RowSkeleton() {
+  return (
+    <div className="flex flex-col">
+      <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">
+        <p className="text-xs">
+          <Skeleton className="w-full h-6" />
+        </p>
+        <p className="text-xs h-12 overflow-y-scroll">
+          <Skeleton className="w-full h-6" />
+        </p>
+        <p className="text-xs h-12 overflow-y-scroll">
+          <Skeleton className="w-full h-6" />
+        </p>
+      </div>
+      <Separator orientation="horizontal" />
+    </div>
+  );
 }
