@@ -8,6 +8,8 @@ import { ModelAccuracyChart } from "../charts/model-accuracy-chart";
 import { CostChart, TokenChart } from "../charts/token-chart";
 import { TraceSpanChart } from "../charts/trace-chart";
 import { Info } from "../shared/info";
+import LargeChartLoading from "../shared/large-chart-loading";
+import SmallChartLoading from "../shared/small-chart-loading";
 import { Separator } from "../ui/separator";
 
 export default function Metrics({ email }: { email: string }) {
@@ -37,7 +39,7 @@ export default function Metrics({ email }: { email: string }) {
     fetchTests.isLoading ||
     !fetchTests.data
   ) {
-    return <div>Loading...</div>;
+    return <PageLoading />;
   } else {
     // get test obj of factual accuracy test
     const test = fetchTests?.data?.tests?.find(
@@ -81,4 +83,44 @@ export default function Metrics({ email }: { email: string }) {
       </div>
     );
   }
+}
+
+function PageLoading() {
+  return (
+    <div className="w-full flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-2">
+        <p className="text-lg font-semibold">Usage</p>
+        <Separator />
+        <div className="flex flex-row items-center gap-5">
+          <SmallChartLoading />
+          <SmallChartLoading />
+          <SmallChartLoading />
+        </div>
+      </div>
+      <div className="flex flex-row gap-4 w-full">
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-row items-center gap-2">
+            <p className="text-lg font-semibold">Latency</p>
+          </div>
+          <Separator />
+          <LargeChartLoading />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-row items-center gap-2">
+          <p className="text-lg font-semibold">Evaluated Accuracy</p>
+          <Info information="This is calculated based on your evaluation of the q&a pairs. Go to the Eval tab to start evaluating to see this metric calculated." />
+        </div>
+        <Separator />
+        <LargeChartLoading />
+      </div>
+      <div className="flex flex-col gap-2">
+        <p className="text-lg font-semibold">Evaluated Accuracy per Model</p>
+        <Separator />
+        <div className="flex flex-row items-center gap-5 w-full">
+          <LargeChartLoading />
+        </div>
+      </div>
+    </div>
+  );
 }

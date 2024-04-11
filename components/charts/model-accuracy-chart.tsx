@@ -4,6 +4,7 @@ import { Test } from "@prisma/client";
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { Info } from "../shared/info";
+import LargeChartLoading from "../shared/large-chart-loading";
 
 export function ModelAccuracyChart({
   projectId,
@@ -24,7 +25,7 @@ export function ModelAccuracyChart({
   });
 
   if (fetchAccuracy.isLoading || !fetchAccuracy.data) {
-    return <div>Loading...</div>;
+    return <LargeChartLoading />;
   } else {
     // for each key aggregate accuracy per day and return the data
     const evaluations: any[] = fetchAccuracy?.data?.evaluations;

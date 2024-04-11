@@ -2,6 +2,7 @@
 
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
+import SmallChartLoading from "../shared/small-chart-loading";
 
 export function TraceSpanChart({ projectId }: { projectId: string }) {
   const fetchMetricsUsageTrace = useQuery({
@@ -32,7 +33,7 @@ export function TraceSpanChart({ projectId }: { projectId: string }) {
     fetchMetricsUsageSpan.isLoading ||
     !fetchMetricsUsageSpan.data
   ) {
-    return <div>Loading...</div>;
+    return <SmallChartLoading />;
   } else {
     const traceData = fetchMetricsUsageTrace.data?.traces?.map((data: any) => ({
       date: data.date,
@@ -103,7 +104,7 @@ export function SpanChart({ projectId }: { projectId: string }) {
   });
 
   if (fetchMetricsUsageSpan.isLoading || !fetchMetricsUsageSpan.data) {
-    return <div>Loading...</div>;
+    return <SmallChartLoading />;
   } else {
     return (
       <>

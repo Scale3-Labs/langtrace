@@ -2,6 +2,7 @@
 
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
+import SmallChartLoading from "../shared/small-chart-loading";
 
 export function TokenChart({ projectId }: { projectId: string }) {
   const fetchMetricsUsageToken = useQuery({
@@ -16,7 +17,7 @@ export function TokenChart({ projectId }: { projectId: string }) {
   });
 
   if (fetchMetricsUsageToken.isLoading || !fetchMetricsUsageToken.data) {
-    return <div>Loading...</div>;
+    return <SmallChartLoading />;
   } else {
     return (
       <>
@@ -74,7 +75,7 @@ export function CostChart({ projectId }: { projectId: string }) {
   });
 
   if (fetchMetricsUsageCost.isLoading || !fetchMetricsUsageCost.data) {
-    return <div>Loading...</div>;
+    return <SmallChartLoading />;
   } else {
     return (
       <>
