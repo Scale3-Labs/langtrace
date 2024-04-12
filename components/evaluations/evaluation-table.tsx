@@ -7,6 +7,7 @@ import { Test } from "@prisma/client";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
+import RowSkeleton from "../project/traces/row-skeleton";
 import EvaluationRow from "./evaluation-row";
 
 interface CheckedData {
@@ -146,7 +147,7 @@ export default function EvaluationTable({
       {fetchLlmPromptSpans.isLoading ||
       !fetchLlmPromptSpans.data ||
       !currentData ? (
-        <div>Loading...</div>
+        <TableLoading />
       ) : (
         currentData.map((span: any, i: number) => (
           <EvaluationRow
@@ -174,6 +175,30 @@ export default function EvaluationTable({
             <TestSetupInstructions testId={test.id} />
           </div>
         )}
+    </div>
+  );
+}
+
+export function TableLoading() {
+  return (
+    <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
+      <div className="grid grid-cols-13 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
+        <p className="text-xs font-medium col-span-2 text-end">
+          Timestamp (UTC)
+        </p>
+        <p className="text-xs font-medium">Model</p>
+        <p className="text-xs font-medium col-span-2">Input</p>
+        <p className="text-xs font-medium col-span-2">Output</p>
+        <p className="text-xs font-medium">Cost</p>
+        <p className="text-xs font-medium">PII Detected</p>
+        <p className="text-xs font-medium">Duration</p>
+        <p className="text-xs font-medium">Evaluate</p>
+        <p className="text-xs font-medium">User Score</p>
+        <p className="text-xs font-medium">Added to Dataset</p>
+      </div>
+      {Array.from({ length: 5 }).map((span: any, i: number) => (
+        <RowSkeleton key={i} />
+      ))}
     </div>
   );
 }

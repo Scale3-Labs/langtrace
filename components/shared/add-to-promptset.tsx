@@ -132,7 +132,7 @@ export default function PromptsetCombobox({
   });
 
   if (fetchPromptsets.isLoading || !fetchPromptsets.data) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>; // this componenet isn't being used, will add updated loading later
   } else {
     return (
       <Popover open={open} onOpenChange={setOpen}>

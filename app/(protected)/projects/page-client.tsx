@@ -41,7 +41,7 @@ export default function PageClient({ email }: { email: string }) {
     fetchUser.isLoading ||
     !fetchUser.data
   ) {
-    return <PageLoading />;
+    return <ProjectsPageLoading />;
   }
 
   return (
@@ -190,7 +190,7 @@ function ProjectCard({
   );
 }
 
-function PageLoading() {
+export function ProjectsPageLoading() {
   return (
     <div className="w-full flex flex-col">
       <div className="md:px-52 px-12 py-12 flex justify-between bg-muted">

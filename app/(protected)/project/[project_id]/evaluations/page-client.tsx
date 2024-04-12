@@ -2,7 +2,9 @@
 
 import { EvalChart } from "@/components/charts/eval-chart";
 import LargeChartLoading from "@/components/charts/large-chart-loading";
-import EvaluationTable from "@/components/evaluations/evaluation-table";
+import EvaluationTable, {
+  TableLoading,
+} from "@/components/evaluations/evaluation-table";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -140,7 +142,6 @@ export default function PageClient({ email }: { email: string }) {
                     {selectedTest?.description}
                   </p>
                 </div>
-                {!selectedTest && <div>Loading...</div>}
                 {selectedTest && (
                   <EvalChart projectId={projectId} test={selectedTest} />
                 )}
@@ -219,6 +220,7 @@ function PageLoading() {
             </div>
             <LargeChartLoading />
           </div>
+          <TableLoading />
         </div>
       </div>
     </div>
