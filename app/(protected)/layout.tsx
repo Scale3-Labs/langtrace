@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth/options";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { ProjectsPageLoading } from "./projects/page-client";
+import { PageSkeleton } from "./projects/page-client";
 
 export default async function Layout({
   children,
@@ -48,7 +48,7 @@ function PageLoading() {
         </div>
         <Skeleton className="w-full h-0.5" />
       </header>
-      <ProjectsPageLoading />
+      <PageSkeleton />
     </main>
   );
 }
