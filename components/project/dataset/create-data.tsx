@@ -28,10 +28,12 @@ import { z } from "zod";
 
 export function CreateData({
   datasetId,
+  disabled = false,
   variant = "default",
   className = "",
 }: {
-  datasetId: string;
+  datasetId?: string;
+  disabled?: boolean;
   variant?: any;
   className?: string;
 }) {
@@ -49,7 +51,7 @@ export function CreateData({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} className={className}>
+        <Button disabled={disabled} variant={variant} className={className}>
           Create Data <PlusIcon className="ml-2" />
         </Button>
       </DialogTrigger>
@@ -175,10 +177,12 @@ export function CreateData({
 
 export function CreatePrompt({
   promptsetId,
+  disabled = false,
   variant = "default",
   className = "",
 }: {
-  promptsetId: string;
+  promptsetId?: string;
+  disabled?: boolean;
   variant?: any;
   className?: string;
 }) {
@@ -195,7 +199,7 @@ export function CreatePrompt({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} className={className}>
+        <Button disabled={disabled} variant={variant} className={className}>
           Create Prompt <PlusIcon className="ml-2" />
         </Button>
       </DialogTrigger>

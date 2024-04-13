@@ -5,6 +5,7 @@ import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PAGE_SIZE } from "@/lib/constants";
 import { extractPromptFromLlmInputs } from "@/lib/utils";
 import { CheckCircledIcon } from "@radix-ui/react-icons";
@@ -85,7 +86,7 @@ export default function PageClient({ email }: { email: string }) {
   });
 
   if (fetchPrompts.isLoading || !fetchPrompts.data || !currentData) {
-    return <div>Loading...</div>;
+    return <PageLoading />;
   } else {
     // Deduplicate prompts
     const seenPrompts: string[] = [];
@@ -280,3 +281,60 @@ const PromptRow = ({
     </div>
   );
 };
+
+function PageLoading() {
+  return (
+    <div className="w-full py-6 px-6 flex flex-col gap-4">
+      <div className="w-fit">
+        <AddtoPromptset disabled={true} />
+      </div>
+      <p className="text-sm font-semibold text-black bg-yellow-300 px-2 p-1 rounded-md">
+        These prompts are automatically captured from your traces. The accuracy
+        of these prompts are calculated based on the evaluation done in the
+        evaluate tab.
+      </p>
+      <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
+        <div className="grid grid-cols-6 items-center justify-stretch gap-3 py-3 px-4 bg-muted">
+          <p className="text-xs font-medium">LLM Vendor</p>
+          <p className="text-xs font-medium text-left">Model</p>
+          <p className="text-xs font-medium text-left">Interactions</p>
+          <p className="text-xs text-left font-medium">Prompt</p>
+          <p className="text-xs font-medium text-center">Accuracy</p>
+          <p className="text-xs font-medium">Added to Dataset</p>
+        </div>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <PromptRowSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PromptRowSkeleton() {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-6 justify-stretch items-center py-1 px-4 w-full cursor-pointer">
+        <div
+          className="flex flex-row items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Skeleton className="w-full h-6" />
+        </div>
+        <p className="text-xs text-muted-foreground text-left font-semibold">
+          <Skeleton className="w-full h-6" />
+        </p>
+        <p className="text-xs text-left font-semibold">
+          <Skeleton className="w-full h-6" />
+        </p>
+        <p className="text-xs text-left h-10 truncate overflow-y-scroll font-semibold">
+          <Skeleton className="w-full h-6" />
+        </p>
+        <p className="text-xs text-center font-semibold">
+          <Skeleton className="w-full h-6" />
+        </p>
+        <Skeleton className="w-full h-6" />
+      </div>
+      <Separator orientation="horizontal" />
+    </div>
+  );
+}

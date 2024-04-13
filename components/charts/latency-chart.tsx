@@ -3,6 +3,7 @@
 import { AreaChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { Info } from "../shared/info";
+import LargeChartLoading from "./large-chart-skeleton";
 
 export function TraceLatencyChart({ projectId }: { projectId: string }) {
   const fetchMetricsLatencyAverageTracePerDay = useQuery({
@@ -20,7 +21,7 @@ export function TraceLatencyChart({ projectId }: { projectId: string }) {
     fetchMetricsLatencyAverageTracePerDay.isLoading ||
     !fetchMetricsLatencyAverageTracePerDay.data
   ) {
-    return <div>Loading...</div>;
+    return <LargeChartLoading />;
   } else {
     const avgLatencyData =
       fetchMetricsLatencyAverageTracePerDay.data?.averageLatencies?.map(

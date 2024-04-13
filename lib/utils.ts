@@ -411,3 +411,13 @@ export function extractPromptFromLlmInputs(inputs: any[]): string {
   }
   return prompt;
 }
+
+export const getChartColor = (value: number) => {
+  if (value < 50) {
+    return "red";
+  } else if (value < 90 && value >= 50) {
+    return "yellow";
+  } else {
+    return "green";
+  }
+};

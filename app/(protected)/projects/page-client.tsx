@@ -2,7 +2,7 @@
 
 import { Create } from "@/components/project/create";
 import { Edit } from "@/components/project/edit";
-import CardLoading from "@/components/shared/card-loading";
+import CardSkeleton from "@/components/shared/card-skeleton";
 import {
   Card,
   CardContent,
@@ -41,7 +41,7 @@ export default function PageClient({ email }: { email: string }) {
     fetchUser.isLoading ||
     !fetchUser.data
   ) {
-    return <PageLoading />;
+    return <PageSkeleton />;
   }
 
   return (
@@ -190,7 +190,7 @@ function ProjectCard({
   );
 }
 
-function PageLoading() {
+export function PageSkeleton() {
   return (
     <div className="w-full flex flex-col">
       <div className="md:px-52 px-12 py-12 flex justify-between bg-muted">
@@ -208,7 +208,7 @@ function PageLoading() {
           )}
         >
           {Array.from({ length: 3 }).map((_, index) => (
-            <CardLoading key={index} />
+            <CardSkeleton key={index} />
           ))}
         </div>
       </div>
