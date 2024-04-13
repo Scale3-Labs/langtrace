@@ -1,9 +1,11 @@
+import CardLoading from "@/components/shared/card-skeleton";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
@@ -28,7 +30,7 @@ export default function PromptSet({ email }: { email: string }) {
     fetchPromptsets.isLoading ||
     !fetchPromptsets.data
   ) {
-    return <div>Loading...</div>;
+    return <PageLoading />;
   } else {
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
@@ -77,4 +79,29 @@ export default function PromptSet({ email }: { email: string }) {
       </div>
     );
   }
+}
+
+function PageLoading() {
+  return (
+    <div className="w-full py-6 px-6 flex flex-col gap-4">
+      <div className="w-fit">
+        <CreatePromptset disabled={true} />
+      </div>
+      <div
+        className={cn(
+          "md:px-52 px-12 py-12 flex md:flex-row flex-col gap-2 items-center md:items-start"
+        )}
+      >
+        <div
+          className={cn(
+            "flex w-full gap-12 flex-wrap md:flex-row flex-wrap flex-col md:items-start items-center"
+          )}
+        >
+          {Array.from({ length: 3 }).map((_, index) => (
+            <CardLoading key={index} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

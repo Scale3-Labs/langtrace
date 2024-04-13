@@ -1,4 +1,4 @@
-import Traces from "@/components/project/traces";
+import Traces from "@/components/project/traces/traces";
 import { authOptions } from "@/lib/auth/options";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";

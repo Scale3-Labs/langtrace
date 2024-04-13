@@ -41,9 +41,11 @@ interface CheckedData {
 export function AddtoPromptset({
   projectId,
   selectedData,
+  disabled = false,
 }: {
-  projectId: string;
-  selectedData: CheckedData[];
+  projectId?: string;
+  selectedData?: CheckedData[];
+  disabled?: boolean;
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
@@ -52,7 +54,7 @@ export function AddtoPromptset({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size={"sm"} disabled={selectedData.length === 0}>
+        <Button size={"sm"} disabled={disabled || selectedData!.length === 0}>
           Add to Prompt Set
           <PlusIcon className="ml-2 h-4 w-4 shrink-0" />
         </Button>
@@ -69,7 +71,7 @@ export function AddtoPromptset({
             Select a prompt set
           </Label>
           <PromptsetCombobox
-            projectId={projectId}
+            projectId={projectId!}
             setSelectedPromptsetId={setSelectedPromptsetId}
           />
         </div>
@@ -89,7 +91,7 @@ export function AddtoPromptset({
                     promptsetId: selectedPromptsetId,
                   }),
                 });
-                selectedData.forEach((data) => {
+                selectedData!.forEach((data) => {
                   queryClient.invalidateQueries({
                     queryKey: [`fetch-promptdata-query-${data.spanId}`],
                   });
@@ -130,7 +132,7 @@ export default function PromptsetCombobox({
   });
 
   if (fetchPromptsets.isLoading || !fetchPromptsets.data) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>; // this componenet isn't being used, will add updated loading later
   } else {
     return (
       <Popover open={open} onOpenChange={setOpen}>
