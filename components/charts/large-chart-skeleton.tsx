@@ -2,7 +2,7 @@
 
 import { Skeleton } from "../ui/skeleton";
 
-export default function LargeChartLoading() {
+export default function LargeChartSkeleton() {
   return (
     <div className="flex flex-col gap-2 border p-3 rounded-lg w-full">
       <div className="flex flex-row gap-3 h-12 font-semibold">

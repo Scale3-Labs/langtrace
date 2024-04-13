@@ -303,14 +303,14 @@ function PageLoading() {
           <p className="text-xs font-medium">Added to Dataset</p>
         </div>
         {Array.from({ length: 3 }).map((_, index) => (
-          <RowSkeleton key={index} />
+          <PromptRowSkeleton key={index} />
         ))}
       </div>
     </div>
   );
 }
 
-function RowSkeleton() {
+function PromptRowSkeleton() {
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-6 justify-stretch items-center py-1 px-4 w-full cursor-pointer">

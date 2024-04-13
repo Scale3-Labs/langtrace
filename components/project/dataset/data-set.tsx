@@ -1,4 +1,4 @@
-import CardLoading from "@/components/shared/card-loading";
+import CardLoading from "@/components/shared/card-skeleton";
 import {
   Card,
   CardDescription,

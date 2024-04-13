@@ -3,10 +3,10 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
 import { EvalChart } from "../charts/eval-chart";
-import LargeChartLoading from "../charts/large-chart-loading";
+import LargeChartSkeleton from "../charts/large-chart-skeleton";
 import { TraceLatencyChart } from "../charts/latency-chart";
 import { ModelAccuracyChart } from "../charts/model-accuracy-chart";
-import SmallChartLoading from "../charts/small-chart-loading";
+import SmallChartSkeleton from "../charts/small-chart-skeleton";
 import { CostChart, TokenChart } from "../charts/token-chart";
 import { TraceSpanChart } from "../charts/trace-chart";
 import { Info } from "../shared/info";
@@ -39,7 +39,7 @@ export default function Metrics({ email }: { email: string }) {
     fetchTests.isLoading ||
     !fetchTests.data
   ) {
-    return <PageLoading />;
+    return <PageSkeleton />;
   } else {
     // get test obj of factual accuracy test
     const test = fetchTests?.data?.tests?.find(
@@ -85,16 +85,16 @@ export default function Metrics({ email }: { email: string }) {
   }
 }
 
-function PageLoading() {
+function PageSkeleton() {
   return (
     <div className="w-full flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
         <p className="text-lg font-semibold">Usage</p>
         <Separator />
         <div className="flex flex-row items-center gap-5">
-          <SmallChartLoading />
-          <SmallChartLoading />
-          <SmallChartLoading />
+          <SmallChartSkeleton />
+          <SmallChartSkeleton />
+          <SmallChartSkeleton />
         </div>
       </div>
       <div className="flex flex-row gap-4 w-full">
@@ -103,7 +103,7 @@ function PageLoading() {
             <p className="text-lg font-semibold">Latency</p>
           </div>
           <Separator />
-          <LargeChartLoading />
+          <LargeChartSkeleton />
         </div>
       </div>
       <div className="flex flex-col gap-2 w-full">
@@ -112,13 +112,13 @@ function PageLoading() {
           <Info information="This is calculated based on your evaluation of the q&a pairs. Go to the Eval tab to start evaluating to see this metric calculated." />
         </div>
         <Separator />
-        <LargeChartLoading />
+        <LargeChartSkeleton />
       </div>
       <div className="flex flex-col gap-2">
         <p className="text-lg font-semibold">Evaluated Accuracy per Model</p>
         <Separator />
         <div className="flex flex-row items-center gap-5 w-full">
-          <LargeChartLoading />
+          <LargeChartSkeleton />
         </div>
       </div>
     </div>

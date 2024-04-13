@@ -1,9 +1,9 @@
 "use client";
 
 import { EvalChart } from "@/components/charts/eval-chart";
-import LargeChartLoading from "@/components/charts/large-chart-loading";
+import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
 import EvaluationTable, {
-  TableLoading,
+  EvaluationTableSkeleton,
 } from "@/components/evaluations/evaluation-table";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { Separator } from "@/components/ui/separator";
@@ -65,7 +65,7 @@ export default function PageClient({ email }: { email: string }) {
         <AddtoDataset projectId={projectId} selectedData={selectedData} />
       </div>
       {fetchTests.isLoading || !fetchTests.data ? (
-        <PageLoading />
+        <PageSkeleton />
       ) : (
         fetchTests?.data?.tests?.length > 0 && (
           <div className="flex flex-row gap-4 absolute top-[14rem] w-full md:px-24 px-12">
@@ -168,7 +168,7 @@ export default function PageClient({ email }: { email: string }) {
   );
 }
 
-function PageLoading() {
+function PageSkeleton() {
   return (
     <div className="w-full flex flex-col">
       <div className="flex flex-row gap-4 absolute top-[14rem] w-full md:px-24 px-12">
@@ -218,9 +218,9 @@ function PageLoading() {
                 <Skeleton className="w-20 h-6" />
               </p>
             </div>
-            <LargeChartLoading />
+            <LargeChartSkeleton />
           </div>
-          <TableLoading />
+          <EvaluationTableSkeleton />
         </div>
       </div>
     </div>

@@ -70,7 +70,7 @@ export default function Promptset() {
   });
 
   if (fetchPromptset.isLoading || !fetchPromptset.data || !currentData) {
-    return <PageLoading />;
+    return <PageSkeleton />;
   } else {
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
@@ -123,7 +123,7 @@ export default function Promptset() {
   }
 }
 
-function PageLoading() {
+function PageSkeleton() {
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
       <div className="flex gap-4 items-center w-fit">
@@ -145,14 +145,14 @@ function PageLoading() {
           <p className="text-xs font-medium text-end"></p>
         </div>
         {Array.from({ length: 3 }).map((_, index) => (
-          <RowSkeleton key={index} />
+          <PromptsetRowSkeleton key={index} />
         ))}
       </div>
     </div>
   );
 }
 
-function RowSkeleton() {
+function PromptsetRowSkeleton() {
   return (
     <div className="flex flex-col">
       <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">

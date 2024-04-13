@@ -3,7 +3,7 @@
 import { AreaChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { Info } from "../shared/info";
-import LargeChartLoading from "./large-chart-loading";
+import LargeChartLoading from "./large-chart-skeleton";
 
 export function TraceLatencyChart({ projectId }: { projectId: string }) {
   const fetchMetricsLatencyAverageTracePerDay = useQuery({

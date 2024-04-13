@@ -13,7 +13,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 import { Separator } from "../../ui/separator";
 import { Switch } from "../../ui/switch";
-import RowSkeleton from "./row-skeleton";
+import TraceRowSkeleton from "./trace-row-skeleton";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -194,7 +194,7 @@ export default function Traces({ email }: { email: string }) {
       fetchTraces.isLoading ||
       !fetchTraces.data ||
       !currentData ? (
-        <PageLoading />
+        <PageSkeleton />
       ) : (
         <div
           className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll"
@@ -232,11 +232,11 @@ export default function Traces({ email }: { email: string }) {
   );
 }
 
-function PageLoading() {
+function PageSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
       {Array.from({ length: 3 }).map((_, index) => (
-        <RowSkeleton key={index} />
+        <TraceRowSkeleton key={index} />
       ))}
     </div>
   );

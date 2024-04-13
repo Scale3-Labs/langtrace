@@ -4,7 +4,7 @@ import { Test } from "@prisma/client";
 import { AreaChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { Info } from "../shared/info";
-import LargeChartLoading from "./large-chart-loading";
+import LargeChartLoading from "./large-chart-skeleton";
 
 export function EvalChart({
   projectId,

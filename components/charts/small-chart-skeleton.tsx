@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function SmallChartLoading() {
+export default function SmallChartSkeleton() {
   return (
     <div className="flex flex-col gap-2 border p-3 rounded-lg w-1/3">
       <div className="flex flex-col gap-1">

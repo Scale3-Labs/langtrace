@@ -7,7 +7,7 @@ import { Test } from "@prisma/client";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
-import RowSkeleton from "../project/traces/row-skeleton";
+import TraceRowSkeleton from "../project/traces/trace-row-skeleton";
 import EvaluationRow from "./evaluation-row";
 
 interface CheckedData {
@@ -147,7 +147,7 @@ export default function EvaluationTable({
       {fetchLlmPromptSpans.isLoading ||
       !fetchLlmPromptSpans.data ||
       !currentData ? (
-        <TableLoading />
+        <EvaluationTableSkeleton />
       ) : (
         currentData.map((span: any, i: number) => (
           <EvaluationRow
@@ -179,7 +179,7 @@ export default function EvaluationTable({
   );
 }
 
-export function TableLoading() {
+export function EvaluationTableSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
       <div className="grid grid-cols-13 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
@@ -197,7 +197,7 @@ export function TableLoading() {
         <p className="text-xs font-medium">Added to Dataset</p>
       </div>
       {Array.from({ length: 5 }).map((span: any, i: number) => (
-        <RowSkeleton key={i} />
+        <TraceRowSkeleton key={i} />
       ))}
     </div>
   );

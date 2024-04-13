@@ -2,7 +2,7 @@
 
 import { CreateData } from "@/components/project/dataset/create-data";
 import { EditData } from "@/components/project/dataset/edit-data";
-import RowSkeleton from "@/components/project/dataset/row-skeleton";
+import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -70,7 +70,7 @@ export default function Dataset() {
   });
 
   if (fetchDataset.isLoading || !fetchDataset.data || !currentData) {
-    return <PageLoading />;
+    return <PageSkeleton />;
   } else {
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
@@ -132,7 +132,7 @@ export default function Dataset() {
   }
 }
 
-function PageLoading() {
+function PageSkeleton() {
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
       <div className="flex gap-4 items-center w-fit">
@@ -154,7 +154,7 @@ function PageLoading() {
           <p className="text-xs font-medium text-end">Note</p>
         </div>
         {Array.from({ length: 5 }).map((_, index) => (
-          <RowSkeleton key={index} />
+          <DatasetRowSkeleton key={index} />
         ))}
       </div>
     </div>
