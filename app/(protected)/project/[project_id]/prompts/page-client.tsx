@@ -360,18 +360,18 @@ function PromptRowSkeleton() {
         >
           <Skeleton className="w-full h-6" />
         </div>
-        <p className="text-xs text-muted-foreground text-left font-semibold">
+        <div className="text-xs text-muted-foreground text-left font-semibold">
           <Skeleton className="w-full h-6" />
-        </p>
-        <p className="text-xs text-left font-semibold">
+        </div>
+        <div className="text-xs text-left font-semibold">
           <Skeleton className="w-full h-6" />
-        </p>
-        <p className="text-xs text-left h-10 truncate overflow-y-scroll font-semibold">
+        </div>
+        <div className="text-xs text-left h-10 truncate overflow-y-scroll font-semibold">
           <Skeleton className="w-full h-6" />
-        </p>
-        <p className="text-xs text-center font-semibold">
+        </div>
+        <div className="text-xs text-center font-semibold">
           <Skeleton className="w-full h-6" />
-        </p>
+        </div>
         <Skeleton className="w-full h-6" />
       </div>
       <Separator orientation="horizontal" />

@@ -6,39 +6,56 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { RabbitIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
 import { CreateDataset } from "./create";
 import { EditDataSet } from "./edit";
 
 export default function DataSet({ email }: { email: string }) {
-  const project_id = useParams()?.project_id as string;
+  const projectId = useParams()?.project_id as string;
 
-  const fetchDatasets = useQuery({
-    queryKey: ["fetch-datasets-stats-query"],
+  const {
+    data: datasets,
+    isLoading: datasetsLoading,
+    error: datasetsError,
+  } = useQuery({
+    queryKey: [`fetch-datasets-stats-${projectId}-query`],
     queryFn: async () => {
-      const response = await fetch(`/api/stats/dataset?id=${project_id}`);
+      const response = await fetch(`/api/stats/dataset?id=${projectId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch datasets");
+      }
       const result = await response.json();
       return result;
     },
+    onError: (error) => {
+      toast.error("Failed to fetch datasets", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
   });
 
-  if (
-    fetchDatasets.isLoading ||
-    !fetchDatasets.data ||
-    fetchDatasets.isLoading ||
-    !fetchDatasets.data
-  ) {
+  if (datasetsLoading) {
     return <PageLoading />;
+  } else if (datasetsError) {
+    return (
+      <div className="py-6 px-6 flex flex-col items-center justify-center gap-4 mt-8 w-full">
+        <RabbitIcon size={80} />
+        <p className="font-semibold">Failed to fetch datasets</p>
+      </div>
+    );
   } else {
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
         <div className="w-fit">
-          <CreateDataset projectId={project_id} />
+          <CreateDataset projectId={projectId} />
         </div>
         <div className="w-full flex flex-col md:flex-row flex-wrap gap-6 rounded-md">
-          {fetchDatasets.data?.result?.length === 0 && (
+          {datasets?.result?.length === 0 && (
             <div className="flex flex-col gap-2 items-center justify-center w-full">
               <p className="text-center font-semibold mt-8">
                 Get started by creating your first dataset.
@@ -50,13 +67,13 @@ export default function DataSet({ email }: { email: string }) {
               </p>
             </div>
           )}
-          {fetchDatasets.data.result.map((dataset: any, i: number) => (
+          {datasets?.result?.map((dataset: any, i: number) => (
             <div key={i} className="relative">
               <div className="absolute top-2 right-2 z-10">
                 <EditDataSet dataset={dataset?.dataset} />
               </div>
               <Link
-                href={`/project/${project_id}/datasets/dataset/${dataset?.dataset?.id}`}
+                href={`/project/${projectId}/datasets/dataset/${dataset?.dataset?.id}`}
               >
                 <Card className="w-full md:w-[325px] h-[150px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
                   <CardHeader>
@@ -65,7 +82,7 @@ export default function DataSet({ email }: { email: string }) {
                       <div className="flex flex-col gap-2">
                         <p>{dataset?.dataset?.description}</p>
                         <p className="font-semibold text-primary">
-                          {dataset?.totalData} records
+                          {dataset?.totalData || 0} records
                         </p>
                       </div>
                     </CardDescription>
@@ -88,18 +105,12 @@ function PageLoading() {
       </div>
       <div
         className={cn(
-          "md:px-52 px-12 py-12 flex md:flex-row flex-col gap-2 items-center md:items-start"
+          "flex w-full gap-12 md:flex-row flex-wrap flex-col md:items-start items-center"
         )}
       >
-        <div
-          className={cn(
-            "flex w-full gap-12 flex-wrap md:flex-row flex-wrap flex-col md:items-start items-center"
-          )}
-        >
-          {Array.from({ length: 3 }).map((_, index) => (
-            <CardLoading key={index} />
-          ))}
-        </div>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <CardLoading key={index} />
+        ))}
       </div>
     </div>
   );

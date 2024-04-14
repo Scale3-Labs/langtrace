@@ -213,14 +213,14 @@ function PageSkeleton() {
                     i === 4 ? "rounded-b-md" : ""
                   )}
                 >
-                  <p
+                  <div
                     className={cn(
                       "text-sm text-muted-foreground font-semibold capitalize",
                       i === 0 ? "text-primary" : ""
                     )}
                   >
                     <Skeleton className="w-20 h-6" />
-                  </p>
+                  </div>
                   <span className="text-[0.6rem] text-primary font-bold">
                     <Skeleton className="w-20 h-6" />
                   </span>
@@ -234,9 +234,9 @@ function PageSkeleton() {
           <div className="flex flex-row">
             <div className="flex flex-col gap-3 items-start w-[25rem]">
               <div className="flex flex-col gap-1">
-                <h1 className="text-xl font-semibold capitalize">
+                <div className="text-xl font-semibold capitalize">
                   <Skeleton className="w-20 h-6" />
-                </h1>
+                </div>
                 <span className="text-xs font-semibold text-muted-foreground">
                   <Skeleton className="w-20 h-6" />
                 </span>
@@ -244,9 +244,9 @@ function PageSkeleton() {
               <span className="text-sm text-primary font-bold">
                 <Skeleton className="w-20 h-6" />
               </span>
-              <p className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 <Skeleton className="w-20 h-6" />
-              </p>
+              </div>
             </div>
             <LargeChartSkeleton />
           </div>
