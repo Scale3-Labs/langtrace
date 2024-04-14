@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const email = req.nextUrl.searchParams.get("email") as string;
 
-  // get the user from the database and get the team from the user and then get tenant from the team
+  // get the user from the database and get the team from the user
   const user = await prisma.user.findUnique({
     where: {
       email,
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   if (!user) {
     return NextResponse.json(
       {
-        error: "user not found",
+        message: "user not found",
       },
       { status: 404 }
     );
@@ -41,7 +41,16 @@ export async function GET(req: NextRequest) {
   if (!team) {
     return NextResponse.json(
       {
-        error: "team not found",
+        message: "team not found",
+      },
+      { status: 404 }
+    );
+  }
+
+  if (!team.projects) {
+    return NextResponse.json(
+      {
+        message: "projects not found",
       },
       { status: 404 }
     );
