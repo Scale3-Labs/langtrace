@@ -138,19 +138,15 @@ export const TraceRow = ({
           className="max-w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
         />
         <p className="text-xs font-semibold">{userId}</p>
-        <div className="flex flex-row items-center gap-3">
-          <p className="text-xs">
-            {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
-          </p>
-          {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "+" : ""}
-          <p className="text-xs">
-            {tokenCounts?.output_tokens || tokenCounts?.completion_tokens}{" "}
-          </p>
+        <p className="text-xs">
+          {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
+          {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "/" : ""}
+          {tokenCounts?.output_tokens || tokenCounts?.completion_tokens}
           {tokenCounts?.output_tokens || tokenCounts?.completion_tokens
-            ? "="
+            ? "/"
             : ""}
-          <p className="text-xs">{tokenCounts?.total_tokens}</p>
-        </div>
+          {tokenCounts?.total_tokens}
+        </p>
         <p className="text-xs font-semibold">
           {cost.total.toFixed(6) !== "0.000000"
             ? `\$${cost.total.toFixed(6)}`
