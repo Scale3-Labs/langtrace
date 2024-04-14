@@ -120,7 +120,9 @@ export const TraceRow = ({
               className="bg-red-400 h-6 w-1 rounded-md"
             />
           )}
-          <p className="text-xs font-semibold">{traceHierarchy[0].name}</p>
+          <p className="text-xs font-semibold truncate">
+            {traceHierarchy[0].name}
+          </p>
         </div>
         <p className="text-xs font-semibold">{model}</p>
         <HoverCell
