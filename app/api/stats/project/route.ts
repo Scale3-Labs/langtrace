@@ -13,10 +13,19 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // calculate the total count of traces
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
-    const traceService = new TraceService();
 
+    if (!projectId) {
+      return NextResponse.json(
+        {
+          message: "projectId not provided",
+        },
+        { status: 400 }
+      );
+    }
+
+    // calculate the total count of traces
+    const traceService = new TraceService();
     const totalSpans = await traceService.GetTotalSpansPerProject(projectId);
     const totalTraces = await traceService.GetTotalTracesPerProject(projectId);
     const totalEvaluations = await prisma.evaluation.count({
@@ -43,7 +52,6 @@ export async function GET(req: NextRequest) {
       totalPromptsets,
     });
   } catch (error) {
-    console.log(error);
     return NextResponse.json(JSON.stringify({ error }), {
       status: 400,
     });

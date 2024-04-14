@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       {
-        error: "Something went wrong while fetching traces",
+        message: "Something went wrong while fetching traces",
       },
       { status: 400 }
     );

@@ -2,58 +2,71 @@
 
 import { AreaChart } from "@tremor/react";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
 import { Info } from "../shared/info";
 import LargeChartLoading from "./large-chart-skeleton";
 
 export function TraceLatencyChart({ projectId }: { projectId: string }) {
-  const fetchMetricsLatencyAverageTracePerDay = useQuery({
-    queryKey: ["fetch-metrics-latency-average-trace-per-day-query"],
+  const {
+    data: metricsLatencyAverageTracePerDay,
+    isLoading: metricsLatencyAverageTracePerDayLoading,
+    error: metricsLatencyAverageTracePerDayError,
+  } = useQuery({
+    queryKey: [
+      `fetch-metrics-latency-average-trace-per-day-${projectId}-query`,
+    ],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/latency/trace?projectId=${projectId}`
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch latency data");
+      }
       const result = await response.json();
       return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch latency data", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     },
   });
 
   if (
-    fetchMetricsLatencyAverageTracePerDay.isLoading ||
-    !fetchMetricsLatencyAverageTracePerDay.data
+    metricsLatencyAverageTracePerDayLoading ||
+    metricsLatencyAverageTracePerDayError
   ) {
     return <LargeChartLoading />;
   } else {
     const avgLatencyData =
-      fetchMetricsLatencyAverageTracePerDay.data?.averageLatencies?.map(
+      metricsLatencyAverageTracePerDay?.averageLatencies?.map(
         (data: any, index: number) => ({
-          date: data.date,
-          "Average Trace Latency(ms)": data.averageLatency,
+          date: data?.date || "",
+          "Average Trace Latency(ms)": data?.averageLatency || 0,
         })
       );
 
-    const p99LatencyData =
-      fetchMetricsLatencyAverageTracePerDay.data?.p99Latencies?.map(
-        (data: any, index: number) => ({
-          date: data.date,
-          "p99 Trace Latency(ms)": data.p99Latency,
-        })
-      );
+    const p99LatencyData = metricsLatencyAverageTracePerDay?.p99Latencies?.map(
+      (data: any, index: number) => ({
+        date: data?.date || "",
+        "p99 Trace Latency(ms)": data?.p99Latency || 0,
+      })
+    );
 
-    const p95LatencyData =
-      fetchMetricsLatencyAverageTracePerDay.data?.p95Latencies?.map(
-        (data: any, index: number) => ({
-          date: data.date,
-          "p95 Trace Latency(ms)": data.p95Latency,
-        })
-      );
+    const p95LatencyData = metricsLatencyAverageTracePerDay?.p95Latencies?.map(
+      (data: any, index: number) => ({
+        date: data?.date || "",
+        "p95 Trace Latency(ms)": data?.p95Latency || 0,
+      })
+    );
 
-    const countData =
-      fetchMetricsLatencyAverageTracePerDay.data?.totalTracesPerDay?.map(
-        (data: any, index: number) => ({
-          date: data.date,
-          "Trace Count": data.traceCount,
-        })
-      );
+    const countData = metricsLatencyAverageTracePerDay?.totalTracesPerDay?.map(
+      (data: any, index: number) => ({
+        date: data?.date || "",
+        "Trace Count": data?.traceCount || 0,
+      })
+    );
 
     const data = avgLatencyData?.map((avgLatency: any, index: number) => {
       return {

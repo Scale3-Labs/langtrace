@@ -12,6 +12,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
+
+    if (!projectId) {
+      return NextResponse.json(
+        JSON.stringify({ message: "Project ID not provided" }),
+        {
+          status: 400,
+        }
+      );
+    }
+
     const traceService = new TraceService();
     const total = await traceService.GetTokensUsedPerProject(projectId);
     const usage = await traceService.GetTokensUsedPerDayPerProject(projectId);
@@ -25,7 +35,7 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (error) {
-    return NextResponse.json(JSON.stringify({ error }), {
+    return NextResponse.json(JSON.stringify({ message: error }), {
       status: 400,
     });
   }

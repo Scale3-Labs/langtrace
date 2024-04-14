@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
 import { SetupInstructions } from "../../shared/setup-instructions";
 import { Spinner } from "../../shared/spinner";
 import { Checkbox } from "../../ui/checkbox";
@@ -43,24 +44,6 @@ export default function Traces({ email }: { email: string }) {
     }
   });
 
-  const fetchProject = useQuery({
-    queryKey: ["fetch-project-query"],
-    queryFn: async () => {
-      const response = await fetch(`/api/project?id=${project_id}`);
-      const result = await response.json();
-      return result;
-    },
-  });
-
-  const fetchUser = useQuery({
-    queryKey: ["fetch-user-query"],
-    queryFn: async () => {
-      const response = await fetch(`/api/user?email=${email}`);
-      const result = await response.json();
-      return result;
-    },
-  });
-
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
@@ -80,6 +63,10 @@ export default function Traces({ email }: { email: string }) {
         },
         body: JSON.stringify(body),
       });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch traces");
+      }
       const result = await response.json();
       return result;
     },
@@ -113,6 +100,13 @@ export default function Traces({ email }: { email: string }) {
 
       setEnableFetch(false);
       setShowLoader(false);
+    },
+    onError: (error) => {
+      setEnableFetch(false);
+      setShowLoader(false);
+      toast.error("Failed to fetch traces", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     },
     refetchOnWindowFocus: false,
     enabled: enableFetch,
@@ -187,13 +181,7 @@ export default function Traces({ email }: { email: string }) {
         <p className="text-xs font-medium">Token Cost</p>
         <p className="text-xs font-medium">Duration(ms)</p>
       </div>
-      {fetchProject.isLoading ||
-      !fetchProject.data ||
-      fetchUser.isLoading ||
-      !fetchUser.data ||
-      fetchTraces.isLoading ||
-      !fetchTraces.data ||
-      !currentData ? (
+      {fetchTraces.isLoading || !fetchTraces?.data || !currentData ? (
         <PageSkeleton />
       ) : (
         <div
@@ -201,8 +189,8 @@ export default function Traces({ email }: { email: string }) {
           ref={scrollableDivRef as any}
         >
           {!fetchTraces.isLoading &&
-            fetchTraces.data &&
-            currentData.map((trace: any, i: number) => {
+            fetchTraces?.data &&
+            currentData?.map((trace: any, i: number) => {
               return (
                 <div key={i} className="flex flex-col gap-3 px-3">
                   <TraceRow trace={trace} utcTime={utcTime} /> <Separator />
@@ -215,8 +203,8 @@ export default function Traces({ email }: { email: string }) {
             </div>
           )}
           {!fetchTraces.isLoading &&
-            fetchTraces.data &&
-            currentData.length === 0 &&
+            fetchTraces?.data &&
+            currentData?.length === 0 &&
             !showLoader && (
               <div className="flex flex-col gap-3 items-center justify-center p-4">
                 <p className="text-muted-foreground text-sm mb-3">

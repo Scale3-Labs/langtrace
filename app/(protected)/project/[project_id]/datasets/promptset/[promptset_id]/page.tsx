@@ -13,6 +13,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 export default function Promptset() {
   const promptset_id = useParams()?.promptset_id as string;
@@ -37,6 +38,10 @@ export default function Promptset() {
       const response = await fetch(
         `/api/promptset?promptset_id=${promptset_id}&page=${page}&pageSize=${PAGE_SIZE}`
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch promptset");
+      }
       const result = await response.json();
       return result;
     },
@@ -66,6 +71,12 @@ export default function Promptset() {
         setCurrentData(newData);
       }
       setShowLoader(false);
+    },
+    onError: (error) => {
+      setShowLoader(false);
+      toast.error("Failed to fetch promptset", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     },
   });
 
@@ -156,15 +167,15 @@ function PromptsetRowSkeleton() {
   return (
     <div className="flex flex-col">
       <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">
-        <p className="text-xs">
+        <div className="text-xs">
           <Skeleton className="w-full h-6" />
-        </p>
-        <p className="text-xs h-12 overflow-y-scroll">
+        </div>
+        <div className="text-xs h-12 overflow-y-scroll">
           <Skeleton className="w-full h-6" />
-        </p>
-        <p className="text-xs h-12 overflow-y-scroll">
+        </div>
+        <div className="text-xs h-12 overflow-y-scroll">
           <Skeleton className="w-full h-6" />
-        </p>
+        </div>
       </div>
       <Separator orientation="horizontal" />
     </div>

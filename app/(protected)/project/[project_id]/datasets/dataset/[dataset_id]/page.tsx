@@ -1,8 +1,8 @@
 "use client";
 
 import { CreateData } from "@/components/project/dataset/create-data";
-import { EditData } from "@/components/project/dataset/edit-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
+import { EditData } from "@/components/project/dataset/edit-data";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +13,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 export default function Dataset() {
   const dataset_id = useParams()?.dataset_id as string;
@@ -37,6 +38,10 @@ export default function Dataset() {
       const response = await fetch(
         `/api/dataset?dataset_id=${dataset_id}&page=${page}&pageSize=${PAGE_SIZE}`
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch dataset");
+      }
       const result = await response.json();
       return result;
     },
@@ -66,6 +71,12 @@ export default function Dataset() {
         setCurrentData(newData);
       }
       setShowLoader(false);
+    },
+    onError: (error) => {
+      setShowLoader(false);
+      toast.error("Failed to fetch dataset", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     },
   });
 
