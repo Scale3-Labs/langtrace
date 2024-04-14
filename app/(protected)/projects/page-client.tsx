@@ -13,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Project } from "@prisma/client";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import { RabbitIcon } from "lucide-react";
 import Link from "next/link";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -73,8 +74,9 @@ export default function PageClient({ email }: { email: string }) {
           <h1 className="text-3xl font-semibold">Projects</h1>
           <Create teamId={user?.data?.Team?.id} />
         </div>
-        <div className="md:px-52 px-12 py-12 flex justify-center">
-          <p className="text-lg text-muted-foreground font-semibold">
+        <div className="md:px-52 px-12 py-12 flex flex-col items-center justify-center">
+          <RabbitIcon size={80} />
+          <p className="text-lg text-destructive font-semibold">
             An error occurred while fetching data. Please try again later.
           </p>
         </div>

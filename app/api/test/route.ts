@@ -5,39 +5,48 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
-  }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
+    }
 
-  const projectId = req.nextUrl.searchParams.get("projectId") as string;
-  if (!projectId) {
+    const projectId = req.nextUrl.searchParams.get("projectId") as string;
+    if (!projectId) {
+      return NextResponse.json(
+        {
+          message: "projectId not provided",
+        },
+        { status: 400 }
+      );
+    }
+
+    const tests = await prisma.test.findMany({
+      where: {
+        projectId: projectId,
+      },
+    });
+
+    if (!tests) {
+      return NextResponse.json(
+        {
+          message: "No tests found",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      tests,
+    });
+  } catch (error) {
     return NextResponse.json(
       {
-        message: "projectId not provided",
+        message: "Internal server error",
       },
-      { status: 400 }
+      { status: 500 }
     );
   }
-
-  const tests = await prisma.test.findMany({
-    where: {
-      projectId: projectId,
-    },
-  });
-
-  if (!tests) {
-    return NextResponse.json(
-      {
-        message: "No tests found",
-      },
-      { status: 404 }
-    );
-  }
-
-  return NextResponse.json({
-    tests,
-  });
 }
 
 export async function POST(req: NextRequest) {
