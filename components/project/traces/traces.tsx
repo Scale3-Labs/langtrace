@@ -43,24 +43,6 @@ export default function Traces({ email }: { email: string }) {
     }
   });
 
-  const fetchProject = useQuery({
-    queryKey: ["fetch-project-query"],
-    queryFn: async () => {
-      const response = await fetch(`/api/project?id=${project_id}`);
-      const result = await response.json();
-      return result;
-    },
-  });
-
-  const fetchUser = useQuery({
-    queryKey: ["fetch-user-query"],
-    queryFn: async () => {
-      const response = await fetch(`/api/user?email=${email}`);
-      const result = await response.json();
-      return result;
-    },
-  });
-
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
@@ -187,13 +169,7 @@ export default function Traces({ email }: { email: string }) {
         <p className="text-xs font-medium">Token Cost</p>
         <p className="text-xs font-medium">Duration(ms)</p>
       </div>
-      {fetchProject.isLoading ||
-      !fetchProject.data ||
-      fetchUser.isLoading ||
-      !fetchUser.data ||
-      fetchTraces.isLoading ||
-      !fetchTraces.data ||
-      !currentData ? (
+      {fetchTraces.isLoading || !fetchTraces.data || !currentData ? (
         <PageSkeleton />
       ) : (
         <div

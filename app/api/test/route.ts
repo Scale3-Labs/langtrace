@@ -11,6 +11,14 @@ export async function GET(req: NextRequest) {
   }
 
   const projectId = req.nextUrl.searchParams.get("projectId") as string;
+  if (!projectId) {
+    return NextResponse.json(
+      {
+        message: "projectId not provided",
+      },
+      { status: 400 }
+    );
+  }
 
   const tests = await prisma.test.findMany({
     where: {
@@ -21,7 +29,7 @@ export async function GET(req: NextRequest) {
   if (!tests) {
     return NextResponse.json(
       {
-        error: "No tests found",
+        message: "No tests found",
       },
       { status: 404 }
     );
