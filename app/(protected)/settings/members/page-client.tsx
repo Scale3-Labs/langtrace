@@ -371,7 +371,7 @@ export default function MembersView({
     fetchUser.isLoading ||
     !fetchUser.data
   ) {
-    return <MembersSettingsLoading />;
+    return <MembersSettingsSkeleton />;
   }
 
   return (
@@ -424,7 +424,7 @@ export default function MembersView({
   );
 }
 
-function MembersSettingsLoading() {
+function MembersSettingsSkeleton() {
   return (
     <>
       <Button disabled={true} className="w-fit">

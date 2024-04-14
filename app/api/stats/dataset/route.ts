@@ -5,15 +5,22 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user) {
-    redirect("/login");
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      redirect("/login");
+    }
     // calculate the total count of traces
     const projectId = req.nextUrl.searchParams.get("id") as string;
+    if (!projectId) {
+      return NextResponse.json(
+        {
+          message: "No project id provided",
+        },
+        { status: 404 }
+      );
+    }
 
     // get the datasets for the project
     const datasets = await prisma.dataset.findMany({
@@ -41,7 +48,7 @@ export async function GET(req: NextRequest) {
       result,
     });
   } catch (error) {
-    return NextResponse.json(JSON.stringify({ error }), {
+    return NextResponse.json(JSON.stringify({ message: error }), {
       status: 400,
     });
   }

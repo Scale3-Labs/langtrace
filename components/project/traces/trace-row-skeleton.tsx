@@ -1,0 +1,29 @@
+"use client";
+
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function TraceRowSkeleton() {
+  return (
+    <div className="flex flex-col">
+      <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">
+        <div className="text-xs">
+          <Skeleton className="w-full h-6" />
+        </div>
+        <div className="text-xs h-12 overflow-y-scroll">
+          <Skeleton className="w-full h-6" />
+        </div>
+        <div className="text-xs h-12 overflow-y-scroll">
+          <Skeleton className="w-full h-6" />
+        </div>
+        <div className="text-xs text-end">
+          <Skeleton className="w-full h-6" />
+        </div>
+        <div className="text-end">
+          <Skeleton className="w-full h-6" />
+        </div>
+      </div>
+      <Separator orientation="horizontal" />
+    </div>
+  );
+}

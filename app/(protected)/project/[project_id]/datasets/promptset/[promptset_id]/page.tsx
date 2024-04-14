@@ -5,6 +5,7 @@ import { EditPrompt } from "@/components/project/dataset/edit-data";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PAGE_SIZE } from "@/lib/constants";
 import { Prompt } from "@prisma/client";
 import { ChevronLeft } from "lucide-react";
@@ -12,6 +13,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 export default function Promptset() {
   const promptset_id = useParams()?.promptset_id as string;
@@ -36,6 +38,10 @@ export default function Promptset() {
       const response = await fetch(
         `/api/promptset?promptset_id=${promptset_id}&page=${page}&pageSize=${PAGE_SIZE}`
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch promptset");
+      }
       const result = await response.json();
       return result;
     },
@@ -66,10 +72,16 @@ export default function Promptset() {
       }
       setShowLoader(false);
     },
+    onError: (error) => {
+      setShowLoader(false);
+      toast.error("Failed to fetch promptset", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
   });
 
   if (fetchPromptset.isLoading || !fetchPromptset.data || !currentData) {
-    return <div>Loading...</div>;
+    return <PageSkeleton />;
   } else {
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
@@ -120,4 +132,52 @@ export default function Promptset() {
       </div>
     );
   }
+}
+
+function PageSkeleton() {
+  return (
+    <div className="w-full py-6 px-6 flex flex-col gap-4">
+      <div className="flex gap-4 items-center w-fit">
+        <Button
+          disabled={true}
+          variant="secondary"
+          onClick={() => window.history.back()}
+        >
+          <ChevronLeft className="mr-1" />
+          Back
+        </Button>
+        <CreatePrompt disabled={true} />
+      </div>
+      <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
+        <div className="grid grid-cols-4 items-center justify-stretch gap-3 py-3 px-4 bg-muted">
+          <p className="text-xs font-medium">Created at</p>
+          <p className="text-xs font-medium">Value</p>
+          <p className="text-xs font-medium text-left">Note</p>
+          <p className="text-xs font-medium text-end"></p>
+        </div>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <PromptsetRowSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PromptsetRowSkeleton() {
+  return (
+    <div className="flex flex-col">
+      <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">
+        <div className="text-xs">
+          <Skeleton className="w-full h-6" />
+        </div>
+        <div className="text-xs h-12 overflow-y-scroll">
+          <Skeleton className="w-full h-6" />
+        </div>
+        <div className="text-xs h-12 overflow-y-scroll">
+          <Skeleton className="w-full h-6" />
+        </div>
+      </div>
+      <Separator orientation="horizontal" />
+    </div>
+  );
 }
