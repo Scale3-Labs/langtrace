@@ -125,7 +125,7 @@ export const TraceRow = ({
         <p className="text-xs font-semibold">{model}</p>
         <HoverCell
           value={prompts?.length > 0 ? JSON.parse(prompts)[0]?.content : ""}
-          className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          className="w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
         />
         <HoverCell
           value={
@@ -135,7 +135,7 @@ export const TraceRow = ({
                 JSON.parse(responses)[0]?.content
               : ""
           }
-          className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          className="w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
         />
         <p className="text-xs font-semibold">{userId}</p>
         <div className="flex flex-row items-center gap-3">
