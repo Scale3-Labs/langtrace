@@ -5,116 +5,127 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
-  }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
+    }
 
-  const id = req.nextUrl.searchParams.get("id") as string;
-  const datasetId = req.nextUrl.searchParams.get("dataset_id") as string;
-  const pageParam = req.nextUrl.searchParams.get("page");
-  let page = pageParam ? parseInt(pageParam, 10) : 1;
-  const pageSizeParam = req.nextUrl.searchParams.get("pageSize");
-  const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
+    const id = req.nextUrl.searchParams.get("id") as string;
+    const datasetId = req.nextUrl.searchParams.get("dataset_id") as string;
+    const pageParam = req.nextUrl.searchParams.get("page");
+    let page = pageParam ? parseInt(pageParam, 10) : 1;
+    const pageSizeParam = req.nextUrl.searchParams.get("pageSize");
+    const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
 
-  if (!datasetId && !id) {
-    return NextResponse.json(
-      {
-        error: "No dataset id or project id provided",
-      },
-      { status: 404 }
-    );
-  }
-
-  if (datasetId) {
-    // get the dataset and all the data for this dataset and sort them by createdAt
-    const dataset = await prisma.dataset.findFirst({
-      where: {
-        id: datasetId,
-      },
-      include: {
-        Data: true,
-      },
-    });
-
-    if (!dataset) {
+    if (!datasetId && !id) {
       return NextResponse.json(
         {
-          error: "No datasets found",
+          message: "No dataset id or project id provided",
         },
         { status: 404 }
       );
     }
 
-    const totalLen = await prisma.data.count({
+    if (datasetId) {
+      // get the dataset and all the data for this dataset and sort them by createdAt
+      const dataset = await prisma.dataset.findFirst({
+        where: {
+          id: datasetId,
+        },
+        include: {
+          Data: true,
+        },
+      });
+
+      if (!dataset) {
+        return NextResponse.json(
+          {
+            message: "No datasets found",
+          },
+          { status: 404 }
+        );
+      }
+
+      const totalLen = await prisma.data.count({
+        where: {
+          datasetId: dataset.id,
+        },
+      });
+
+      const totalPages =
+        Math.ceil(totalLen / pageSize) === 0
+          ? 1
+          : Math.ceil(totalLen / pageSize);
+      const md = { page, page_size: pageSize, total_pages: totalPages };
+
+      if (page! > totalPages) {
+        page = totalPages;
+      }
+
+      // If dataset exists, fetch related Data records ordered by createdAt
+      const relatedData = await prisma.data.findMany({
+        where: {
+          datasetId: dataset.id,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: pageSize,
+        skip: (page - 1) * pageSize,
+      });
+
+      // Combine dataset with its related, ordered Data
+      const datasetWithOrderedData = {
+        ...dataset,
+        Data: relatedData,
+      };
+
+      return NextResponse.json({
+        datasets: datasetWithOrderedData,
+        metadata: md,
+      });
+    }
+
+    const project = await prisma.project.findFirst({
       where: {
-        datasetId: dataset.id,
+        id,
       },
     });
 
-    const totalPages =
-      Math.ceil(totalLen / pageSize) === 0 ? 1 : Math.ceil(totalLen / pageSize);
-    const md = { page, page_size: pageSize, total_pages: totalPages };
-
-    if (page! > totalPages) {
-      page = totalPages;
+    if (!project) {
+      return NextResponse.json(
+        {
+          message: "No projects found",
+        },
+        { status: 404 }
+      );
     }
 
-    // If dataset exists, fetch related Data records ordered by createdAt
-    const relatedData = await prisma.data.findMany({
+    // get all the datasets for this project and sort them by createdAt
+    const datasets = await prisma.dataset.findMany({
       where: {
-        datasetId: dataset.id,
+        projectId: id,
+      },
+      include: {
+        Data: true,
       },
       orderBy: {
         createdAt: "desc",
       },
-      take: pageSize,
-      skip: (page - 1) * pageSize,
     });
-
-    // Combine dataset with its related, ordered Data
-    const datasetWithOrderedData = {
-      ...dataset,
-      Data: relatedData,
-    };
 
     return NextResponse.json({
-      datasets: datasetWithOrderedData,
-      metadata: md,
+      datasets: datasets,
     });
-  }
-
-  const project = await prisma.project.findFirst({
-    where: {
-      id,
-    },
-  });
-
-  if (!project) {
+  } catch (error) {
     return NextResponse.json(
       {
-        error: "No projects found",
+        message: "Internal server error",
       },
-      { status: 404 }
+      { status: 500 }
     );
   }
-
-  // get all the datasets for this project and sort them by createdAt
-  const datasets = await prisma.dataset.findMany({
-    where: {
-      projectId: id,
-    },
-    include: {
-      Data: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  return NextResponse.json({
-    datasets: datasets,
-  });
 }
 
 export async function POST(req: NextRequest) {

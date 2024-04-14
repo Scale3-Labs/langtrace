@@ -11,9 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn, getChartColor } from "@/lib/utils";
 import { Test } from "@prisma/client";
 import { ProgressCircle } from "@tremor/react";
+import { RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 interface CheckedData {
   input: string;
@@ -29,20 +31,35 @@ export default function PageClient({ email }: { email: string }) {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  const fetchTestAverages = useQuery({
+  const { data: testAverages, isLoading: testAveragesLoading } = useQuery({
     queryKey: [`fetch-test-averages-${projectId}-query`],
     queryFn: async () => {
       const response = await fetch(`/api/metrics/tests?projectId=${projectId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error("Failed to fetch test averages", {
+          description: error?.message || "Failed to fetch test averages",
+        });
+        return { averages: [] };
+      }
       const result = await response.json();
       return result;
     },
     refetchOnWindowFocus: false,
   });
 
-  const fetchTests = useQuery({
+  const {
+    data: tests,
+    isLoading: testsLoading,
+    error: testsError,
+  } = useQuery({
     queryKey: [`fetch-tests-${projectId}-query`],
     queryFn: async () => {
       const response = await fetch(`/api/test?projectId=${projectId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch tests");
+      }
       const result = await response.json();
       if (result?.tests?.length > 0) {
         setSelectedTest(result?.tests?.[0]);
@@ -50,13 +67,28 @@ export default function PageClient({ email }: { email: string }) {
       return result;
     },
     refetchOnWindowFocus: false,
-    enabled: !!fetchTestAverages.data,
+    enabled: !!testAverages,
+    onError: (error) => {
+      toast.error("Failed to fetch tests", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
   });
 
+  if (testsError) {
+    return (
+      <div className="md:px-52 px-12 py-12 flex flex-col items-center justify-center">
+        <RabbitIcon size={80} />
+        <p className="text-lg font-semibold">
+          An error occurred while fetching tests. Please try again later.
+        </p>
+      </div>
+    );
+  }
+
   const testAverage =
-    fetchTestAverages?.data?.averages?.find(
-      (avg: any) => avg.testId === selectedTest?.id
-    )?.average || 0;
+    testAverages?.averages?.find((avg: any) => avg.testId === selectedTest?.id)
+      ?.average || 0;
 
   return (
     <div className="w-full flex flex-col">
@@ -64,15 +96,15 @@ export default function PageClient({ email }: { email: string }) {
         <h1 className="text-3xl font-semibold">Evaluations</h1>
         <AddtoDataset projectId={projectId} selectedData={selectedData} />
       </div>
-      {fetchTests.isLoading || !fetchTests.data ? (
+      {testAveragesLoading || testsLoading || !tests ? (
         <PageSkeleton />
       ) : (
-        fetchTests?.data?.tests?.length > 0 && (
+        tests?.tests?.length > 0 && (
           <div className="flex flex-row gap-4 absolute top-[14rem] w-full md:px-24 px-12">
             <div className="bg-primary-foreground flex flex-col gap-0 border rounded-md w-[12rem] h-fit">
-              {fetchTests?.data?.tests?.map((test: Test, i: number) => {
+              {tests?.tests?.map((test: Test, i: number) => {
                 const average =
-                  fetchTestAverages?.data?.averages?.find(
+                  testAverages?.averages?.find(
                     (avg: any) => avg.testId === test?.id
                   )?.average || 0;
                 return (
@@ -87,9 +119,7 @@ export default function PageClient({ email }: { email: string }) {
                       className={cn(
                         "flex flex-col gap-4 p-4 items-start cursor-pointer",
                         i === 0 ? "rounded-t-md" : "",
-                        i === fetchTests?.data?.tests?.length - 1
-                          ? "rounded-b-md"
-                          : "",
+                        i === tests?.tests?.length - 1 ? "rounded-b-md" : "",
                         selectedTest?.id === test.id
                           ? "dark:bg-black bg-white border-l-2 border-primary"
                           : ""
@@ -183,14 +213,14 @@ function PageSkeleton() {
                     i === 4 ? "rounded-b-md" : ""
                   )}
                 >
-                  <p
+                  <div
                     className={cn(
                       "text-sm text-muted-foreground font-semibold capitalize",
                       i === 0 ? "text-primary" : ""
                     )}
                   >
                     <Skeleton className="w-20 h-6" />
-                  </p>
+                  </div>
                   <span className="text-[0.6rem] text-primary font-bold">
                     <Skeleton className="w-20 h-6" />
                   </span>
@@ -204,9 +234,9 @@ function PageSkeleton() {
           <div className="flex flex-row">
             <div className="flex flex-col gap-3 items-start w-[25rem]">
               <div className="flex flex-col gap-1">
-                <h1 className="text-xl font-semibold capitalize">
+                <div className="text-xl font-semibold capitalize">
                   <Skeleton className="w-20 h-6" />
-                </h1>
+                </div>
                 <span className="text-xs font-semibold text-muted-foreground">
                   <Skeleton className="w-20 h-6" />
                 </span>
@@ -214,9 +244,9 @@ function PageSkeleton() {
               <span className="text-sm text-primary font-bold">
                 <Skeleton className="w-20 h-6" />
               </span>
-              <p className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 <Skeleton className="w-20 h-6" />
-              </p>
+              </div>
             </div>
             <LargeChartSkeleton />
           </div>

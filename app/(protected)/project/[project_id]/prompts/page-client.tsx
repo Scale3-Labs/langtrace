@@ -9,12 +9,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PAGE_SIZE } from "@/lib/constants";
 import { extractPromptFromLlmInputs } from "@/lib/utils";
 import { CheckCircledIcon } from "@radix-ui/react-icons";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import Markdown from "react-markdown";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 interface CheckedData {
   value: string;
@@ -22,7 +23,7 @@ interface CheckedData {
 }
 
 export default function PageClient({ email }: { email: string }) {
-  const project_id = useParams()?.project_id as string;
+  const projectId = useParams()?.project_id as string;
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -38,11 +39,15 @@ export default function PageClient({ email }: { email: string }) {
   };
 
   const fetchPrompts = useQuery({
-    queryKey: ["fetch-prompts-query"],
+    queryKey: [`fetch-prompts-${projectId}-query`],
     queryFn: async () => {
       const response = await fetch(
-        `/api/prompt?projectId=${project_id}&page=${page}&pageSize=${PAGE_SIZE}`
+        `/api/prompt?projectId=${projectId}&page=${page}&pageSize=${PAGE_SIZE}`
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch prompts");
+      }
       const result = await response.json();
       return result;
     },
@@ -73,6 +78,13 @@ export default function PageClient({ email }: { email: string }) {
       }
       setShowLoader(false);
     },
+    onError: (error) => {
+      setCurrentData([]);
+      setShowLoader(false);
+      toast.error("Failed to fetch prompts", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
   });
 
   useBottomScrollListener(() => {
@@ -85,8 +97,17 @@ export default function PageClient({ email }: { email: string }) {
     }
   });
 
-  if (fetchPrompts.isLoading || !fetchPrompts.data || !currentData) {
+  if (fetchPrompts.isLoading) {
     return <PageLoading />;
+  } else if (fetchPrompts.error) {
+    return (
+      <div className="md:px-52 px-12 py-12 flex flex-col items-center justify-center">
+        <RabbitIcon size={80} />
+        <p className="text-lg font-semibold">
+          An error occurred while fetching prompts. Please try again later.
+        </p>
+      </div>
+    );
   } else {
     // Deduplicate prompts
     const seenPrompts: string[] = [];
@@ -110,7 +131,7 @@ export default function PageClient({ email }: { email: string }) {
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
         <div className="w-fit">
-          <AddtoPromptset projectId={project_id} selectedData={selectedData} />
+          <AddtoPromptset projectId={projectId} selectedData={selectedData} />
         </div>
         <p className="text-sm font-semibold text-black bg-yellow-300 px-2 p-1 rounded-md">
           These prompts are automatically captured from your traces. The
@@ -172,9 +193,18 @@ const PromptRow = ({
     queryKey: [`fetch-promptdata-query-${prompt.span_id}`],
     queryFn: async () => {
       const response = await fetch(`/api/promptdata?spanId=${prompt.span_id}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch prompt data");
+      }
       const result = await response.json();
       setAddedToPromptset(result.data.length > 0);
       return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch prompt data", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     },
   });
 
@@ -187,8 +217,13 @@ const PromptRow = ({
     queryKey: [`fetch-evaluation-query-${prompt.span_id}`],
     queryFn: async () => {
       const response = await fetch(`/api/evaluation?prompt=${promptContent}`);
-      const result = await response.json();
 
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch evaluation");
+      }
+
+      const result = await response.json();
       // calculate accuracy
       let score = 0;
       result.evaluations.forEach((e: any) => {
@@ -199,6 +234,11 @@ const PromptRow = ({
       setAccuracy((score * 100) / result.evaluations.length);
 
       return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch evaluation", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     },
   });
 
@@ -320,18 +360,18 @@ function PromptRowSkeleton() {
         >
           <Skeleton className="w-full h-6" />
         </div>
-        <p className="text-xs text-muted-foreground text-left font-semibold">
+        <div className="text-xs text-muted-foreground text-left font-semibold">
           <Skeleton className="w-full h-6" />
-        </p>
-        <p className="text-xs text-left font-semibold">
+        </div>
+        <div className="text-xs text-left font-semibold">
           <Skeleton className="w-full h-6" />
-        </p>
-        <p className="text-xs text-left h-10 truncate overflow-y-scroll font-semibold">
+        </div>
+        <div className="text-xs text-left h-10 truncate overflow-y-scroll font-semibold">
           <Skeleton className="w-full h-6" />
-        </p>
-        <p className="text-xs text-center font-semibold">
+        </div>
+        <div className="text-xs text-center font-semibold">
           <Skeleton className="w-full h-6" />
-        </p>
+        </div>
         <Skeleton className="w-full h-6" />
       </div>
       <Separator orientation="horizontal" />

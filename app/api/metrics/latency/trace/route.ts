@@ -12,6 +12,15 @@ export async function GET(req: NextRequest) {
 
   try {
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
+    if (!projectId) {
+      return NextResponse.json(
+        JSON.stringify({ message: "projectId is required" }),
+        {
+          status: 400,
+        }
+      );
+    }
+
     const traceService = new TraceService();
     const totalTracesPerDay: any =
       await traceService.GetTotalTracePerDayPerProject(
@@ -32,7 +41,7 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (error) {
-    return NextResponse.json(JSON.stringify({ error }), {
+    return NextResponse.json(JSON.stringify({ message: error }), {
       status: 400,
     });
   }
