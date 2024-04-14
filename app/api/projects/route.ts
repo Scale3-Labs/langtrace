@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   if (!user) {
     return NextResponse.json(
       {
-        error: "User not found",
+        error: "user not found",
       },
       { status: 404 }
     );
@@ -41,15 +41,13 @@ export async function GET(req: NextRequest) {
   if (!team) {
     return NextResponse.json(
       {
-        error: "No team found",
+        error: "team not found",
       },
       { status: 404 }
     );
   }
 
   return NextResponse.json({
-    data: {
-      projects: team.projects,
-    },
+    projects: team.projects,
   });
 }

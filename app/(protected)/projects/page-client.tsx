@@ -53,7 +53,7 @@ export default function PageClient({ email }: { email: string }) {
       <div
         className={cn(
           "md:px-52 px-12 py-12 flex md:flex-row flex-col gap-2 items-center",
-          fetchProjects.data.data.projects.length === 0
+          fetchProjects.data.projects.length === 0
             ? "md:items-center"
             : "md:items-start"
         )}
@@ -61,12 +61,12 @@ export default function PageClient({ email }: { email: string }) {
         <div
           className={cn(
             "flex w-full gap-12 flex-wrap",
-            fetchProjects.data.data.projects.length === 0
+            fetchProjects.data.projects.length === 0
               ? "flex-col items-center"
               : "md:flex-row flex-wrap flex-col md:items-start items-center"
           )}
         >
-          {fetchProjects.data.data.projects.length === 0 && (
+          {fetchProjects.data.projects.length === 0 && (
             <div className="flex flex-col gap-2 items-center">
               <p className="text-2xl text-muted-foreground">Welcome!</p>
               <p className="text-lg text-muted-foreground mb-2">
@@ -75,15 +75,13 @@ export default function PageClient({ email }: { email: string }) {
               <Create teamId={fetchUser.data.data.Team.id} />
             </div>
           )}
-          {fetchProjects.data.data.projects.map(
-            (project: Project, i: number) => (
-              <ProjectCard
-                key={i}
-                project={project}
-                teamId={fetchUser.data.data.Team.id}
-              />
-            )
-          )}
+          {fetchProjects.data.projects.map((project: Project, i: number) => (
+            <ProjectCard
+              key={i}
+              project={project}
+              teamId={fetchUser.data.data.Team.id}
+            />
+          ))}
         </div>
       </div>
     </div>
