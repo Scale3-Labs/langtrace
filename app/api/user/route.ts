@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     if (!email) {
       return NextResponse.json(
         {
-          error: "email not found",
+          message: "email not found",
         },
         { status: 404 }
       );
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   if (!user) {
     return NextResponse.json(
       {
-        error: "user not found",
+        message: "user not found",
       },
       { status: 404 }
     );

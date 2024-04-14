@@ -5,44 +5,53 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
-  }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
+    }
 
-  const id = req.nextUrl.searchParams.get("id") as string;
-  const spanId = req.nextUrl.searchParams.get("spanId") as string;
-  if (!spanId && !id) {
+    const id = req.nextUrl.searchParams.get("id") as string;
+    const spanId = req.nextUrl.searchParams.get("spanId") as string;
+    if (!spanId && !id) {
+      return NextResponse.json(
+        {
+          message: "No span id or prompt id provided",
+        },
+        { status: 404 }
+      );
+    }
+
+    if (id) {
+      const result = await prisma.prompt.findFirst({
+        where: {
+          id,
+        },
+      });
+
+      return NextResponse.json({
+        data: result,
+      });
+    }
+
+    if (spanId) {
+      const result = await prisma.prompt.findMany({
+        where: {
+          spanId,
+        },
+      });
+
+      return NextResponse.json({
+        data: result,
+      });
+    }
+  } catch (error) {
     return NextResponse.json(
       {
-        error: "No span id or prompt id provided",
+        message: "Internal server error",
       },
-      { status: 404 }
+      { status: 500 }
     );
-  }
-
-  if (id) {
-    const result = await prisma.prompt.findFirst({
-      where: {
-        id,
-      },
-    });
-
-    return NextResponse.json({
-      data: result,
-    });
-  }
-
-  if (spanId) {
-    const result = await prisma.prompt.findMany({
-      where: {
-        spanId,
-      },
-    });
-
-    return NextResponse.json({
-      data: result,
-    });
   }
 }
 

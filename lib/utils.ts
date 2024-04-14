@@ -9,6 +9,7 @@ import {
   ANTHROPIC_PRICING,
   LangTraceAttributes,
   OPENAI_PRICING,
+  PERPLEXITY_PRICING,
   SpanStatusCode,
 } from "./constants";
 
@@ -275,10 +276,7 @@ export function prepareForClickhouse(spans: Normalized[]): Span[] {
   });
 }
 
-export async function authApiKey(
-  api_key?: string,
-  project_id?: string
-): Promise<NextResponse> {
+export async function authApiKey(api_key?: string): Promise<NextResponse> {
   if (!api_key) {
     return NextResponse.json(
       {
@@ -386,6 +384,18 @@ export function calculatePriceFromUsage(
       return { total, input, output };
     }
     return { total: 0, input: 0, output: 0 };
+  } else if (vendor === "perplexity") {
+    const costTable = PERPLEXITY_PRICING[model];
+    if (costTable) {
+      const total =
+        (costTable.input * usage.input_tokens +
+          costTable.output * usage.output_tokens) /
+        1000;
+      const input = (costTable.input * usage.input_tokens) / 1000;
+      const output = (costTable.output * usage.output_tokens) / 1000;
+      return { total, input, output };
+    }
+    return { total: 0, input: 0, output: 0 };
   }
   return { total: 0, input: 0, output: 0 };
 }
@@ -401,3 +411,13 @@ export function extractPromptFromLlmInputs(inputs: any[]): string {
   }
   return prompt;
 }
+
+export const getChartColor = (value: number) => {
+  if (value < 50) {
+    return "red";
+  } else if (value < 90 && value >= 50) {
+    return "yellow";
+  } else {
+    return "green";
+  }
+};

@@ -4,6 +4,7 @@ import { Test } from "@prisma/client";
 import { AreaChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { Info } from "../shared/info";
+import LargeChartLoading from "./large-chart-skeleton";
 
 export function EvalChart({
   projectId,
@@ -28,7 +29,7 @@ export function EvalChart({
   });
 
   if (fetchAccuracy.isLoading || !fetchAccuracy.data) {
-    return <div>Loading...</div>;
+    return <LargeChartLoading />;
   } else {
     // aggregate accuracy per day and return the data
     const evaluations = fetchAccuracy?.data?.evaluations;

@@ -11,6 +11,14 @@ export async function GET(req: NextRequest) {
   }
 
   const id = req.nextUrl.searchParams.get("id") as string;
+  if (!id) {
+    return NextResponse.json(
+      {
+        message: "project id not provided",
+      },
+      { status: 400 }
+    );
+  }
 
   const project = await prisma.project.findFirst({
     where: {
@@ -21,16 +29,14 @@ export async function GET(req: NextRequest) {
   if (!project) {
     return NextResponse.json(
       {
-        error: "No projects found",
+        message: "No projects found",
       },
       { status: 404 }
     );
   }
 
   return NextResponse.json({
-    data: {
-      project: project,
-    },
+    project: project,
   });
 }
 
