@@ -2,12 +2,22 @@ name: "Build Docker Image"
 run-name: "Version: ${{ inputs.imageTag }} --> Latest: ${{ inputs.isLatest }}"
 
 on:
+  workflow_call:
+    inputs:
+      imageTag:
+        description: Release version
+        type: string
+        required: true
+      isLatest:
+        description: Is this the latest version?
+        type: boolean
+        required: true
   workflow_dispatch:
     inputs:
       imageTag:
         description: Release version
+        type: string
         required: true
-        default: example
       isLatest:
         description: Is this the latest version?
         type: boolean
@@ -18,12 +28,17 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     env:
-      DOCKER_REGISTRY: scale3labs/langtrace-client
+      DOCKER_REGISTRY: ${{ vars.DOCKER_REGISTRY }}
     steps:
       - name: Github Checkout
         # v4.1.1
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-
+      - name: Set up QEMU
+        # v3.0.0
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3
+      - name: Set up Docker Buildx
+        # v3.2.0
+        uses: docker/setup-buildx-action@2b51285047da1547ffb1b2203d8be4c0af6b1f20
       - name: Log in to Docker Hub
         # v3.1.0
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
@@ -37,6 +52,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.DOCKER_REGISTRY }}:${{ inputs.imageTag }}
@@ -50,6 +66,8 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}:${{ inputs.imageTag }}
+          labels: ${{ inputs.imageTag }}
         if: ${{ !inputs.isLatest }}
