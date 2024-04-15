@@ -84,22 +84,6 @@ export function Create({
                 });
                 setOpen(false);
                 CreateProjectForm.reset();
-
-                // create default tests
-                const projectId = (await result.json()).data.id;
-                for (const test of DEFAULT_TESTS) {
-                  await fetch("/api/test", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      name: test.name?.toLowerCase(),
-                      description: test.description,
-                      projectId: projectId,
-                    }),
-                  });
-                }
               } catch (error: any) {
                 toast("Error creating your project!", {
                   description: `There was an error creating your project: ${error.message}`,
