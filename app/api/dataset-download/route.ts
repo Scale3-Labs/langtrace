@@ -74,55 +74,10 @@ export async function GET(req: NextRequest) {
         orderBy: {
           createdAt: "desc",
         },
-        take: pageSize,
-        skip: (page - 1) * pageSize,
       });
 
-      // Combine dataset with its related, ordered Data
-      const datasetWithOrderedData = {
-        ...dataset,
-        Data: relatedData,
-      };
-
-      return NextResponse.json({
-        datasets: datasetWithOrderedData,
-        metadata: md,
-      });
-    }
-
-    const project = await prisma.project.findFirst({
-      where: {
-        id,
-      },
-    });
-
-    if (!project) {
-      return NextResponse.json(
-        {
-          message: "No projects found",
-        },
-        { status: 404 }
-      );
-    }
-
-    // get all the datasets for this project and sort them by createdAt
-    const datasets = await prisma.dataset.findMany({
-      where: {
-        projectId: id,
-      },
-      include: {
-        Data: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-    const data = Array.isArray(datasets) ? datasets.flatMap(d => d.Data) : datasets;
-
-    // Convert JSON to CSV
-    const csv = json2csv.parse(data);
-
-    const timestamp = new Date().toISOString().replace(/[-:]/g, '');
+      const csv = json2csv.parse(relatedData);
+      const timestamp = new Date().toISOString().replace(/[-:]/g, '');
     const filename = `datasets_${timestamp}.csv`;
 
     // Write CSV to file with unique filename
@@ -142,7 +97,7 @@ export async function GET(req: NextRequest) {
         'Content-Disposition': `attachment; filename=${filename}`,
       },
     });
-  } catch (error) {
+    }  } catch (error) {
     return NextResponse.json(
       {
         message: "Internal server error",
