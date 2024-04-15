@@ -4,7 +4,6 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import json2csv from 'json2csv';
-import fs from 'fs';
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,7 +17,7 @@ export async function GET(req: NextRequest) {
     const pageParam = req.nextUrl.searchParams.get("page");
     let page = pageParam ? parseInt(pageParam, 10) : 1;
     const pageSizeParam = req.nextUrl.searchParams.get("pageSize");
-    const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
+    const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 500;
 
     if (!datasetId && !id) {
       return NextResponse.json(
@@ -74,30 +73,78 @@ export async function GET(req: NextRequest) {
         orderBy: {
           createdAt: "desc",
         },
+        take: pageSize,
+        skip: (page - 1) * pageSize,
       });
 
+      // Combine dataset with its related, ordered Data
+      const datasetWithOrderedData = {
+        ...dataset,
+        Data: relatedData,
+      };
+
       const csv = json2csv.parse(relatedData);
-      const timestamp = new Date().toISOString().replace(/[-:]/g, '');
+
+    const timestamp = new Date().toISOString().replace(/[-:]/g, '');
     const filename = `datasets_${timestamp}.csv`;
 
     // Write CSV to file with unique filename
     console.log(`CSV file '${filename}' `);
 
-    fs.writeFileSync(filename, csv);
-    console.log(`CSV file '${filename}' saved successfully.`);
-
-
-    // Read the CSV file
-    const fileContents = fs.readFileSync(filename, 'utf-8');
+    
 
     // Send the file as response with appropriate headers
-    return new Response(fileContents, {
+    return new Response(csv, {
       headers: {
         'Content-Type': 'text/csv',
         'Content-Disposition': `attachment; filename=${filename}`,
       },
     });
-    }  } catch (error) {
+    }
+
+    const project = await prisma.project.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        {
+          message: "No projects found",
+        },
+        { status: 404 }
+      );
+    }
+
+    // get all the datasets for this project and sort them by createdAt
+    const datasets = await prisma.dataset.findMany({
+      where: {
+        projectId: id,
+      },
+      include: {
+        Data: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    const data = Array.isArray(datasets) ? datasets.flatMap(d => d.Data) : datasets;
+
+    const csv = json2csv.parse(data);
+
+    const timestamp = new Date().toISOString().replace(/[-:]/g, '');
+    const filename = `datasets_${timestamp}.csv`;
+
+    console.log(`CSV file '${filename}' `);
+
+        return new Response(csv, {
+      headers: {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': `attachment; filename=${filename}`,
+      },
+    });
+  } catch (error) {
     return NextResponse.json(
       {
         message: "Internal server error",
