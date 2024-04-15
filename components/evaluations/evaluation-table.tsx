@@ -3,6 +3,7 @@
 import { TestSetupInstructions } from "@/components/shared/setup-instructions";
 import { Spinner } from "@/components/shared/spinner";
 import { PAGE_SIZE } from "@/lib/constants";
+import { correctTimestampFormat } from "@/lib/trace_utils";
 import { Test } from "@prisma/client";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -108,8 +109,32 @@ export default function EvaluationTable({
             a.findIndex((t: any) => t.span_id === v.span_id) === i
         );
 
+        console.log("uniqueData", uniqueData);
+
+        // sort by timestamp
+        uniqueData.sort((a: any, b: any) => {
+          if (!a.start_time || !b.start_time) {
+            return 0;
+          }
+          return (
+            new Date(correctTimestampFormat(b.start_time)).valueOf() -
+            new Date(correctTimestampFormat(a.start_time)).valueOf()
+          );
+        });
+
         setCurrentData(uniqueData);
       } else {
+        // sort by timestamp
+        newData.sort((a: any, b: any) => {
+          if (!a.start_time || !b.start_time) {
+            return 0;
+          }
+          return (
+            new Date(correctTimestampFormat(b.start_time)).valueOf() -
+            new Date(correctTimestampFormat(a.start_time)).valueOf()
+          );
+        });
+
         setCurrentData(newData);
       }
       setShowLoader(false);
