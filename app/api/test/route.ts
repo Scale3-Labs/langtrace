@@ -80,7 +80,7 @@ export async function PUT(req: NextRequest) {
   const data = await req.json();
   const { id, name, description } = data;
 
-  const project = await prisma.project.update({
+  const test = await prisma.test.update({
     where: {
       id,
     },
@@ -91,7 +91,7 @@ export async function PUT(req: NextRequest) {
   });
 
   return NextResponse.json({
-    data: project,
+    data: test,
   });
 }
 
@@ -104,13 +104,11 @@ export async function DELETE(req: NextRequest) {
   const data = await req.json();
   const { id } = data;
 
-  const project = await prisma.project.delete({
+  await prisma.test.delete({
     where: {
       id,
     },
   });
 
-  return NextResponse.json({
-    data: project,
-  });
+  return NextResponse.json({});
 }

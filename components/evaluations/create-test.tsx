@@ -26,47 +26,49 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Info } from "../shared/info";
 
-export function Create({
-  teamId,
+export function CreateTest({
+  projectId,
   disabled = false,
   variant = "default",
   className = "",
+  email,
 }: {
-  teamId?: string;
+  projectId: string;
   disabled?: boolean;
   variant?: any;
   className?: string;
+  email?: string;
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
   const schema = z.object({
     name: z.string().min(2, "Too short").max(30, "Too long"),
-    description: z.string().min(2, "Too short").max(100, "Too long"),
+    description: z.string().min(2, "Too short").max(200, "Too long"),
   });
-  const CreateProjectForm = useForm({
+  const CreateTestForm = useForm({
     resolver: zodResolver(schema),
   });
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button disabled={disabled} variant={variant} className={className}>
-          Create Project <PlusIcon className="ml-2" />
+          Create Test <PlusIcon className="ml-2" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Project</DialogTitle>
+          <DialogTitle>Create Test</DialogTitle>
           <DialogDescription>
-            Create a new project by filling out the form below.
+            Create a new test to evaluate your model.
           </DialogDescription>
         </DialogHeader>
-        <Form {...CreateProjectForm}>
+        <Form {...CreateTestForm}>
           <form
-            onSubmit={CreateProjectForm.handleSubmit(async (data) => {
+            onSubmit={CreateTestForm.handleSubmit(async (data) => {
               try {
                 setBusy(true);
-                const result = await fetch("/api/project", {
+                await fetch("/api/test", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
@@ -74,18 +76,20 @@ export function Create({
                   body: JSON.stringify({
                     name: data.name,
                     description: data.description.toLowerCase(),
-                    teamId,
+                    projectId,
                   }),
                 });
-                await queryClient.invalidateQueries("fetch-projects-query");
-                toast("Project created!", {
-                  description: "Your project has been created.",
+                await queryClient.invalidateQueries(
+                  `fetch-tests-${projectId}-query`
+                );
+                toast("Test created!", {
+                  description: "Your test has been created.",
                 });
                 setOpen(false);
-                CreateProjectForm.reset();
+                CreateTestForm.reset();
               } catch (error: any) {
-                toast("Error creating your project!", {
-                  description: `There was an error creating your project: ${error.message}`,
+                toast("Error creating your test!", {
+                  description: `There was an error creating your test: ${error.message}`,
                 });
               } finally {
                 setBusy(false);
@@ -95,21 +99,21 @@ export function Create({
           >
             <FormField
               disabled={busy}
-              control={CreateProjectForm.control}
+              control={CreateTestForm.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
                     Name
                     <Info
-                      information="The name of the project."
+                      information="The name of the test."
                       className="inline-block ml-2"
                     />
                   </FormLabel>
                   <FormControl>
                     <Input
                       className="capitalize"
-                      placeholder="Website Chatbot"
+                      placeholder="Needle in a haystack"
                       {...field}
                     />
                   </FormControl>
@@ -119,20 +123,20 @@ export function Create({
             />
             <FormField
               disabled={busy}
-              control={CreateProjectForm.control}
+              control={CreateTestForm.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
                     Description
                     <Info
-                      information="A brief description of the project."
+                      information="A brief description of the test."
                       className="inline-block ml-2"
                     />
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="A chatbot for our website."
+                      placeholder="Insert the question in between random text. If the question is answered correctly, the test is passed."
                       {...field}
                     />
                   </FormControl>
@@ -142,7 +146,7 @@ export function Create({
             />
             <DialogFooter>
               <Button type="submit" disabled={busy}>
-                Create Project
+                Create Test
                 <PlusIcon className="h-4 w-4 ml-2" />
               </Button>
             </DialogFooter>

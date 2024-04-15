@@ -84,6 +84,11 @@ export default function PageClient({ email }: { email: string }) {
     );
   }
 
+  // sort projects by created date
+  projects?.projects?.sort((a: Project, b: Project) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <div className="w-full flex flex-col">
       <div className="md:px-52 px-12 py-12 flex justify-between bg-muted">
