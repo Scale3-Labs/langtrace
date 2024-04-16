@@ -178,8 +178,8 @@ export default function PageClient({ email }: { email: string }) {
                     Evaluation Scale
                   </span>
                   <span className="text-sm text-primary">
-                    {selectedTest?.min} - {selectedTest?.max} (in steps of +
-                    {selectedTest?.step})
+                    {selectedTest?.min} to {selectedTest?.max} in steps of +
+                    {selectedTest?.step}
                   </span>
                 </div>
                 <ProgressCircle
