@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import json2csv from 'json2csv';
+import { Response } from "node-fetch";
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,13 +12,13 @@ export async function GET(req: NextRequest) {
     if (!session || !session.user) {
       redirect("/login");
     }
-
     const id = req.nextUrl.searchParams.get("id") as string;
     const datasetId = req.nextUrl.searchParams.get("dataset_id") as string;
     const pageParam = req.nextUrl.searchParams.get("page");
     let page = pageParam ? parseInt(pageParam, 10) : 1;
     const pageSizeParam = req.nextUrl.searchParams.get("pageSize");
-    const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 500;
+    let pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 500;
+    pageSize = Math.min(pageSize, 500);
 
     if (!datasetId && !id) {
       return NextResponse.json(
@@ -77,11 +78,6 @@ export async function GET(req: NextRequest) {
         skip: (page - 1) * pageSize,
       });
 
-      // Combine dataset with its related, ordered Data
-      const datasetWithOrderedData = {
-        ...dataset,
-        Data: relatedData,
-      };
 
       const csv = json2csv.parse(relatedData);
 
@@ -93,13 +89,13 @@ export async function GET(req: NextRequest) {
 
     
 
-    // Send the file as response with appropriate headers
-    return new Response(csv, {
-      headers: {
-        'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename=${filename}`,
-      },
-    });
+   // Send the file as response with appropriate headers
+   return new NextResponse(csv, {
+    headers: {
+      'Content-Type': 'text/csv',
+      'Content-Disposition': `attachment; filename=${filename}`,
+    },
+  });
     }
 
     const project = await prisma.project.findFirst({
@@ -135,10 +131,9 @@ export async function GET(req: NextRequest) {
 
     const timestamp = new Date().toISOString().replace(/[-:]/g, '');
     const filename = `datasets_${timestamp}.csv`;
-  
 
     // Send the file as response with appropriate headers
-    return new Response(csv, {
+    return new NextResponse(csv, {
       headers: {
         'Content-Type': 'text/csv',
         'Content-Disposition': `attachment; filename=${filename}`,
