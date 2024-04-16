@@ -4,6 +4,7 @@ import { EvalChart } from "@/components/charts/eval-chart";
 import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
 import { CreateTest } from "@/components/evaluations/create-test";
 import { EditTest } from "@/components/evaluations/edit-test";
+import { EvalDialog } from "@/components/evaluations/eval-dialog";
 import EvaluationTable, {
   EvaluationTableSkeleton,
 } from "@/components/evaluations/evaluation-table";
@@ -105,7 +106,8 @@ export default function PageClient({ email }: { email: string }) {
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Evaluations</h1>
         <div className="flex gap-2">
-          <CreateTest projectId={projectId} />
+          <EvalDialog />
+          <CreateTest projectId={projectId} variant={"outline"} />
           {selectedTest && (
             <EditTest projectId={projectId} test={selectedTest as Test} />
           )}

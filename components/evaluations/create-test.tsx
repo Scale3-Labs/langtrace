@@ -276,6 +276,7 @@ export function CreateTest({
                   min={min}
                   max={max}
                   step={step}
+                  selectedValue={min}
                 />
               </div>
             )}

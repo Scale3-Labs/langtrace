@@ -1,14 +1,46 @@
 import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
-import { useState } from "react";
+import React, { useEffect } from "react";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Scale, ScaleType } from "./eval-scale-picker";
+import {
+  RadioGroup,
+  RadioGroupItem,
+  RadioGroupItemLarge,
+} from "../ui/radio-group";
+import { ScaleType } from "./eval-scale-picker";
 
-export function RangeScale({ min, max, step, type = ScaleType.Range }: Scale) {
-  const [selectedValue, setSelectedValue] = useState<number>(1);
+interface RangeScaleProps {
+  min: number;
+  max: number;
+  step: number;
+  selectedValue: number;
+  onSelectedValueChange?: (value: number) => void;
+  type?: ScaleType | "range";
+  variant?: string | "default";
+}
+
+export function RangeScale({
+  min,
+  max,
+  step,
+  selectedValue,
+  onSelectedValueChange,
+  type = ScaleType.Range,
+  variant = "default",
+}: RangeScaleProps) {
+  const radioRef = React.createRef<HTMLDivElement>();
+  const buttonRef = React.createRef<HTMLButtonElement>();
+
+  useEffect(() => {
+    if (radioRef.current) {
+      radioRef.current.focus();
+    }
+    if (buttonRef.current) {
+      buttonRef.current.focus();
+    }
+  }, [radioRef, buttonRef]);
+
   if (min === undefined || max === undefined || step === undefined) return null;
-
   if (type === "range") {
     const values = Array.from(
       { length: (max - min) / step + 1 },
@@ -26,13 +58,24 @@ export function RangeScale({ min, max, step, type = ScaleType.Range }: Scale) {
         </p>
       );
 
-    if (values.length !== 2) {
+    if (values.length !== 2 || variant === "large") {
       return (
-        <RadioGroup defaultValue={`${min}`} className="flex items-center gap-2">
+        <RadioGroup
+          ref={radioRef}
+          onValueChange={(value) =>
+            onSelectedValueChange && onSelectedValueChange(parseInt(value, 10))
+          }
+          value={selectedValue.toString()}
+          className="flex items-center gap-2"
+        >
           {values.map((value: number, i: number) => (
             <div key={i} className="flex flex-col items-center space-y-2">
-              <RadioGroupItem value={`${value}`} id="r1" />
-              <Label htmlFor="r1">{value}</Label>
+              {variant === "large" ? (
+                <RadioGroupItemLarge value={`${value}`} id={`r${i}`} />
+              ) : (
+                <RadioGroupItem value={`${value}`} id={`r${i}`} />
+              )}
+              <Label htmlFor={`r${i}`}>{value}</Label>
             </div>
           ))}
         </RadioGroup>
@@ -42,12 +85,20 @@ export function RangeScale({ min, max, step, type = ScaleType.Range }: Scale) {
         <div className="flex items-center gap-2">
           <div className="flex flex-col items-center space-y-2">
             <Button
+              ref={buttonRef}
               type="button"
               variant={selectedValue === min ? "default" : "ghost"}
               size={"icon"}
-              onClick={() => setSelectedValue(min)}
+              onClick={
+                onSelectedValueChange
+                  ? () => onSelectedValueChange(min)
+                  : () => {}
+              }
+              className="p-1"
             >
-              <ThumbsDownIcon />
+              <ThumbsDownIcon
+                className={variant === "large" ? "h-12 w-12" : ""}
+              />
             </Button>
             <Label>{min}</Label>
           </div>
@@ -56,9 +107,16 @@ export function RangeScale({ min, max, step, type = ScaleType.Range }: Scale) {
               type="button"
               variant={selectedValue === max ? "default" : "ghost"}
               size={"icon"}
-              onClick={() => setSelectedValue(max)}
+              onClick={
+                onSelectedValueChange
+                  ? () => onSelectedValueChange(max)
+                  : () => {}
+              }
+              className="p-1"
             >
-              <ThumbsUpIcon />
+              <ThumbsUpIcon
+                className={variant === "large" ? "h-12 w-12" : ""}
+              />
             </Button>
             <Label>{max}</Label>
           </div>
