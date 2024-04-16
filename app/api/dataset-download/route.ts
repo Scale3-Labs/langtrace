@@ -85,8 +85,8 @@ export async function GET(req: NextRequest) {
 
       const csv = json2csv.parse(relatedData);
 
-    const timestamp = new Date().toISOString().replace(/[-:]/g, '');
-    const filename = `datasets_${timestamp}.csv`;
+      const dataset_name = dataset.name.toLowerCase().replace(/\s+/g, '_');
+      const filename = `datasets_${dataset_name}.csv`;
 
     // Write CSV to file with unique filename
     console.log(`CSV file '${filename}' `);
@@ -135,10 +135,10 @@ export async function GET(req: NextRequest) {
 
     const timestamp = new Date().toISOString().replace(/[-:]/g, '');
     const filename = `datasets_${timestamp}.csv`;
+  
 
-    console.log(`CSV file '${filename}' `);
-
-        return new Response(csv, {
+    // Send the file as response with appropriate headers
+    return new Response(csv, {
       headers: {
         'Content-Type': 'text/csv',
         'Content-Disposition': `attachment; filename=${filename}`,
