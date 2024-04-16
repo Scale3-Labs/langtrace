@@ -163,14 +163,23 @@ export default function PageClient({ email }: { email: string }) {
             })}
           </div>
           <div className="bg-primary-foreground flex flex-col gap-12 border rounded-md w-full p-4 mb-24">
-            <div className="flex flex-row">
-              <div className="flex flex-col gap-3 items-start w-[25rem]">
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-col gap-4 items-start w-[25rem]">
                 <div className="flex flex-col gap-1">
                   <h1 className="text-xl font-semibold capitalize break-normal">
                     {selectedTest?.name} Evaluation
                   </h1>
                   <span className="text-xs font-semibold text-muted-foreground">
                     Test ID: {selectedTest?.id}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-muted-foreground font-semibold">
+                    Evaluation Scale
+                  </span>
+                  <span className="text-sm text-primary">
+                    {selectedTest?.min} - {selectedTest?.max} (in steps of +
+                    {selectedTest?.step})
                   </span>
                 </div>
                 <ProgressCircle

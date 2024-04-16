@@ -109,8 +109,6 @@ export default function EvaluationTable({
             a.findIndex((t: any) => t.span_id === v.span_id) === i
         );
 
-        console.log("uniqueData", uniqueData);
-
         // sort by timestamp
         uniqueData.sort((a: any, b: any) => {
           if (!a.start_time || !b.start_time) {

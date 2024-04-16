@@ -25,6 +25,9 @@ import { useQueryClient } from "react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Info } from "../shared/info";
+import { Label } from "../ui/label";
+import { ScaleType } from "./eval-scale-picker";
+import { RangeScale } from "./range-scale";
 
 export function CreateTest({
   projectId,
@@ -42,15 +45,39 @@ export function CreateTest({
   const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
+  const [min, setMin] = useState<number>(-1);
+  const [max, setMax] = useState<number>(1);
+  const [step, setStep] = useState<number>(2);
   const schema = z.object({
     name: z.string().min(2, "Too short").max(30, "Too long"),
     description: z.string().min(2, "Too short").max(200, "Too long"),
+    min: z
+      .string()
+      .refine((val) => !Number.isNaN(parseInt(val, 10)))
+      .default("-1"),
+    max: z
+      .string()
+      .refine((val) => !Number.isNaN(parseInt(val, 10)))
+      .default("1"),
+    step: z
+      .string()
+      .refine((val) => !Number.isNaN(parseInt(val, 10)))
+      .default("2"),
   });
   const CreateTestForm = useForm({
     resolver: zodResolver(schema),
   });
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        setMin(-1);
+        setMax(1);
+        setStep(2);
+        CreateTestForm.reset();
+      }}
+    >
       <DialogTrigger asChild>
         <Button disabled={disabled} variant={variant} className={className}>
           Create Test <PlusIcon className="ml-2" />
@@ -66,6 +93,7 @@ export function CreateTest({
         <Form {...CreateTestForm}>
           <form
             onSubmit={CreateTestForm.handleSubmit(async (data) => {
+              console.log(data);
               try {
                 setBusy(true);
                 await fetch("/api/test", {
@@ -76,6 +104,9 @@ export function CreateTest({
                   body: JSON.stringify({
                     name: data.name,
                     description: data.description.toLowerCase(),
+                    min: data.min ? parseInt(data.min, 10) : -1,
+                    max: data.max ? parseInt(data.max, 10) : 1,
+                    step: data.step ? parseInt(data.step, 10) : 2,
                     projectId,
                   }),
                 });
@@ -144,6 +175,110 @@ export function CreateTest({
                 </FormItem>
               )}
             />
+            <Label>
+              Pick a Scale
+              <Info
+                information="The scale used to evaluate the test."
+                className="inline-block ml-2"
+              />
+            </Label>
+            <div className="flex gap-2">
+              <FormField
+                disabled={busy}
+                control={CreateTestForm.control}
+                name="min"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Min Score
+                      <Info
+                        information="Minimum value of the scale."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="0"
+                        value={field.value ?? min}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          field.onChange(e.target.value);
+                          setMin(parseInt(e.target.value, 10));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                disabled={busy}
+                control={CreateTestForm.control}
+                name="max"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Max Score
+                      <Info
+                        information="Maximum value of the scale."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="5"
+                        value={field.value ?? max}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          field.onChange(e.target.value);
+                          setMax(parseInt(e.target.value, 10));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                disabled={busy}
+                control={CreateTestForm.control}
+                name="step"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Step
+                      <Info
+                        information="Step value of the scale."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="1"
+                        value={field.value ?? step}
+                        onChange={(e) => {
+                          e.preventDefault();
+                          field.onChange(e.target.value);
+                          setStep(parseInt(e.target.value, 10));
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            {!isNaN(min) && !isNaN(max) && !isNaN(step) && (
+              <div className="flex flex-col justify-center items-center gap-2">
+                <Label>Evaluation Scale</Label>
+                <RangeScale
+                  type={ScaleType.Range}
+                  min={min}
+                  max={max}
+                  step={step}
+                />
+              </div>
+            )}
             <DialogFooter>
               <Button type="submit" disabled={busy}>
                 Create Test

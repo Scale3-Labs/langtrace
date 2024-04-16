@@ -56,13 +56,16 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { name, description, projectId } = data;
+  const { name, description, projectId, min, max, step } = data;
 
   const test = await prisma.test.create({
     data: {
       name: name,
       description: description,
       projectId: projectId,
+      min: min ?? -1,
+      max: max ?? 1,
+      step: step ?? 2,
     },
   });
 
