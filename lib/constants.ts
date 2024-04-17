@@ -85,7 +85,7 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
   },
 };
 
-export const ANTHROPIC_PRICING: Record<string, any> = {
+export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
   "claude-3-haiku": {
     input: 0.00025,
     output: 0.00125,
@@ -114,7 +114,7 @@ export const ANTHROPIC_PRICING: Record<string, any> = {
 
 // https://docs.perplexity.ai/docs/pricing --> slightly unclear
 // https://docs.perplexity.ai/changelog/api-updates-february-2024 --> diff prices
-export const PERPLEXITY_PRICING: Record<string, any> = {
+export const PERPLEXITY_PRICING: Record<string, CostTableEntry> = {
   "sonar-small-chat": {
     input: 0.0002,
     output: 0.0002,
@@ -143,7 +143,7 @@ export const PERPLEXITY_PRICING: Record<string, any> = {
   },
 };
 
-export const COHERE_PRICING: Record<string, any> = {
+export const COHERE_PRICING: Record<string, CostTableEntry> = {
   "command-light": {
     input: 0.0003,
     output: 0.0006,
