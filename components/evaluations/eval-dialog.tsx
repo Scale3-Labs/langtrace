@@ -84,6 +84,41 @@ function EvalContent({
     setSpan(null);
   }, [test]);
 
+  useEffect(() => {
+    const handleKeyPress = (event: any) => {
+      if (event.key === "Enter") {
+        next();
+      }
+      if (event.key === "Backspace") {
+        previous();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener("keydown", handleKeyPress);
+
+    // Remove event listener on cleanup
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [page, totalPages]);
+
+  const next = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+      refetch();
+    } else {
+      close();
+    }
+  };
+
+  const previous = () => {
+    if (page > 0) {
+      setPage((prev) => prev - 1);
+      refetch();
+    }
+  };
+
   const { isLoading, refetch, isRefetching } = useQuery({
     queryKey: [`fetch-spans-query-${page}-${test.id}`],
     queryFn: async () => {
@@ -255,29 +290,11 @@ function EvalContent({
             Exit
             <Cross1Icon className="ml-2" />
           </Button>
-          <Button
-            variant={"outline"}
-            onClick={() => {
-              if (page > 0) {
-                setPage((prev) => prev - 1);
-                refetch();
-              }
-            }}
-            disabled={page === 1}
-          >
+          <Button variant={"outline"} onClick={previous} disabled={page === 1}>
             <ChevronLeft className="mr-2" />
             Previous
           </Button>
-          <Button
-            onClick={() => {
-              if (page < totalPages) {
-                setPage((prev) => prev + 1);
-                refetch();
-              } else {
-                close();
-              }
-            }}
-          >
+          <Button onClick={next}>
             {page === totalPages ? "Done" : "Next"}
             {page === totalPages ? (
               <CheckIcon className="ml-2" />
