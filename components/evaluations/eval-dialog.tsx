@@ -4,6 +4,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { correctTimestampFormat } from "@/lib/trace_utils";
+import { formatDateTime } from "@/lib/utils";
 import { Test } from "@prisma/client";
 import { Cross1Icon, EnterIcon } from "@radix-ui/react-icons";
 import { ProgressCircle } from "@tremor/react";
@@ -232,13 +234,25 @@ function EvalContent({
               {test?.description || "No description provided"}
             </p>
           </div>
-          <div className="flex flex-col gap-2">
-            <h3 className="text-lg font-semibold break-normal">
-              Evaluation Scale
-            </h3>
-            <p className="text-md text-muted-foreground">
-              {min} to {max} in steps of +{step}
-            </p>
+          <div className="flex justify-between">
+            <div className="flex flex-col gap-2">
+              <h3 className="text-lg font-semibold break-normal">
+                Evaluation Scale
+              </h3>
+              <p className="text-md text-muted-foreground">
+                {min} to {max} in steps of +{step}
+              </p>
+            </div>
+            {span?.start_time && (
+              <div className="flex flex-col gap-2">
+                <h3 className="text-lg font-semibold break-normal">
+                  Timestamp
+                </h3>
+                <p className="text-md text-muted-foreground">
+                  {formatDateTime(correctTimestampFormat(span?.start_time))}
+                </p>
+              </div>
+            )}
           </div>
           <h3 className="text-lg font-semibold break-normal">Scale</h3>
           <RangeScale
