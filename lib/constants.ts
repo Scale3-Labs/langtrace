@@ -138,6 +138,34 @@ export const PERPLEXITY_PRICING: Record<string, any> = {
   },
 };
 
+export const COHERE_PRICING: Record<string, any> = {
+  "command-light": {
+    input: 0.0003,
+    output: 0.0006,
+  },
+  "command-light-nightly": {
+    input: 0.0003,
+    output: 0.0006,
+  },
+  // prettier-ignore
+  "command": {
+    input: 0.001,
+    output: 0.002,
+  },
+  "command-nightly": {
+    input: 0.001,
+    output: 0.002,
+  },
+  "command-r": {
+    input: 0.0005,
+    output: 0.0015,
+  },
+  "command-r-plus": {
+    input: 0.003,
+    output: 0.015,
+  },
+};
+
 export const PAGE_SIZE = 15;
 
 export const DEFAULT_TESTS: Partial<Test>[] = [
