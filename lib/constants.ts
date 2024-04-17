@@ -43,8 +43,13 @@ export const CLICK_HOUSE_CONSTANTS = {
   database: process.env.CLICK_HOUSE_DATABASE_NAME,
 };
 
+export interface CostTableEntry {
+  input: number;
+  output: number;
+}
+
 // cost per 1000 tokens
-export const OPENAI_PRICING: Record<string, any> = {
+export const OPENAI_PRICING: Record<string, CostTableEntry> = {
   "gpt-4": {
     input: 0.03,
     output: 0.06,
