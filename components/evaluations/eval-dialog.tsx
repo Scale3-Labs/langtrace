@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import { useQuery } from "react-query";
 import { VendorLogo } from "../shared/vendor-metadata";
+import { Skeleton } from "../ui/skeleton";
 import { ScaleType } from "./eval-scale-picker";
 import { RangeScale } from "./range-scale";
 
@@ -86,6 +87,7 @@ function EvalContent({ test, projectId }: { test: Test; projectId: string }) {
   }, [test]);
 
   const { isLoading } = useQuery({
+    queryKey: [`fetch-spans-query-${page}-${test.id}`],
     queryFn: async () => {
       const filters = [
         {
@@ -185,81 +187,87 @@ function EvalContent({ test, projectId }: { test: Test; projectId: string }) {
     }
   };
 
-  return (
-    <div className="flex flex-row gap-6 justify-between h-[78vh]">
-      {isLoading ? <p>Loading</p> : <ConversationView span={span} />}
-      <div className="flex flex-col gap-4 w-1/2 overflow-y-scroll px-2">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-xl font-semibold break-normal capitalize">
-            {test?.name || "No name provided"}
-          </h2>
-          <p className="text-md text-muted-foreground">
-            {test?.description || "No description provided"}
-          </p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <h3 className="text-lg font-semibold break-normal">
-            Evaluation Scale
-          </h3>
-          <p className="text-md text-muted-foreground">
-            {min} to {max} in steps of +{step}
-          </p>
-        </div>
-        <h3 className="text-lg font-semibold break-normal">Scale</h3>
-        <RangeScale
-          variant="large"
-          type={ScaleType.Range}
-          min={min}
-          max={max}
-          step={step}
-          selectedValue={score}
-          onSelectedValueChange={onScoreSelected}
-        />
-        <h3 className="text-lg font-semibold break-normal">Score</h3>
-        <ProgressCircle
-          value={scorePercent}
-          size="lg"
-          color={color}
-          className="relative"
-        >
-          <p className="text-4xl font-semibold text-slate-700">{score}</p>
-        </ProgressCircle>
-        <div className="flex flex-col gap-3 mb-24">
-          <h3 className="text-lg font-semibold break-normal">Hotkeys</h3>
-          <div className="flex flex-row gap-2 items-center">
-            <ArrowLeftSquareIcon className="text-muted-foreground h-4 w-4" />
-            <ArrowRightSquareIcon className="text-muted-foreground h-4 w-4" />
-            <p className="text-sm">Arrow keys to navigate the scale</p>
-          </div>
-          <div className="flex flex-row gap-2">
-            <EnterIcon className="text-muted-foreground h-4 w-4" />
-            <p className="text-sm">
-              Enter/Return to submit the score and continue to the next
-              evaluation
+  if (isLoading) {
+    return <EvalDialogSkeleton />;
+  } else {
+    return (
+      <div className="flex flex-row gap-6 justify-between h-[78vh]">
+        <ConversationView span={span} />
+        <div className="flex flex-col gap-4 w-1/2 overflow-y-scroll px-2">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-xl font-semibold break-normal capitalize">
+              {test?.name || "No name provided"}
+            </h2>
+            <p className="text-md text-muted-foreground">
+              {test?.description || "No description provided"}
             </p>
           </div>
-          <div className="flex flex-row gap-2">
-            <DeleteIcon className="text-muted-foreground h-4 w-4" />
-            <p className="text-sm">
-              Delete/Backspace to go back to the previous evaluation
+          <div className="flex flex-col gap-2">
+            <h3 className="text-lg font-semibold break-normal">
+              Evaluation Scale
+            </h3>
+            <p className="text-md text-muted-foreground">
+              {min} to {max} in steps of +{step}
             </p>
           </div>
-          <div className="flex flex-row gap-2">
-            <p className="text-sm text-muted-foreground">Esc</p>
-            <p className="text-sm">Press Esc to exit the evaluation dialog</p>
+          <h3 className="text-lg font-semibold break-normal">Scale</h3>
+          <RangeScale
+            variant="large"
+            type={ScaleType.Range}
+            min={min}
+            max={max}
+            step={step}
+            selectedValue={score}
+            onSelectedValueChange={onScoreSelected}
+          />
+          <h3 className="text-lg font-semibold break-normal">Score</h3>
+          <ProgressCircle
+            value={scorePercent}
+            size="lg"
+            color={color}
+            className="relative"
+          >
+            <p className="text-4xl font-semibold text-slate-700">{score}</p>
+          </ProgressCircle>
+          <div className="flex flex-col gap-3 mb-24">
+            <h3 className="text-lg font-semibold break-normal">Hotkeys</h3>
+            <div className="flex flex-row gap-2 items-center">
+              <ArrowLeftSquareIcon className="text-muted-foreground h-4 w-4" />
+              <ArrowRightSquareIcon className="text-muted-foreground h-4 w-4" />
+              <p className="text-sm">Arrow keys to navigate the scale</p>
+            </div>
+            <div className="flex flex-row gap-2">
+              <EnterIcon className="text-muted-foreground h-4 w-4" />
+              <p className="text-sm">
+                Enter/Return to submit the score and continue to the next
+                evaluation
+              </p>
+            </div>
+            <div className="flex flex-row gap-2">
+              <DeleteIcon className="text-muted-foreground h-4 w-4" />
+              <p className="text-sm">
+                Delete/Backspace to go back to the previous evaluation
+              </p>
+            </div>
+            <div className="flex flex-row gap-2">
+              <p className="text-sm text-muted-foreground">Esc</p>
+              <p className="text-sm">Press Esc to exit the evaluation dialog</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 function ConversationView({ span }: { span: any }) {
   const attributes = span?.attributes ? JSON.parse(span.attributes) : {};
-  if (!attributes) return null;
+  if (!attributes) return <p className="text-md">No data found</p>;
 
   const prompts = attributes["llm.prompts"];
   const responses = attributes["llm.responses"];
+
+  if (!prompts && !responses) return <p className="text-md">No data found</p>;
 
   return (
     <div className="flex flex-col gap-12 overflow-y-scroll w-1/2 pr-6">
@@ -305,6 +313,45 @@ function ConversationView({ span }: { span: any }) {
             </Markdown>
           </div>
         ))}
+    </div>
+  );
+}
+
+function EvalDialogSkeleton() {
+  return (
+    <div className="flex flex-row gap-6 justify-between h-[78vh]">
+      <div className="flex flex-col gap-4 w-1/2">
+        <Skeleton className="w-full h-24" />
+        <Skeleton className="w-full h-24" />
+        <Skeleton className="w-full h-24" />
+        <Skeleton className="w-full h-24" />
+        <Skeleton className="w-full h-24" />
+        <Skeleton className="w-full h-24" />
+        <Skeleton className="w-full h-24" />
+      </div>
+      <div className="flex flex-col gap-4 w-1/2">
+        <Skeleton className="w-full h-24" />
+        <Skeleton className="w-24 h-12" />
+        <Skeleton className="w-full h-12" />
+        <Skeleton className="w-24 h-12" />
+        <Skeleton className="w-32 h-32 rounded-full mt-6" />
+        <div className="flex gap-4">
+          <Skeleton className="w-12 h-6" />
+          <Skeleton className="w-48 h-6" />
+        </div>
+        <div className="flex gap-4">
+          <Skeleton className="w-12 h-6" />
+          <Skeleton className="w-48 h-6" />
+        </div>
+        <div className="flex gap-4">
+          <Skeleton className="w-12 h-6" />
+          <Skeleton className="w-48 h-6" />
+        </div>
+        <div className="flex gap-4">
+          <Skeleton className="w-12 h-6" />
+          <Skeleton className="w-48 h-6" />
+        </div>
+      </div>
     </div>
   );
 }
