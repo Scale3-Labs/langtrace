@@ -1,8 +1,6 @@
 import {
   AlertDialog,
-  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogFooter,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -12,6 +10,7 @@ import { ProgressCircle } from "@tremor/react";
 import {
   ArrowLeftSquareIcon,
   ArrowRightSquareIcon,
+  CheckIcon,
   ChevronLeft,
   ChevronRight,
   ChevronsRight,
@@ -32,8 +31,9 @@ export function EvalDialog({
   test: Test;
   projectId: string;
 }) {
+  const [open, setOpen] = useState<boolean>(false);
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={(o) => setOpen(o)}>
       <AlertDialogTrigger asChild>
         <Button
           className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 background-animate"
@@ -43,27 +43,25 @@ export function EvalDialog({
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="w-full max-w-screen-lg h-5/6">
-        <EvalContent test={test} projectId={projectId} />
-        <AlertDialogFooter className="absolute bottom-5 right-5">
-          <AlertDialogCancel>
-            Exit
-            <Cross1Icon className="ml-2" />
-          </AlertDialogCancel>
-          <Button variant={"outline"}>
-            <ChevronLeft className="mr-2" />
-            Previous
-          </Button>
-          <Button>
-            Next
-            <ChevronRight className="ml-2" />
-          </Button>
-        </AlertDialogFooter>
+        <EvalContent
+          test={test}
+          projectId={projectId}
+          close={() => setOpen(false)}
+        />
       </AlertDialogContent>
     </AlertDialog>
   );
 }
 
-function EvalContent({ test, projectId }: { test: Test; projectId: string }) {
+function EvalContent({
+  test,
+  projectId,
+  close,
+}: {
+  test: Test;
+  projectId: string;
+  close: () => void;
+}) {
   const min = test?.min !== undefined && test?.min !== null ? test.min : -1;
   const max = test?.max !== undefined && test?.max !== null ? test.max : 1;
   const step = test?.step !== undefined && test?.step !== null ? test.step : 2;
@@ -86,7 +84,7 @@ function EvalContent({ test, projectId }: { test: Test; projectId: string }) {
     setSpan(null);
   }, [test]);
 
-  const { isLoading } = useQuery({
+  const { isLoading, refetch, isRefetching } = useQuery({
     queryKey: [`fetch-spans-query-${page}-${test.id}`],
     queryFn: async () => {
       const filters = [
@@ -131,9 +129,6 @@ function EvalContent({ test, projectId }: { test: Test; projectId: string }) {
 
       // Update the total pages and current page number
       setTotalPages(parseInt(metadata?.total_pages) || 1);
-      if (parseInt(metadata?.page) < parseInt(metadata?.total_pages)) {
-        setPage(parseInt(metadata?.page) + 1);
-      }
 
       // Update the span state
       if (spans.length > 0) {
@@ -254,6 +249,42 @@ function EvalContent({ test, projectId }: { test: Test; projectId: string }) {
               <p className="text-sm">Press Esc to exit the evaluation dialog</p>
             </div>
           </div>
+        </div>
+        <div className="absolute bottom-5 right-5 flex gap-2 items-center">
+          <Button variant={"outline"} onClick={close}>
+            Exit
+            <Cross1Icon className="ml-2" />
+          </Button>
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              if (page > 0) {
+                setPage((prev) => prev - 1);
+                refetch();
+              }
+            }}
+            disabled={page === 1}
+          >
+            <ChevronLeft className="mr-2" />
+            Previous
+          </Button>
+          <Button
+            onClick={() => {
+              if (page < totalPages) {
+                setPage((prev) => prev + 1);
+                refetch();
+              } else {
+                close();
+              }
+            }}
+          >
+            {page === totalPages ? "Done" : "Next"}
+            {page === totalPages ? (
+              <CheckIcon className="ml-2" />
+            ) : (
+              <ChevronRight className="ml-2" />
+            )}
+          </Button>
         </div>
       </div>
     );
