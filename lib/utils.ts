@@ -7,6 +7,7 @@ import { twMerge } from "tailwind-merge";
 import { Span } from "./clients/scale3_clickhouse/models/span";
 import {
   ANTHROPIC_PRICING,
+  COHERE_PRICING,
   LangTraceAttributes,
   OPENAI_PRICING,
   PERPLEXITY_PRICING,
@@ -386,6 +387,18 @@ export function calculatePriceFromUsage(
     return { total: 0, input: 0, output: 0 };
   } else if (vendor === "perplexity") {
     const costTable = PERPLEXITY_PRICING[model];
+    if (costTable) {
+      const total =
+        (costTable.input * usage.input_tokens +
+          costTable.output * usage.output_tokens) /
+        1000;
+      const input = (costTable.input * usage.input_tokens) / 1000;
+      const output = (costTable.output * usage.output_tokens) / 1000;
+      return { total, input, output };
+    }
+    return { total: 0, input: 0, output: 0 };
+  } else if (vendor === "cohere") {
+    const costTable = COHERE_PRICING[model];
     if (costTable) {
       const total =
         (costTable.input * usage.input_tokens +
