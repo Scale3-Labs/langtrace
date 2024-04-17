@@ -14,8 +14,8 @@ import { Test } from "@prisma/client";
 import { Cross1Icon, EnterIcon } from "@radix-ui/react-icons";
 import { ProgressCircle } from "@tremor/react";
 import {
-  ArrowLeftSquareIcon,
-  ArrowRightSquareIcon,
+  ArrowDownSquareIcon,
+  ArrowUpSquareIcon,
   CheckIcon,
   ChevronLeft,
   ChevronRight,
@@ -24,7 +24,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
+import { toast } from "sonner";
 import { VendorLogo } from "../shared/vendor-metadata";
 import { Skeleton } from "../ui/skeleton";
 import { ScaleType } from "./eval-scale-picker";
@@ -77,13 +78,13 @@ function EvalContent({
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [span, setSpan] = useState<any>(null);
-  const [evaluation, setEvaluation] = useState<any>({});
   const [addedToDataset, setAddedToDataset] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   // Reset the score and color when the test changes
   useEffect(() => {
-    setScore(test?.min !== undefined && test?.min !== null ? test.min : -1);
+    setScore(min);
     setScorePercent(0);
     setColor("red");
     setPage(1);
@@ -166,15 +167,12 @@ function EvalContent({
   });
 
   const next = async () => {
-    setBusy(true);
-    await evaluate(score);
+    await evaluate();
     setBusy(false);
     if (page < totalPages) {
       // Evaluate the current score
       setPage((prev) => prev + 1);
       refetch();
-    } else {
-      close();
     }
   };
 
@@ -189,13 +187,13 @@ function EvalContent({
     isLoading: isEvaluationLoading,
     isRefetching: isEvaluationRefetching,
     isFetching: isEvaluationFetching,
+    data: evaluationsData,
+    refetch: refetchEvaluation,
   } = useQuery({
-    queryKey: [`fetch-evaluation-query-${span?.span_id}`],
+    queryKey: [`fetch-evaluation-dialog-query-${span?.span_id}`],
     queryFn: async () => {
-      if (!span) return;
       const response = await fetch(`/api/evaluation?spanId=${span?.span_id}`);
       const result = await response.json();
-      setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
       const sc =
         result.evaluations.length > 0 ? result.evaluations[0].score : min;
       onScoreSelected(sc);
@@ -208,7 +206,6 @@ function EvalContent({
   useQuery({
     queryKey: [`fetch-data-query-${span?.span_id}`],
     queryFn: async () => {
-      if (!span) return;
       const response = await fetch(`/api/data?spanId=${span?.span_id}`);
       const result = await response.json();
       setAddedToDataset(result.data.length > 0);
@@ -218,45 +215,62 @@ function EvalContent({
     refetchOnMount: false,
   });
 
-  const evaluate = async (newScore: number) => {
-    if (!span || !test || isEvaluationLoading || isEvaluationFetching) return;
-    const attributes = span.attributes ? JSON.parse(span.attributes) : {};
-    if (!attributes) return;
-    const model = attributes["llm.model"];
-    const prompts = attributes["llm.prompts"];
-    const systemPrompt = extractSystemPromptFromLlmInputs(prompts);
-    if (!evaluation?.id) {
-      // Evaluate
-      await fetch("/api/evaluation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          projectId: projectId,
-          spanId: span.span_id,
-          traceId: span.trace_id,
-          spanStartTime: span?.start_time
-            ? new Date(correctTimestampFormat(span.start_time))
-            : new Date(),
-          score: newScore,
-          model: model,
-          prompt: systemPrompt,
-          testId: test.id,
-        }),
+  const evaluate = async () => {
+    setBusy(true);
+    try {
+      const attributes = span.attributes ? JSON.parse(span.attributes) : {};
+      if (!attributes) return;
+      const model = attributes["llm.model"];
+      const prompts = attributes["llm.prompts"];
+      const systemPrompt = extractSystemPromptFromLlmInputs(prompts);
+
+      // Check if an evaluation already exists
+      if (evaluationsData?.evaluations[0]?.id) {
+        // Update the existing evaluation
+        await fetch("/api/evaluation", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: evaluationsData.evaluations[0].id,
+            score: score,
+          }),
+        });
+        queryClient.invalidateQueries([
+          `fetch-evaluation-dialog-query-${span.span_id}`,
+        ]);
+      } else {
+        // Create a new evaluation
+        await fetch("/api/evaluation", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            projectId: projectId,
+            spanId: span.span_id,
+            traceId: span.trace_id,
+            spanStartTime: span?.start_time
+              ? new Date(correctTimestampFormat(span.start_time))
+              : new Date(),
+            score: score,
+            model: model,
+            prompt: systemPrompt,
+            testId: test.id,
+          }),
+        });
+        queryClient.invalidateQueries([
+          `fetch-evaluation-dialog-query-${span.span_id}`,
+        ]);
+      }
+      toast.success("Span evaluated successfully!");
+    } catch (error: any) {
+      toast.error("Error evaluating the span!", {
+        description: `There was an error evaluating the span: ${error.message}`,
       });
-    } else {
-      if (evaluation?.score === newScore) return;
-      await fetch("/api/evaluation", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: evaluation?.id,
-          score: newScore,
-        }),
-      });
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -326,10 +340,14 @@ function EvalContent({
             <span
               className={cn(
                 "ml-2 text-xs px-1 py-[2px] rounded-md",
-                evaluation?.id ? "bg-green-400" : "bg-orange-400"
+                evaluationsData?.evaluations[0]?.id
+                  ? "bg-green-400"
+                  : "bg-orange-400"
               )}
             >
-              {evaluation?.id ? "Evaluated" : "Not Evaluated"}
+              {evaluationsData?.evaluations[0]?.id
+                ? "Evaluated"
+                : "Not Evaluated"}
             </span>
           </h3>
           {isEvaluationLoading ||
@@ -364,8 +382,8 @@ function EvalContent({
           <div className="flex flex-col gap-3 mb-24">
             <h3 className="text-lg font-semibold break-normal">Hotkeys</h3>
             <div className="flex flex-row gap-2 items-center">
-              <ArrowLeftSquareIcon className="text-muted-foreground h-4 w-4" />
-              <ArrowRightSquareIcon className="text-muted-foreground h-4 w-4" />
+              <ArrowUpSquareIcon className="text-muted-foreground h-4 w-4" />
+              <ArrowDownSquareIcon className="text-muted-foreground h-4 w-4" />
               <p className="text-sm">Arrow keys to navigate the scale</p>
             </div>
             <div className="flex flex-row gap-2">
@@ -408,7 +426,7 @@ function EvalContent({
               isEvaluationLoading || isEvaluationRefetching || isLoading || busy
             }
           >
-            {page === totalPages ? "Done" : "Save & Next"}
+            {page === totalPages ? "Save" : "Save & Next"}
             {page === totalPages ? (
               <CheckIcon className="ml-2" />
             ) : (

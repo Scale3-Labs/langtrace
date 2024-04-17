@@ -67,6 +67,7 @@ export default function EvaluationRow({
       setAddedToDataset(result.data.length > 0);
       return result;
     },
+    refetchOnMount: false,
   });
 
   const attributes = span.attributes ? JSON.parse(span.attributes) : {};

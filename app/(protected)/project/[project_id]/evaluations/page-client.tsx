@@ -49,6 +49,7 @@ export default function PageClient({ email }: { email: string }) {
       return result;
     },
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   const {
