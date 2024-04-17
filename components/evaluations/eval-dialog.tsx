@@ -285,6 +285,12 @@ function EvalContent({
   } else {
     return (
       <div className="flex flex-row gap-6 justify-between h-[78vh]">
+        <div className="flex items-center gap-2 absolute top-5 right-5">
+          <p className="text-xs font-semibold">
+            {page}/{totalPages}
+          </p>
+          <ProgressCircle size="xs" value={(page / totalPages) * 100} />
+        </div>
         <ConversationView span={span} />
         <div className="flex flex-col gap-4 w-1/2 overflow-y-scroll px-2">
           <div className="flex flex-col gap-2">
@@ -326,9 +332,16 @@ function EvalContent({
               {evaluation?.id ? "Evaluated" : "Not Evaluated"}
             </span>
           </h3>
-          {!isEvaluationLoading ||
-          !isEvaluationFetching ||
-          !isEvaluationRefetching ? (
+          {isEvaluationLoading ||
+          isEvaluationRefetching ||
+          isLoading ||
+          busy ? (
+            <div className="flex gap-2 items-center">
+              {[1, 2, 3, 4].map((item) => (
+                <Skeleton key={item} className="w-12 h-12 rounded-full" />
+              ))}
+            </div>
+          ) : (
             <RangeScale
               variant="large"
               type={ScaleType.Range}
@@ -338,12 +351,6 @@ function EvalContent({
               selectedValue={score}
               onSelectedValueChange={onScoreSelected}
             />
-          ) : (
-            <div className="flex gap-2 items-center">
-              {[1, 2, 3, 4].map((item) => (
-                <Skeleton key={item} className="w-12 h-12 rounded-full" />
-              ))}
-            </div>
           )}
           <h3 className="text-lg font-semibold break-normal">Score</h3>
           <ProgressCircle
