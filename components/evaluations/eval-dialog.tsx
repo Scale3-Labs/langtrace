@@ -188,6 +188,7 @@ function EvalContent({
   const {
     isLoading: isEvaluationLoading,
     isRefetching: isEvaluationRefetching,
+    isFetching: isEvaluationFetching,
   } = useQuery({
     queryKey: [`fetch-evaluation-query-${span?.span_id}`],
     queryFn: async () => {
@@ -218,7 +219,7 @@ function EvalContent({
   });
 
   const evaluate = async (newScore: number) => {
-    if (!span || !test || isEvaluationLoading || isEvaluationRefetching) return;
+    if (!span || !test || isEvaluationLoading || isEvaluationFetching) return;
     const attributes = span.attributes ? JSON.parse(span.attributes) : {};
     if (!attributes) return;
     const model = attributes["llm.model"];
@@ -325,7 +326,9 @@ function EvalContent({
               {evaluation?.id ? "Evaluated" : "Not Evaluated"}
             </span>
           </h3>
-          {!isEvaluationLoading || !isEvaluationRefetching ? (
+          {!isEvaluationLoading ||
+          !isEvaluationFetching ||
+          !isEvaluationRefetching ? (
             <RangeScale
               variant="large"
               type={ScaleType.Range}
