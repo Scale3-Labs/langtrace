@@ -5,7 +5,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { formatDateTime } from "@/lib/utils";
+import {
+  cn,
+  extractSystemPromptFromLlmInputs,
+  formatDateTime,
+} from "@/lib/utils";
 import { Test } from "@prisma/client";
 import { Cross1Icon, EnterIcon } from "@radix-ui/react-icons";
 import { ProgressCircle } from "@tremor/react";
@@ -75,6 +79,7 @@ function EvalContent({
   const [span, setSpan] = useState<any>(null);
   const [evaluation, setEvaluation] = useState<any>({});
   const [addedToDataset, setAddedToDataset] = useState<boolean>(false);
+  const [busy, setBusy] = useState<boolean>(false);
 
   // Reset the score and color when the test changes
   useEffect(() => {
@@ -84,7 +89,8 @@ function EvalContent({
     setPage(1);
     setTotalPages(1);
     setSpan(null);
-  }, [test]);
+    refetch();
+  }, [test?.id]);
 
   useEffect(() => {
     const handleKeyPress = (event: any) => {
@@ -104,22 +110,6 @@ function EvalContent({
       window.removeEventListener("keydown", handleKeyPress);
     };
   }, [page, totalPages]);
-
-  const next = () => {
-    if (page < totalPages) {
-      setPage((prev) => prev + 1);
-      refetch();
-    } else {
-      close();
-    }
-  };
-
-  const previous = () => {
-    if (page > 0) {
-      setPage((prev) => prev - 1);
-      refetch();
-    }
-  };
 
   const { isLoading, refetch, isRefetching } = useQuery({
     queryKey: [`fetch-spans-query-${page}-${test.id}`],
@@ -172,32 +162,102 @@ function EvalContent({
         setSpan(spans[0]);
       }
     },
+    refetchOnMount: false,
   });
 
-  useQuery({
+  const next = async () => {
+    setBusy(true);
+    await evaluate(score);
+    setBusy(false);
+    if (page < totalPages) {
+      // Evaluate the current score
+      setPage((prev) => prev + 1);
+      refetch();
+    } else {
+      close();
+    }
+  };
+
+  const previous = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+      refetch();
+    }
+  };
+
+  const {
+    isLoading: isEvaluationLoading,
+    isRefetching: isEvaluationRefetching,
+  } = useQuery({
     queryKey: [`fetch-evaluation-query-${span?.span_id}`],
     queryFn: async () => {
-      const response = await fetch(`/api/evaluation?spanId=${span.span_id}`);
+      if (!span) return;
+      const response = await fetch(`/api/evaluation?spanId=${span?.span_id}`);
       const result = await response.json();
       setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
-      setScore(
-        result.evaluations.length > 0 ? result.evaluations[0].score : min
-      );
+      const sc =
+        result.evaluations.length > 0 ? result.evaluations[0].score : min;
+      onScoreSelected(sc);
       return result;
     },
     enabled: !!span,
+    refetchOnMount: false,
   });
 
   useQuery({
     queryKey: [`fetch-data-query-${span?.span_id}`],
     queryFn: async () => {
-      const response = await fetch(`/api/data?spanId=${span.span_id}`);
+      if (!span) return;
+      const response = await fetch(`/api/data?spanId=${span?.span_id}`);
       const result = await response.json();
       setAddedToDataset(result.data.length > 0);
       return result;
     },
     enabled: !!span,
+    refetchOnMount: false,
   });
+
+  const evaluate = async (newScore: number) => {
+    if (!span || !test || isEvaluationLoading || isEvaluationRefetching) return;
+    const attributes = span.attributes ? JSON.parse(span.attributes) : {};
+    if (!attributes) return;
+    const model = attributes["llm.model"];
+    const prompts = attributes["llm.prompts"];
+    const systemPrompt = extractSystemPromptFromLlmInputs(prompts);
+    if (!evaluation?.id) {
+      // Evaluate
+      await fetch("/api/evaluation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectId: projectId,
+          spanId: span.span_id,
+          traceId: span.trace_id,
+          spanStartTime: span?.start_time
+            ? new Date(correctTimestampFormat(span.start_time))
+            : new Date(),
+          score: newScore,
+          model: model,
+          prompt: systemPrompt,
+          testId: test.id,
+        }),
+      });
+    } else {
+      if (evaluation?.score === newScore) return;
+      await fetch("/api/evaluation", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: evaluation?.id,
+          score: newScore,
+        }),
+      });
+    }
+  };
 
   const onScoreSelected = (value: number) => {
     setScore(value);
@@ -237,7 +297,7 @@ function EvalContent({
           <div className="flex justify-between">
             <div className="flex flex-col gap-2">
               <h3 className="text-lg font-semibold break-normal">
-                Evaluation Scale
+                Evaluation Scale{" "}
               </h3>
               <p className="text-md text-muted-foreground">
                 {min} to {max} in steps of +{step}
@@ -254,16 +314,34 @@ function EvalContent({
               </div>
             )}
           </div>
-          <h3 className="text-lg font-semibold break-normal">Scale</h3>
-          <RangeScale
-            variant="large"
-            type={ScaleType.Range}
-            min={min}
-            max={max}
-            step={step}
-            selectedValue={score}
-            onSelectedValueChange={onScoreSelected}
-          />
+          <h3 className="text-lg font-semibold break-normal">
+            Scale
+            <span
+              className={cn(
+                "ml-2 text-xs px-1 py-[2px] rounded-md",
+                evaluation?.id ? "bg-green-400" : "bg-orange-400"
+              )}
+            >
+              {evaluation?.id ? "Evaluated" : "Not Evaluated"}
+            </span>
+          </h3>
+          {!isEvaluationLoading || !isEvaluationRefetching ? (
+            <RangeScale
+              variant="large"
+              type={ScaleType.Range}
+              min={min}
+              max={max}
+              step={step}
+              selectedValue={score}
+              onSelectedValueChange={onScoreSelected}
+            />
+          ) : (
+            <div className="flex gap-2 items-center">
+              {[1, 2, 3, 4].map((item) => (
+                <Skeleton key={item} className="w-12 h-12 rounded-full" />
+              ))}
+            </div>
+          )}
           <h3 className="text-lg font-semibold break-normal">Score</h3>
           <ProgressCircle
             value={scorePercent}
@@ -271,7 +349,7 @@ function EvalContent({
             color={color}
             className="relative"
           >
-            <p className="text-4xl font-semibold text-slate-700">{score}</p>
+            <p className="text-4xl font-semibold">{score}</p>
           </ProgressCircle>
           <div className="flex flex-col gap-3 mb-24">
             <h3 className="text-lg font-semibold break-normal">Hotkeys</h3>
@@ -300,7 +378,13 @@ function EvalContent({
           </div>
         </div>
         <div className="absolute bottom-5 right-5 flex gap-2 items-center">
-          <Button variant={"outline"} onClick={close}>
+          <Button
+            variant={"outline"}
+            onClick={close}
+            disabled={
+              isEvaluationLoading || isEvaluationRefetching || isLoading || busy
+            }
+          >
             Exit
             <Cross1Icon className="ml-2" />
           </Button>
@@ -308,8 +392,13 @@ function EvalContent({
             <ChevronLeft className="mr-2" />
             Previous
           </Button>
-          <Button onClick={next}>
-            {page === totalPages ? "Done" : "Next"}
+          <Button
+            onClick={next}
+            disabled={
+              isEvaluationLoading || isEvaluationRefetching || isLoading || busy
+            }
+          >
+            {page === totalPages ? "Done" : "Save & Next"}
             {page === totalPages ? (
               <CheckIcon className="ml-2" />
             ) : (

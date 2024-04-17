@@ -17,6 +17,7 @@ interface RangeScaleProps {
   onSelectedValueChange?: (value: number) => void;
   type?: ScaleType | "range";
   variant?: string | "default";
+  disabled?: boolean;
 }
 
 export function RangeScale({
@@ -27,6 +28,7 @@ export function RangeScale({
   onSelectedValueChange,
   type = ScaleType.Range,
   variant = "default",
+  disabled = false,
 }: RangeScaleProps) {
   const radioRef = React.createRef<HTMLDivElement>();
   const buttonRef = React.createRef<HTMLButtonElement>();
@@ -61,6 +63,7 @@ export function RangeScale({
     if (values.length !== 2 || variant === "large") {
       return (
         <RadioGroup
+          disabled={disabled}
           ref={radioRef}
           onValueChange={(value) =>
             onSelectedValueChange && onSelectedValueChange(parseInt(value, 10))
@@ -71,9 +74,13 @@ export function RangeScale({
           {values.map((value: number, i: number) => (
             <div key={i} className="flex flex-col items-center space-y-2">
               {variant === "large" ? (
-                <RadioGroupItemLarge value={`${value}`} id={`r${i}`} />
+                <RadioGroupItemLarge
+                  type="button"
+                  value={`${value}`}
+                  id={`r${i}`}
+                />
               ) : (
-                <RadioGroupItem value={`${value}`} id={`r${i}`} />
+                <RadioGroupItem type="button" value={`${value}`} id={`r${i}`} />
               )}
               <Label htmlFor={`r${i}`}>{value}</Label>
             </div>

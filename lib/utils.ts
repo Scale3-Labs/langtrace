@@ -400,7 +400,7 @@ export function calculatePriceFromUsage(
   return { total: 0, input: 0, output: 0 };
 }
 
-export function extractPromptFromLlmInputs(inputs: any[]): string {
+export function extractSystemPromptFromLlmInputs(inputs: any[]): string {
   let prompt = "";
   for (let i = 0; i < inputs.length; i++) {
     const p = inputs[i];

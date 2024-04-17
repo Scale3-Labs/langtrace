@@ -9,7 +9,7 @@ import { correctTimestampFormat } from "@/lib/trace_utils";
 import {
   calculatePriceFromUsage,
   cn,
-  extractPromptFromLlmInputs,
+  extractSystemPromptFromLlmInputs,
   formatDateTime,
 } from "@/lib/utils";
 import { Evaluation } from "@prisma/client";
@@ -91,7 +91,7 @@ export default function EvaluationRow({
     tokenCounts = JSON.parse(attributes["llm.token.counts"]);
     cost = calculatePriceFromUsage(vendor.toLowerCase(), model, tokenCounts);
   }
-  const promptContent = extractPromptFromLlmInputs(prompts);
+  const promptContent = extractSystemPromptFromLlmInputs(prompts);
 
   // check for pii detections
   let piiDetected = false;
