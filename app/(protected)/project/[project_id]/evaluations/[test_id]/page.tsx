@@ -48,7 +48,6 @@ export default function Page() {
   const [color, setColor] = useState<string>("red");
   const [span, setSpan] = useState<any>(null);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [busy, setBusy] = useState<boolean>(false);
   const queryClient = useQueryClient();
 
   const { isLoading } = useQuery({
@@ -117,7 +116,7 @@ export default function Page() {
 
   const next = async () => {
     // Evaluate the current score
-    await evaluate();
+    evaluate();
     if (page < totalPages) {
       const nextPage = page + 1;
       router.push(
@@ -172,7 +171,7 @@ export default function Page() {
   }, [totalPages, page, evaluationsData, score]);
 
   const evaluate = async () => {
-    setBusy(true);
+    // setBusy(true);
     try {
       const attributes = span?.attributes ? JSON.parse(span.attributes) : {};
       if (Object.keys(attributes).length === 0) return;
@@ -183,7 +182,7 @@ export default function Page() {
       // Check if an evaluation already exists
       if (evaluationsData?.evaluations[0]?.id) {
         if (evaluationsData.evaluations[0].score === score) {
-          setBusy(false);
+          // setBusy(false);
           return;
         }
         // Update the existing evaluation
@@ -229,7 +228,7 @@ export default function Page() {
         description: `There was an error evaluating the span: ${error.message}`,
       });
     } finally {
-      setBusy(false);
+      // setBusy(false);
     }
   };
 
@@ -320,7 +319,7 @@ export default function Page() {
                 : "Not Evaluated"}
             </span>
           </h3>
-          {isEvaluationLoading || isLoading || busy ? (
+          {isEvaluationLoading || isLoading ? (
             <div className="flex gap-2 items-center">
               {[1, 2, 3, 4].map((item) => (
                 <Skeleton key={item} className="w-12 h-12 rounded-full" />
@@ -376,7 +375,7 @@ export default function Page() {
           <Button
             variant={"outline"}
             onClick={() => router.push(`/project/${projectId}/evaluations`)}
-            disabled={isTestLoading || isLoading || isEvaluationLoading || busy}
+            disabled={isTestLoading || isLoading || isEvaluationLoading}
           >
             Exit
             <Cross1Icon className="ml-2" />
@@ -389,7 +388,7 @@ export default function Page() {
             onClick={async () => {
               next();
             }}
-            disabled={isTestLoading || isLoading || isEvaluationLoading || busy}
+            disabled={isTestLoading || isLoading || isEvaluationLoading}
           >
             {page === totalPages ? "Save" : "Save & Next"}
             {page === totalPages ? (
