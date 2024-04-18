@@ -90,7 +90,6 @@ function EvalContent({
     setPage(1);
     setTotalPages(1);
     setSpan(null);
-    refetch();
   }, [test?.id]);
 
   useEffect(() => {
@@ -110,10 +109,10 @@ function EvalContent({
     return () => {
       window.removeEventListener("keydown", handleKeyPress);
     };
-  }, [page, totalPages]);
+  }, []);
 
-  const { isLoading, refetch, isRefetching } = useQuery({
-    queryKey: [`fetch-spans-query-${page}-${test.id}`],
+  const { isLoading } = useQuery({
+    queryKey: ["fetch-spans-query", page, test?.id],
     queryFn: async () => {
       const filters = [
         {
@@ -163,34 +162,24 @@ function EvalContent({
         setSpan(spans[0]);
       }
     },
-    refetchOnMount: false,
   });
 
   const next = async () => {
+    // Evaluate the current score
     await evaluate();
-    setBusy(false);
     if (page < totalPages) {
-      // Evaluate the current score
       setPage((prev) => prev + 1);
-      refetch();
     }
   };
 
   const previous = () => {
     if (page > 1) {
       setPage((prev) => prev - 1);
-      refetch();
     }
   };
 
-  const {
-    isLoading: isEvaluationLoading,
-    isRefetching: isEvaluationRefetching,
-    isFetching: isEvaluationFetching,
-    data: evaluationsData,
-    refetch: refetchEvaluation,
-  } = useQuery({
-    queryKey: [`fetch-evaluation-dialog-query-${span?.span_id}`],
+  const { isLoading: isEvaluationLoading, data: evaluationsData } = useQuery({
+    queryKey: ["fetch-evaluation-query", span?.span_id],
     queryFn: async () => {
       const response = await fetch(`/api/evaluation?spanId=${span?.span_id}`);
       const result = await response.json();
@@ -200,11 +189,10 @@ function EvalContent({
       return result;
     },
     enabled: !!span,
-    refetchOnMount: false,
   });
 
   useQuery({
-    queryKey: [`fetch-data-query-${span?.span_id}`],
+    queryKey: ["fetch-data-query", span?.span_id],
     queryFn: async () => {
       const response = await fetch(`/api/data?spanId=${span?.span_id}`);
       const result = await response.json();
@@ -212,20 +200,23 @@ function EvalContent({
       return result;
     },
     enabled: !!span,
-    refetchOnMount: false,
   });
 
   const evaluate = async () => {
     setBusy(true);
     try {
-      const attributes = span.attributes ? JSON.parse(span.attributes) : {};
-      if (!attributes) return;
+      const attributes = span?.attributes ? JSON.parse(span.attributes) : {};
+      if (Object.keys(attributes).length === 0) return;
       const model = attributes["llm.model"];
       const prompts = attributes["llm.prompts"];
       const systemPrompt = extractSystemPromptFromLlmInputs(prompts);
 
       // Check if an evaluation already exists
       if (evaluationsData?.evaluations[0]?.id) {
+        if (evaluationsData.evaluations[0].score === score) {
+          setBusy(false);
+          return;
+        }
         // Update the existing evaluation
         await fetch("/api/evaluation", {
           method: "PUT",
@@ -238,7 +229,8 @@ function EvalContent({
           }),
         });
         queryClient.invalidateQueries([
-          `fetch-evaluation-dialog-query-${span.span_id}`,
+          "fetch-evaluation-query",
+          span?.span_id,
         ]);
       } else {
         // Create a new evaluation
@@ -261,7 +253,8 @@ function EvalContent({
           }),
         });
         queryClient.invalidateQueries([
-          `fetch-evaluation-dialog-query-${span.span_id}`,
+          "fetch-evaluation-query",
+          span?.span_id,
         ]);
       }
       toast.success("Span evaluated successfully!");
@@ -350,10 +343,7 @@ function EvalContent({
                 : "Not Evaluated"}
             </span>
           </h3>
-          {isEvaluationLoading ||
-          isEvaluationRefetching ||
-          isLoading ||
-          busy ? (
+          {isEvaluationLoading || isLoading || busy ? (
             <div className="flex gap-2 items-center">
               {[1, 2, 3, 4].map((item) => (
                 <Skeleton key={item} className="w-12 h-12 rounded-full" />
@@ -409,9 +399,7 @@ function EvalContent({
           <Button
             variant={"outline"}
             onClick={close}
-            disabled={
-              isEvaluationLoading || isEvaluationRefetching || isLoading || busy
-            }
+            disabled={isEvaluationLoading || isLoading || busy}
           >
             Exit
             <Cross1Icon className="ml-2" />
@@ -422,9 +410,7 @@ function EvalContent({
           </Button>
           <Button
             onClick={next}
-            disabled={
-              isEvaluationLoading || isEvaluationRefetching || isLoading || busy
-            }
+            disabled={isEvaluationLoading || isLoading || busy}
           >
             {page === totalPages ? "Save" : "Save & Next"}
             {page === totalPages ? (
