@@ -161,7 +161,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     }
 
     // Append LIMIT and OFFSET to the base query
-    baseQuery += ` ORDER BY 'start_time' DESC LIMIT ${pageSize} OFFSET ${offset}`;
+    baseQuery += ` ORDER BY start_time DESC LIMIT ${pageSize} OFFSET ${offset}`;
 
     return baseQuery;
   }
