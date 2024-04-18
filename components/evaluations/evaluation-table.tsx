@@ -152,8 +152,8 @@ export default function EvaluationTable({
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
       {currentData.length > 0 && (
-        <div className="grid grid-cols-13 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
-          <p className="text-xs font-medium col-span-2 text-end">
+        <div className="grid grid-cols-14 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
+          <p className="text-xs font-medium col-span-2 text-start">
             Timestamp (UTC)
           </p>
           <p className="text-xs font-medium">Model</p>
@@ -162,9 +162,9 @@ export default function EvaluationTable({
           <p className="text-xs font-medium">Cost</p>
           <p className="text-xs font-medium">PII Detected</p>
           <p className="text-xs font-medium">Duration</p>
-          <p className="text-xs font-medium">Evaluate</p>
+          <p className="text-xs font-medium">Evaluated Score</p>
           <p className="text-xs font-medium">User Score</p>
-          <p className="text-xs font-medium">Added to Dataset</p>
+          <p className="text-xs font-medium col-span-2">Added to Dataset</p>
         </div>
       )}
       {fetchLlmPromptSpans.isLoading ||
@@ -175,6 +175,7 @@ export default function EvaluationTable({
         currentData.map((span: any, i: number) => (
           <EvaluationRow
             key={i}
+            page={i + 1}
             span={span}
             projectId={projectId}
             testId={test.id}

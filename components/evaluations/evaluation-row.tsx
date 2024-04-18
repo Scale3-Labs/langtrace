@@ -13,8 +13,14 @@ import {
   formatDateTime,
 } from "@/lib/utils";
 import { Evaluation } from "@prisma/client";
-import { CheckCircledIcon, DotFilledIcon } from "@radix-ui/react-icons";
-import { ChevronDown, ChevronRight, ThumbsDown, ThumbsUp } from "lucide-react";
+import {
+  ArrowTopRightIcon,
+  CheckCircledIcon,
+  CrossCircledIcon,
+  DotFilledIcon,
+} from "@radix-ui/react-icons";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 
@@ -29,6 +35,7 @@ export default function EvaluationRow({
   span,
   projectId,
   testId,
+  page,
   onCheckedChange,
   selectedData,
 }: {
@@ -36,6 +43,7 @@ export default function EvaluationRow({
   span: any;
   projectId: string;
   testId: string;
+  page: number;
   onCheckedChange: (data: CheckedData, checked: boolean) => void;
   selectedData: CheckedData[];
 }) {
@@ -152,51 +160,13 @@ export default function EvaluationRow({
     );
   };
 
-  const LlmViewEvaluation = () => {
-    return (
-      <div className="flex flex-row items-center gap-3 justify-end mb-2 mr-2 mt-2">
-        <Button
-          size={"icon"}
-          variant={score === 1 ? "default" : "secondary"}
-          onClick={(e) => {
-            e.stopPropagation();
-
-            if (score === 1) {
-              evaluateSpan(0);
-              setScore(0);
-            } else {
-              evaluateSpan(1);
-              setScore(1);
-            }
-          }}
-        >
-          <ThumbsUp className={"h-5 w-5"} />
-        </Button>
-        <Button
-          size={"icon"}
-          variant={score === -1 ? "default" : "secondary"}
-          onClick={(e) => {
-            e.stopPropagation();
-
-            if (score === -1) {
-              evaluateSpan(0);
-              setScore(0);
-            } else {
-              evaluateSpan(-1);
-              setScore(-1);
-            }
-          }}
-        >
-          <ThumbsDown className={"h-5 w-5"} />
-        </Button>
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col gap-3 w-full" key={key}>
       <div
-        className="grid grid-cols-13 items-center gap-3 py-3 px-4 w-full cursor-pointer"
+        className={cn(
+          !collapsed ? "border-[1px] border-muted-foreground" : "",
+          "grid grid-cols-14 items-center gap-3 py-3 px-4 w-full cursor-pointer"
+        )}
         onClick={() => setCollapsed(!collapsed)}
       >
         <div
@@ -236,7 +206,10 @@ export default function EvaluationRow({
               <ChevronDown className="text-muted-foreground w-5 h-5" />
             )}
           </Button>
-          <p className="text-xs text-muted-foreground font-semibold">
+          <p
+            className="text-xs text-muted-foreground font-semibold"
+            onClick={() => setCollapsed(!collapsed)}
+          >
             {formatDateTime(correctTimestampFormat(span.start_time))}
           </p>
         </div>
@@ -271,63 +244,36 @@ export default function EvaluationRow({
         <p className="text-xs text-muted-foreground font-semibold">
           {durationMs}ms
         </p>
-        <div className="flex flex-row items-center gap-3">
-          <Button
-            size={"icon"}
-            variant={"ghost"}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (score === 1) {
-                evaluateSpan(0);
-                setScore(0);
-              } else {
-                evaluateSpan(1);
-                setScore(1);
-              }
-            }}
+        <p className="text-sm font-semibold">
+          {score !== -100 ? score : "Not evaluated"}
+        </p>
+        <p className="text-sm font-semibold">
+          {userScore ? userScore : "Not evaluated"}
+        </p>
+        <div className=" col-span-2 flex flex-row items-center justify-evenly">
+          {addedToDataset ? (
+            <CheckCircledIcon className="text-green-600 w-5 h-5" />
+          ) : (
+            <CrossCircledIcon className="text-muted-foreground w-5 h-5" />
+          )}
+          <Link
+            href={`/project/${projectId}/evaluations/${testId}?page=${page}`}
           >
-            <ThumbsUp
-              className={cn(
-                "h-5 w-5",
-                score === 1 ? "fill-green-600 text-green-600" : ""
-              )}
-            />
-          </Button>
-          <Button
-            size={"icon"}
-            variant={"ghost"}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (score === -1) {
-                evaluateSpan(0);
-                setScore(0);
-              } else {
-                evaluateSpan(-1);
-                setScore(-1);
-              }
-            }}
-          >
-            <ThumbsDown
-              className={cn(
-                "h-5 w-5",
-                score === -1 ? "fill-red-600 text-red-600" : ""
-              )}
-            />
-          </Button>
+            <Button
+              onClick={(e) => e.stopPropagation()}
+              variant={"secondary"}
+              size={"icon"}
+            >
+              <ArrowTopRightIcon className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
         </div>
-        <p className="text-sm font-semibold">{userScore}</p>
-        {addedToDataset ? (
-          <CheckCircledIcon className="text-green-600 w-5 h-5" />
-        ) : (
-          ""
-        )}
       </div>
       {!collapsed && (
         <LLMView
           responses={responses}
           prompts={prompts}
           doPiiDetection={true}
-          Evaluate={LlmViewEvaluation}
         />
       )}
     </div>

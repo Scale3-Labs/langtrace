@@ -97,7 +97,8 @@ export default function Page() {
       const metadata = data?.spans?.metadata || {};
 
       if (
-        metadata?.total_pages === 0 ||
+        metadata?.total_pages <= 0 ||
+        page <= 0 ||
         page > parseInt(metadata?.total_pages)
       ) {
         router.push(`/project/${projectId}/evaluations`);
