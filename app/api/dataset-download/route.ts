@@ -11,16 +11,12 @@ export async function GET(req: NextRequest) {
     if (!session || !session.user) {
       redirect("/login");
     }
-
-    const id = req.nextUrl.searchParams.get("id") as string;
     const datasetId = req.nextUrl.searchParams.get("dataset_id") as string;
     const pageParam = req.nextUrl.searchParams.get("page");
     let page = pageParam ? parseInt(pageParam, 10) : 1;
-    const pageSizeParam = req.nextUrl.searchParams.get("pageSize");
-    let pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 500;
-    pageSize = Math.min(pageSize, 500);
-
-    if (!datasetId && !id) {
+    const pageSize = 500;
+    let dataset;
+    if (!datasetId) {
       return NextResponse.json(
         {
           message: "No dataset id or project id provided",
@@ -28,8 +24,7 @@ export async function GET(req: NextRequest) {
         { status: 404 }
       );
     }
-    let dataset;
-    if (datasetId) {
+    else {
       dataset = await prisma.dataset.findFirst({
         where: {
           id: datasetId,
@@ -40,16 +35,6 @@ export async function GET(req: NextRequest) {
       });
 
     }
-    else if (id) {
-      dataset = await prisma.dataset.findFirst({
-        where: {
-          projectId: id,
-        },
-        include: {
-          Data: true,
-        },
-      });
-    }
     if (!dataset) {
       return NextResponse.json(
         {
@@ -59,7 +44,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const relatedData = await prisma.data.findMany({
+    const data = await prisma.data.findMany({
       where: {
         datasetId: dataset.id,
       },
@@ -70,9 +55,10 @@ export async function GET(req: NextRequest) {
       skip: (page - 1) * pageSize,
     });
 
-    const csv = json2csv.parse(relatedData);
+    const csv = json2csv.parse(data);
     const datasetName = dataset.name.toLowerCase().replace(/\s+/g, '_');
-    const filename = `datasets_${datasetName}.csv`;
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '');
+    const filename = `${datasetName}_${timestamp}.csv`;
 
     console.log(`CSV file '${filename}' `);
 
@@ -83,7 +69,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error(error);
     return NextResponse.json(
       {
         message: "Error downloading dataset",
