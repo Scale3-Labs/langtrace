@@ -11,33 +11,55 @@ export async function GET(req: NextRequest) {
       redirect("/login");
     }
 
+    const id = req.nextUrl.searchParams.get("id") as string;
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
-    if (!projectId) {
+    if (!projectId && !id) {
       return NextResponse.json(
         {
-          message: "projectId not provided",
+          message: "projectId or id not provided",
         },
         { status: 400 }
       );
     }
 
-    const tests = await prisma.test.findMany({
+    if (projectId) {
+      const tests = await prisma.test.findMany({
+        where: {
+          projectId: projectId,
+        },
+      });
+
+      if (!tests) {
+        return NextResponse.json(
+          {
+            message: "No tests found",
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        tests,
+      });
+    }
+
+    const test = await prisma.test.findUnique({
       where: {
-        projectId: projectId,
+        id,
       },
     });
 
-    if (!tests) {
+    if (!test) {
       return NextResponse.json(
         {
-          message: "No tests found",
+          message: "Test not found",
         },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
-      tests,
+      test,
     });
   } catch (error) {
     return NextResponse.json(

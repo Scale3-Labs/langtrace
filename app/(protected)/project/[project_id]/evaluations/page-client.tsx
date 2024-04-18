@@ -4,17 +4,18 @@ import { EvalChart } from "@/components/charts/eval-chart";
 import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
 import { CreateTest } from "@/components/evaluations/create-test";
 import { EditTest } from "@/components/evaluations/edit-test";
-import { EvalDialog } from "@/components/evaluations/eval-dialog";
 import EvaluationTable, {
   EvaluationTableSkeleton,
 } from "@/components/evaluations/evaluation-table";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, getChartColor } from "@/lib/utils";
 import { Test } from "@prisma/client";
 import { ProgressCircle } from "@tremor/react";
-import { RabbitIcon } from "lucide-react";
+import { ChevronsRight, RabbitIcon } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "react-query";
@@ -108,7 +109,16 @@ export default function PageClient({ email }: { email: string }) {
         <h1 className="text-3xl font-semibold">Evaluations</h1>
         <div className="flex gap-2">
           {selectedTest && (
-            <EvalDialog test={selectedTest} projectId={projectId} />
+            <Link
+              href={`/project/${projectId}/evaluations/${selectedTest?.id}?page=1`}
+            >
+              <Button
+                className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 background-animate"
+                variant="default"
+              >
+                Start Testing <ChevronsRight className="ml-2" />{" "}
+              </Button>
+            </Link>
           )}
           <CreateTest projectId={projectId} variant={"outline"} />
           {selectedTest && (

@@ -62,7 +62,6 @@ export async function GET(req: NextRequest) {
       totalSpans,
     });
   } catch (error) {
-    console.log(error);
     return NextResponse.json(JSON.stringify({ error }), {
       status: 400,
     });

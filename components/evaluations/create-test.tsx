@@ -93,7 +93,6 @@ export function CreateTest({
         <Form {...CreateTestForm}>
           <form
             onSubmit={CreateTestForm.handleSubmit(async (data) => {
-              console.log(data);
               try {
                 setBusy(true);
                 await fetch("/api/test", {
