@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PAGE_SIZE } from "@/lib/constants";
-import { extractPromptFromLlmInputs } from "@/lib/utils";
+import { extractSystemPromptFromLlmInputs } from "@/lib/utils";
 import { CheckCircledIcon } from "@radix-ui/react-icons";
 import { ChevronDown, ChevronRight, RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -115,7 +115,7 @@ export default function PageClient({ email }: { email: string }) {
     const dedupedPrompts = prompts.filter((prompt: any) => {
       const attributes = prompt.attributes ? JSON.parse(prompt.attributes) : {};
       const prompts: any[] = JSON.parse(attributes["llm.prompts"]) || "[]";
-      const promptContent = extractPromptFromLlmInputs(prompts);
+      const promptContent = extractSystemPromptFromLlmInputs(prompts);
       if (promptContent.length === 0) {
         return false;
       }
@@ -211,7 +211,7 @@ const PromptRow = ({
   // Get the evaluation for this prompt's content
   const attributes = prompt.attributes ? JSON.parse(prompt.attributes) : {};
   const prompts: any[] = JSON.parse(attributes["llm.prompts"]) || "[]";
-  const promptContent = extractPromptFromLlmInputs(prompts);
+  const promptContent = extractSystemPromptFromLlmInputs(prompts);
 
   const fetchEvaluation = useQuery({
     queryKey: [`fetch-evaluation-query-${prompt.span_id}`],

@@ -11,33 +11,55 @@ export async function GET(req: NextRequest) {
       redirect("/login");
     }
 
+    const id = req.nextUrl.searchParams.get("id") as string;
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
-    if (!projectId) {
+    if (!projectId && !id) {
       return NextResponse.json(
         {
-          message: "projectId not provided",
+          message: "projectId or id not provided",
         },
         { status: 400 }
       );
     }
 
-    const tests = await prisma.test.findMany({
+    if (projectId) {
+      const tests = await prisma.test.findMany({
+        where: {
+          projectId: projectId,
+        },
+      });
+
+      if (!tests) {
+        return NextResponse.json(
+          {
+            message: "No tests found",
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        tests,
+      });
+    }
+
+    const test = await prisma.test.findUnique({
       where: {
-        projectId: projectId,
+        id,
       },
     });
 
-    if (!tests) {
+    if (!test) {
       return NextResponse.json(
         {
-          message: "No tests found",
+          message: "Test not found",
         },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
-      tests,
+      test,
     });
   } catch (error) {
     return NextResponse.json(
@@ -56,13 +78,16 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { name, description, projectId } = data;
+  const { name, description, projectId, min, max, step } = data;
 
   const test = await prisma.test.create({
     data: {
       name: name,
       description: description,
       projectId: projectId,
+      min: min ?? -1,
+      max: max ?? 1,
+      step: step ?? 2,
     },
   });
 
@@ -80,7 +105,7 @@ export async function PUT(req: NextRequest) {
   const data = await req.json();
   const { id, name, description } = data;
 
-  const project = await prisma.project.update({
+  const test = await prisma.test.update({
     where: {
       id,
     },
@@ -91,7 +116,7 @@ export async function PUT(req: NextRequest) {
   });
 
   return NextResponse.json({
-    data: project,
+    data: test,
   });
 }
 
@@ -104,13 +129,11 @@ export async function DELETE(req: NextRequest) {
   const data = await req.json();
   const { id } = data;
 
-  const project = await prisma.project.delete({
+  await prisma.test.delete({
     where: {
       id,
     },
   });
 
-  return NextResponse.json({
-    data: project,
-  });
+  return NextResponse.json({});
 }
