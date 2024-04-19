@@ -53,7 +53,7 @@ export default function Page() {
   const [totalPages, setTotalPages] = useState<number>(1);
   const queryClient = useQueryClient();
 
-  const { isLoading } = useQuery({
+  const { isLoading: isSpanLoading } = useQuery({
     queryKey: ["fetch-spans-query", page, testData?.test?.id],
     queryFn: async () => {
       const filters = [
@@ -91,6 +91,15 @@ export default function Page() {
         },
         body: JSON.stringify(body),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error("Failed to fetch the span data", {
+          description: error?.message || "Failed to fetch the span data",
+        });
+        return { averages: [] };
+      }
+
       const result = await response.json();
       return result;
     },
@@ -150,6 +159,13 @@ export default function Page() {
     queryKey: ["fetch-evaluation-query", span?.span_id],
     queryFn: async () => {
       const response = await fetch(`/api/evaluation?spanId=${span?.span_id}`);
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error("Failed to fetch the evaluation data", {
+          description: error?.message || "Failed to fetch the evaluation data",
+        });
+        return { averages: [] };
+      }
       const result = await response.json();
       const sc =
         result.evaluations.length > 0 ? result.evaluations[0].score : -1;
@@ -264,7 +280,7 @@ export default function Page() {
     }
   };
 
-  if (isLoading) {
+  if (isTestLoading || isSpanLoading) {
     return <EvalDialogSkeleton />;
   } else {
     return (
@@ -331,7 +347,7 @@ export default function Page() {
                 : "Not Evaluated"}
             </span>
           </h3>
-          {isEvaluationLoading || isLoading ? (
+          {isEvaluationLoading ? (
             <div className="flex gap-2 items-center">
               {[1, 2, 3, 4].map((item) => (
                 <Skeleton key={item} className="w-12 h-12 rounded-full" />
@@ -410,7 +426,7 @@ export default function Page() {
           <Button
             variant={"outline"}
             onClick={() => router.push(`/project/${projectId}/evaluations`)}
-            disabled={isTestLoading || isLoading || isEvaluationLoading}
+            disabled={isEvaluationLoading}
           >
             Exit
             <Cross1Icon className="ml-2" />
@@ -423,7 +439,7 @@ export default function Page() {
             onClick={async () => {
               next();
             }}
-            disabled={isTestLoading || isLoading || isEvaluationLoading}
+            disabled={isEvaluationLoading}
           >
             {page === totalPages ? "Save" : "Save & Next"}
             {page === totalPages ? (
