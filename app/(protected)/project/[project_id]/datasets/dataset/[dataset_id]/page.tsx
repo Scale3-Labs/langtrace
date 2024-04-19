@@ -1,6 +1,7 @@
 "use client";
 
 import { CreateData } from "@/components/project/dataset/create-data";
+import { DownloadDataset } from "@/components/shared/download-dataset";
 import { EditData } from "@/components/project/dataset/edit-data";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,7 @@ export default function Dataset() {
             Back
           </Button>
           <CreateData datasetId={dataset_id} />
+          <DownloadDataset datasetId={dataset_id} />
         </div>
         <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
           <div className="grid grid-cols-5 items-center justify-stretch gap-3 py-3 px-4 bg-muted">
