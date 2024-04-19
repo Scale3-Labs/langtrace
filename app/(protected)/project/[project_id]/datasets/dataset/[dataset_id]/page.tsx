@@ -14,6 +14,7 @@ import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
+import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
 
 export default function Dataset() {
   const dataset_id = useParams()?.dataset_id as string;
