@@ -42,9 +42,13 @@ interface CheckedData {
 export function AddtoDataset({
   projectId,
   selectedData,
+  disabled = false,
+  className,
 }: {
-  projectId: string;
-  selectedData: CheckedData[];
+  projectId?: string;
+  selectedData?: CheckedData[];
+  disabled?: boolean;
+  className?: string;
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
@@ -53,7 +57,11 @@ export function AddtoDataset({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size={"sm"} disabled={selectedData.length === 0}>
+        <Button
+          size={"sm"}
+          disabled={disabled || selectedData!.length === 0}
+          className={cn(className)}
+        >
           Add to Dataset
           <PlusIcon className="ml-2 h-4 w-4 shrink-0" />
         </Button>
@@ -70,7 +78,7 @@ export function AddtoDataset({
             Select a dataset
           </Label>
           <DatasetCombobox
-            projectId={projectId}
+            projectId={projectId!}
             setSelectedDatasetId={setSelectedDatasetId}
           />
         </div>
@@ -90,7 +98,7 @@ export function AddtoDataset({
                     datasetId: selectedDatasetId,
                   }),
                 });
-                selectedData.forEach((data) => {
+                selectedData!.forEach((data) => {
                   queryClient.invalidateQueries({
                     queryKey: [`fetch-data-query-${data.spanId}`],
                   });
@@ -131,7 +139,7 @@ export default function DatasetCombobox({
   });
 
   if (fetchDatasets.isLoading || !fetchDatasets.data) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>; // this componenet isn't being used, will add updated loading later
   } else {
     return (
       <Popover open={open} onOpenChange={setOpen}>

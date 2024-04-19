@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth/options";
+import { DEFAULT_TESTS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -11,6 +12,14 @@ export async function GET(req: NextRequest) {
   }
 
   const id = req.nextUrl.searchParams.get("id") as string;
+  if (!id) {
+    return NextResponse.json(
+      {
+        message: "project id not provided",
+      },
+      { status: 400 }
+    );
+  }
 
   const project = await prisma.project.findFirst({
     where: {
@@ -21,16 +30,14 @@ export async function GET(req: NextRequest) {
   if (!project) {
     return NextResponse.json(
       {
-        error: "No projects found",
+        message: "No projects found",
       },
       { status: 404 }
     );
   }
 
   return NextResponse.json({
-    data: {
-      project: project,
-    },
+    project: project,
   });
 }
 
@@ -42,6 +49,10 @@ export async function POST(req: NextRequest) {
 
   const data = await req.json();
   const { name, description, teamId } = data;
+  let createDefaultTests = data.createDefaultTests;
+  if (!createDefaultTests) {
+    createDefaultTests = true; // default to true
+  }
 
   const project = await prisma.project.create({
     data: {
@@ -50,6 +61,19 @@ export async function POST(req: NextRequest) {
       teamId: teamId,
     },
   });
+
+  if (createDefaultTests) {
+    // create default tests
+    for (const test of DEFAULT_TESTS) {
+      await prisma.test.create({
+        data: {
+          name: test.name?.toLowerCase() ?? "",
+          description: test.description ?? "",
+          projectId: project.id,
+        },
+      });
+    }
+  }
 
   return NextResponse.json({
     data: project,

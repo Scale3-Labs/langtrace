@@ -1,15 +1,27 @@
 "use client";
 
+import { Test } from "@prisma/client";
 import { AreaChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { Info } from "../shared/info";
+import LargeChartLoading from "./large-chart-skeleton";
 
-export function AccuracyChart({ projectId }: { projectId: string }) {
+export function EvalChart({
+  projectId,
+  test,
+  chartDescription = "Evaluated Average(%) over time (last 7 days) for LLM interactions aggregated by day.",
+  info = "Average is calculated based on the score of evaluated llm interactions in the Evaluation tab of the project. Span's start_time is used for day aggregation.",
+}: {
+  projectId: string;
+  test: Test;
+  chartDescription?: string;
+  info?: string;
+}) {
   const fetchAccuracy = useQuery({
-    queryKey: ["fetch-accuracy-query"],
+    queryKey: [`fetch-accuracy-${projectId}-${test.id}-query`],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/accuracy?projectId=${projectId}`
+        `/api/metrics/accuracy?projectId=${projectId}&testId=${test.id}`
       );
       const result = await response.json();
       return result;
@@ -17,7 +29,7 @@ export function AccuracyChart({ projectId }: { projectId: string }) {
   });
 
   if (fetchAccuracy.isLoading || !fetchAccuracy.data) {
-    return <div>Loading...</div>;
+    return <LargeChartLoading />;
   } else {
     // aggregate accuracy per day and return the data
     const evaluations = fetchAccuracy?.data?.evaluations;
@@ -34,16 +46,25 @@ export function AccuracyChart({ projectId }: { projectId: string }) {
     // calculate accuracy by dividing the sum of scores that are only 1s by the number of evaluations times 100
     const data = Object.keys(accuracyPerDay).map((date) => {
       const scores = accuracyPerDay[date];
-      const accuracy =
-        (scores.reduce((acc: number, score: number) => {
-          if (score === 1) {
-            return acc + 1;
-          } else {
-            return acc;
-          }
-        }, 0) /
-          scores.length) *
-        100;
+
+      // count +1s and -1s
+      const totalPositive = scores.reduce((acc: number, score: number) => {
+        if (score === 1) {
+          return acc + 1;
+        }
+        return acc;
+      }, 0);
+
+      const totalNegative = scores.reduce((acc: number, score: number) => {
+        if (score === -1) {
+          return acc + 1;
+        }
+        return acc;
+      }, 0);
+
+      // calculate accuracy
+      const accuracy = (totalPositive / (totalPositive + totalNegative)) * 100;
+
       return {
         date,
         "Evaluated Accuracy(%)": accuracy,
@@ -56,29 +77,19 @@ export function AccuracyChart({ projectId }: { projectId: string }) {
     });
 
     // calculate the overall accuracy
-    const overallAccuracy =
-      (evaluations.reduce((acc: number, evaluation: any) => {
-        if (evaluation.score === 1) {
-          return acc + 1;
-        } else {
-          return acc;
-        }
-      }, 0) /
-        evaluations.length) *
-        100 || 0;
+    const overallAccuracy = fetchAccuracy?.data?.average;
 
     return (
       <>
         <div className="flex flex-col gap-2 border p-3 rounded-lg w-full">
           <div className="flex flex-row gap-3 h-12 font-semibold">
             <p className="text-sm text-start text-muted-foreground flex gap-1 items-center">
-              Evaluated Accuracy(%) over time (last 7 days) for LLM interactions
-              aggregated by day.
-              <Info information="Accuracy is calculated based on the score of evaluated llm interactions in the Eval tab of the project. Span's start_time is used for day aggregation." />
+              {chartDescription}
+              <Info information={info} />
             </p>
           </div>
           <p className="text-sm text-start font-semibold underline">
-            Overall Accuracy: {overallAccuracy.toFixed(2)}%
+            Overall Accuracy: {overallAccuracy?.toFixed(2)}%
           </p>
           <AreaChart
             className="mt-2 h-72"

@@ -38,8 +38,16 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { traceId, spanId, projectId, model, score, spanStartTime, prompt } =
-    data;
+  const {
+    traceId,
+    spanId,
+    projectId,
+    model,
+    score,
+    spanStartTime,
+    prompt,
+    testId,
+  } = data;
 
   // check if this user has access to this project
   const project = await prisma.project.findFirst({
@@ -84,6 +92,7 @@ export async function POST(req: NextRequest) {
       model,
       score,
       prompt,
+      testId,
     },
   });
 
@@ -93,107 +102,116 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
-  }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
+    }
 
-  const projectId = req.nextUrl.searchParams.get("projectId") as string;
-  const spanId = req.nextUrl.searchParams.get("spanId") as string;
-  const prompt = req.nextUrl.searchParams.get("prompt") as string;
+    const projectId = req.nextUrl.searchParams.get("projectId") as string;
+    const spanId = req.nextUrl.searchParams.get("spanId") as string;
+    const prompt = req.nextUrl.searchParams.get("prompt") as string;
 
-  if (!projectId && !spanId && !prompt) {
-    return NextResponse.json(
-      {
-        error: "Please provide a projectId or spanId or prompt",
-      },
-      { status: 400 }
-    );
-  }
+    if (!projectId && !spanId && !prompt) {
+      return NextResponse.json(
+        {
+          message: "Please provide a projectId or spanId or prompt",
+        },
+        { status: 400 }
+      );
+    }
 
-  if (spanId) {
-    const evaluations = await prisma.evaluation.findFirst({
-      where: {
-        spanId,
-      },
-    });
+    if (spanId) {
+      const evaluations = await prisma.evaluation.findFirst({
+        where: {
+          spanId,
+        },
+      });
 
-    if (!evaluations) {
+      if (!evaluations) {
+        return NextResponse.json({
+          evaluations: [],
+        });
+      }
+
       return NextResponse.json({
-        evaluations: [],
+        evaluations: [evaluations],
       });
     }
 
-    return NextResponse.json({
-      evaluations: [evaluations],
-    });
-  }
+    if (prompt) {
+      const evaluations = await prisma.evaluation.findMany({
+        where: {
+          prompt,
+        },
+      });
 
-  if (prompt) {
+      if (!evaluations) {
+        return NextResponse.json({
+          evaluations: [],
+        });
+      }
+
+      return NextResponse.json({
+        evaluations: [evaluations],
+      });
+    }
+
+    // check if this user has access to this project
+    const email = session?.user?.email as string;
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          message: "user not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    // check if this user has access to this project
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        teamId: user.teamId,
+      },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        {
+          message: "User does not have access to this project",
+        },
+        { status: 403 }
+      );
+    }
+
     const evaluations = await prisma.evaluation.findMany({
       where: {
-        prompt,
+        projectId,
       },
     });
 
     if (!evaluations) {
-      return NextResponse.json({
-        evaluations: [],
-      });
+      return NextResponse.json({ evalutions: [] }, { status: 200 });
     }
 
     return NextResponse.json({
-      evaluations: [evaluations],
+      evaluations,
     });
-  }
-
-  // check if this user has access to this project
-  const email = session?.user?.email as string;
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
-
-  if (!user) {
+  } catch (error) {
     return NextResponse.json(
       {
-        error: "user not found",
+        message: "Internal server error",
       },
-      { status: 404 }
+      { status: 500 }
     );
   }
-
-  // check if this user has access to this project
-  const project = await prisma.project.findFirst({
-    where: {
-      id: projectId,
-      teamId: user.teamId,
-    },
-  });
-
-  if (!project) {
-    return NextResponse.json(
-      {
-        error: "User does not have access to this project",
-      },
-      { status: 403 }
-    );
-  }
-
-  const evaluations = await prisma.evaluation.findMany({
-    where: {
-      projectId,
-    },
-  });
-
-  if (!evaluations) {
-    return NextResponse.json({ evalutions: [] }, { status: 200 });
-  }
-
-  return NextResponse.json({
-    evaluations,
-  });
 }
 
 export async function PUT(req: NextRequest) {

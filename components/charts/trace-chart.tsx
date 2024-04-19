@@ -2,52 +2,80 @@
 
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
+import { toast } from "sonner";
+import SmallChartLoading from "./small-chart-skeleton";
 
 export function TraceSpanChart({ projectId }: { projectId: string }) {
-  const fetchMetricsUsageTrace = useQuery({
-    queryKey: ["fetch-metrics-usage-trace-query"],
+  const {
+    data: traceUsage,
+    isLoading: traceUsageLoading,
+    error: traceUsageError,
+  } = useQuery({
+    queryKey: [`fetch-metrics-usage-trace-${projectId}-query`],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/trace?projectId=${projectId}`
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch trace usage");
+      }
       const result = await response.json();
       return result;
     },
+    onError: (error) => {
+      toast.error("Failed to fetch trace usage", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
   });
 
-  const fetchMetricsUsageSpan = useQuery({
-    queryKey: ["fetch-metrics-usage-span-query"],
+  const {
+    data: spanUsage,
+    isLoading: spanUsageLoading,
+    error: spanUsageError,
+  } = useQuery({
+    queryKey: [`fetch-metrics-usage-span-${projectId}-query`],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/span?projectId=${projectId}`
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch span usage");
+      }
       const result = await response.json();
       return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch span usage", {
+        description: error instanceof Error ? error.message : String(error),
+      });
     },
   });
 
   if (
-    fetchMetricsUsageTrace.isLoading ||
-    !fetchMetricsUsageTrace.data ||
-    fetchMetricsUsageSpan.isLoading ||
-    !fetchMetricsUsageSpan.data
+    traceUsageLoading ||
+    traceUsageError ||
+    spanUsageLoading ||
+    spanUsageError
   ) {
-    return <div>Loading...</div>;
+    return <SmallChartLoading />;
   } else {
-    const traceData = fetchMetricsUsageTrace.data?.traces?.map((data: any) => ({
-      date: data.date,
-      "Trace Count": parseInt(data.traceCount),
+    const traceData = traceUsage?.traces?.map((data: any) => ({
+      date: data.date || "",
+      "Trace Count": parseInt(data?.traceCount) || 0,
     }));
-    const spanData = fetchMetricsUsageSpan.data?.spans?.map((data: any) => ({
-      date: data.date,
-      "Span Count": parseInt(data.spanCount),
+    const spanData = spanUsage?.spans?.map((data: any) => ({
+      date: data.date || "",
+      "Span Count": parseInt(data?.spanCount) || 0,
     }));
 
     const data = traceData?.map((trace: any, index: number) => {
       return {
         ...trace,
         "Span Count":
-          spanData && spanData.length > 0 && spanData[index] !== undefined
+          spanData && spanData?.length > 0 && spanData[index] !== undefined
             ? spanData[index]["Span Count"]
             : 0,
       };
@@ -59,10 +87,10 @@ export function TraceSpanChart({ projectId }: { projectId: string }) {
           <div className="flex flex-col gap-1 h-12">
             <div className="flex flex-row gap-4 flex-wrap ">
               <p className="text-sm font-semibold text-start">
-                Total Traces Ingested: {fetchMetricsUsageTrace.data.total || 0}
+                Total Traces Ingested: {traceUsage?.total || 0}
               </p>
               <p className="text-sm font-semibold text-start">
-                Total Spans Ingested: {fetchMetricsUsageSpan.data.total || 0}
+                Total Spans Ingested: {spanUsage?.total || 0}
               </p>
             </div>
             <p className="text-xs text-start text-muted-foreground">
@@ -91,26 +119,39 @@ export function TraceSpanChart({ projectId }: { projectId: string }) {
 }
 
 export function SpanChart({ projectId }: { projectId: string }) {
-  const fetchMetricsUsageSpan = useQuery({
-    queryKey: ["fetch-metrics-usage-span-query"],
+  const {
+    data: spanUsage,
+    isLoading: spanUsageLoading,
+    error: spanUsageError,
+  } = useQuery({
+    queryKey: [`fetch-metrics-usage-span-${projectId}-query`],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/span?projectId=${projectId}`
       );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch span usage");
+      }
       const result = await response.json();
       return result;
     },
+    onError: (error) => {
+      toast.error("Failed to fetch span usage", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
   });
 
-  if (fetchMetricsUsageSpan.isLoading || !fetchMetricsUsageSpan.data) {
-    return <div>Loading...</div>;
+  if (spanUsageLoading || spanUsageError) {
+    return <SmallChartLoading />;
   } else {
     return (
       <>
         <div className="flex flex-col gap-2 border p-3 rounded-lg w-1/3">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-semibold text-start">
-              Total Spans Ingested: {fetchMetricsUsageSpan.data.total}
+              Total Spans Ingested: {spanUsage?.total || 0}
             </p>
             <p className="text-xs text-start text-muted-foreground">
               Spans are individual events that represent a single operation.
@@ -118,9 +159,9 @@ export function SpanChart({ projectId }: { projectId: string }) {
           </div>
           <BarChart
             className="mt-2 h-72"
-            data={fetchMetricsUsageSpan.data.spans.map((data: any) => ({
-              date: data.date,
-              "Span Count": parseInt(data.spanCount),
+            data={spanUsage?.spans?.map((data: any) => ({
+              date: data.date || "",
+              "Span Count": parseInt(data?.spanCount) || 0,
             }))}
             index="date"
             categories={["Span Count"]}

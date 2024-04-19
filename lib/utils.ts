@@ -7,8 +7,11 @@ import { twMerge } from "tailwind-merge";
 import { Span } from "./clients/scale3_clickhouse/models/span";
 import {
   ANTHROPIC_PRICING,
+  COHERE_PRICING,
+  CostTableEntry,
   LangTraceAttributes,
   OPENAI_PRICING,
+  PERPLEXITY_PRICING,
   SpanStatusCode,
 } from "./constants";
 
@@ -275,10 +278,7 @@ export function prepareForClickhouse(spans: Normalized[]): Span[] {
   });
 }
 
-export async function authApiKey(
-  api_key?: string,
-  project_id?: string
-): Promise<NextResponse> {
+export async function authApiKey(api_key?: string): Promise<NextResponse> {
   if (!api_key) {
     return NextResponse.json(
       {
@@ -338,6 +338,8 @@ export function calculatePriceFromUsage(
   }
 ): any {
   if (!model) return { total: 0, input: 0, output: 0 };
+  let costTable: CostTableEntry | undefined = undefined;
+
   if (vendor === "openai") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
@@ -346,18 +348,7 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4";
       }
     }
-
-    const costTable = OPENAI_PRICING[correctModel];
-    if (costTable) {
-      const total =
-        (costTable.input * usage?.input_tokens +
-          costTable.output * usage?.output_tokens) /
-        1000;
-      const input = (costTable.input * usage?.input_tokens) / 1000;
-      const output = (costTable.output * usage?.output_tokens) / 1000;
-      return { total, input, output };
-    }
-    return { total: 0, input: 0, output: 0 };
+    costTable = OPENAI_PRICING[correctModel];
   } else if (vendor === "anthropic") {
     let cmodel = "";
     if (model.includes("opus")) {
@@ -375,22 +366,25 @@ export function calculatePriceFromUsage(
     } else {
       return 0;
     }
-    const costTable = ANTHROPIC_PRICING[cmodel];
-    if (costTable) {
-      const total =
-        (costTable.input * usage.input_tokens +
-          costTable.output * usage.output_tokens) /
-        1000;
-      const input = (costTable.input * usage.input_tokens) / 1000;
-      const output = (costTable.output * usage.output_tokens) / 1000;
-      return { total, input, output };
-    }
-    return { total: 0, input: 0, output: 0 };
+    costTable = ANTHROPIC_PRICING[cmodel];
+  } else if (vendor === "perplexity") {
+    costTable = PERPLEXITY_PRICING[model];
+  } else if (vendor === "cohere") {
+    costTable = COHERE_PRICING[model];
+  }
+  if (costTable) {
+    const total =
+      (costTable.input * usage?.input_tokens +
+        costTable.output * usage?.output_tokens) /
+      1000;
+    const input = (costTable.input * usage?.input_tokens) / 1000;
+    const output = (costTable.output * usage?.output_tokens) / 1000;
+    return { total, input, output };
   }
   return { total: 0, input: 0, output: 0 };
 }
 
-export function extractPromptFromLlmInputs(inputs: any[]): string {
+export function extractSystemPromptFromLlmInputs(inputs: any[]): string {
   let prompt = "";
   for (let i = 0; i < inputs.length; i++) {
     const p = inputs[i];
@@ -401,3 +395,13 @@ export function extractPromptFromLlmInputs(inputs: any[]): string {
   }
   return prompt;
 }
+
+export const getChartColor = (value: number) => {
+  if (value < 50) {
+    return "red";
+  } else if (value < 90 && value >= 50) {
+    return "yellow";
+  } else {
+    return "green";
+  }
+};
