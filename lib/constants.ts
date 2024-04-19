@@ -43,8 +43,13 @@ export const CLICK_HOUSE_CONSTANTS = {
   database: process.env.CLICK_HOUSE_DATABASE_NAME,
 };
 
+export interface CostTableEntry {
+  input: number;
+  output: number;
+}
+
 // cost per 1000 tokens
-export const OPENAI_PRICING: Record<string, any> = {
+export const OPENAI_PRICING: Record<string, CostTableEntry> = {
   "gpt-4": {
     input: 0.03,
     output: 0.06,
@@ -80,7 +85,7 @@ export const OPENAI_PRICING: Record<string, any> = {
   },
 };
 
-export const ANTHROPIC_PRICING: Record<string, any> = {
+export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
   "claude-3-haiku": {
     input: 0.00025,
     output: 0.00125,
@@ -109,7 +114,7 @@ export const ANTHROPIC_PRICING: Record<string, any> = {
 
 // https://docs.perplexity.ai/docs/pricing --> slightly unclear
 // https://docs.perplexity.ai/changelog/api-updates-february-2024 --> diff prices
-export const PERPLEXITY_PRICING: Record<string, any> = {
+export const PERPLEXITY_PRICING: Record<string, CostTableEntry> = {
   "sonar-small-chat": {
     input: 0.0002,
     output: 0.0002,
@@ -135,6 +140,34 @@ export const PERPLEXITY_PRICING: Record<string, any> = {
   "mixtral-8x7b-instruct": {
     input: 0.0006,
     output: 0.0018,
+  },
+};
+
+export const COHERE_PRICING: Record<string, CostTableEntry> = {
+  "command-light": {
+    input: 0.0003,
+    output: 0.0006,
+  },
+  "command-light-nightly": {
+    input: 0.0003,
+    output: 0.0006,
+  },
+  // prettier-ignore
+  "command": {
+    input: 0.001,
+    output: 0.002,
+  },
+  "command-nightly": {
+    input: 0.001,
+    output: 0.002,
+  },
+  "command-r": {
+    input: 0.0005,
+    output: 0.0015,
+  },
+  "command-r-plus": {
+    input: 0.003,
+    output: 0.015,
   },
 };
 
