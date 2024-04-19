@@ -23,30 +23,6 @@ import { ProjectSwitcher } from "./project-switcher";
 
 export function Header({ email }: { email: string }) {
   const pathname = usePathname();
-  console.log(pathname, "pathname");
-  const {
-    data: projects,
-    isLoading: projectsLoading,
-    error: projectsError,
-  } = useQuery({
-    queryKey: ["fetch-projects-query"],
-    queryFn: async () => {
-      const response = await fetch(`/api/projects?email=${email}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error?.message || "Failed to fetch projects");
-      }
-      const result = await response.json();
-      return result;
-    },
-    onError: (error) => {
-      toast.error("Failed to fetch projects", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-    },
-  });
-  console.log(projects, "projects");
-
   const fetchAccountStats = useQuery({
     queryKey: ["fetch-account-stats"],
     queryFn: async () => {
