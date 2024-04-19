@@ -73,7 +73,7 @@ export function DownloadDataset({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button>
           Download Dataset
           <DownloadIcon className="ml-2 h-4 w-4 shrink-0" />
         </Button>
