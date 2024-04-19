@@ -16,7 +16,7 @@ export const LLMView = ({
   doPiiDetection?: boolean;
 }) => {
   return (
-    <div className="flex flex-col gap-6 p-4 border-[1px] border-muted-foreground rounded-md">
+    <div className="flex flex-col gap-6 p-4 border-[1px] border-muted rounded-lg shadow-md bg-primary-foreground">
       {prompts?.length > 0 &&
         JSON.parse(prompts).map((prompt: any, i: number) => (
           <p

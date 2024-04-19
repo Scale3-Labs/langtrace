@@ -43,10 +43,12 @@ export function AddtoDataset({
   projectId,
   selectedData,
   disabled = false,
+  className,
 }: {
   projectId?: string;
   selectedData?: CheckedData[];
   disabled?: boolean;
+  className?: string;
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
@@ -55,7 +57,11 @@ export function AddtoDataset({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size={"sm"} disabled={disabled || selectedData!.length === 0}>
+        <Button
+          size={"sm"}
+          disabled={disabled || selectedData!.length === 0}
+          className={cn(className)}
+        >
           Add to Dataset
           <PlusIcon className="ml-2 h-4 w-4 shrink-0" />
         </Button>
