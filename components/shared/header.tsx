@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,8 +17,36 @@ import Link from "next/link";
 import { useQuery } from "react-query";
 import { ModeToggle } from "./mode-toggle";
 import Nav from "./nav";
+import { usePathname } from "next/navigation";
+import { toast } from "sonner";
+import { ProjectSwitcher } from "./project-switcher";
 
 export function Header({ email }: { email: string }) {
+  const pathname = usePathname();
+  console.log(pathname, "pathname");
+  const {
+    data: projects,
+    isLoading: projectsLoading,
+    error: projectsError,
+  } = useQuery({
+    queryKey: ["fetch-projects-query"],
+    queryFn: async () => {
+      const response = await fetch(`/api/projects?email=${email}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch projects");
+      }
+      const result = await response.json();
+      return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch projects", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
+  console.log(projects, "projects");
+
   const fetchAccountStats = useQuery({
     queryKey: ["fetch-account-stats"],
     queryFn: async () => {
@@ -41,12 +68,15 @@ export function Header({ email }: { email: string }) {
   return (
     <header className="flex flex-col gap-2 w-full px-12 z-30 sticky top-0 bg-primary-foreground">
       <div className="flex justify-between items-center w-full pt-3">
+        <div className="flex items-center pt-3">
         <Link
           href="/projects"
-          className="text-xl font-bold flex items-center gap-0"
+          className="text-xl font-bold flex items-center gap-0 mr-4"
         >
           Langtrace AI
         </Link>
+        {pathname.includes("/project/") && <ProjectSwitcher email={email} />}
+        </div>
         <div className="flex items-end gap-3">
           <Link href={"https://docs.langtrace.ai/introduction"} target="_blank">
             <Button variant={"secondary"} size={"sm"}>
