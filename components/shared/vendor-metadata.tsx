@@ -44,6 +44,11 @@ export function vendorColor(vendor: string) {
   if (!vendor) {
     return "bg-gray-200";
   }
+
+  if (vendor.includes("perplexity")) {
+    return "bg-slate-200";
+  }
+
   if (vendor.includes("openai")) {
     return "bg-blue-200";
   }
@@ -88,6 +93,20 @@ export function VendorLogo({ span }: { span: Span }) {
   if (attributes["langtrace.service.name"]) {
     serviceName = attributes["langtrace.service.name"].toLowerCase();
   }
+
+  if (span.name.includes("perplexity") || serviceName.includes("perplexity")) {
+    const color = vendorColor("perplexity");
+    return (
+      <Image
+        alt="Perplexity Logo"
+        src="/perplexity.png"
+        width={20}
+        height={20}
+        className={`${color} p-[3px] rounded-sm`}
+      />
+    );
+  }
+
   if (span.name.includes("openai") || serviceName.includes("openai")) {
     const color = vendorColor("openai");
     return (

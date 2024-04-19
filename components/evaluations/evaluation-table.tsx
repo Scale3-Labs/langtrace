@@ -3,6 +3,7 @@
 import { TestSetupInstructions } from "@/components/shared/setup-instructions";
 import { Spinner } from "@/components/shared/spinner";
 import { PAGE_SIZE } from "@/lib/constants";
+import { correctTimestampFormat } from "@/lib/trace_utils";
 import { Test } from "@prisma/client";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -108,8 +109,30 @@ export default function EvaluationTable({
             a.findIndex((t: any) => t.span_id === v.span_id) === i
         );
 
+        // sort by timestamp
+        uniqueData.sort((a: any, b: any) => {
+          if (!a.start_time || !b.start_time) {
+            return 0;
+          }
+          return (
+            new Date(correctTimestampFormat(b.start_time)).valueOf() -
+            new Date(correctTimestampFormat(a.start_time)).valueOf()
+          );
+        });
+
         setCurrentData(uniqueData);
       } else {
+        // sort by timestamp
+        newData.sort((a: any, b: any) => {
+          if (!a.start_time || !b.start_time) {
+            return 0;
+          }
+          return (
+            new Date(correctTimestampFormat(b.start_time)).valueOf() -
+            new Date(correctTimestampFormat(a.start_time)).valueOf()
+          );
+        });
+
         setCurrentData(newData);
       }
       setShowLoader(false);
@@ -129,8 +152,8 @@ export default function EvaluationTable({
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
       {currentData.length > 0 && (
-        <div className="grid grid-cols-13 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
-          <p className="text-xs font-medium col-span-2 text-end">
+        <div className="grid grid-cols-14 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
+          <p className="text-xs font-medium col-span-2 text-start">
             Timestamp (UTC)
           </p>
           <p className="text-xs font-medium">Model</p>
@@ -139,9 +162,9 @@ export default function EvaluationTable({
           <p className="text-xs font-medium">Cost</p>
           <p className="text-xs font-medium">PII Detected</p>
           <p className="text-xs font-medium">Duration</p>
-          <p className="text-xs font-medium">Evaluate</p>
+          <p className="text-xs font-medium">Evaluated Score</p>
           <p className="text-xs font-medium">User Score</p>
-          <p className="text-xs font-medium">Added to Dataset</p>
+          <p className="text-xs font-medium col-span-2">Added to Dataset</p>
         </div>
       )}
       {fetchLlmPromptSpans.isLoading ||
@@ -152,6 +175,7 @@ export default function EvaluationTable({
         currentData.map((span: any, i: number) => (
           <EvaluationRow
             key={i}
+            page={i + 1}
             span={span}
             projectId={projectId}
             testId={test.id}

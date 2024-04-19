@@ -63,6 +63,9 @@ model Test {
   name        String
   description String?
   projectId   String
+  min         Int?         @default(-1)
+  max         Int?         @default(1)
+  step        Int?         @default(2)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   Evaluation  Evaluation[]

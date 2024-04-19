@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth/options";
+import { DEFAULT_TESTS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -48,6 +49,10 @@ export async function POST(req: NextRequest) {
 
   const data = await req.json();
   const { name, description, teamId } = data;
+  let createDefaultTests = data.createDefaultTests;
+  if (!createDefaultTests) {
+    createDefaultTests = true; // default to true
+  }
 
   const project = await prisma.project.create({
     data: {
@@ -56,6 +61,19 @@ export async function POST(req: NextRequest) {
       teamId: teamId,
     },
   });
+
+  if (createDefaultTests) {
+    // create default tests
+    for (const test of DEFAULT_TESTS) {
+      await prisma.test.create({
+        data: {
+          name: test.name?.toLowerCase() ?? "",
+          description: test.description ?? "",
+          projectId: project.id,
+        },
+      });
+    }
+  }
 
   return NextResponse.json({
     data: project,
