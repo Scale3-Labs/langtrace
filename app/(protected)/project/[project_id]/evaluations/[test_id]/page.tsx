@@ -38,6 +38,14 @@ export default function Page() {
     queryKey: ["fetch-test-query", testId],
     queryFn: async () => {
       const response = await fetch(`/api/test?id=${testId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error("Failed to fetch the test", {
+          description: error?.message || "Failed to fetch test",
+        });
+        router.push(`/project/${projectId}/evaluations`);
+        return;
+      }
       const result = await response.json();
       return result;
     },
@@ -97,7 +105,8 @@ export default function Page() {
         toast.error("Failed to fetch the span data", {
           description: error?.message || "Failed to fetch the span data",
         });
-        return { averages: [] };
+        router.push(`/project/${projectId}/evaluations`);
+        return;
       }
 
       const result = await response.json();
@@ -164,7 +173,8 @@ export default function Page() {
         toast.error("Failed to fetch the evaluation data", {
           description: error?.message || "Failed to fetch the evaluation data",
         });
-        return { averages: [] };
+        router.push(`/project/${projectId}/evaluations`);
+        return;
       }
       const result = await response.json();
       const sc =
