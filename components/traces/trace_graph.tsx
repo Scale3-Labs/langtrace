@@ -50,7 +50,9 @@ const SpanItem: React.FC<SpanItemProps> = ({
   }
 
   let color = "bg-gray-500";
-  if (span.name.includes("openai") || serviceName.includes("openai"))
+  if (span.name.includes("perplexity") || serviceName.includes("perplexity"))
+    color = "bg-slate-500";
+  else if (span.name.includes("openai") || serviceName.includes("openai"))
     color = "bg-blue-500";
   else if (span.name.includes("anthropic") || serviceName.includes("anthropic"))
     color = "bg-yellow-500";
