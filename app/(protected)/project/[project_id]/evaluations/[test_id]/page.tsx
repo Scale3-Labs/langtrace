@@ -47,6 +47,9 @@ export default function Page() {
   const [scorePercent, setScorePercent] = useState<number>(0);
   const [color, setColor] = useState<string>("red");
   const [span, setSpan] = useState<any>(null);
+  const [userScore, setUserScore] = useState<string>();
+  const [userScorePercent, setUserScorePercent] = useState<number>(0);
+  const [userScoreColor, setUserScoreColor] = useState<string>("red");
   const [totalPages, setTotalPages] = useState<number>(1);
   const queryClient = useQueryClient();
 
@@ -109,6 +112,14 @@ export default function Page() {
 
       // Update the span state
       if (spans.length > 0) {
+        if (spans[0]?.attributes) {
+          const attributes = JSON.parse(spans[0]?.attributes);
+          setUserScore(attributes["user.feedback.rating"] || "");
+          if (attributes["user.feedback.rating"] === 1) {
+            setUserScorePercent(100);
+            setUserScoreColor("green");
+          }
+        }
         setSpan(spans[0]);
       }
     },
@@ -337,15 +348,38 @@ export default function Page() {
               onSelectedValueChange={onScoreSelected}
             />
           )}
-          <h3 className="text-lg font-semibold break-normal">Score</h3>
-          <ProgressCircle
-            value={scorePercent}
-            size="lg"
-            color={color}
-            className="relative"
-          >
-            <p className="text-4xl font-semibold">{score}</p>
-          </ProgressCircle>
+          <div className="flex gap-12">
+            <div className="flex flex-col gap-4">
+              <h3 className="text-lg font-semibold break-normal">
+                Evaluted Score
+              </h3>
+              <ProgressCircle
+                value={scorePercent}
+                size="lg"
+                color={color}
+                className="relative"
+              >
+                <p className="text-4xl font-semibold">{score}</p>
+              </ProgressCircle>
+            </div>
+            <div className="flex flex-col gap-4">
+              <h3 className="text-lg font-semibold break-normal">User Score</h3>
+              {userScore ? (
+                <ProgressCircle
+                  value={userScorePercent}
+                  size="md"
+                  color={userScoreColor}
+                  className="relative"
+                >
+                  <p className="text-4xl font-semibold">{userScore}</p>
+                </ProgressCircle>
+              ) : (
+                <p className="text-sm text-muted-foreground font-semibold">
+                  Not evaluated
+                </p>
+              )}
+            </div>
+          </div>
           <div className="flex flex-col gap-3 mb-24">
             <h3 className="text-lg font-semibold break-normal">Hotkeys</h3>
             <div className="flex flex-row gap-2 items-center">
