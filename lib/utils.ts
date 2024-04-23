@@ -178,7 +178,7 @@ function convertToDateTime64(dateTime: [number, number]): string {
 
   // Append the microseconds part to the dateString, replacing the 'Z' at the end.
   // This example results in a format with microseconds precision, assuming that's what's meant by DateTime64.
-  const dateTime64String = `${dateString.slice(0, -1)}.${String(
+  const dateTime64String = `${dateString.slice(0, -1)}${String(
     microseconds
   ).padStart(3, "0")}Z`;
 
