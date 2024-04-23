@@ -28,20 +28,20 @@ To use the managed SaaS version of Langtrace, follow the steps below:
 
 ### If your application is built using **typescript/javascript**
 
-``` typescript
+```typescript
 npm i @langtrase/typescript-sdk
 ```
 
-``` typescript
+```typescript
 import * as Langtrace from '@langtrase/typescript-sdk' // Must precede any llm module imports
 Langtrace.init({ api_key: <your_api_key> })
 ```
 
 OR
 
-``` typescript
-import * as Langtrace from '@langtrase/typescript-sdk' // Must precede any llm module imports
-LangTrace.init() // LANGTRACE_API_KEY as an ENVIRONMENT variable
+```typescript
+import * as Langtrace from "@langtrase/typescript-sdk"; // Must precede any llm module imports
+LangTrace.init(); // LANGTRACE_API_KEY as an ENVIRONMENT variable
 ```
 
 ### If your application is built using **python**
@@ -61,8 +61,6 @@ OR
 from langtrace_python_sdk import langtrace
 langtrace.init() # LANGTRACE_API_KEY as an ENVIRONMENT variable
 ```
-
-
 
 ### Langtrace self hosted
 
@@ -101,12 +99,11 @@ The application will be available at `http://localhost:3000`.
 
 #### Take down the setup
 
-
 To delete containers and volumes
 
 ```bash
 docker compose down -v
-````
+```
 
 `-v` flag is used to delete volumes
 
@@ -139,11 +136,11 @@ The following are some commands that may come handy during setup and debugging.
   docker logs langtrace
   ```
 
-  If you want to follow the logs
+If you want to follow the logs
 
-  ```bash
-  docker logs -f langtrace
-  ```
+```bash
+docker logs -f langtrace
+```
 
 </details>
 
