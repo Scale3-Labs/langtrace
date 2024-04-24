@@ -24,17 +24,7 @@ export const LLMView = ({
             className="text-xs bg-muted w-fit p-1 rounded-md leading-6"
           >
             <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
-              {prompt?.role
-                ? prompt?.role === "function"
-                  ? `${prompt?.role} - ${prompt?.name}`
-                  : prompt?.role
-                : "Q"}
-              :
-              {prompt?.content
-                ? " (content)"
-                : prompt?.function_call
-                ? " (function call)"
-                : ""}
+              {prompt?.role ? prompt?.role?.toLowerCase() : "User"}
             </span>{" "}
             <Markdown
               className={cn(
@@ -44,40 +34,45 @@ export const LLMView = ({
               )}
             >
               {prompt?.content
-                ? prompt?.content
+                ? JSON.stringify(prompt?.content)
                 : prompt?.function_call
                 ? JSON.stringify(prompt?.function_call)
                 : ""}
             </Markdown>
           </p>
         ))}
-      <div className="text-xs leading-6 w-fit p-1 rounded-md bg-muted">
-        <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
-          {JSON.parse(responses)[0]?.message?.role || "Assistant"}:
-        </span>{" "}
-        {responses?.length > 0 ? (
-          <Markdown
-            className={cn(
-              doPiiDetection &&
-                detectPII(
-                  JSON.parse(responses)[0]?.message?.content ||
-                    JSON.parse(responses)[0]?.text ||
-                    JSON.parse(responses)[0]?.content ||
-                    ""
-                ).length > 0 &&
-                "underline decoration-red-600 decoration-[3px]"
-            )}
+      {responses?.length > 0 &&
+        JSON.parse(responses).map((response: any, i: number) => (
+          <div
+            key={i}
+            className="text-xs leading-6 w-fit p-1 rounded-md bg-muted"
           >
-            {JSON.parse(responses)[0]?.message?.content ||
-              JSON.parse(responses)[0]?.text ||
-              JSON.parse(responses)[0]?.content ||
-              JSON.parse(responses).message?.content}
-          </Markdown>
-        ) : (
-          ""
-        )}
-        {Evaluate && <Evaluate />}
-      </div>
+            <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
+              {response?.role?.toLowerCase() ||
+                response?.message?.role ||
+                "Assistant"}
+              :
+            </span>{" "}
+            <Markdown
+              className={cn(
+                doPiiDetection &&
+                  detectPII(
+                    JSON.stringify(response?.content) ||
+                      JSON.stringify(response?.message?.content) ||
+                      JSON.stringify(response?.text) ||
+                      ""
+                  ).length > 0 &&
+                  "underline decoration-red-600 decoration-[3px]"
+              )}
+            >
+              {JSON.stringify(response?.content) ||
+                JSON.stringify(response?.message?.content) ||
+                JSON.stringify(response?.text) ||
+                ""}
+            </Markdown>
+            {Evaluate && <Evaluate />}
+          </div>
+        ))}
     </div>
   );
 };
