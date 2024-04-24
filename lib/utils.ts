@@ -3,6 +3,7 @@ import { clsx, type ClassValue } from "clsx";
 import { createHash, randomBytes } from "crypto";
 import { TiktokenEncoding, getEncoding } from "js-tiktoken";
 import { NextResponse } from "next/server";
+import { prettyPrintJson } from "pretty-print-json";
 import { twMerge } from "tailwind-merge";
 import { Span } from "./clients/scale3_clickhouse/models/span";
 import {
@@ -405,3 +406,12 @@ export const getChartColor = (value: number) => {
     return "green";
   }
 };
+
+export function safeStringify(value: any): string {
+  // Check if the value is already a string
+  if (typeof value === "string") {
+    return value;
+  }
+  // If it's not a string, stringify it
+  return prettyPrintJson.toHtml(value);
+}

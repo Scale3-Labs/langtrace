@@ -11,6 +11,7 @@ import {
   cn,
   extractSystemPromptFromLlmInputs,
   formatDateTime,
+  safeStringify,
 } from "@/lib/utils";
 import { Cross1Icon, EnterIcon } from "@radix-ui/react-icons";
 import { ProgressCircle } from "@tremor/react";
@@ -24,7 +25,6 @@ import {
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Markdown from "react-markdown";
 import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 
@@ -480,9 +480,9 @@ function ConversationView({ span }: { span: any }) {
         JSON.parse(prompts).map((prompt: any, i: number) => {
           const role = prompt?.role ? prompt?.role?.toLowerCase() : "User";
           const content = prompt?.content
-            ? JSON.stringify(prompt?.content)
+            ? safeStringify(prompt?.content)
             : prompt?.function_call
-            ? JSON.stringify(prompt?.function_call)
+            ? safeStringify(prompt?.function_call)
             : "No input found";
           return (
             <div key={i} className="flex flex-col gap-2">
@@ -499,9 +499,12 @@ function ConversationView({ span }: { span: any }) {
                   </p>
                 )}
               </div>
-              <Markdown className="text-sm bg-muted rounded-md px-2 py-4">
-                {content}
-              </Markdown>
+              <div
+                className="text-sm bg-muted rounded-md px-2 py-4"
+                dangerouslySetInnerHTML={{
+                  __html: content,
+                }}
+              />
             </div>
           );
         })}
@@ -512,9 +515,9 @@ function ConversationView({ span }: { span: any }) {
             response?.message?.role ||
             "Assistant";
           const content =
-            JSON.stringify(response?.content) ||
-            JSON.stringify(response?.message?.content) ||
-            JSON.stringify(response?.text) ||
+            safeStringify(response?.content) ||
+            safeStringify(response?.message?.content) ||
+            safeStringify(response?.text) ||
             "No output found";
           return (
             <div className="flex flex-col gap-2" key={i}>
@@ -526,9 +529,12 @@ function ConversationView({ span }: { span: any }) {
                 )}
                 <p className="font-semibold text-md capitalize">{role}</p>
               </div>
-              <Markdown className="text-sm bg-muted rounded-md px-2 py-4">
-                {content}
-              </Markdown>
+              <div
+                className="text-sm bg-muted rounded-md px-2 py-4"
+                dangerouslySetInnerHTML={{
+                  __html: content,
+                }}
+              />
             </div>
           );
         })}
