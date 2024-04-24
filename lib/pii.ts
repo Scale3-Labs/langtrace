@@ -1,8 +1,5 @@
 export default function detectPII(text: string): string[] {
   try {
-    JSON.parse(text);
-    return [];
-  } catch (e) {
     // Define regular expressions for various types of PII
     const patterns = {
       phoneNumber: /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, // Simplified phone number pattern (US-centric)
@@ -24,7 +21,8 @@ export default function detectPII(text: string): string[] {
         foundPII.push(...matches.map((match) => `${type}: ${match}`));
       }
     }
-
     return foundPII;
+  } catch (error) {
+    return [];
   }
 }

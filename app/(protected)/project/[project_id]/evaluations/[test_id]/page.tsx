@@ -2,6 +2,7 @@
 
 import { ScaleType } from "@/components/evaluations/eval-scale-picker";
 import { RangeScale } from "@/components/evaluations/range-scale";
+import UserLogo from "@/components/shared/user-logo";
 import { VendorLogo } from "@/components/shared/vendor-metadata";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +11,7 @@ import {
   cn,
   extractSystemPromptFromLlmInputs,
   formatDateTime,
+  safeStringify,
 } from "@/lib/utils";
 import { Cross1Icon, EnterIcon } from "@radix-ui/react-icons";
 import { ProgressCircle } from "@tremor/react";
@@ -23,7 +25,6 @@ import {
 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import Markdown from "react-markdown";
 import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 
@@ -315,7 +316,7 @@ export default function Page() {
                 size="md"
                 value={(page / totalPages) * 100}
               >
-                <span className="flex items-center justify-center font-semibold w-12 h-12 rounded-full bg-blue-100 text-xs">
+                <span className="flex items-center justify-center font-bold w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-800 text-sm">
                   {Math.round((page / totalPages) * 100)}%
                 </span>
               </ProgressCircle>
@@ -348,8 +349,8 @@ export default function Page() {
               className={cn(
                 "ml-2 text-xs px-1 py-[2px] rounded-md",
                 evaluationsData?.evaluations[0]?.id
-                  ? "bg-green-400"
-                  : "bg-orange-400"
+                  ? "bg-green-400 dark:bg-green-800"
+                  : "bg-orange-400 dark:bg-orange-800"
               )}
             >
               {evaluationsData?.evaluations[0]?.id
@@ -474,49 +475,69 @@ function ConversationView({ span }: { span: any }) {
   if (!prompts && !responses) return <p className="text-md">No data found</p>;
 
   return (
-    <div className="flex flex-col gap-12 overflow-y-scroll w-1/2 pr-6">
+    <div className="flex flex-col gap-8 overflow-y-scroll w-1/2 pr-6">
       {prompts?.length > 0 &&
-        JSON.parse(prompts).map((prompt: any, i: number) => (
-          <div key={i} className="flex flex-col gap-1">
-            <p className="font-semibold text-md capitalize">
-              {prompt?.role
-                ? prompt?.role === "function"
-                  ? `${prompt?.role} - ${prompt?.name}`
-                  : prompt?.role
-                : "Input"}
-              :
-              {prompt?.content
-                ? " (content)"
-                : prompt?.function_call
-                ? " (function call)"
-                : ""}
-            </p>{" "}
-            <Markdown className="text-sm">
-              {prompt?.content
-                ? prompt?.content
-                : prompt?.function_call
-                ? JSON.stringify(prompt?.function_call)
-                : "No input found"}
-            </Markdown>
-          </div>
-        ))}
-      {responses?.length > 0 &&
-        JSON.parse(responses).map((response: any, i: number) => (
-          <div className="flex flex-col gap-1" key={i}>
-            <div className="flex gap-2">
-              <VendorLogo span={span} />
-              <p className="font-semibold text-md capitalize">
-                {response?.message?.role || "Output"}:
-              </p>{" "}
+        JSON.parse(prompts).map((prompt: any, i: number) => {
+          const role = prompt?.role ? prompt?.role?.toLowerCase() : "User";
+          const content = prompt?.content
+            ? safeStringify(prompt?.content)
+            : prompt?.function_call
+            ? safeStringify(prompt?.function_call)
+            : "No input found";
+          return (
+            <div key={i} className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center">
+                {role === "user" ? (
+                  <UserLogo />
+                ) : (
+                  <VendorLogo variant="circular" span={span} />
+                )}
+                <p className="font-semibold text-md capitalize">{role}</p>
+                {role === "system" && (
+                  <p className="font-semibold text-xs capitalize p-1 rounded-md bg-muted">
+                    Prompt
+                  </p>
+                )}
+              </div>
+              <div
+                className="text-sm bg-muted rounded-md px-2 py-4"
+                dangerouslySetInnerHTML={{
+                  __html: content,
+                }}
+              />
             </div>
-            <Markdown className="text-sm">
-              {response?.message?.content ||
-                response?.text ||
-                response?.content ||
-                "No output found"}
-            </Markdown>
-          </div>
-        ))}
+          );
+        })}
+      {responses?.length > 0 &&
+        JSON.parse(responses).map((response: any, i: number) => {
+          const role =
+            response?.role?.toLowerCase() ||
+            response?.message?.role ||
+            "Assistant";
+          const content =
+            safeStringify(response?.content) ||
+            safeStringify(response?.message?.content) ||
+            safeStringify(response?.text) ||
+            "No output found";
+          return (
+            <div className="flex flex-col gap-2" key={i}>
+              <div className="flex gap-2 items-center">
+                {role === "user" ? (
+                  <UserLogo />
+                ) : (
+                  <VendorLogo variant="circular" span={span} />
+                )}
+                <p className="font-semibold text-md capitalize">{role}</p>
+              </div>
+              <div
+                className="text-sm bg-muted rounded-md px-2 py-4"
+                dangerouslySetInnerHTML={{
+                  __html: content,
+                }}
+              />
+            </div>
+          );
+        })}
     </div>
   );
 }
