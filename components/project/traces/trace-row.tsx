@@ -1,5 +1,6 @@
 "use client";
 
+import LanggraphView from "@/components/shared/langgraph-view";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
@@ -36,9 +37,16 @@ export const TraceRow = ({
   let prompts: any = {};
   let responses: any = {};
   let cost = { total: 0, input: 0, output: 0 };
+  let langgraph = false;
   for (const span of trace) {
     if (span.attributes) {
       const attributes = JSON.parse(span.attributes);
+      if (attributes["langtrace.service.name"]) {
+        vendor = attributes["langtrace.service.name"].toLowerCase();
+        if (vendor === "langgraph") {
+          langgraph = true;
+        }
+      }
       userId = attributes["user.id"];
       if (attributes["llm.prompts"] && attributes["llm.responses"]) {
         prompts = attributes["llm.prompts"];
@@ -46,7 +54,6 @@ export const TraceRow = ({
       }
       if (attributes["llm.token.counts"]) {
         model = attributes["llm.model"];
-        vendor = attributes["langtrace.service.name"].toLowerCase();
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
         tokenCounts = {
           input_tokens: tokenCounts.input_tokens
@@ -213,6 +220,26 @@ export const TraceRow = ({
                 <Separator className="bg-primary h-[2px]" />
               )}
             </Button>
+            {langgraph && (
+              <Button
+                onClick={() => setSelectedTab("langgraph")}
+                variant={"ghost"}
+                className="flex flex-col justify-between pb-0"
+              >
+                <p
+                  className={
+                    selectedTab === "langgraph"
+                      ? "text-xs text-primary font-medium"
+                      : "text-xs text-muted-foreground font-medium"
+                  }
+                >
+                  Langgraph
+                </p>
+                {selectedTab === "langgraph" && (
+                  <Separator className="bg-primary h-[2px]" />
+                )}
+              </Button>
+            )}
           </div>
           <Separator />
           {selectedTab === "trace" && (
@@ -233,6 +260,11 @@ export const TraceRow = ({
           {selectedTab === "llm" && (
             <div className="flex flex-col px-4 mt-2">
               <LLMView prompts={prompts} responses={responses} />
+            </div>
+          )}
+          {selectedTab === "langgraph" && (
+            <div className="h-[500px]">
+              <LanggraphView trace={trace} />
             </div>
           )}
         </div>
