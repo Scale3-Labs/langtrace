@@ -66,6 +66,8 @@ const SpanItem: React.FC<SpanItemProps> = ({
     color = "bg-red-500";
   else if (span.name.includes("qdrant") || serviceName.includes("qdrant"))
     color = "bg-grey-500";
+  else if (span.name.includes("groq") || serviceName.includes("groq"))
+    color = "bg-slate-500";
   else if (
     span.name.includes("llamaindex") ||
     serviceName.includes("llamaindex")

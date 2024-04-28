@@ -46,6 +46,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-grey-500";
   }
 
+  if (vendor.includes("qdrant")) {
+    return "bg-grey-500";
+  }
+
   return "bg-gray-500";
 }
 
@@ -90,6 +94,10 @@ export function vendorColor(vendor: string) {
     return "bg-grey-200";
   }
 
+  if (vendor.includes("groq")) {
+    return "bg-slate-200";
+  }
+
   return "bg-gray-800";
 }
 
@@ -115,6 +123,22 @@ export function VendorLogo({
   let serviceName = "";
   if (attributes["langtrace.service.name"]) {
     serviceName = attributes["langtrace.service.name"].toLowerCase();
+  }
+
+  if (span.name.includes("groq") || serviceName.includes("groq")) {
+    const color = vendorColor("groq");
+    return (
+      <Image
+        alt="Groq Logo"
+        src="/groq.png"
+        width={50}
+        height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
   }
 
   if (span.name.includes("perplexity") || serviceName.includes("perplexity")) {
