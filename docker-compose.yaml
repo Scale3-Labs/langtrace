@@ -10,7 +10,6 @@ services:
     working_dir: /app
     env_file:
       - .env
-    command: /bin/sh -c "npm run create-tables && npm run dev"
     ports:
       - "3000:3000"
     # Uncmment this for development

@@ -213,10 +213,13 @@ Langtrace automatically captures traces from the following vendors:
 | OpenAI       | LLM             | :white_check_mark: | :white_check_mark: |
 | Anthropic    | LLM             | :white_check_mark: | :white_check_mark: |
 | Azure OpenAI | LLM             | :white_check_mark: | :white_check_mark: |
+| Cohere       | LLM             | :white_check_mark: | :white_check_mark: |
+| Groq         | LLM             | :x:                | :white_check_mark: |
 | Langchain    | Framework       | :x:                | :white_check_mark: |
 | LlamaIndex   | Framework       | :white_check_mark: | :white_check_mark: |
 | Pinecone     | Vector Database | :white_check_mark: | :white_check_mark: |
 | ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark: |
+| QDrant       | Vector Database | :x:                | :white_check_mark: |
 
 ---
 

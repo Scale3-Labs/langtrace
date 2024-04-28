@@ -15,3 +15,5 @@ COPY . .
 RUN npm install
 
 EXPOSE 3000
+
+CMD [ "/bin/sh", "-c", "npm run create-tables && npm run dev" ]
