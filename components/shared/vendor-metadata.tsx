@@ -42,6 +42,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-red-500";
   }
 
+  if (vendor.includes("qdrant")) {
+    return "bg-grey-500";
+  }
+
   return "bg-gray-500";
 }
 
@@ -80,6 +84,10 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("cohere")) {
     return "bg-red-200";
+  }
+
+  if (vendor.includes("qdrant")) {
+    return "bg-grey-200";
   }
 
   return "bg-gray-800";
@@ -229,6 +237,22 @@ export function VendorLogo({
         src="/cohere.png"
         width={30}
         height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (span.name.includes("qdrant") || serviceName.includes("qdrant")) {
+    const color = vendorColor("qdrant");
+    return (
+      <Image
+        alt="Qdrant Logo"
+        src="/qdrant.png"
+        width={50}
+        height={50}
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
