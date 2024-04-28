@@ -3,6 +3,7 @@ import { clsx, type ClassValue } from "clsx";
 import { createHash, randomBytes } from "crypto";
 import { TiktokenEncoding, getEncoding } from "js-tiktoken";
 import { NextResponse } from "next/server";
+import { prettyPrintJson } from "pretty-print-json";
 import { twMerge } from "tailwind-merge";
 import { Span } from "./clients/scale3_clickhouse/models/span";
 import {
@@ -178,7 +179,7 @@ function convertToDateTime64(dateTime: [number, number]): string {
 
   // Append the microseconds part to the dateString, replacing the 'Z' at the end.
   // This example results in a format with microseconds precision, assuming that's what's meant by DateTime64.
-  const dateTime64String = `${dateString.slice(0, -1)}.${String(
+  const dateTime64String = `${dateString.slice(0, -1)}${String(
     microseconds
   ).padStart(3, "0")}Z`;
 
@@ -405,3 +406,12 @@ export const getChartColor = (value: number) => {
     return "green";
   }
 };
+
+export function safeStringify(value: any): string {
+  // Check if the value is already a string
+  if (typeof value === "string") {
+    return value;
+  }
+  // If it's not a string, stringify it
+  return prettyPrintJson.toHtml(value);
+}

@@ -66,6 +66,7 @@
 		"next-themes": "^0.2.1",
 		"openai": "^4.26.0",
 		"pdf-parse": "^1.1.1",
+		"pretty-print-json": "^3.0.0",
 		"prism": "^4.1.2",
 		"prismjs": "^1.29.0",
 		"react": "^18",
