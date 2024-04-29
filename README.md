@@ -8,7 +8,8 @@
 
 Langtrace is an open source observability software which lets you capture, debug and analyze traces and metrics from all your applications that leverages LLM APIs, Vector Databases and LLM based Frameworks.
 
-![image](public/eval.png)
+![image](https://github.com/Scale3-Labs/langtrace/assets/105607645/6825158c-39bb-4270-b1f9-446c36c066ee)
+
 
 ## Open Telemetry Support
 
