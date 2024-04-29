@@ -7,6 +7,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
     working_dir: /app
     env_file:
       - .env
@@ -58,6 +59,14 @@ services:
         condition: service_healthy
         required: true
     command: clickhouse-client --host langtrace-clickhouse --query 'CREATE DATABASE IF NOT EXISTS $CLICK_HOUSE_DATABASE_NAME;'
+
+  langtrace-app-prod:
+    extends:
+      service: langtrace-app
+    build:
+      target: production
+    profiles:
+      - production
 
 volumes:
   postgres-data:
