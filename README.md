@@ -224,6 +224,13 @@ Langtrace automatically captures traces from the following vendors:
 
 ---
 
+## Langtrace System Architecture
+
+![image](https://github.com/Scale3-Labs/langtrace/assets/105607645/eae180dd-ebf7-4792-b076-23f75d3734a8)
+
+
+---
+
 ## Feature Requests and Issues
 
 - To request for features, head over [here to start a discussion](https://github.com/Scale3-Labs/langtrace/discussions/categories/feature-requests).
