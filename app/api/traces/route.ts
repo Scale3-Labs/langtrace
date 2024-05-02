@@ -1,6 +1,7 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
 import { TraceService } from "@/lib/services/trace_service";
+import { hashApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
@@ -26,11 +27,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (!project) {
-      return Response.json({ error: "No projects found" }, { status: 404 });
+      return NextResponse.json({ error: "No projects found" }, { status: 404 });
     }
 
     if (apiKey && project.apiKeyHash !== hashApiKey(apiKey)) {
-      return Response.json(
+      return NextResponse.json(
         { error: "Unauthorized. Invalid API key" },
         { status: 401 }
       );
