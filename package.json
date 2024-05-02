@@ -43,7 +43,7 @@
 		"@tanstack/react-query": "^5.17.10",
 		"@tremor/react": "^3.14.1",
 		"@vercel/analytics": "^1.2.2",
-		"ai": "^2.2.35",
+		"ai": "^2.2.37",
 		"axios": "^1.6.7",
 		"class-variance-authority": "^0.7.0",
 		"clickhouse": "^2.6.0",
@@ -64,7 +64,7 @@
 		"next": "14.1.0",
 		"next-auth": "^4.24.5",
 		"next-themes": "^0.2.1",
-		"openai": "^4.26.0",
+		"openai": "^4.40.0",
 		"pdf-parse": "^1.1.1",
 		"pretty-print-json": "^3.0.0",
 		"prism": "^4.1.2",
@@ -85,6 +85,7 @@
 		"stream-to-array": "^2.3.0",
 		"tailwind-merge": "^2.2.1",
 		"tailwindcss-animate": "^1.0.7",
+		"uuid": "^9.0.1",
 		"zod": "^3.22.4"
 	},
 	"devDependencies": {

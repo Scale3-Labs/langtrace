@@ -47,15 +47,8 @@ export function Header({ email }: { email: string }) {
         >
           Langtrace AI
         </Link>
-        <div className="flex items-end gap-3">
-          <Link href={"https://docs.langtrace.ai/introduction"} target="_blank">
-            <Button variant={"secondary"} size={"sm"}>
-              <FileIcon className="mr-2 h-4 w-4" />
-              Docs
-              <ArrowTopRightIcon className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex flex-col mr-4">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col">
             <p className="text-sm text-muted-foreground">
               Total Spans Ingested
             </p>
@@ -71,6 +64,13 @@ export function Header({ email }: { email: string }) {
               <ArrowTopRightIcon className="h-4 w-4 ml-1" />
             </Link>
           </div>
+          <Link href={"https://docs.langtrace.ai/introduction"} target="_blank">
+            <Button variant={"secondary"} size={"sm"}>
+              <FileIcon className="mr-2 h-4 w-4" />
+              Docs
+              <ArrowTopRightIcon className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
           <ModeToggle />
           <DropdownMenu>
             {!fetchUser.isLoading && fetchUser.data && (
