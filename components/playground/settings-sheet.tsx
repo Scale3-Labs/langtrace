@@ -19,8 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import { OpenAISettings } from "@/lib/types/playground_types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { GearIcon } from "@radix-ui/react-icons";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, SettingsIcon } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -81,7 +80,7 @@ export function OpenAISettingsSheet({
       <SheetTrigger asChild>
         <Button variant="outline" size={"sm"}>
           <div className="flex gap-2 items-center">
-            <GearIcon className="h-5 w-5" />
+            <SettingsIcon className="h-5 w-5" />
             <p className="text-xs font-semibold">OpenAI</p>
             <Image
               alt="OpenAI Logo"

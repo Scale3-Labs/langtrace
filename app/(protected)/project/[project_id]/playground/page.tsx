@@ -8,6 +8,7 @@ import {
   OpenAIModel,
   OpenAISettings,
 } from "@/lib/types/playground_types";
+import Link from "next/link";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -32,19 +33,29 @@ export default function Page() {
   };
 
   return (
-    <div className="p-12 flex flex-row flex-wrap lg:grid lg:grid-cols-3 gap-8 w-full">
-      {llms.map((llm: ChatInterface) => (
-        <LLMChat
-          key={llm.id}
-          llm={llm}
-          setLLM={(updatedLLM: ChatInterface) => {
-            const newLLMs = llms.map((l) => (l.id === llm.id ? updatedLLM : l));
-            setLLMs(newLLMs);
-          }}
-          onRemove={() => handleRemove(llm.id)}
-        />
-      ))}
-      <AddLLMChat onAdd={handleAdd} />
+    <div className="px-12 py-6 flex flex-col gap-8">
+      <span className="text-sm font-semibold">
+        Note: Don't forget to add your LLM provider API keys in the{" "}
+        <Link href="/settings/keys" className="underline text-blue-400">
+          settings page.
+        </Link>
+      </span>
+      <div className="flex flex-row flex-wrap lg:grid lg:grid-cols-3 gap-8 w-full">
+        {llms.map((llm: ChatInterface) => (
+          <LLMChat
+            key={llm.id}
+            llm={llm}
+            setLLM={(updatedLLM: ChatInterface) => {
+              const newLLMs = llms.map((l) =>
+                l.id === llm.id ? updatedLLM : l
+              );
+              setLLMs(newLLMs);
+            }}
+            onRemove={() => handleRemove(llm.id)}
+          />
+        ))}
+        <AddLLMChat onAdd={handleAdd} />
+      </div>
     </div>
   );
 }
