@@ -96,7 +96,7 @@ export enum OpenAIRole {
   "system" = "system",
 }
 
-export interface OpenAI {
+export interface OpenAISettings {
   messages: Conversation[];
   model: OpenAIModel;
   frequencyPenalty?: number | null;
@@ -117,8 +117,12 @@ export interface OpenAI {
   user?: string;
 }
 
-export interface LLMVendor {
+export interface ChatInterface {
   id: string;
   vendor: string;
-  messages: Conversation[];
+  settings: OpenAISettings;
+}
+
+export interface OpenAIChatInterface extends ChatInterface {
+  settings: OpenAISettings;
 }

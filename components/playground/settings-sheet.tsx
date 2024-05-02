@@ -17,6 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { OpenAISettings } from "@/lib/types/playground_types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GearIcon } from "@radix-ui/react-icons";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -30,7 +31,14 @@ import { Input, InputLarge } from "../ui/input";
 import { Label } from "../ui/label";
 import { OpenAIModelsDropDown } from "./model-dropdown";
 
-export function OpenAISettingsSheet() {
+export function OpenAISettingsSheet({
+  settings,
+  setSettings,
+}: {
+  settings: OpenAISettings;
+  setSettings: any;
+}) {
+  const [open, setOpen] = useState(false);
   const [advancedSettings, setAdvancedSettings] = useState(false);
   const schema = z.object({
     model: z.string(),
@@ -69,7 +77,7 @@ export function OpenAISettingsSheet() {
   });
 
   return (
-    <Sheet>
+    <Sheet onOpenChange={setOpen} open={open}>
       <SheetTrigger asChild>
         <Button variant="outline" size={"sm"}>
           <div className="flex gap-2 items-center">
@@ -96,8 +104,87 @@ export function OpenAISettingsSheet() {
           <form
             onSubmit={SettingsForm.handleSubmit(async (data) => {
               try {
-                console.log(data);
+                const newSettings: any = {};
+                if (data.stream !== undefined) {
+                  newSettings["stream"] = data.stream;
+                }
+                if (data.model !== undefined) {
+                  newSettings["model"] = data.model;
+                }
+                if (data.maxTokens !== undefined && !isNaN(data.maxTokens)) {
+                  newSettings["maxTokens"] = data.maxTokens;
+                }
+                if (
+                  data.temperature !== undefined &&
+                  !isNaN(data.temperature)
+                ) {
+                  if (!(data.temperature >= 0 && data.temperature <= 2)) {
+                    throw new Error("Temperature must be between 0 and 2");
+                  }
+                  newSettings["temperature"] = data.temperature;
+                }
+                if (data.frequencyPenalty !== undefined) {
+                  if (
+                    !(data.frequencyPenalty >= -2 && data.frequencyPenalty <= 2)
+                  ) {
+                    throw new Error(
+                      "Frequency penalty must be between -2 and 2"
+                    );
+                  }
+                  newSettings["frequencyPenalty"] = data.frequencyPenalty;
+                }
+                if (data.presencePenalty !== undefined) {
+                  if (
+                    !(data.presencePenalty >= -2 && data.presencePenalty <= 2)
+                  ) {
+                    throw new Error(
+                      "Presence penalty must be between -2 and 2"
+                    );
+                  }
+                  newSettings["presencePenalty"] = data.presencePenalty;
+                }
+                if (data.logitBias !== undefined) {
+                  newSettings["logitBias"] = data.logitBias;
+                }
+                if (data.logProbs !== undefined) {
+                  newSettings["logProbs"] = data.logProbs;
+                }
+                if (
+                  data.topLogProbs !== undefined &&
+                  !isNaN(data.topLogProbs)
+                ) {
+                  newSettings["topLogProbs"] = data.topLogProbs;
+                }
+                if (data.n !== undefined && !isNaN(data.n)) {
+                  newSettings["n"] = data.n;
+                }
+                if (data.seed !== undefined && !isNaN(data.seed)) {
+                  if (data.seed < 0) {
+                    throw new Error("Seed must be a positive number");
+                  }
+                  newSettings["seed"] = data.seed;
+                }
+                if (data.stop !== undefined) {
+                  newSettings["stop"] = data.stop;
+                }
+                if (data.topP !== undefined && !isNaN(data.topP)) {
+                  newSettings["topP"] = data.topP;
+                }
+                if (data.responseFormat !== undefined) {
+                  newSettings["responseFormat"] = data.responseFormat;
+                }
+                if (data.tools !== undefined) {
+                  newSettings["tools"] = data.tools;
+                }
+                if (data.toolChoice !== undefined) {
+                  newSettings["toolChoice"] = data.toolChoice;
+                }
+                if (data.user !== undefined) {
+                  newSettings["user"] = data.user;
+                }
+                setSettings({ ...settings, ...newSettings });
                 toast.success("Settings saved");
+                setOpen(false);
               } catch (error: any) {
                 toast.error("Error saving settings", {
                   description: error?.message,

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LLMVendor, OpenAIRole } from "@/lib/types/playground_types";
+import { ChatInterface, OpenAIRole } from "@/lib/types/playground_types";
 import { LucideChevronRight, MinusIcon, PlusCircleIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
@@ -10,13 +10,17 @@ import { v4 as uuidv4 } from "uuid";
 import { Message } from "./common";
 import { OpenAISettingsSheet } from "./settings-sheet";
 
+function identity<T>(value: T): T {
+  return value;
+}
+
 export default function LLMChat({
   llm,
   setLLM,
   onRemove,
 }: {
-  llm: LLMVendor;
-  setLLM: (llm: LLMVendor) => void;
+  llm: ChatInterface;
+  setLLM: (llm: ChatInterface) => void;
   onRemove: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -24,7 +28,7 @@ export default function LLMChat({
   return (
     <Card className="w-[450px] h-[600px] p-1 relative group/card">
       <div className="overflow-y-scroll h-[535px]">
-        {llm.messages.map((message, i) => (
+        {llm.settings.messages.map((message, i) => (
           <Message
             key={i}
             message={{
@@ -33,16 +37,22 @@ export default function LLMChat({
               content: message.content,
             }}
             setMessage={(updatedMessage) => {
-              const newMessages = llm.messages.map((m) =>
+              const newMessages = llm.settings.messages.map((m) =>
                 m.id === message.id ? updatedMessage : m
               );
-              setLLM({ ...llm, messages: newMessages });
+              setLLM({
+                ...llm,
+                settings: { ...llm.settings, messages: newMessages },
+              });
             }}
             onRemove={() => {
-              const newMessages = llm.messages.filter(
+              const newMessages = llm.settings.messages.filter(
                 (m) => m.id !== message.id
               );
-              setLLM({ ...llm, messages: newMessages });
+              setLLM({
+                ...llm,
+                settings: { ...llm.settings, messages: newMessages },
+              });
             }}
           />
         ))}
@@ -50,20 +60,23 @@ export default function LLMChat({
       <div className="w-full flex items-center justify-center">
         <Button
           type="button"
-          variant={llm.messages.length === 0 ? "default" : "secondary"}
+          variant={llm.settings.messages.length === 0 ? "default" : "secondary"}
           className="mt-2"
           size={"lg"}
           onClick={() => {
             setLLM({
               ...llm,
-              messages: [
-                ...llm.messages,
-                {
-                  id: uuidv4(),
-                  role: OpenAIRole.user,
-                  content: "",
-                },
-              ],
+              settings: {
+                ...llm.settings,
+                messages: [
+                  ...llm.settings.messages,
+                  {
+                    id: uuidv4(),
+                    role: OpenAIRole.user,
+                    content: "",
+                  },
+                ],
+              },
             });
           }}
         >
@@ -72,7 +85,12 @@ export default function LLMChat({
         </Button>
       </div>
       <div className="absolute -top-6 -left-3">
-        <OpenAISettingsSheet />
+        <OpenAISettingsSheet
+          settings={llm.settings}
+          setSettings={(updatedSettings: any) => {
+            setLLM({ ...llm, settings: updatedSettings });
+          }}
+        />
       </div>
       <Button
         type="button"
@@ -85,80 +103,163 @@ export default function LLMChat({
       </Button>
       <Button
         size={"sm"}
-        variant={llm.messages.length === 0 ? "secondary" : "default"}
+        variant={llm.settings.messages.length === 0 ? "secondary" : "default"}
         className="absolute bottom-4 left-4"
-        disabled={busy || llm.messages.length === 0}
+        disabled={busy || llm.settings.messages.length === 0}
         onClick={async () => {
           setBusy(true);
           try {
+            const body: any = {};
+            if (llm.settings.messages.length > 0) {
+              body.messages = llm.settings.messages.map((m) => {
+                return { content: m.content, role: m.role };
+              });
+            }
+            if (llm.settings.model) {
+              body.model = llm.settings.model;
+            }
+            if (llm.settings.temperature) {
+              body.temperature = llm.settings.temperature;
+            }
+            if (llm.settings.maxTokens) {
+              body.max_tokens = llm.settings.maxTokens;
+            }
+            if (llm.settings.n) {
+              body.n = llm.settings.n;
+            }
+            if (llm.settings.stop) {
+              body.stop = llm.settings.stop;
+            }
+            if (llm.settings.frequencyPenalty) {
+              body.frequency_penalty = llm.settings.frequencyPenalty;
+            }
+            if (llm.settings.presencePenalty) {
+              body.presence_penalty = llm.settings.presencePenalty;
+            }
+            if (llm.settings.logProbs) {
+              body.logprobs = llm.settings.logProbs;
+            }
+            if (llm.settings.topLogProbs) {
+              body.top_logprobs = llm.settings.topLogProbs;
+            }
+            if (llm.settings.logitBias !== undefined) {
+              body.logit_bias = llm.settings.logitBias;
+            }
+            if (llm.settings.responseFormat) {
+              body.response_format = llm.settings.responseFormat;
+            }
+            if (llm.settings.seed) {
+              body.seed = llm.settings.seed;
+            }
+            if (llm.settings.stream !== undefined) {
+              body.stream = llm.settings.stream;
+            }
+            if (llm.settings.topP) {
+              body.top_p = llm.settings.topP;
+            }
+            if (llm.settings.tools) {
+              body.tools = llm.settings.tools;
+            }
+            if (llm.settings.toolChoice) {
+              body.tool_choice = llm.settings.toolChoice;
+            }
+            if (llm.settings.user) {
+              body.user = llm.settings.user;
+            }
+
             const response = await fetch("/api/chat", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({
-                messages: llm.messages.map((m) => {
-                  return { content: m.content, role: m.role };
-                }),
-              }),
+              body: JSON.stringify(body),
             });
-            const reader = response?.body?.getReader();
-            const decoder = new TextDecoder("utf-8");
 
-            // Read the stream
-            let receivedLength = 0;
-            let chunks = [];
-            let chunkTexts = [];
-            while (true) {
-              const { done, value } = (await reader?.read()) as {
-                done: boolean;
-                value: Uint8Array;
-              };
+            if (!response.ok) {
+              throw new Error("An error occurred. Please try again.");
+            }
 
-              if (done) {
-                break;
+            if (llm.settings.stream === true) {
+              const reader = response?.body?.getReader();
+              const decoder = new TextDecoder("utf-8");
+
+              // Read the stream
+              let receivedLength = 0;
+              let chunks = [];
+              let chunkTexts = [];
+              while (true) {
+                const { done, value } = (await reader?.read()) as {
+                  done: boolean;
+                  value: Uint8Array;
+                };
+
+                if (done) {
+                  break;
+                }
+
+                chunks.push(value);
+                receivedLength += value.length;
+
+                // Decode chunk as text
+                const chunkText = decoder.decode(value, { stream: true });
+                chunkTexts.push(chunkText);
+                setLLM({
+                  ...llm,
+                  settings: {
+                    ...llm.settings,
+                    messages: [
+                      ...llm.settings.messages,
+                      {
+                        id: uuidv4(),
+                        role: OpenAIRole.assistant,
+                        content: chunkTexts.join(""),
+                      },
+                    ],
+                  },
+                });
               }
 
-              chunks.push(value);
-              receivedLength += value.length;
+              // Concatenate all chunks to create a final data string
+              const chunksAll = new Uint8Array(receivedLength);
+              let position = 0;
+              for (let chunk of chunks) {
+                chunksAll.set(chunk, position);
+                position += chunk.length;
+              }
 
-              // Decode chunk as text
-              const chunkText = decoder.decode(value, { stream: true });
-              chunkTexts.push(chunkText);
+              // Decode all chunks into text
+              const result = decoder.decode(chunksAll);
               setLLM({
                 ...llm,
-                messages: [
-                  ...llm.messages,
-                  {
-                    id: uuidv4(),
-                    role: OpenAIRole.assistant,
-                    content: chunkTexts.join(""),
-                  },
-                ],
+                settings: {
+                  ...llm.settings,
+                  messages: [
+                    ...llm.settings.messages,
+                    {
+                      id: uuidv4(),
+                      role: OpenAIRole.assistant,
+                      content: result,
+                    },
+                  ],
+                },
+              });
+            } else {
+              const data = await response.json();
+              setLLM({
+                ...llm,
+                settings: {
+                  ...llm.settings,
+                  messages: [
+                    ...llm.settings.messages,
+                    {
+                      id: uuidv4(),
+                      role: OpenAIRole.assistant,
+                      content: data.choices[0].message.content,
+                    },
+                  ],
+                },
               });
             }
-
-            // Concatenate all chunks to create a final data string
-            const chunksAll = new Uint8Array(receivedLength);
-            let position = 0;
-            for (let chunk of chunks) {
-              chunksAll.set(chunk, position);
-              position += chunk.length;
-            }
-
-            // Decode all chunks into text
-            const result = decoder.decode(chunksAll);
-            setLLM({
-              ...llm,
-              messages: [
-                ...llm.messages,
-                {
-                  id: uuidv4(),
-                  role: OpenAIRole.assistant,
-                  content: result,
-                },
-              ],
-            });
           } catch (error) {
             toast.error("An error occurred. Please try again.");
           } finally {
