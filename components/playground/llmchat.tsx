@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { LLM_VENDORS } from "@/lib/constants";
 import { ChatInterface, OpenAIRole } from "@/lib/types/playground_types";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { LucideChevronRight, MinusIcon, PlusCircleIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import Image from "next/image";
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { Message } from "./common";
@@ -25,6 +28,17 @@ export default function LLMChat({
 }) {
   const [busy, setBusy] = useState(false);
   const { theme } = useTheme();
+  const [apiKey, setApiKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const vendor = LLM_VENDORS.find(
+      (vendor) => vendor.label.toLowerCase() === llm.vendor.toLowerCase()
+    );
+    if (typeof window === "undefined" || !vendor) return;
+    const key = window.localStorage.getItem(vendor.value.toUpperCase());
+    setApiKey(key);
+  }, []);
+
   return (
     <Card className="w-[450px] h-[600px] p-1 relative group/card">
       <div className="overflow-y-scroll h-[535px]">
@@ -167,7 +181,10 @@ export default function LLMChat({
               body.user = llm.settings.user;
             }
 
-            const response = await fetch("/api/chat", {
+            // Get the API key from the browser store
+            body.apiKey = apiKey;
+
+            const response = await fetch("/api/chat/openai", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -176,7 +193,27 @@ export default function LLMChat({
             });
 
             if (!response.ok) {
-              throw new Error("An error occurred. Please try again.");
+              let message =
+                response.statusText || "An error occurred. Please try again.";
+              if (response.status === 401) {
+                toast.error(
+                  <div className="flex flex-col gap-2 items-start">
+                    <p>API key is invalid or not found. Update your API key</p>
+                    <div className="w-fit">
+                      <Link
+                        href={"/settings/keys"}
+                        className="underline text-sm font-semibold flex items-center"
+                      >
+                        Update API key
+                        <ArrowTopRightIcon className="h-4 w-4 ml-1" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              } else {
+                toast.error(message);
+              }
+              return;
             }
 
             if (llm.settings.stream === true) {
