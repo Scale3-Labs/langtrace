@@ -16,7 +16,7 @@ RUN npm install
 
 EXPOSE 3000
 
-CMD [ "/bin/sh", "-c", "npm run create-tables && npm run dev" ]
+CMD [ "/bin/sh", "-c", "npm run dev" ]
 
 
 # Intermediate image for building the application
@@ -36,10 +36,11 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package.json .
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/scripts ./scripts
 
 # Install only production dependencies
 RUN npm install --only=production --omit=dev
 
-CMD [ "/bin/sh", "-c", "npm run create-tables && npm start" ]
+CMD [ "/bin/sh", "-c", "npm start" ]
 
 EXPOSE 3000
