@@ -73,6 +73,25 @@ export function OpenAISettingsSheet({
 
   const SettingsForm = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      model: settings.model ?? "gpt-3.5-turbo",
+      stream: settings.stream ?? false,
+      maxTokens: settings.maxTokens ?? undefined,
+      temperature: settings.temperature ?? 1,
+      frequencyPenalty: settings.frequencyPenalty ?? 0,
+      presencePenalty: settings.presencePenalty ?? 0,
+      logitBias: settings.logitBias ?? undefined,
+      logProbs: settings.logProbs ?? false,
+      topLogProbs: settings.topLogProbs ?? undefined,
+      n: settings.n ?? 1,
+      seed: settings.seed ?? undefined,
+      stop: settings.stop ?? undefined,
+      topP: settings.topP ?? 1,
+      responseFormat: settings.responseFormat ?? "",
+      tools: settings.tools ?? [],
+      toolChoice: settings.toolChoice ?? "",
+      user: settings.user ?? "",
+    },
   });
 
   return (
@@ -355,7 +374,8 @@ export function OpenAISettingsSheet({
                   <FormControl>
                     <InputLarge
                       placeholder="{'type': 'function', 'function': {'name': 'my_function'}}"
-                      {...field}
+                      onChange={field.onChange}
+                      value={field.value as string}
                     />
                   </FormControl>
                   <FormMessage />

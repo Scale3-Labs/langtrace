@@ -136,11 +136,12 @@ export function Message({
   );
 }
 
-export function AddLLMChat({ onAdd }: { onAdd: () => void }) {
+export function AddLLMChat({ onAdd }: { onAdd: (vendor: string) => void }) {
+  const [vendor, setVendor] = useState("");
   return (
     <div className="w-[450px] h-[600px] rounded-lg border border-dashed border-muted-foreground flex items-center justify-center gap-1">
-      <LLMPicker />
-      <Button size={"sm"} onClick={onAdd}>
+      <LLMPicker setVendor={setVendor} />
+      <Button size={"sm"} onClick={() => onAdd(vendor)}>
         Add
         <PlusIcon className="ml-2 h-4 w-4" />
       </Button>

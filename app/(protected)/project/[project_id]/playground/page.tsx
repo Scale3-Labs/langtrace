@@ -19,17 +19,19 @@ export default function Page() {
     setLLMs((currentLLMs) => currentLLMs.filter((llm) => llm.id !== id));
   };
 
-  const handleAdd = () => {
-    const settings: OpenAISettings = {
-      messages: [],
-      model: "gpt-3.5-turbo" as OpenAIModel,
-    };
-    const openaiChat: OpenAIChatInterface = {
-      id: uuidv4(),
-      vendor: "openai",
-      settings: settings,
-    };
-    setLLMs((currentLLMs) => [...currentLLMs, openaiChat]);
+  const handleAdd = (vendor: string) => {
+    if (vendor === "openai") {
+      const settings: OpenAISettings = {
+        messages: [],
+        model: "gpt-3.5-turbo" as OpenAIModel,
+      };
+      const openaiChat: OpenAIChatInterface = {
+        id: uuidv4(),
+        vendor: "openai",
+        settings: settings,
+      };
+      setLLMs((currentLLMs) => [...currentLLMs, openaiChat]);
+    }
   };
 
   return (
@@ -54,7 +56,7 @@ export default function Page() {
             onRemove={() => handleRemove(llm.id)}
           />
         ))}
-        <AddLLMChat onAdd={handleAdd} />
+        <AddLLMChat onAdd={(vendor: string) => handleAdd(vendor)} />
       </div>
     </div>
   );

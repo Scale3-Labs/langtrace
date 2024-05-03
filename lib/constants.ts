@@ -186,9 +186,28 @@ export const DEFAULT_TESTS: Partial<Test>[] = [
   },
 ];
 
-export const LLM_VENDORS = [
+export const LLM_VENDOR_APIS = [
   {
     value: "OPENAI_API_KEY",
     label: "OpenAI",
+  },
+];
+
+export const LLM_VENDORS = [
+  {
+    value: "openai",
+    label: "OpenAI",
+  },
+  {
+    value: "anthropic",
+    label: "Anthropic",
+  },
+  {
+    value: "cohere",
+    label: "Cohere",
+  },
+  {
+    value: "groq",
+    label: "Groq",
   },
 ];

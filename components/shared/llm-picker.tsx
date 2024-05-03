@@ -1,4 +1,3 @@
-"use client";
 import { Check, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 
@@ -15,28 +14,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { LLM_VENDORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-const llms = [
-  {
-    value: "openai",
-    label: "OpenAI",
-  },
-  {
-    value: "anthropic",
-    label: "Anthropic",
-  },
-  {
-    value: "cohere",
-    label: "Cohere",
-  },
-  {
-    value: "groq",
-    label: "Groq",
-  },
-];
-
-export default function LLMPicker() {
+export default function LLMPicker({
+  setVendor,
+}: {
+  setVendor: (vendors: string) => void;
+}) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
 
@@ -50,7 +35,7 @@ export default function LLMPicker() {
           className="w-[200px] justify-between"
         >
           {value
-            ? llms.find((llm) => llm.value === value)?.label
+            ? LLM_VENDORS.find((llm) => llm.value === value)?.label
             : "Select LLM provider..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -60,12 +45,13 @@ export default function LLMPicker() {
           <CommandInput placeholder="Search framework..." />
           <CommandEmpty>No LLM provider found.</CommandEmpty>
           <CommandGroup>
-            {llms.map((llm) => (
+            {LLM_VENDORS.map((llm) => (
               <CommandItem
                 key={llm.value}
                 value={llm.value}
                 onSelect={(currentValue) => {
                   setValue(currentValue === value ? "" : currentValue);
+                  setVendor(currentValue === value ? "" : currentValue);
                   setOpen(false);
                 }}
               >

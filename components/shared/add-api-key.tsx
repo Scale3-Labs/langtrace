@@ -23,7 +23,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { LLM_VENDORS } from "@/lib/constants";
+import { LLM_VENDOR_APIS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
@@ -102,7 +102,7 @@ export default function AddApiKey({
                         className="w-full justify-between"
                       >
                         {vendor
-                          ? LLM_VENDORS.find(
+                          ? LLM_VENDOR_APIS.find(
                               (v) => v.value.toLowerCase() === vendor
                             )?.label
                           : "Select vendor..."}
@@ -114,7 +114,7 @@ export default function AddApiKey({
                         <CommandInput placeholder="Search vendor..." />
                         <CommandEmpty>No vendor found.</CommandEmpty>
                         <CommandGroup>
-                          {LLM_VENDORS.map((v) => (
+                          {LLM_VENDOR_APIS.map((v) => (
                             <CommandItem
                               key={v.value}
                               value={v.value}
