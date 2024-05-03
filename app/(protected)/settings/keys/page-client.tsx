@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { LLM_VENDORS } from "@/lib/constants";
+import { LLM_VENDORS, LLM_VENDOR_APIS } from "@/lib/constants";
 import { Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -23,9 +23,13 @@ export default function TeamView() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const keys = LLM_VENDORS.map((vendor) => {
-      const key = window.localStorage.getItem(vendor.value.toUpperCase());
+      const keyName = LLM_VENDOR_APIS.find(
+        (api) => api.label.toUpperCase() === vendor.value.toUpperCase()
+      );
+      if (!keyName) return null;
+      const key = window.localStorage.getItem(keyName.value.toUpperCase());
       if (!key) return null;
-      return { value: vendor.value, label: vendor.label, key };
+      return { value: keyName.value.toUpperCase(), label: vendor.label, key };
     });
     if (keys.length === 0) return setVendorKeys([]);
     // filter out null values
@@ -66,9 +70,7 @@ export default function TeamView() {
                       variant={"destructive"}
                       onClick={() => {
                         if (typeof window === "undefined") return null;
-                        window.localStorage.removeItem(
-                          vendor.value.toUpperCase()
-                        );
+                        window.localStorage.removeItem(vendor.value);
                         toast.success("API Key removed");
                       }}
                       className="text-destructive"

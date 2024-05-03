@@ -22,6 +22,12 @@ export enum OpenAIModel {
   "gpt-3.5-turbo" = "gpt-3.5-turbo",
 }
 
+export enum AnthropicModel {
+  "claude-3-opus-20240229" = "claude-3-opus-20240229",
+  "claude-3-sonnet-20240229" = "claude-3-sonnet-20240229",
+  "claude-3-haiku-20240307" = "claude-3-haiku-20240307",
+}
+
 export const openAIModels = [
   {
     value: "gpt-4-turbo-preview",
@@ -81,6 +87,21 @@ export const openAIModels = [
   },
 ];
 
+export const anthropicModels = [
+  {
+    value: "claude-3-opus-20240229",
+    label: "Claude 3 (Opus, 2024-02-29)",
+  },
+  {
+    value: "claude-3-sonnet-20240229",
+    label: "Claude 3 (Sonnet, 2024-02-29)",
+  },
+  {
+    value: "claude-3-haiku-20240307",
+    label: "Claude 3 (Haiku, 2024-03-07)",
+  },
+];
+
 export interface OpenAITool {
   type: "function";
   function: {
@@ -117,12 +138,29 @@ export interface OpenAISettings {
   user?: string;
 }
 
+export interface AnthropicSettings {
+  model: string;
+  messages: Conversation[];
+  maxTokens: number;
+  metadata?: any;
+  stream?: boolean;
+  system?: string;
+  temperature?: number;
+  tools?: any;
+  topK?: number;
+  topP?: number;
+}
+
 export interface ChatInterface {
   id: string;
   vendor: string;
-  settings: OpenAISettings;
+  settings: OpenAISettings | AnthropicSettings;
 }
 
 export interface OpenAIChatInterface extends ChatInterface {
   settings: OpenAISettings;
+}
+
+export interface AnthropicChatInterface extends ChatInterface {
+  settings: AnthropicSettings;
 }

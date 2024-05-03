@@ -17,7 +17,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { OpenAISettings } from "@/lib/types/playground_types";
+import {
+  AnthropicSettings,
+  OpenAISettings,
+} from "@/lib/types/playground_types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronUp, SettingsIcon } from "lucide-react";
 import Image from "next/image";
@@ -28,7 +31,7 @@ import { z } from "zod";
 import { Info } from "../shared/info";
 import { Input, InputLarge } from "../ui/input";
 import { Label } from "../ui/label";
-import { OpenAIModelsDropDown } from "./model-dropdown";
+import { ModelsDropDown } from "./model-dropdown";
 
 export function OpenAISettingsSheet({
   settings,
@@ -88,7 +91,7 @@ export function OpenAISettingsSheet({
       stop: settings.stop ?? undefined,
       topP: settings.topP ?? 1,
       responseFormat: settings.responseFormat ?? "",
-      tools: settings.tools ?? [],
+      tools: settings.tools ?? "[]",
       toolChoice: settings.toolChoice ?? "",
       user: settings.user ?? "",
     },
@@ -126,8 +129,10 @@ export function OpenAISettingsSheet({
                 if (data.stream !== undefined) {
                   newSettings["stream"] = data.stream;
                 }
-                if (data.model !== undefined) {
+                if (data.model !== undefined && (data.model as string) !== "") {
                   newSettings["model"] = data.model;
+                } else {
+                  throw new Error("Model is required");
                 }
                 if (data.maxTokens !== undefined && !isNaN(data.maxTokens)) {
                   newSettings["maxTokens"] = data.maxTokens;
@@ -224,9 +229,10 @@ export function OpenAISettingsSheet({
                     />
                   </FormLabel>
                   <FormControl>
-                    <OpenAIModelsDropDown
+                    <ModelsDropDown
                       value={field.value}
                       setValue={field.onChange}
+                      vendor="openai"
                     />
                   </FormControl>
                   <FormMessage />
@@ -633,6 +639,369 @@ export function OpenAISettingsSheet({
                             }}
                             type="number"
                             placeholder="Top P"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </>
+            )}
+            <SheetFooter>
+              <Button type="submit">Save changes</Button>
+            </SheetFooter>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+export function AnthropicSettingsSheet({
+  settings,
+  setSettings,
+}: {
+  settings: AnthropicSettings;
+  setSettings: any;
+}) {
+  const [open, setOpen] = useState(false);
+  const [advancedSettings, setAdvancedSettings] = useState(false);
+  const schema = z.object({
+    model: z.string(),
+    stream: z.boolean().optional(),
+    maxTokens: z.union([z.number().positive(), z.nan()]).optional(),
+    metadata: z.any().optional(),
+    system: z.string().optional(),
+    temperature: z
+      .union([
+        z.number().positive().min(0),
+        z.number().positive().max(2),
+        z.nan(),
+      ])
+      .optional(),
+    tools: z.any().optional(),
+    topK: z.union([z.number().positive(), z.nan()]).optional(),
+    topP: z.union([z.number().positive(), z.nan()]).optional(),
+  });
+
+  const SettingsForm = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      model: settings.model ?? "gpt-3.5-turbo",
+      stream: settings.stream ?? false,
+      maxTokens: settings.maxTokens ?? undefined,
+      temperature: settings.temperature ?? 1,
+      tools: settings.tools ?? [],
+      topK: settings.topK ?? undefined,
+      topP: settings.topP ?? 1,
+      metadata: settings.metadata ?? undefined,
+      system: settings.system ?? "",
+    },
+  });
+
+  return (
+    <Sheet onOpenChange={setOpen} open={open}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size={"sm"}>
+          <div className="flex gap-2 items-center">
+            <SettingsIcon className="h-5 w-5" />
+            <p className="text-xs font-semibold">Anthropic</p>
+            <Image
+              alt="Anthropic Logo"
+              src="/anthropic.png"
+              width={30}
+              height={30}
+              className="p-[3px] rounded-full dark:bg-gray-400"
+            />
+          </div>
+        </Button>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Chat Settings</SheetTitle>
+          <SheetDescription>
+            Configure the settings for the Anthropic chat.
+          </SheetDescription>
+        </SheetHeader>
+        <Form {...SettingsForm}>
+          <form
+            onSubmit={SettingsForm.handleSubmit(async (data) => {
+              try {
+                const newSettings: any = {};
+                if (data.model !== undefined && (data.model as string) !== "") {
+                  newSettings["model"] = data.model;
+                } else {
+                  throw new Error("Model is required");
+                }
+                if (data.stream !== undefined) {
+                  newSettings["stream"] = data.stream;
+                }
+                if (data.maxTokens !== undefined && !isNaN(data.maxTokens)) {
+                  newSettings["maxTokens"] = data.maxTokens;
+                }
+                if (
+                  data.temperature !== undefined &&
+                  !isNaN(data.temperature)
+                ) {
+                  if (!(data.temperature >= 0 && data.temperature <= 2)) {
+                    throw new Error("Temperature must be between 0 and 2");
+                  }
+                  newSettings["temperature"] = data.temperature;
+                }
+                if (data.tools !== undefined) {
+                  newSettings["tools"] = data.tools;
+                }
+                if (data.topK !== undefined && !isNaN(data.topK)) {
+                  newSettings["topK"] = data.topK;
+                }
+                if (data.topP !== undefined && !isNaN(data.topP)) {
+                  newSettings["topP"] = data.topP;
+                }
+                if (data.metadata !== undefined) {
+                  newSettings["metadata"] = data.metadata;
+                }
+                if (data.system !== undefined) {
+                  newSettings["system"] = data.system;
+                }
+                setSettings({ ...settings, ...newSettings });
+                toast.success("Settings saved");
+                setOpen(false);
+              } catch (error: any) {
+                toast.error("Error saving settings", {
+                  description: error?.message,
+                });
+              }
+            })}
+            className="mt-6 px-2 flex flex-col gap-4 overflow-y-scroll h-screen pb-48"
+          >
+            <FormField
+              control={SettingsForm.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Model
+                    <Info
+                      information="The model that will complete your prompt."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <ModelsDropDown
+                      value={field.value}
+                      setValue={field.onChange}
+                      vendor="anthropic"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={SettingsForm.control}
+              name="stream"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        onCheckedChange={(checked) => field.onChange(checked)}
+                        checked={field.value}
+                      />
+                      <div className="flex items-center">
+                        <Label>Stream</Label>
+                        <Info
+                          information="Whether to incrementally stream the response using server-sent events."
+                          className="inline-block ml-2"
+                        />
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={SettingsForm.control}
+                name="maxTokens"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Max Tokens
+                      <Info
+                        information="The maximum number of tokens to generate before stopping."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        min={0}
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        type="number"
+                        placeholder="Max Tokens"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={SettingsForm.control}
+                name="temperature"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Temperature
+                      <Info
+                        information="Amount of randomness injected into the response."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        min={0}
+                        max={1}
+                        step={0.1}
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        type="number"
+                        placeholder="Temperature"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={SettingsForm.control}
+              name="system"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    System
+                    <Info
+                      information="A system prompt is a way of providing context and instructions to Claude, such as specifying a particular goal or role."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <InputLarge
+                      placeholder="This is a system prompt"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={SettingsForm.control}
+              name="tools"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Tools
+                    <Info
+                      information="[beta] Definitions of tools that the model may use. If you include tools in your API request, the model may return tool_use content blocks that represent the model's use of those tools. You can then run those tools using the tool input generated by the model and then optionally return results back to the model using tool_result content blocks. Each tool definition includes: name: Name of the tool, description: Optional, but strongly-recommended description of the tool, input_schema: JSON schema for the tool input shape that the model will produce in tool_use output content blocks."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <InputLarge
+                      placeholder="[
+                        {
+                          'name': 'get_stock_price',
+                          'description': 'Get the current stock price for a given ticker symbol.',
+                          'input_schema': {
+                            'type': 'object',
+                            'properties': {
+                              'ticker': {
+                                'type': 'string',
+                                'description': 'The stock ticker symbol, e.g. AAPL for Apple Inc.'
+                              }
+                            },
+                            'required': ['ticker']
+                          }
+                        }
+                      ]"
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              className="w-fit min-h-[40px]"
+              type="button"
+              variant={"ghost"}
+              size={"sm"}
+              onClick={() => setAdvancedSettings(!advancedSettings)}
+            >
+              Advanced settings{" "}
+              {advancedSettings ? (
+                <ChevronUp className="ml-2 h-4 w-4" />
+              ) : (
+                <ChevronDown className="ml-2 h-4 w-4" />
+              )}
+            </Button>
+            {advancedSettings && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={SettingsForm.control}
+                    name="topP"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Top P
+                          <Info
+                            information="Use nucleus sampling. In nucleus sampling, we compute the cumulative distribution over all the options for each subsequent token in decreasing probability order and cut it off once it reaches a particular probability specified by top_p. You should either alter temperature or top_p, but not both."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="P"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={SettingsForm.control}
+                    name="topK"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Top K
+                          <Info
+                            information="Only sample from the top K options for each subsequent token. Used to remove 'long tail' low probability responses."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="K"
                           />
                         </FormControl>
                         <FormMessage />

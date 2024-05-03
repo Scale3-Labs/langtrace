@@ -14,18 +14,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { openAIModels } from "@/lib/types/playground_types";
+import { anthropicModels, openAIModels } from "@/lib/types/playground_types";
 import { cn } from "@/lib/utils";
 
-export function OpenAIModelsDropDown({
+export function ModelsDropDown({
   value,
   setValue,
+  vendor,
 }: {
   value: string;
   setValue: (value: string) => void;
+  vendor: string;
 }) {
   const [open, setOpen] = React.useState(false);
-
+  let models = openAIModels;
+  if (vendor === "anthropic") {
+    models = anthropicModels;
+  }
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -36,7 +41,7 @@ export function OpenAIModelsDropDown({
           className="w-full justify-between"
         >
           {value
-            ? openAIModels.find((model) => model.value === value)?.label
+            ? models.find((model) => model.value === value)?.label
             : "Select model..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -46,7 +51,7 @@ export function OpenAIModelsDropDown({
           <CommandInput placeholder="Search model..." />
           <CommandEmpty>No model found.</CommandEmpty>
           <CommandGroup>
-            {openAIModels.map((model) => (
+            {models.map((model) => (
               <CommandItem
                 key={model.value}
                 value={model.value}

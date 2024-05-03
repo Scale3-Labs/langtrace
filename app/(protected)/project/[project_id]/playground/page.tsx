@@ -3,6 +3,8 @@
 import { AddLLMChat } from "@/components/playground/common";
 import LLMChat from "@/components/playground/llmchat";
 import {
+  AnthropicModel,
+  AnthropicSettings,
   ChatInterface,
   OpenAIChatInterface,
   OpenAIModel,
@@ -31,6 +33,18 @@ export default function Page() {
         settings: settings,
       };
       setLLMs((currentLLMs) => [...currentLLMs, openaiChat]);
+    } else if (vendor === "anthropic") {
+      const settings: AnthropicSettings = {
+        messages: [],
+        model: "claude-3-opus-20240229" as AnthropicModel,
+        maxTokens: 100,
+      };
+      const anthropicChat: ChatInterface = {
+        id: uuidv4(),
+        vendor: "anthropic",
+        settings: settings,
+      };
+      setLLMs((currentLLMs) => [...currentLLMs, anthropicChat]);
     }
   };
 

@@ -191,6 +191,18 @@ export const LLM_VENDOR_APIS = [
     value: "OPENAI_API_KEY",
     label: "OpenAI",
   },
+  {
+    value: "ANTHROPIC_API_KEY",
+    label: "Anthropic",
+  },
+  {
+    value: "COHERE_API_KEY",
+    label: "Cohere",
+  },
+  {
+    value: "GROQ_API_KEY",
+    label: "Groq",
+  },
 ];
 
 export const LLM_VENDORS = [

@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LLM_VENDORS } from "@/lib/constants";
-import { ChatInterface, OpenAIRole } from "@/lib/types/playground_types";
+import { LLM_VENDOR_APIS } from "@/lib/constants";
+import {
+  AnthropicChatInterface,
+  AnthropicSettings,
+  ChatInterface,
+  OpenAIChatInterface,
+  OpenAIRole,
+  OpenAISettings,
+} from "@/lib/types/playground_types";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { LucideChevronRight, MinusIcon, PlusCircleIcon } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -10,9 +17,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { openAIHandler } from "./chat-handlers";
+import { anthropicHandler, openAIHandler } from "./chat-handlers";
 import { Message } from "./common";
-import { OpenAISettingsSheet } from "./settings-sheet";
+import { AnthropicSettingsSheet, OpenAISettingsSheet } from "./settings-sheet";
 
 function identity<T>(value: T): T {
   return value;
@@ -32,11 +39,11 @@ export default function LLMChat({
   const [apiKey, setApiKey] = useState<string | null>(null);
 
   useEffect(() => {
-    const vendor = LLM_VENDORS.find(
+    const vendor = LLM_VENDOR_APIS.find(
       (vendor) => vendor.label.toLowerCase() === llm.vendor.toLowerCase()
     );
     if (typeof window === "undefined" || !vendor) return;
-    const key = window.localStorage.getItem(vendor.value.toUpperCase());
+    const key = window.localStorage.getItem(vendor.value);
     setApiKey(key);
   }, []);
 
@@ -102,7 +109,15 @@ export default function LLMChat({
       <div className="absolute -top-6 -left-3">
         {llm.vendor === "openai" && (
           <OpenAISettingsSheet
-            settings={llm.settings}
+            settings={llm.settings as OpenAISettings}
+            setSettings={(updatedSettings: any) => {
+              setLLM({ ...llm, settings: updatedSettings });
+            }}
+          />
+        )}
+        {llm.vendor === "anthropic" && (
+          <AnthropicSettingsSheet
+            settings={llm.settings as AnthropicSettings}
             setSettings={(updatedSettings: any) => {
               setLLM({ ...llm, settings: updatedSettings });
             }}
@@ -128,7 +143,15 @@ export default function LLMChat({
           try {
             let response: any;
             if (llm.vendor === "openai") {
-              response = await openAIHandler(llm, apiKey || "");
+              response = await openAIHandler(
+                llm as OpenAIChatInterface,
+                apiKey || ""
+              );
+            } else if (llm.vendor === "anthropic") {
+              response = await anthropicHandler(
+                llm as AnthropicChatInterface,
+                apiKey || ""
+              );
             }
             if (!response.ok) {
               let message =
