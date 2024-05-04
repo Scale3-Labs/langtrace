@@ -51,7 +51,7 @@ export default function LLMChat({
   const { theme } = useTheme();
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [cost, setCost] = useState("");
-  const [latency, setLatency] = useState();
+  const [latency, setLatency] = useState("");
 
   useEffect(() => {
     const vendor = LLM_VENDOR_APIS.find(
@@ -193,6 +193,8 @@ export default function LLMChat({
         onClick={async () => {
           setBusy(true);
           try {
+            // Calculate latency
+            const startTime = performance.now();
             let response: any;
             if (llm.vendor === "openai") {
               response = await openAIHandler(
@@ -281,6 +283,8 @@ export default function LLMChat({
                     </div>
                   </div>
                 );
+                const endTime = performance.now();
+                setLatency((endTime - startTime).toFixed(2));
                 return;
               }
 
@@ -318,6 +322,9 @@ export default function LLMChat({
                   ],
                 },
               });
+
+              const endTime = performance.now();
+              setLatency((endTime - startTime).toFixed(2));
 
               // cost calculation
               const inputContent =
@@ -363,6 +370,8 @@ export default function LLMChat({
                 }
                 return;
               }
+              const endTime = performance.now();
+              setLatency((endTime - startTime).toFixed(2));
               let message = "";
               if (llm.vendor === "openai") {
                 if (data?.choices?.length > 0) {
