@@ -6,6 +6,7 @@ import {
   AnthropicModel,
   AnthropicSettings,
   ChatInterface,
+  CohereSettings,
   OpenAIChatInterface,
   OpenAIModel,
   OpenAISettings,
@@ -45,6 +46,17 @@ export default function Page() {
         settings: settings,
       };
       setLLMs((currentLLMs) => [...currentLLMs, anthropicChat]);
+    } else if (vendor === "cohere") {
+      const settings: CohereSettings = {
+        messages: [],
+        model: "command-r-plus",
+      };
+      const cohereChat: ChatInterface = {
+        id: uuidv4(),
+        vendor: "cohere",
+        settings: settings,
+      };
+      setLLMs((currentLLMs) => [...currentLLMs, cohereChat]);
     }
   };
 

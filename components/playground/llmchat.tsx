@@ -5,6 +5,9 @@ import {
   AnthropicChatInterface,
   AnthropicSettings,
   ChatInterface,
+  CohereAIRole,
+  CohereChatInterface,
+  CohereSettings,
   OpenAIChatInterface,
   OpenAIRole,
   OpenAISettings,
@@ -17,9 +20,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
-import { anthropicHandler, openAIHandler } from "./chat-handlers";
+import {
+  anthropicHandler,
+  cohereHandler,
+  openAIHandler,
+} from "./chat-handlers";
 import { Message } from "./common";
-import { AnthropicSettingsSheet, OpenAISettingsSheet } from "./settings-sheet";
+import {
+  AnthropicSettingsSheet,
+  CohereSettingsSheet,
+  OpenAISettingsSheet,
+} from "./settings-sheet";
 
 function identity<T>(value: T): T {
   return value;
@@ -94,7 +105,10 @@ export default function LLMChat({
                   ...llm.settings.messages,
                   {
                     id: uuidv4(),
-                    role: OpenAIRole.user,
+                    role:
+                      llm.vendor === "cohere"
+                        ? CohereAIRole.user
+                        : OpenAIRole.user,
                     content: "",
                   },
                 ],
@@ -118,6 +132,14 @@ export default function LLMChat({
         {llm.vendor === "anthropic" && (
           <AnthropicSettingsSheet
             settings={llm.settings as AnthropicSettings}
+            setSettings={(updatedSettings: any) => {
+              setLLM({ ...llm, settings: updatedSettings });
+            }}
+          />
+        )}
+        {llm.vendor === "cohere" && (
+          <CohereSettingsSheet
+            settings={llm.settings as CohereSettings}
             setSettings={(updatedSettings: any) => {
               setLLM({ ...llm, settings: updatedSettings });
             }}
@@ -150,6 +172,11 @@ export default function LLMChat({
             } else if (llm.vendor === "anthropic") {
               response = await anthropicHandler(
                 llm as AnthropicChatInterface,
+                apiKey || ""
+              );
+            } else if (llm.vendor === "cohere") {
+              response = await cohereHandler(
+                llm as CohereChatInterface,
                 apiKey || ""
               );
             }
@@ -186,7 +213,10 @@ export default function LLMChat({
                       ...llm.settings.messages,
                       {
                         id: uuidv4(),
-                        role: OpenAIRole.assistant,
+                        role:
+                          llm.vendor === "cohere"
+                            ? CohereAIRole.chatbot
+                            : OpenAIRole.assistant,
                         content: chunkTexts.join(""),
                       },
                     ],
@@ -233,7 +263,10 @@ export default function LLMChat({
                     ...llm.settings.messages,
                     {
                       id: uuidv4(),
-                      role: OpenAIRole.assistant,
+                      role:
+                        llm.vendor === "cohere"
+                          ? CohereAIRole.chatbot
+                          : OpenAIRole.assistant,
                       content: result,
                     },
                   ],
@@ -294,7 +327,10 @@ export default function LLMChat({
                     ...llm.settings.messages,
                     {
                       id: uuidv4(),
-                      role: OpenAIRole.assistant,
+                      role:
+                        llm.vendor === "cohere"
+                          ? CohereAIRole.chatbot
+                          : OpenAIRole.assistant,
                       content: message,
                     },
                   ],

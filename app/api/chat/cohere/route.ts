@@ -1,5 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { AnthropicStream, StreamingTextResponse } from "ai";
+import { CohereStream, StreamingTextResponse } from "ai";
+import { CohereClient } from "cohere-ai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -8,22 +8,34 @@ export async function POST(req: Request) {
     const isStream = data.stream;
     const apiKey = data.apiKey;
 
-    // Create an Anthropic API client
-    const anthropic = new Anthropic({
-      apiKey: apiKey,
+    // Create an Cohere API client
+    const cohere = new CohereClient({
+      token: apiKey,
     });
 
     // remove apiKey from the body
     delete data.apiKey;
 
+    // extract last message from data.messages
+    const lastMessage = data?.messages[data?.messages?.length - 1]?.message;
+
+    // remove the last message from data.messages
+    data.messages.pop();
+    const messageHistory = data.messages;
+
+    // delete data.messages;
+    delete data.messages;
+
     // Ask OpenAI for a streaming chat completion given the prompt
-    const response = await anthropic.messages.create({
+    const response = await cohere.chat({
+      chatHistory: messageHistory,
+      message: lastMessage,
       ...data,
     });
 
     // Convert the response into a friendly text-stream
     if (isStream) {
-      const stream = AnthropicStream(response as any);
+      const stream = CohereStream(response as any);
       return new StreamingTextResponse(stream);
     }
 

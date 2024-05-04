@@ -14,7 +14,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { anthropicModels, openAIModels } from "@/lib/types/playground_types";
+import {
+  anthropicModels,
+  cohereModels,
+  openAIModels,
+} from "@/lib/types/playground_types";
 import { cn } from "@/lib/utils";
 
 export function ModelsDropDown({
@@ -30,6 +34,8 @@ export function ModelsDropDown({
   let models = openAIModels;
   if (vendor === "anthropic") {
     models = anthropicModels;
+  } else if (vendor === "cohere") {
+    models = cohereModels;
   }
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -1,7 +1,11 @@
 import LLMPicker from "@/components/shared/llm-picker";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Conversation, OpenAIRole } from "@/lib/types/playground_types";
+import {
+  CohereAIRole,
+  Conversation,
+  OpenAIRole,
+} from "@/lib/types/playground_types";
 import { cn } from "@/lib/utils";
 import { MinusCircleIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -10,7 +14,7 @@ export function RoleBadge({
   role,
   onSelect,
 }: {
-  role: OpenAIRole;
+  role: OpenAIRole | CohereAIRole;
   onSelect: () => void;
 }) {
   return (

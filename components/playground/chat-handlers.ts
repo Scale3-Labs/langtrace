@@ -1,5 +1,6 @@
 import {
   AnthropicChatInterface,
+  CohereChatInterface,
   OpenAIChatInterface,
 } from "@/lib/types/playground_types";
 
@@ -121,6 +122,91 @@ export async function anthropicHandler(
   body.apiKey = apiKey;
 
   const response = await fetch("/api/chat/anthropic", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  return response;
+}
+
+export async function cohereHandler(
+  llm: CohereChatInterface,
+  apiKey: string
+): Promise<any> {
+  const body: any = {};
+  if (llm.settings.messages.length > 0) {
+    body.messages = llm.settings.messages.map((m) => {
+      return { content: m.content, role: m.role };
+    });
+  }
+  if (llm.settings.model) {
+    body.model = llm.settings.model;
+  }
+  if (llm.settings.temperature) {
+    body.temperature = llm.settings.temperature;
+  }
+  if (llm.settings.maxTokens) {
+    body.max_tokens = llm.settings.maxTokens;
+  }
+  if (llm.settings.maxInputTokens) {
+    body.max_input_tokens = llm.settings.maxInputTokens;
+  }
+  if (llm.settings.stream !== undefined) {
+    body.stream = llm.settings.stream;
+  }
+  if (llm.settings.preamble) {
+    body.preamble = llm.settings.preamble;
+  }
+  if (llm.settings.conversationId) {
+    body.conversation_id = llm.settings.conversationId;
+  }
+  if (llm.settings.promptTruncation) {
+    body.prompt_truncation = llm.settings.promptTruncation;
+  }
+  if (llm.settings.connectors) {
+    body.connectors = llm.settings.connectors;
+  }
+  if (llm.settings.searchQueriesOnly) {
+    body.search_queries_only = llm.settings.searchQueriesOnly;
+  }
+  if (llm.settings.documents) {
+    body.documents = llm.settings.documents;
+  }
+  if (llm.settings.citationQuality) {
+    body.citation_quality = llm.settings.citationQuality;
+  }
+  if (llm.settings.k) {
+    body.k = llm.settings.k;
+  }
+  if (llm.settings.p) {
+    body.p = llm.settings.p;
+  }
+  if (llm.settings.seed) {
+    body.seed = llm.settings.seed;
+  }
+  if (llm.settings.stopSequences) {
+    body.stop_sequences = llm.settings.stopSequences;
+  }
+  if (llm.settings.frequencyPenalty) {
+    body.frequency_penalty = llm.settings.frequencyPenalty;
+  }
+  if (llm.settings.presencePenalty) {
+    body.presence_penalty = llm.settings.presencePenalty;
+  }
+  if (llm.settings.tools && llm.settings.tools.length > 0) {
+    body.tools = llm.settings.tools;
+  }
+  if (llm.settings.toolResults) {
+    body.tool_results = llm.settings.toolResults;
+  }
+
+  // Get the API key from the browser store
+  body.apiKey = apiKey;
+
+  const response = await fetch("/api/chat/cohere", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

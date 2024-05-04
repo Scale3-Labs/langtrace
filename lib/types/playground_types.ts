@@ -1,6 +1,6 @@
 export interface Conversation {
   id: string;
-  role: OpenAIRole;
+  role: OpenAIRole | CohereAIRole;
   content: string;
   name?: string;
 }
@@ -102,10 +102,42 @@ export const anthropicModels = [
   },
 ];
 
+export const cohereModels = [
+  {
+    value: "command-r-plus",
+    label: "Command R Plus",
+  },
+  {
+    value: "command-r",
+    label: "Command R",
+  },
+  {
+    value: "command",
+    label: "Command",
+  },
+  {
+    value: "command-nightly",
+    label: "Command Nightly",
+  },
+  {
+    value: "command-light",
+    label: "Command Light",
+  },
+  {
+    value: "command-light-nightly",
+    label: "Command Light Nightly",
+  },
+];
+
 export enum OpenAIRole {
   "user" = "user",
   "assistant" = "assistant",
   "system" = "system",
+}
+
+export enum CohereAIRole {
+  "user" = "USER",
+  "chatbot" = "CHATBOT",
 }
 
 export interface OpenAISettings {
@@ -130,7 +162,7 @@ export interface OpenAISettings {
 }
 
 export interface AnthropicSettings {
-  model: string;
+  model: AnthropicModel;
   messages: Conversation[];
   maxTokens: number;
   metadata?: any;
@@ -142,10 +174,34 @@ export interface AnthropicSettings {
   topP?: number;
 }
 
+export interface CohereSettings {
+  messages: Conversation[];
+  model?: string;
+  stream?: boolean;
+  preamble?: string;
+  conversationId?: string;
+  promptTruncation?: string;
+  connectors?: any;
+  searchQueriesOnly?: boolean;
+  documents?: any;
+  citationQuality?: string;
+  temperature?: number;
+  maxTokens?: number;
+  maxInputTokens?: number;
+  k?: number;
+  p?: number;
+  seed?: number;
+  stopSequences?: any;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
+  tools?: any;
+  toolResults?: any;
+}
+
 export interface ChatInterface {
   id: string;
   vendor: string;
-  settings: OpenAISettings | AnthropicSettings;
+  settings: OpenAISettings | AnthropicSettings | CohereSettings;
 }
 
 export interface OpenAIChatInterface extends ChatInterface {
@@ -154,4 +210,8 @@ export interface OpenAIChatInterface extends ChatInterface {
 
 export interface AnthropicChatInterface extends ChatInterface {
   settings: AnthropicSettings;
+}
+
+export interface CohereChatInterface extends ChatInterface {
+  settings: CohereSettings;
 }

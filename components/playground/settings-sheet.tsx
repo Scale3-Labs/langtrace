@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import {
   AnthropicSettings,
+  CohereSettings,
   OpenAISettings,
 } from "@/lib/types/playground_types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1073,6 +1074,761 @@ export function AnthropicSettingsSheet({
                     )}
                   />
                 </div>
+              </>
+            )}
+            <SheetFooter>
+              <Button type="submit">Save changes</Button>
+            </SheetFooter>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+export function CohereSettingsSheet({
+  settings,
+  setSettings,
+}: {
+  settings: CohereSettings;
+  setSettings: any;
+}) {
+  const [open, setOpen] = useState(false);
+  const [advancedSettings, setAdvancedSettings] = useState(false);
+  const schema = z.object({
+    model: z.string().optional(),
+    stream: z.boolean().optional(),
+    preamble: z.string().optional(),
+    temperature: z.number().optional(),
+    maxTokens: z.number().optional(),
+    maxInputTokens: z.number().optional(),
+    tools: z.string().optional(),
+    toolResults: z.string().optional(),
+    conversationId: z.string().optional(),
+    connectors: z.string().optional(),
+    searchQueriesOnly: z.boolean().optional(),
+    documents: z.string().optional(),
+    promptTruncation: z.string().optional(),
+    citationQuality: z.string().optional(),
+    k: z.number().optional(),
+    p: z.number().optional(),
+    seed: z.number().optional(),
+    stopSequences: z.string().optional(),
+    frequencyPenalty: z.number().optional(),
+    presencePenalty: z.number().optional(),
+  });
+
+  const SettingsForm = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      model: settings.model ?? "command-r-plus",
+      stream: settings.stream ?? false,
+      preamble: settings.preamble ?? "",
+      temperature: settings.temperature ?? 0.3,
+      maxTokens: settings.maxTokens ?? undefined,
+      maxInputTokens: settings.maxInputTokens ?? undefined,
+      tools: settings.tools ?? "",
+      toolResults: settings.toolResults ?? "",
+      conversationId: settings.conversationId ?? "",
+      connectors: settings.connectors ?? "",
+      searchQueriesOnly: settings.searchQueriesOnly ?? false,
+      documents: settings.documents ?? "",
+      promptTruncation: settings.promptTruncation ?? "AUTO",
+      citationQuality: settings.citationQuality ?? "accurate",
+      k: settings.k ?? 0,
+      p: settings.p ?? 0.75,
+      seed: settings.seed ?? undefined,
+      stopSequences: settings.stopSequences ?? "",
+      frequencyPenalty: settings.frequencyPenalty ?? 0,
+      presencePenalty: settings.presencePenalty ?? 0,
+    },
+  });
+
+  return (
+    <Sheet onOpenChange={setOpen} open={open}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size={"sm"}>
+          <div className="flex gap-2 items-center">
+            <SettingsIcon className="h-5 w-5" />
+            <p className="text-xs font-semibold">Cohere</p>
+            <Image
+              alt="Cohere Logo"
+              src="/cohere.png"
+              width={30}
+              height={30}
+              className="p-[3px] rounded-full dark:bg-gray-400"
+            />
+          </div>
+        </Button>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Chat Settings</SheetTitle>
+          <SheetDescription>
+            Configure the settings for the Anthropic chat.
+          </SheetDescription>
+        </SheetHeader>
+        <Form {...SettingsForm}>
+          <form
+            onSubmit={SettingsForm.handleSubmit(async (data) => {
+              try {
+                const newSettings: any = {};
+                if (data.model !== undefined && (data.model as string) !== "") {
+                  newSettings["model"] = data.model;
+                } else {
+                  throw new Error("Model is required");
+                }
+                if (data.stream !== undefined) {
+                  newSettings["stream"] = data.stream;
+                }
+                if (data.preamble !== undefined) {
+                  newSettings["preamble"] = data.preamble;
+                }
+                if (
+                  data.temperature !== undefined &&
+                  !isNaN(data.temperature)
+                ) {
+                  newSettings["temperature"] = data.temperature;
+                }
+                if (data.maxTokens !== undefined && !isNaN(data.maxTokens)) {
+                  newSettings["maxTokens"] = data.maxTokens;
+                }
+                if (
+                  data.maxInputTokens !== undefined &&
+                  !isNaN(data.maxInputTokens)
+                ) {
+                  newSettings["maxInputTokens"] = data.maxInputTokens;
+                }
+                if (data.tools !== undefined) {
+                  if (data.tools !== "") {
+                    newSettings["tools"] = JSON.parse(data.tools);
+                  } else {
+                    newSettings["tools"] = data.tools;
+                  }
+                }
+                if (data.toolResults !== undefined) {
+                  if (data.toolResults !== "") {
+                    newSettings["toolResults"] = JSON.parse(data.toolResults);
+                  } else {
+                    newSettings["toolResults"] = data.toolResults;
+                  }
+                }
+                if (data.conversationId !== undefined) {
+                  newSettings["conversationId"] = data.conversationId;
+                }
+                if (data.connectors !== undefined) {
+                  if (data.connectors !== "") {
+                    newSettings["connectors"] = JSON.parse(data.connectors);
+                  } else {
+                    newSettings["connectors"] = data.connectors;
+                  }
+                }
+                if (data.searchQueriesOnly !== undefined) {
+                  newSettings["searchQueriesOnly"] = data.searchQueriesOnly;
+                }
+                if (data.documents !== undefined) {
+                  if (data.documents !== "") {
+                    newSettings["documents"] = JSON.parse(data.documents);
+                  } else {
+                    newSettings["documents"] = data.documents;
+                  }
+                }
+                if (data.promptTruncation !== undefined) {
+                  newSettings["promptTruncation"] = data.promptTruncation;
+                }
+                if (data.citationQuality !== undefined) {
+                  newSettings["citationQuality"] = data.citationQuality;
+                }
+                if (data.k !== undefined && !isNaN(data.k)) {
+                  newSettings["k"] = data.k;
+                }
+                if (data.p !== undefined && !isNaN(data.p)) {
+                  newSettings["p"] = data.p;
+                }
+                if (data.seed !== undefined && !isNaN(data.seed)) {
+                  newSettings["seed"] = data.seed;
+                }
+                if (data.stopSequences !== undefined) {
+                  if (data.stopSequences !== "") {
+                    newSettings["stopSequences"] = JSON.parse(
+                      data.stopSequences
+                    );
+                  } else {
+                    newSettings["stopSequences"] = data.stopSequences;
+                  }
+                }
+                if (data.frequencyPenalty !== undefined) {
+                  newSettings["frequencyPenalty"] = data.frequencyPenalty;
+                }
+                if (data.presencePenalty !== undefined) {
+                  newSettings["presencePenalty"] = data.presencePenalty;
+                }
+
+                setSettings({ ...settings, ...newSettings });
+                toast.success("Settings saved");
+                setOpen(false);
+              } catch (error: any) {
+                toast.error("Error saving settings", {
+                  description: error?.message,
+                });
+              }
+            })}
+            className="mt-6 px-2 flex flex-col gap-4 overflow-y-scroll h-screen pb-48"
+          >
+            <FormField
+              control={SettingsForm.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Model
+                    <Info
+                      information="The model that will complete your prompt. Defaults to command-r-plus."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <ModelsDropDown
+                      value={field.value}
+                      setValue={field.onChange}
+                      vendor="cohere"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={SettingsForm.control}
+              name="stream"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        onCheckedChange={(checked) => field.onChange(checked)}
+                        checked={field.value}
+                      />
+                      <div className="flex items-center">
+                        <Label>Stream</Label>
+                        <Info
+                          information="When true, the response will be a JSON stream of events. The final event will contain the complete response, and will have an event_type of 'stream-end'. Streaming is beneficial for user interfaces that render the contents of the response piece by piece, as it gets generated."
+                          className="inline-block ml-2"
+                        />
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={SettingsForm.control}
+                name="maxTokens"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Max Tokens
+                      <Info
+                        information="The maximum number of tokens the model will generate as part of the response. Note: Setting a low value may result in incomplete generations."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        min={0}
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        type="number"
+                        placeholder="Max Tokens"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={SettingsForm.control}
+                name="maxInputTokens"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Max Input Tokens
+                      <Info
+                        information="The maximum number of input tokens to send to the model. If not specified, max_input_tokens is the model's context length limit minus a small buffer. Input will be truncated according to the prompt_truncation parameter."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        type="number"
+                        placeholder="Temperature"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={SettingsForm.control}
+              name="temperature"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Temperature
+                    <Info
+                      information="A non-negative float that tunes the degree of randomness in generation. Lower temperatures mean less random generations, and higher temperatures mean more random generations. Randomness can be further maximized by increasing the value of the p parameter."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      min={0}
+                      max={1}
+                      step={0.1}
+                      value={field.value}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber);
+                      }}
+                      type="number"
+                      placeholder="Temperature"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={SettingsForm.control}
+              name="preamble"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Preamble
+                    <Info
+                      information="When specified, the default Cohere preamble will be replaced with the provided one. Preambles are a part of the prompt used to adjust the model's overall behavior and conversation style, and use the SYSTEM role. The SYSTEM role is also used for the contents of the optional chat_history= parameter. When used with the chat_history= parameter it adds content throughout a conversation. Conversely, when used with the preamble= parameter it adds content at the start of the conversation only."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <InputLarge
+                      placeholder="This is a system prompt"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={SettingsForm.control}
+              name="tools"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Tools
+                    <Info
+                      information="A list of available tools (functions) that the model may suggest invoking before producing a text response. When tools is passed (without tool_results), the text field in the response will be '' and the tool_calls field in the response will be populated with a list of tool calls that need to be made. If no calls need to be made, the tool_calls array will be empty."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <CodeEditor
+                      value={field.value}
+                      language="json"
+                      onChange={(evn) => field.onChange(evn.target.value)}
+                      padding={15}
+                      className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                      style={{
+                        fontFamily:
+                          "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={SettingsForm.control}
+              name="toolResults"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Tool Results
+                    <Info
+                      information="A list of results from invoking tools recommended by the model in the previous chat turn. Results are used to produce a text response and will be referenced in citations. When using tool_results, tools must be passed as well. Each tool_result contains information about how it was invoked, as well as a list of outputs in the form of dictionaries."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <CodeEditor
+                      value={field.value}
+                      language="json"
+                      onChange={(evn) => field.onChange(evn.target.value)}
+                      padding={15}
+                      className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                      style={{
+                        fontFamily:
+                          "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              className="w-fit min-h-[40px]"
+              type="button"
+              variant={"ghost"}
+              size={"sm"}
+              onClick={() => setAdvancedSettings(!advancedSettings)}
+            >
+              Advanced settings{" "}
+              {advancedSettings ? (
+                <ChevronUp className="ml-2 h-4 w-4" />
+              ) : (
+                <ChevronDown className="ml-2 h-4 w-4" />
+              )}
+            </Button>
+            {advancedSettings && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={SettingsForm.control}
+                    name="k"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          K
+                          <Info
+                            information="Ensures only the top k most likely tokens are considered for generation at each step. Defaults to 0, min value of 0, max value of 500."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            min={0}
+                            max={500}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="P"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={SettingsForm.control}
+                    name="p"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          P
+                          <Info
+                            information="Ensures that only the most likely tokens, with total probability mass of p, are considered for generation at each step. If both k and p are enabled, p acts after k.
+                            Defaults to 0.75. min value of 0.01, max value of 0.99"
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            min={0.01}
+                            max={0.99}
+                            step={0.01}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="K"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={SettingsForm.control}
+                  name="conversationId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Conversation ID
+                        <Info
+                          information="Providing a conversation_id creates or resumes a persisted conversation with the specified ID. The ID can be any non empty string."
+                          className="inline-block ml-2"
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <InputLarge
+                          placeholder="This is a system prompt"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={SettingsForm.control}
+                  name="connectors"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Connectors
+                        <Info
+                          information="Accepts {'id': 'web-search'}, and/or the 'id' for a custom connector, if you've created one. When specified, the model's reply will be enriched with information found by quering each of the connectors (RAG)."
+                          className="inline-block ml-2"
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <CodeEditor
+                          value={field.value}
+                          language="json"
+                          onChange={(evn) => field.onChange(evn.target.value)}
+                          padding={15}
+                          className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                          style={{
+                            fontFamily:
+                              "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={SettingsForm.control}
+                  name="documents"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Documents
+                        <Info
+                          information="A list of relevant documents that the model can cite to generate a more accurate reply. Each document is a string-string dictionary."
+                          className="inline-block ml-2"
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <CodeEditor
+                          value={field.value}
+                          language="json"
+                          onChange={(evn) => field.onChange(evn.target.value)}
+                          padding={15}
+                          className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                          style={{
+                            fontFamily:
+                              "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={SettingsForm.control}
+                  name="promptTruncation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Prompt Truncation
+                        <Info
+                          information="With prompt_truncation set to 'AUTO', some elements from chat_history and documents will be dropped in an attempt to construct a prompt that fits within the model's context length limit. During this process the order of the documents and chat history will be changed and ranked by relevance."
+                          className="inline-block ml-2"
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="This is a system prompt"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={SettingsForm.control}
+                  name="citationQuality"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Citation Quality
+                        <Info
+                          information="Dictates the approach taken to generating citations as part of the RAG flow by allowing the user to specify whether they want 'accurate' results or 'fast' results."
+                          className="inline-block ml-2"
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="This is a system prompt"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={SettingsForm.control}
+                    name="searchQueriesOnly"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              onCheckedChange={(checked) =>
+                                field.onChange(checked)
+                              }
+                              checked={field.value}
+                            />
+                            <div className="flex items-center">
+                              <Label>Search Queries Only</Label>
+                              <Info
+                                information="When true, the response will only contain a list of generated search queries, but no search will take place, and no reply from the model to the user's message will be generated."
+                                className="inline-block ml-2"
+                              />
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={SettingsForm.control}
+                    name="seed"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Seed
+                          <Info
+                            information="If specified, the backend will make a best effort to sample tokens deterministically, such that repeated requests with the same seed and parameters should return the same result. However, determinism cannot be totally guaranteed."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="K"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={SettingsForm.control}
+                    name="presencePenalty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Presence Penalty
+                          <Info
+                            information="Used to reduce repetitiveness of generated tokens. Similar to frequency_penalty, except that this penalty is applied equally to all tokens that have already appeared, regardless of their exact frequencies."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            min={0}
+                            max={1.0}
+                            step={0.1}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="P"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={SettingsForm.control}
+                    name="frequencyPenalty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Frequency Penalty
+                          <Info
+                            information="Used to reduce repetitiveness of generated tokens. The higher the value, the stronger a penalty is applied to previously present tokens, proportional to how many times they have already appeared in the prompt or prior generation."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            min={0}
+                            max={1.0}
+                            step={0.1}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="K"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={SettingsForm.control}
+                  name="stopSequences"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Stop Sequences
+                        <Info
+                          information="A list of up to 5 strings that the model will use to stop generation. If the model generates a string that matches any of the strings in the list, it will stop generating tokens and return the generated text up to that point not including the stop sequence."
+                          className="inline-block ml-2"
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <CodeEditor
+                          value={field.value}
+                          language="json"
+                          onChange={(evn) => field.onChange(evn.target.value)}
+                          padding={15}
+                          className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                          style={{
+                            fontFamily:
+                              "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </>
             )}
             <SheetFooter>
