@@ -176,7 +176,7 @@ export interface AnthropicSettings {
 
 export interface CohereSettings {
   messages: Conversation[];
-  model?: string;
+  model: string;
   stream?: boolean;
   preamble?: string;
   conversationId?: string;

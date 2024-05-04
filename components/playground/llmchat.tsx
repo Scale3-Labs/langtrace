@@ -12,6 +12,7 @@ import {
   OpenAIRole,
   OpenAISettings,
 } from "@/lib/types/playground_types";
+import { calculatePriceFromUsage } from "@/lib/utils";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { LucideChevronRight, MinusIcon, PlusCircleIcon } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -49,6 +50,8 @@ export default function LLMChat({
   const [busy, setBusy] = useState(false);
   const { theme } = useTheme();
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [cost, setCost] = useState("");
+  const [latency, setLatency] = useState();
 
   useEffect(() => {
     const vendor = LLM_VENDOR_APIS.find(
@@ -353,6 +356,25 @@ export default function LLMChat({
                     );
                   }
                 }
+                if (data?.usage) {
+                  const inputTokens = data.usage.prompt_tokens;
+                  const outputTokens = data.usage.completion_tokens;
+                  const vendor = llm.vendor;
+                  const model = llm.settings.model;
+                  const calculatedCost = calculatePriceFromUsage(
+                    vendor,
+                    model,
+                    {
+                      input_tokens: inputTokens,
+                      output_tokens: outputTokens,
+                    }
+                  );
+                  const totalCost =
+                    calculatedCost.total.toFixed(6) !== "0.000000"
+                      ? `\$${calculatedCost.total.toFixed(6)}`
+                      : "";
+                  setCost(totalCost);
+                }
               } else if (llm.vendor === "anthropic") {
                 if (data?.content?.length > 0) {
                   if (data.content[0].type === "text") {
@@ -361,6 +383,25 @@ export default function LLMChat({
                     message = JSON.stringify(data.content[0].text);
                   }
                 }
+                if (data?.usage) {
+                  const inputTokens = data.usage.input_tokens;
+                  const outputTokens = data.usage.output_tokens;
+                  const vendor = llm.vendor;
+                  const model = llm.settings.model;
+                  const calculatedCost = calculatePriceFromUsage(
+                    vendor,
+                    model,
+                    {
+                      input_tokens: inputTokens,
+                      output_tokens: outputTokens,
+                    }
+                  );
+                  const totalCost =
+                    calculatedCost.total.toFixed(6) !== "0.000000"
+                      ? `\$${calculatedCost.total.toFixed(6)}`
+                      : "";
+                  setCost(totalCost);
+                }
               } else if (llm.vendor === "cohere") {
                 if (data?.text) {
                   if (typeof data.text === "object") {
@@ -368,6 +409,25 @@ export default function LLMChat({
                   } else {
                     message = data?.text;
                   }
+                }
+                if (data.meta?.billedUnits) {
+                  const inputTokens = data.meta?.billedUnits?.inputTokens;
+                  const outputTokens = data.meta?.billedUnits?.outputTokens;
+                  const vendor = llm.vendor;
+                  const model = llm.settings.model;
+                  const calculatedCost = calculatePriceFromUsage(
+                    vendor,
+                    model,
+                    {
+                      input_tokens: inputTokens,
+                      output_tokens: outputTokens,
+                    }
+                  );
+                  const totalCost =
+                    calculatedCost.total.toFixed(6) !== "0.000000"
+                      ? `\$${calculatedCost.total.toFixed(6)}`
+                      : "";
+                  setCost(totalCost);
                 }
               }
               setLLM({
@@ -424,6 +484,12 @@ export default function LLMChat({
         )}
         {!busy && <LucideChevronRight className="ml-2 h-4 w-4" />}
       </Button>
+      {(cost || latency) && (
+        <div className="absolute bottom-2 right-4 flex flex-col gap-2 bg-primary-foreground rounded-md p-2 w-[115px]">
+          <p className="text-xs">{`Cost: ${cost}`}</p>
+          <p className="text-xs break-all">{`Latency: ${latency}ms`}</p>
+        </div>
+      )}
     </Card>
   );
 }
