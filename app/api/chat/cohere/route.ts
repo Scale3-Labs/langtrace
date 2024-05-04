@@ -16,20 +16,8 @@ export async function POST(req: Request) {
     // remove apiKey from the body
     delete data.apiKey;
 
-    // extract last message from data.messages
-    const lastMessage = data?.messages[data?.messages?.length - 1]?.message;
-
-    // remove the last message from data.messages
-    data.messages.pop();
-    const messageHistory = data.messages;
-
-    // delete data.messages;
-    delete data.messages;
-
-    // Ask OpenAI for a streaming chat completion given the prompt
+    // Ask cohere for a streaming chat completion given the prompt
     const response = await cohere.chat({
-      chatHistory: messageHistory,
-      message: lastMessage,
       ...data,
     });
 

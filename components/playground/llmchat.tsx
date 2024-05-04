@@ -237,7 +237,6 @@ export default function LLMChat({
               const result = decoder.decode(chunksAll);
 
               // ugly hack to check if the response is an error
-              console.log(result);
               if (result.includes('{"error":"401')) {
                 toast.error(
                   <div className="flex flex-col gap-2 items-start">
@@ -317,6 +316,14 @@ export default function LLMChat({
                     message = data.content[0].text;
                   } else {
                     message = JSON.stringify(data.content[0].text);
+                  }
+                }
+              } else if (llm.vendor === "cohere") {
+                if (data?.text) {
+                  if (typeof data.text === "object") {
+                    message = JSON.stringify(data.text);
+                  } else {
+                    message = data?.text;
                   }
                 }
               }

@@ -138,10 +138,16 @@ export async function cohereHandler(
 ): Promise<any> {
   const body: any = {};
   if (llm.settings.messages.length > 0) {
-    body.messages = llm.settings.messages.map((m) => {
-      return { content: m.content, role: m.role };
+    body.message =
+      llm.settings.messages[llm.settings.messages.length - 1].content;
+    body.chat_history = llm.settings.messages.map((m, i) => {
+      if (i === llm.settings.messages.length - 1) return null;
+      return { message: m.content, role: m.role };
     });
   }
+  // remove null values
+  body.chat_history = body.chat_history.filter(Boolean);
+
   if (llm.settings.model) {
     body.model = llm.settings.model;
   }

@@ -1308,6 +1308,7 @@ export function CohereSettingsSheet({
                       <Checkbox
                         onCheckedChange={(checked) => field.onChange(checked)}
                         checked={field.value}
+                        disabled={true} // disabled until ai sdk stream is working
                       />
                       <div className="flex items-center">
                         <Label>Stream</Label>
