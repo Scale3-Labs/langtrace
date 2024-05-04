@@ -59,6 +59,7 @@
 		"f": "^1.4.0",
 		"framer-motion": "^11.0.5",
 		"fs": "^0.0.1-security",
+		"groq-sdk": "^0.3.3",
 		"js-tiktoken": "^1.0.10",
 		"langchain": "^0.1.20",
 		"lucide-react": "^0.323.0",

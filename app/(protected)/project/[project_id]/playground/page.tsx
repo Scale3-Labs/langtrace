@@ -7,6 +7,7 @@ import {
   AnthropicSettings,
   ChatInterface,
   CohereSettings,
+  GroqSettings,
   OpenAIChatInterface,
   OpenAIModel,
   OpenAISettings,
@@ -54,6 +55,17 @@ export default function Page() {
       const cohereChat: ChatInterface = {
         id: uuidv4(),
         vendor: "cohere",
+        settings: settings,
+      };
+      setLLMs((currentLLMs) => [...currentLLMs, cohereChat]);
+    } else if (vendor === "groq") {
+      const settings: GroqSettings = {
+        messages: [],
+        model: "llama3-8b-8192",
+      };
+      const cohereChat: ChatInterface = {
+        id: uuidv4(),
+        vendor: "groq",
         settings: settings,
       };
       setLLMs((currentLLMs) => [...currentLLMs, cohereChat]);

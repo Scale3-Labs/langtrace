@@ -17,6 +17,7 @@ import {
 import {
   anthropicModels,
   cohereModels,
+  groqModels,
   openAIModels,
 } from "@/lib/types/playground_types";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,8 @@ export function ModelsDropDown({
     models = anthropicModels;
   } else if (vendor === "cohere") {
     models = cohereModels;
+  } else if (vendor === "groq") {
+    models = groqModels;
   }
   return (
     <Popover open={open} onOpenChange={setOpen}>

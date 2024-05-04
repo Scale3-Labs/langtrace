@@ -8,6 +8,8 @@ import {
   CohereAIRole,
   CohereChatInterface,
   CohereSettings,
+  GroqChatInterface,
+  GroqSettings,
   OpenAIChatInterface,
   OpenAIRole,
   OpenAISettings,
@@ -24,12 +26,14 @@ import { v4 as uuidv4 } from "uuid";
 import {
   anthropicHandler,
   cohereHandler,
+  groqHandler,
   openAIHandler,
 } from "./chat-handlers";
 import { Message } from "./common";
 import {
   AnthropicSettingsSheet,
   CohereSettingsSheet,
+  GroqSettingsSheet,
   OpenAISettingsSheet,
 } from "./settings-sheet";
 
@@ -175,6 +179,14 @@ export default function LLMChat({
             }}
           />
         )}
+        {llm.vendor === "groq" && (
+          <GroqSettingsSheet
+            settings={llm.settings as GroqSettings}
+            setSettings={(updatedSettings: any) => {
+              setLLM({ ...llm, settings: updatedSettings });
+            }}
+          />
+        )}
       </div>
       <Button
         type="button"
@@ -209,6 +221,11 @@ export default function LLMChat({
             } else if (llm.vendor === "cohere") {
               response = await cohereHandler(
                 llm as CohereChatInterface,
+                apiKey || ""
+              );
+            } else if (llm.vendor === "groq") {
+              response = await groqHandler(
+                llm as GroqChatInterface,
                 apiKey || ""
               );
             }
@@ -373,7 +390,7 @@ export default function LLMChat({
               const endTime = performance.now();
               setLatency((endTime - startTime).toFixed(2));
               let message = "";
-              if (llm.vendor === "openai") {
+              if (llm.vendor === "openai" || llm.vendor === "groq") {
                 if (data?.choices?.length > 0) {
                   if (data.choices[0]?.message?.content) {
                     message = data.choices[0].message.content;

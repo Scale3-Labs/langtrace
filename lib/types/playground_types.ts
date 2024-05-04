@@ -129,6 +129,25 @@ export const cohereModels = [
   },
 ];
 
+export const groqModels = [
+  {
+    value: "llama3-8b-8192",
+    label: "Llama3 8B (8192)",
+  },
+  {
+    value: "llama3-70b-8192",
+    label: "Llama3 70B (8192)",
+  },
+  {
+    value: "mixtral-8x7b-32768",
+    label: "Mixtral 8x7B (32768)",
+  },
+  {
+    value: "gemma-7b-it",
+    label: "Gemma 7B (IT)",
+  },
+];
+
 export enum OpenAIRole {
   "user" = "user",
   "assistant" = "assistant",
@@ -198,10 +217,31 @@ export interface CohereSettings {
   toolResults?: any;
 }
 
+export interface GroqSettings {
+  messages: Conversation[];
+  model: string;
+  frequencyPenalty?: number | null;
+  logitBias?: any;
+  logProbs?: boolean | null;
+  topLogProbs?: number | null;
+  maxTokens?: number | null;
+  n?: number | null;
+  presencePenalty?: number | null;
+  responseFormat?: any;
+  seed?: number | null;
+  stop?: string | string[] | null;
+  stream?: boolean | null;
+  temperature?: number | null;
+  topP?: number | null;
+  tools?: string;
+  toolChoice?: string;
+  user?: string;
+}
+
 export interface ChatInterface {
   id: string;
   vendor: string;
-  settings: OpenAISettings | AnthropicSettings | CohereSettings;
+  settings: OpenAISettings | AnthropicSettings | CohereSettings | GroqSettings;
 }
 
 export interface OpenAIChatInterface extends ChatInterface {
@@ -214,4 +254,8 @@ export interface AnthropicChatInterface extends ChatInterface {
 
 export interface CohereChatInterface extends ChatInterface {
   settings: CohereSettings;
+}
+
+export interface GroqChatInterface extends ChatInterface {
+  settings: GroqSettings;
 }
