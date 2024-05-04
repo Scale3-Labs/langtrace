@@ -415,3 +415,20 @@ export function safeStringify(value: any): string {
   // If it's not a string, stringify it
   return prettyPrintJson.toHtml(value);
 }
+
+export function estimateTokens(prompt: string): number {
+  if (prompt.length > 0) {
+    // Simplified token estimation: count the words.
+    return prompt.split(/\s+/).filter(Boolean).length;
+  }
+  return 0;
+}
+
+export function calculateTokens(content: string): number {
+  try {
+    const tiktokenModel = "cl100k_base";
+    return estimateTokensUsingTikToken(content, tiktokenModel);
+  } catch (error) {
+    return estimateTokens(content); // Fallback method
+  }
+}

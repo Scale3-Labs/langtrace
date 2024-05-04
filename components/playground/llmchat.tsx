@@ -12,7 +12,7 @@ import {
   OpenAIRole,
   OpenAISettings,
 } from "@/lib/types/playground_types";
-import { calculatePriceFromUsage } from "@/lib/utils";
+import { calculatePriceFromUsage, calculateTokens } from "@/lib/utils";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { LucideChevronRight, MinusIcon, PlusCircleIcon } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -318,6 +318,24 @@ export default function LLMChat({
                   ],
                 },
               });
+
+              // cost calculation
+              const inputContent =
+                llm.settings.messages[llm.settings.messages.length - 1]
+                  ?.content ?? "";
+              const inputTokens = calculateTokens(inputContent);
+              const outputTokens = calculateTokens(result);
+              const vendor = llm.vendor;
+              const model = llm.settings.model;
+              const calculatedCost = calculatePriceFromUsage(vendor, model, {
+                input_tokens: inputTokens,
+                output_tokens: outputTokens,
+              });
+              const totalCost =
+                calculatedCost.total.toFixed(6) !== "0.000000"
+                  ? `\$${calculatedCost.total.toFixed(6)}`
+                  : "";
+              setCost(totalCost);
             } else {
               const data = await response.json();
               if (data.error) {
