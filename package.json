@@ -3,10 +3,13 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev",
 		"build": "prisma generate && next build",
 		"create-tables": "npx prisma db push",
 		"seed-db": "npx prisma db seed",
+		"create-clickhouse-db": "npx tsx scripts/create-clickhouse-db.ts",
+		"predev": "npm run create-tables && npm run create-clickhouse-db",
+		"dev": "next dev",
+		"prestart": "npm run create-tables && npm run create-clickhouse-db",
 		"start": "next start",
 		"lint": "next lint"
 	},
@@ -85,6 +88,7 @@
 		"stream-to-array": "^2.3.0",
 		"tailwind-merge": "^2.2.1",
 		"tailwindcss-animate": "^1.0.7",
+		"tsx": "^4.8.2",
 		"zod": "^3.22.4"
 	},
 	"devDependencies": {
