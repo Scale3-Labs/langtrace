@@ -279,7 +279,11 @@ export default function LLMChat({
                 }
               } else if (llm.vendor === "anthropic") {
                 if (data?.content?.length > 0) {
-                  message = data.content[0].text;
+                  if (data.content[0].type === "text") {
+                    message = data.content[0].text;
+                  } else {
+                    message = JSON.stringify(data.content[0].text);
+                  }
                 }
               }
               setLLM({
