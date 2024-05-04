@@ -55,7 +55,7 @@ export async function openAIHandler(
   if (llm.settings.topP) {
     body.top_p = llm.settings.topP;
   }
-  if (llm.settings.tools) {
+  if (llm.settings.tools && llm.settings.tools.length > 0) {
     body.tools = llm.settings.tools;
   }
   if (llm.settings.toolChoice) {

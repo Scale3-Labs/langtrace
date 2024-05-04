@@ -153,29 +153,6 @@ export default function LLMChat({
                 apiKey || ""
               );
             }
-            if (!response.ok) {
-              let message =
-                response.statusText || "An error occurred. Please try again.";
-              if (response.status === 401) {
-                toast.error(
-                  <div className="flex flex-col gap-2 items-start">
-                    <p>API key is invalid or not found. Update your API key</p>
-                    <div className="w-fit">
-                      <Link
-                        href={"/settings/keys"}
-                        className="underline text-sm font-semibold flex items-center"
-                      >
-                        Update API key
-                        <ArrowTopRightIcon className="h-4 w-4 ml-1" />
-                      </Link>
-                    </div>
-                  </div>
-                );
-              } else {
-                toast.error(message);
-              }
-              return;
-            }
 
             if (llm.settings.stream === true) {
               const reader = response?.body?.getReader();
@@ -227,6 +204,27 @@ export default function LLMChat({
 
               // Decode all chunks into text
               const result = decoder.decode(chunksAll);
+
+              // ugly hack to check if the response is an error
+              console.log(result);
+              if (result.includes('{"error":"401')) {
+                toast.error(
+                  <div className="flex flex-col gap-2 items-start">
+                    <p>API key is invalid or not found. Update your API key</p>
+                    <div className="w-fit">
+                      <Link
+                        href={"/settings/keys"}
+                        className="underline text-sm font-semibold flex items-center"
+                      >
+                        Update API key
+                        <ArrowTopRightIcon className="h-4 w-4 ml-1" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+                return;
+              }
+
               setLLM({
                 ...llm,
                 settings: {
@@ -243,6 +241,39 @@ export default function LLMChat({
               });
             } else {
               const data = await response.json();
+              if (data.error) {
+                let message =
+                  data.error ?? "An error occurred. Please try again.";
+                if (data.status === 401) {
+                  toast.error(
+                    <div className="flex flex-col gap-2 items-start">
+                      <p>
+                        API key is invalid or not found. Update your API key
+                      </p>
+                      <div className="w-fit">
+                        <Link
+                          href={"/settings/keys"}
+                          className="underline text-sm font-semibold flex items-center"
+                        >
+                          Update API key
+                          <ArrowTopRightIcon className="h-4 w-4 ml-1" />
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  toast.error(message);
+                }
+                return;
+              }
+              let message = "";
+              if (data?.choices?.length > 0) {
+                if (data.choices[0]?.message?.content) {
+                  message = data.choices[0].message.content;
+                } else if (data.choices[0]?.message?.tool_calls.length > 0) {
+                  message = JSON.stringify(data.choices[0].message.tool_calls);
+                }
+              }
               setLLM({
                 ...llm,
                 settings: {
@@ -252,7 +283,7 @@ export default function LLMChat({
                     {
                       id: uuidv4(),
                       role: OpenAIRole.assistant,
-                      content: data.choices[0].message.content,
+                      content: message,
                     },
                   ],
                 },

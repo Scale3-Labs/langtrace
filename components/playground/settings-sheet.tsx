@@ -22,6 +22,7 @@ import {
   OpenAISettings,
 } from "@/lib/types/playground_types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import CodeEditor from "@uiw/react-textarea-code-editor";
 import { ChevronDown, ChevronUp, SettingsIcon } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -91,7 +92,7 @@ export function OpenAISettingsSheet({
       stop: settings.stop ?? undefined,
       topP: settings.topP ?? 1,
       responseFormat: settings.responseFormat ?? "",
-      tools: settings.tools ?? "[]",
+      tools: settings.tools ?? "",
       toolChoice: settings.toolChoice ?? "",
       user: settings.user ?? "",
     },
@@ -167,7 +168,11 @@ export function OpenAISettingsSheet({
                   newSettings["presencePenalty"] = data.presencePenalty;
                 }
                 if (data.logitBias !== undefined) {
-                  newSettings["logitBias"] = data.logitBias;
+                  if (data.logitBias !== "") {
+                    newSettings["logitBias"] = data.logitBias;
+                  } else {
+                    newSettings["logitBias"] = JSON.parse(data.logitBias);
+                  }
                 }
                 if (data.logProbs !== undefined) {
                   newSettings["logProbs"] = data.logProbs;
@@ -194,13 +199,29 @@ export function OpenAISettingsSheet({
                   newSettings["topP"] = data.topP;
                 }
                 if (data.responseFormat !== undefined) {
-                  newSettings["responseFormat"] = data.responseFormat;
+                  if (data.responseFormat === "") {
+                    newSettings["responseFormat"] = data.responseFormat;
+                  } else {
+                    newSettings["responseFormat"] = JSON.parse(
+                      data.responseFormat
+                    );
+                  }
                 }
                 if (data.tools !== undefined) {
-                  newSettings["tools"] = data.tools;
+                  if (data.tools !== "") {
+                    newSettings["tools"] = JSON.parse(data.tools);
+                    // disable stream if tools are present
+                    newSettings["stream"] = false;
+                  } else {
+                    newSettings["tools"] = data.tools;
+                  }
                 }
                 if (data.toolChoice !== undefined) {
-                  newSettings["toolChoice"] = data.toolChoice;
+                  if (data.toolChoice === "") {
+                    newSettings["toolChoice"] = data.toolChoice;
+                  } else {
+                    newSettings["toolChoice"] = JSON.parse(data.toolChoice);
+                  }
                 }
                 if (data.user !== undefined) {
                   newSettings["user"] = data.user;
@@ -334,9 +355,17 @@ export function OpenAISettingsSheet({
                     />
                   </FormLabel>
                   <FormControl>
-                    <InputLarge
-                      placeholder="{ 'type': 'json_object' }"
-                      {...field}
+                    <CodeEditor
+                      value={field.value}
+                      language="json"
+                      placeholder='{ "type": "json_object" }'
+                      onChange={(evn) => field.onChange(evn.target.value)}
+                      padding={15}
+                      className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                      style={{
+                        fontFamily:
+                          "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -356,9 +385,16 @@ export function OpenAISettingsSheet({
                     />
                   </FormLabel>
                   <FormControl>
-                    <InputLarge
-                      placeholder="{'type': 'function', 'function': {'name': 'my_function', 'parameters': {'param1': 'value1'}}}"
-                      onChange={field.onChange}
+                    <CodeEditor
+                      value={field.value}
+                      language="json"
+                      onChange={(evn) => field.onChange(evn.target.value)}
+                      padding={15}
+                      className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                      style={{
+                        fontFamily:
+                          "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -378,10 +414,16 @@ export function OpenAISettingsSheet({
                     />
                   </FormLabel>
                   <FormControl>
-                    <InputLarge
-                      placeholder="{'type': 'function', 'function': {'name': 'my_function'}}"
-                      onChange={field.onChange}
-                      value={field.value as string}
+                    <CodeEditor
+                      value={field.value}
+                      language="json"
+                      onChange={(evn) => field.onChange(evn.target.value)}
+                      padding={15}
+                      className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                      style={{
+                        fontFamily:
+                          "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -477,7 +519,17 @@ export function OpenAISettingsSheet({
                         />
                       </FormLabel>
                       <FormControl>
-                        <InputLarge placeholder="{...}" {...field} />
+                        <CodeEditor
+                          value={field.value}
+                          language="json"
+                          onChange={(evn) => field.onChange(evn.target.value)}
+                          padding={15}
+                          className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                          style={{
+                            fontFamily:
+                              "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -43,6 +43,7 @@
 		"@remixicon/react": "^4.2.0",
 		"@tanstack/react-query": "^5.17.10",
 		"@tremor/react": "^3.14.1",
+		"@uiw/react-textarea-code-editor": "^3.0.2",
 		"@vercel/analytics": "^1.2.2",
 		"ai": "^2.2.37",
 		"axios": "^1.6.7",

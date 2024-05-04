@@ -102,7 +102,7 @@ export function Message({
             {!editing && (
               <p
                 className={cn(
-                  "w-[290px] text-sm",
+                  "w-[290px] text-sm break-all",
                   !message.content && "text-muted-foreground"
                 )}
               >

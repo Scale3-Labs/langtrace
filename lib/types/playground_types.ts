@@ -102,15 +102,6 @@ export const anthropicModels = [
   },
 ];
 
-export interface OpenAITool {
-  type: "function";
-  function: {
-    name: string;
-    parameters: any;
-    description?: string;
-  };
-}
-
 export enum OpenAIRole {
   "user" = "user",
   "assistant" = "assistant",
@@ -133,8 +124,8 @@ export interface OpenAISettings {
   stream?: boolean | null;
   temperature?: number | null;
   topP?: number | null;
-  tools?: OpenAITool[];
-  toolChoice?: string | object;
+  tools?: string;
+  toolChoice?: string;
   user?: string;
 }
 
