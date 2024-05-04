@@ -77,16 +77,31 @@ export function Message({
   message,
   setMessage,
   onRemove,
+  vendor,
 }: {
   message: Conversation;
   setMessage: (message: Conversation) => void;
   onRemove?: () => void;
+  vendor: string;
 }) {
   const onSelectRole = () => {
-    if (message.role === OpenAIRole.user) {
-      setMessage({ ...message, role: OpenAIRole.assistant });
+    if (
+      message.role === OpenAIRole.user ||
+      message.role === CohereAIRole.user
+    ) {
+      if (vendor === "cohere") {
+        setMessage({ ...message, role: CohereAIRole.chatbot });
+      } else {
+        setMessage({ ...message, role: OpenAIRole.assistant });
+      }
     } else if (message.role === OpenAIRole.assistant) {
-      setMessage({ ...message, role: OpenAIRole.system });
+      if (vendor === "openai") {
+        setMessage({ ...message, role: OpenAIRole.system });
+      } else {
+        setMessage({ ...message, role: OpenAIRole.user });
+      }
+    } else if (message.role === CohereAIRole.chatbot) {
+      setMessage({ ...message, role: CohereAIRole.user });
     } else {
       setMessage({ ...message, role: OpenAIRole.user });
     }

@@ -63,6 +63,7 @@ export default function LLMChat({
       <div className="overflow-y-scroll h-[535px]">
         {llm.settings.messages.map((message, i) => (
           <Message
+            vendor={llm.vendor}
             key={i}
             message={{
               id: message.id,
