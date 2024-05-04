@@ -103,10 +103,13 @@ export function OpenAISettingsSheet({
   return (
     <Sheet onOpenChange={setOpen} open={open}>
       <SheetTrigger asChild>
-        <Button variant="outline" size={"sm"}>
+        <Button variant="outline" size={"lg"}>
           <div className="flex gap-2 items-center">
             <SettingsIcon className="h-5 w-5" />
-            <p className="text-xs font-semibold">OpenAI</p>
+            <div className="flex flex-col">
+              <p className="text-xs font-semibold">OpenAI</p>
+              <p className="text-xs font-semibold">{settings.model}</p>
+            </div>
             <Image
               alt="OpenAI Logo"
               src="/openai.svg"
@@ -757,10 +760,13 @@ export function AnthropicSettingsSheet({
   return (
     <Sheet onOpenChange={setOpen} open={open}>
       <SheetTrigger asChild>
-        <Button variant="outline" size={"sm"}>
+        <Button variant="outline" size={"lg"}>
           <div className="flex gap-2 items-center">
             <SettingsIcon className="h-5 w-5" />
-            <p className="text-xs font-semibold">Anthropic</p>
+            <div className="flex flex-col">
+              <p className="text-xs font-semibold">Anthropic</p>
+              <p className="text-xs font-semibold">{settings.model}</p>
+            </div>
             <Image
               alt="Anthropic Logo"
               src="/anthropic.png"
@@ -1148,10 +1154,13 @@ export function CohereSettingsSheet({
   return (
     <Sheet onOpenChange={setOpen} open={open}>
       <SheetTrigger asChild>
-        <Button variant="outline" size={"sm"}>
+        <Button variant="outline" size={"lg"}>
           <div className="flex gap-2 items-center">
             <SettingsIcon className="h-5 w-5" />
-            <p className="text-xs font-semibold">Cohere</p>
+            <div className="flex flex-col">
+              <p className="text-xs font-semibold">Cohere</p>
+              <p className="text-xs font-semibold">{settings.model}</p>
+            </div>
             <Image
               alt="Cohere Logo"
               src="/cohere.png"
@@ -1910,10 +1919,13 @@ export function GroqSettingsSheet({
   return (
     <Sheet onOpenChange={setOpen} open={open}>
       <SheetTrigger asChild>
-        <Button variant="outline" size={"sm"}>
+        <Button variant="outline" size={"lg"}>
           <div className="flex gap-2 items-center">
             <SettingsIcon className="h-5 w-5" />
-            <p className="text-xs font-semibold">Groq</p>
+            <div className="flex flex-col">
+              <p className="text-xs font-semibold">Groq</p>
+              <p className="text-xs font-semibold">{settings.model}</p>
+            </div>
             <Image
               alt="Groq Logo"
               src="/groq.png"
