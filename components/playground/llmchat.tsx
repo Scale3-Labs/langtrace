@@ -267,11 +267,19 @@ export default function LLMChat({
                 return;
               }
               let message = "";
-              if (data?.choices?.length > 0) {
-                if (data.choices[0]?.message?.content) {
-                  message = data.choices[0].message.content;
-                } else if (data.choices[0]?.message?.tool_calls.length > 0) {
-                  message = JSON.stringify(data.choices[0].message.tool_calls);
+              if (llm.vendor === "openai") {
+                if (data?.choices?.length > 0) {
+                  if (data.choices[0]?.message?.content) {
+                    message = data.choices[0].message.content;
+                  } else if (data.choices[0]?.message?.tool_calls.length > 0) {
+                    message = JSON.stringify(
+                      data.choices[0].message.tool_calls
+                    );
+                  }
+                }
+              } else if (llm.vendor === "anthropic") {
+                if (data?.content?.length > 0) {
+                  message = data.content[0].text;
                 }
               }
               setLLM({

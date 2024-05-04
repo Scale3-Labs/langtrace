@@ -732,7 +732,7 @@ export function AnthropicSettingsSheet({
         z.nan(),
       ])
       .optional(),
-    tools: z.any().optional(),
+    tools: z.string().optional(),
     topK: z.union([z.number().positive(), z.nan()]).optional(),
     topP: z.union([z.number().positive(), z.nan()]).optional(),
   });
@@ -744,7 +744,7 @@ export function AnthropicSettingsSheet({
       stream: settings.stream ?? false,
       maxTokens: settings.maxTokens ?? undefined,
       temperature: settings.temperature ?? 1,
-      tools: settings.tools ?? [],
+      tools: settings.tools ?? "",
       topK: settings.topK ?? undefined,
       topP: settings.topP ?? 1,
       metadata: settings.metadata ?? undefined,
@@ -802,7 +802,11 @@ export function AnthropicSettingsSheet({
                   newSettings["temperature"] = data.temperature;
                 }
                 if (data.tools !== undefined) {
-                  newSettings["tools"] = data.tools;
+                  if (data.tools !== "") {
+                    newSettings["tools"] = JSON.parse(data.tools);
+                  } else {
+                    newSettings["tools"] = data.tools;
+                  }
                 }
                 if (data.topK !== undefined && !isNaN(data.topK)) {
                   newSettings["topK"] = data.topK;
@@ -967,7 +971,8 @@ export function AnthropicSettingsSheet({
                     />
                   </FormLabel>
                   <FormControl>
-                    <InputLarge
+                    <CodeEditor
+                      value={field.value}
                       placeholder="[
                         {
                           'name': 'get_stock_price',
@@ -984,7 +989,14 @@ export function AnthropicSettingsSheet({
                           }
                         }
                       ]"
-                      onChange={field.onChange}
+                      language="json"
+                      onChange={(evn) => field.onChange(evn.target.value)}
+                      padding={15}
+                      className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                      style={{
+                        fontFamily:
+                          "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
