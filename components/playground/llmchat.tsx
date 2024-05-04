@@ -45,6 +45,7 @@ export default function LLMChat({
   setLLM: (llm: ChatInterface) => void;
   onRemove: () => void;
 }) {
+  const [localLLM, setLocalLLM] = useState<ChatInterface>(llm);
   const [busy, setBusy] = useState(false);
   const { theme } = useTheme();
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -61,9 +62,9 @@ export default function LLMChat({
   return (
     <Card className="w-[450px] h-[600px] p-1 relative group/card">
       <div className="overflow-y-scroll h-[535px]">
-        {llm.settings.messages.map((message, i) => (
+        {localLLM.settings.messages.map((message, i) => (
           <Message
-            vendor={llm.vendor}
+            vendor={localLLM.vendor}
             key={i}
             message={{
               id: message.id,
@@ -78,6 +79,10 @@ export default function LLMChat({
                 ...llm,
                 settings: { ...llm.settings, messages: newMessages },
               });
+              setLocalLLM({
+                ...localLLM,
+                settings: { ...localLLM.settings, messages: newMessages },
+              });
             }}
             onRemove={() => {
               const newMessages = llm.settings.messages.filter(
@@ -86,6 +91,10 @@ export default function LLMChat({
               setLLM({
                 ...llm,
                 settings: { ...llm.settings, messages: newMessages },
+              });
+              setLocalLLM({
+                ...localLLM,
+                settings: { ...localLLM.settings, messages: newMessages },
               });
             }}
           />
@@ -108,6 +117,23 @@ export default function LLMChat({
                     id: uuidv4(),
                     role:
                       llm.vendor === "cohere"
+                        ? CohereAIRole.user
+                        : OpenAIRole.user,
+                    content: "",
+                  },
+                ],
+              },
+            });
+            setLocalLLM({
+              ...localLLM,
+              settings: {
+                ...localLLM.settings,
+                messages: [
+                  ...localLLM.settings.messages,
+                  {
+                    id: uuidv4(),
+                    role:
+                      localLLM.vendor === "cohere"
                         ? CohereAIRole.user
                         : OpenAIRole.user,
                     content: "",
@@ -206,7 +232,7 @@ export default function LLMChat({
                 // Decode chunk as text
                 const chunkText = decoder.decode(value, { stream: true });
                 chunkTexts.push(chunkText);
-                setLLM({
+                setLocalLLM({
                   ...llm,
                   settings: {
                     ...llm.settings,
@@ -265,6 +291,23 @@ export default function LLMChat({
                       id: uuidv4(),
                       role:
                         llm.vendor === "cohere"
+                          ? CohereAIRole.chatbot
+                          : OpenAIRole.assistant,
+                      content: result,
+                    },
+                  ],
+                },
+              });
+              setLocalLLM({
+                ...localLLM,
+                settings: {
+                  ...localLLM.settings,
+                  messages: [
+                    ...localLLM.settings.messages,
+                    {
+                      id: uuidv4(),
+                      role:
+                        localLLM.vendor === "cohere"
                           ? CohereAIRole.chatbot
                           : OpenAIRole.assistant,
                       content: result,
@@ -337,6 +380,23 @@ export default function LLMChat({
                       id: uuidv4(),
                       role:
                         llm.vendor === "cohere"
+                          ? CohereAIRole.chatbot
+                          : OpenAIRole.assistant,
+                      content: message,
+                    },
+                  ],
+                },
+              });
+              setLocalLLM({
+                ...localLLM,
+                settings: {
+                  ...localLLM.settings,
+                  messages: [
+                    ...localLLM.settings.messages,
+                    {
+                      id: uuidv4(),
+                      role:
+                        localLLM.vendor === "cohere"
                           ? CohereAIRole.chatbot
                           : OpenAIRole.assistant,
                       content: message,
