@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   langtrace-app:
     container_name: langtrace
@@ -7,20 +5,23 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: development
     working_dir: /app
     env_file:
       - .env
     ports:
       - "3000:3000"
+    command: npm run dev
     # Uncmment this for development
     # volumes:
     #   - .:/app
+    restart: on-failure:5
     depends_on:
       postgres-db:
         condition: service_started
         required: true
-      clickhouse-init:
-        condition: service_completed_successfully
+      clickhouse-db:
+        condition: service_healthy
         required: true
 
   postgres-db:
@@ -48,16 +49,13 @@ services:
     volumes:
       - clickhouse-data:/var/lib/clickhouse
 
-  clickhouse-init:
-    container_name: langtrace-clickhouse-init
-    image: clickhouse/clickhouse-server:23.3.20.27-alpine
-    env_file:
-      - .env
-    depends_on:
-      clickhouse-db:
-        condition: service_healthy
-        required: true
-    command: clickhouse-client --host langtrace-clickhouse --query 'CREATE DATABASE IF NOT EXISTS $CLICK_HOUSE_DATABASE_NAME;'
+  langtrace-app-prod:
+    extends:
+      service: langtrace-app
+    build:
+      target: production
+    profiles:
+      - production
 
 volumes:
   postgres-data:
