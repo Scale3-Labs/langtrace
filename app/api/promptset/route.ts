@@ -106,6 +106,13 @@ export async function GET(req: NextRequest) {
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        _count: {
+          select: {
+            Prompt: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json({

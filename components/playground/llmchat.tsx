@@ -79,13 +79,13 @@ export default function LLMChat({
               content: message.content,
             }}
             setMessage={(updatedMessage) => {
-              const newMessages = llm.settings.messages.map((m) =>
-                m.id === message.id ? updatedMessage : m
-              );
-              setLLM({
-                ...llm,
-                settings: { ...llm.settings, messages: newMessages },
-              });
+              // const newMessages = llm.settings.messages.map((m) =>
+              //   m.id === message.id ? updatedMessage : m
+              // );
+              // setLLM({
+              //   ...llm,
+              //   settings: { ...llm.settings, messages: newMessages },
+              // });
               const localNewMessages = localLLM.settings.messages.map((m) =>
                 m.id === message.id ? updatedMessage : m
               );
@@ -95,13 +95,13 @@ export default function LLMChat({
               });
             }}
             onRemove={() => {
-              const newMessages = llm.settings.messages.filter(
+              const newMessages = localLLM.settings.messages.filter(
                 (m) => m.id !== message.id
               );
-              setLLM({
-                ...llm,
-                settings: { ...llm.settings, messages: newMessages },
-              });
+              // setLLM({
+              //   ...llm,
+              //   settings: { ...llm.settings, messages: newMessages },
+              // });
               setLocalLLM({
                 ...localLLM,
                 settings: { ...localLLM.settings, messages: newMessages },

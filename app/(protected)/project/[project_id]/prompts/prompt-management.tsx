@@ -60,13 +60,14 @@ export default function PromptManagement({ email }: { email: string }) {
           {promptsets?.promptsets?.length === 0 && (
             <div className="flex flex-col gap-2 items-center justify-center w-full">
               <p className="text-center font-semibold mt-8">
-                Get started by creating your first prompt set.
+                Get started by creating your first prompt registry.
               </p>
               <p className="text-center text-sm text-muted-foreground w-1/2">
-                A Prompt set is a collection of versioned prompts all related to
-                a single prompt. You can create a prompt set, add a prompt and
-                continue to update and version the prompt. You can also access
-                the prompt using the API and use it in your application.
+                A Prompt registry is a collection of versioned prompts all
+                related to a single prompt. You can create a prompt registry,
+                add a prompt and continue to update and version the prompt. You
+                can also access the prompt using the API and use it in your
+                application.
               </p>
             </div>
           )}
@@ -83,7 +84,7 @@ export default function PromptManagement({ email }: { email: string }) {
                       <div className="flex flex-col gap-2">
                         <p>{promptset?.description}</p>
                         <p className="font-semibold text-primary">
-                          {promptset?.totalData || 0} records
+                          {promptset?._count?.Prompt || 0} versions
                         </p>
                       </div>
                     </CardDescription>

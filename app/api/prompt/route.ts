@@ -125,6 +125,25 @@ export async function PUT(req: NextRequest) {
     dataToUpdate.spanId = data.spanId;
   }
 
+  if (live) {
+    const existingLivePrompt = await prisma.prompt.findFirst({
+      where: {
+        live: true,
+      },
+    });
+
+    if (existingLivePrompt) {
+      await prisma.prompt.update({
+        where: {
+          id: existingLivePrompt.id,
+        },
+        data: {
+          live: false,
+        },
+      });
+    }
+  }
+
   const result = await prisma.prompt.update({
     where: {
       id,

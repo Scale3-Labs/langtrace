@@ -22,11 +22,10 @@ import {
 } from "@/components/ui/form";
 import { Input, InputLarge } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
 import { toast } from "sonner";
@@ -36,10 +35,12 @@ export default function CreatePromptDialog({
   promptsetId,
   currentPrompt,
   variant = "default",
+  disabled = false,
 }: {
   promptsetId: string;
   currentPrompt?: Prompt;
   variant?: any;
+  disabled?: boolean;
 }) {
   const schema = z.object({
     prompt: z.string(),
@@ -51,19 +52,10 @@ export default function CreatePromptDialog({
 
   const CreatePromptForm = useForm({
     resolver: zodResolver(schema),
-    defaultValues: {
-      prompt: currentPrompt?.value || "",
-      note: currentPrompt?.note || "",
-      live: currentPrompt?.live || false,
-      model: currentPrompt?.model || "",
-      modelSettings: currentPrompt?.modelSettings
-        ? JSON.stringify(currentPrompt.modelSettings, null, 2)
-        : "",
-    },
   });
 
   const queryClient = useQueryClient();
-  const [prompt, setPrompt] = useState<string>("");
+  const [prompt, setPrompt] = useState<string>(currentPrompt?.value || "");
   const [variables, setVariables] = useState<string[]>(
     currentPrompt?.variables || []
   );
@@ -86,14 +78,24 @@ export default function CreatePromptDialog({
     return vars;
   };
 
-  let currentVariables: string[] = [];
-  if (currentPrompt?.value) {
-    currentVariables = extractVariables(currentPrompt.value);
-  }
+  useEffect(() => {
+    if (currentPrompt?.value) {
+      const vars = extractVariables(currentPrompt.value);
+      setVariables(vars);
+      setPrompt(currentPrompt.value);
+    }
+  }, [currentPrompt]);
+
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(val) => {
+        setOpen(val);
+        CreatePromptForm.reset();
+      }}
+    >
       <AlertDialogTrigger asChild>
-        <Button variant={variant}>
+        <Button variant={variant} disabled={disabled}>
           {currentPrompt ? "Update Prompt" : "Create Prompt"}
         </Button>
       </AlertDialogTrigger>
@@ -130,7 +132,9 @@ export default function CreatePromptDialog({
                       },
                       body: JSON.stringify(payload),
                     });
-                    // await queryClient.invalidateQueries(datasetId);
+                    await queryClient.invalidateQueries({
+                      queryKey: [`fetch-prompts-${promptsetId}-query`],
+                    });
                     toast("Prompt added!", {
                       description: "Your prompt has been added.",
                     });
@@ -159,6 +163,7 @@ export default function CreatePromptDialog({
                           </FormLabel>
                           <FormControl>
                             <InputLarge
+                              defaultValue={currentPrompt?.value || ""}
                               className="h-32 text-primary"
                               value={field.value}
                               onChange={(e) => {
@@ -176,7 +181,7 @@ export default function CreatePromptDialog({
                     />
                     <div className="flex flex-col gap-2">
                       <Label>Detected Variables</Label>
-                      <div className="flex flex-wrap gap-2 p-2 border-2 border-muted rounded-md">
+                      <div className="flex flex-wrap items-center gap-2 p-2 border-2 border-muted rounded-md h-12">
                         {variables.map((variable) => (
                           <span
                             key={variable}
@@ -209,39 +214,24 @@ export default function CreatePromptDialog({
                     )}
                     <div className="flex flex-col gap-2">
                       <Label>Variables</Label>
-                      <div className="flex flex-wrap gap-2 p-2 border-2 border-muted rounded-md min-h-10">
-                        {currentVariables.map((variable) => {
+                      <div className="flex flex-wrap gap-2 p-2 border-2 border-muted rounded-md min-h-12">
+                        {variables.map((variable) => {
                           return (
                             <span
                               key={variable}
-                              className={cn(
-                                "text-primary-foreground px-2 py-1 rounded-md",
-                                variables.includes(variable)
-                                  ? "bg-primary"
-                                  : "bg-destructive text-white line-through"
-                              )}
+                              className={
+                                "text-primary-foreground px-2 py-1 rounded-md bg-primary"
+                              }
                             >
                               {variable}
                             </span>
                           );
                         })}
-                        {currentVariables.length === 0 &&
-                          variables.map((variable) => {
-                            return (
-                              <span
-                                key={variable}
-                                className={
-                                  "text-primary-foreground px-2 py-1 rounded-md bg-primary"
-                                }
-                              >
-                                {variable}
-                              </span>
-                            );
-                          })}
                       </div>
                     </div>
                     <div className="flex w-full gap-2 items-center justify-between">
                       <FormField
+                        defaultValue={currentPrompt?.note || ""}
                         control={CreatePromptForm.control}
                         name="note"
                         render={({ field }) => (
@@ -259,6 +249,9 @@ export default function CreatePromptDialog({
                         )}
                       />
                       <FormField
+                        defaultValue={
+                          JSON.stringify(currentPrompt?.modelSettings) || ""
+                        }
                         control={CreatePromptForm.control}
                         name="modelSettings"
                         render={({ field }) => (
@@ -286,6 +279,7 @@ export default function CreatePromptDialog({
                       />
                     </div>
                     <FormField
+                      defaultValue={currentPrompt?.model || ""}
                       control={CreatePromptForm.control}
                       name="model"
                       render={({ field }) => (
@@ -303,6 +297,7 @@ export default function CreatePromptDialog({
                       )}
                     />
                     <FormField
+                      defaultValue={currentPrompt?.live || false}
                       control={CreatePromptForm.control}
                       name="live"
                       render={({ field }) => (

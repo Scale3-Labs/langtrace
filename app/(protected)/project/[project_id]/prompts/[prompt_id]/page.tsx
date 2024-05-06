@@ -1,15 +1,17 @@
 "use client";
 import CreatePromptDialog from "@/components/shared/create-prompt-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { ChevronLeft } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 
 export default function Prompt() {
@@ -17,6 +19,8 @@ export default function Prompt() {
   const router = useRouter();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt>();
+  const [live, setLive] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   const { isLoading: promptsLoading, error: promptsError } = useQuery({
     queryKey: [`fetch-prompts-${promptsetId}-query`],
@@ -30,7 +34,10 @@ export default function Prompt() {
       }
       const result = await response.json();
       setPrompts(result?.promptsets?.prompts || []);
-      setSelectedPrompt(result?.promptsets?.prompts[0]);
+      if (result?.promptsets?.prompts.length > 0 && !selectedPrompt) {
+        setSelectedPrompt(result?.promptsets?.prompts[0]);
+        setLive(result?.promptsets?.prompts[0].live);
+      }
       return result;
     },
     onError: (error) => {
@@ -39,6 +46,8 @@ export default function Prompt() {
       });
     },
   });
+
+  if (promptsLoading) return <PageLoading />;
 
   if (!selectedPrompt)
     return (
@@ -77,7 +86,7 @@ export default function Prompt() {
           </Button>
           {prompts.length > 0 ? (
             <CreatePromptDialog
-              currentPrompt={prompts[0]}
+              currentPrompt={selectedPrompt}
               promptsetId={promptsetId}
             />
           ) : (
@@ -88,7 +97,10 @@ export default function Prompt() {
           <div className="flex flex-col gap-2 border-2 border-muted rounded-md w-[340px] p-2 overflow-y-scroll">
             {prompts.map((prompt: Prompt, i) => (
               <div
-                onClick={() => setSelectedPrompt(prompt)}
+                onClick={() => {
+                  setSelectedPrompt(prompt);
+                  setLive(prompt.live);
+                }}
                 className={cn(
                   "flex gap-4 items-start w-full rounded-md p-2 hover:bg-muted cursor-pointer",
                   selectedPrompt.id === prompt.id ? "bg-muted" : ""
@@ -143,7 +155,7 @@ export default function Prompt() {
             </div>
             <div className="flex flex-col gap-2">
               <Label>Model</Label>
-              <p className="p-2 rounded-md border-2 border-muted text-sm font-semibold">
+              <p className="p-2 rounded-md border-2 border-muted text-sm font-semibold h-10">
                 {selectedPrompt.model ?? "None"}
               </p>
             </div>
@@ -161,8 +173,68 @@ export default function Prompt() {
                 }}
               />
             </div>
+            <div className="flex flex-col gap-2">
+              <Label>Go Live</Label>
+              <div className="flex items-center gap-2 w-fit">
+                <Checkbox
+                  checked={live}
+                  onCheckedChange={async (checked) => {
+                    setLive(checked as boolean);
+                    try {
+                      const payload = {
+                        ...selectedPrompt,
+                        live: checked,
+                      };
+                      await fetch("/api/prompt", {
+                        method: "PUT",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                      });
+                      await queryClient.invalidateQueries({
+                        queryKey: [`fetch-prompts-${promptsetId}-query`],
+                      });
+                      toast.success(
+                        checked
+                          ? "This prompt is now live"
+                          : "This prompt is no longer live. Make sure to make another prompt live"
+                      );
+                    } catch (error) {
+                      toast.error("Failed to make prompt live", {
+                        description:
+                          error instanceof Error
+                            ? error.message
+                            : String(error),
+                      });
+                    }
+                  }}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Make this version of the prompt live
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     );
+}
+
+function PageLoading() {
+  return (
+    <div className="px-12 py-12 flex flex-col gap-4">
+      <div className="flex gap-4 items-center">
+        <Button className="w-fit" variant={"outline"} disabled={true}>
+          <ChevronLeft className="w-6 h-6 mr-2" />
+          Back
+        </Button>
+        <CreatePromptDialog promptsetId={""} disabled={true} />
+      </div>
+      <div className="flex gap-4 w-full h-screen">
+        <Skeleton className="w-[340px] h-screen" />
+        <Skeleton className="w-full h-screen" />
+      </div>
+    </div>
+  );
 }
