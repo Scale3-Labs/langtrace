@@ -20,37 +20,56 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { InputLarge } from "@/components/ui/input";
+import { Input, InputLarge } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Prompt } from "@prisma/client";
+import CodeEditor from "@uiw/react-textarea-code-editor";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useQueryClient } from "react-query";
+import { toast } from "sonner";
 import { z } from "zod";
 
 export default function CreatePromptDialog({
+  promptsetId,
   currentPrompt,
-  currentVersion,
   variant = "default",
 }: {
-  currentPrompt?: string;
-  currentVersion?: number;
+  promptsetId: string;
+  currentPrompt?: Prompt;
   variant?: any;
 }) {
   const schema = z.object({
     prompt: z.string(),
     note: z.string().optional(),
-    approved: z.boolean().optional(),
+    live: z.boolean().optional(),
+    model: z.string().optional(),
+    modelSettings: z.string().optional(),
   });
 
   const CreatePromptForm = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      prompt: currentPrompt?.value || "",
+      note: currentPrompt?.note || "",
+      live: currentPrompt?.live || false,
+      model: currentPrompt?.model || "",
+      modelSettings: currentPrompt?.modelSettings
+        ? JSON.stringify(currentPrompt.modelSettings, null, 2)
+        : "",
+    },
   });
 
+  const queryClient = useQueryClient();
   const [prompt, setPrompt] = useState<string>("");
-  const [variables, setVariables] = useState<string[]>([]);
+  const [variables, setVariables] = useState<string[]>(
+    currentPrompt?.variables || []
+  );
   const [confirmAndSaveView, setConfirmAndSaveView] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
+  const [busy, setBusy] = useState<boolean>(false);
 
   const extractVariables = (prompt: string) => {
     const regex = /{([^}]*)}/g;
@@ -68,13 +87,15 @@ export default function CreatePromptDialog({
   };
 
   let currentVariables: string[] = [];
-  if (currentPrompt) {
-    currentVariables = extractVariables(currentPrompt);
+  if (currentPrompt?.value) {
+    currentVariables = extractVariables(currentPrompt.value);
   }
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant={variant}>Create Prompt</Button>
+        <Button variant={variant}>
+          {currentPrompt ? "Update Prompt" : "Create Prompt"}
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="min-w-[1200px] min-h-[300px]">
         <AlertDialogHeader>
@@ -85,9 +106,40 @@ export default function CreatePromptDialog({
             <Form {...CreatePromptForm}>
               <form
                 className="flex flex-col gap-8"
-                onSubmit={CreatePromptForm.handleSubmit((data) => {
-                  console.log("data");
-                  console.log(data);
+                onSubmit={CreatePromptForm.handleSubmit(async (data) => {
+                  try {
+                    setBusy(true);
+                    const payload = {
+                      value: data.prompt,
+                      variables: variables,
+                      model: data.model || "",
+                      modelSettings: data.modelSettings
+                        ? JSON.parse(data.modelSettings)
+                        : {},
+                      version: currentPrompt?.version
+                        ? currentPrompt.version + 1
+                        : 1,
+                      live: data.live || false,
+                      note: data.note || "",
+                      promptsetId: promptsetId,
+                    };
+                    await fetch("/api/prompt", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify(payload),
+                    });
+                    // await queryClient.invalidateQueries(datasetId);
+                    toast("Prompt added!", {
+                      description: "Your prompt has been added.",
+                    });
+                    setOpen(false);
+                    setBusy(false);
+                  } catch (error) {
+                    setBusy(false);
+                    toast.error("Failed to create prompt");
+                  }
                 })}
               >
                 {!confirmAndSaveView ? (
@@ -142,7 +194,7 @@ export default function CreatePromptDialog({
                       <div className="flex flex-col gap-2">
                         <Label>Diff View</Label>
                         <DiffView
-                          oldString={currentPrompt as string}
+                          oldString={currentPrompt.value as string}
                           newString={prompt}
                         />
                       </div>
@@ -157,7 +209,7 @@ export default function CreatePromptDialog({
                     )}
                     <div className="flex flex-col gap-2">
                       <Label>Variables</Label>
-                      <div className="flex flex-wrap gap-2 p-2 border-2 border-muted rounded-md">
+                      <div className="flex flex-wrap gap-2 p-2 border-2 border-muted rounded-md min-h-10">
                         {currentVariables.map((variable) => {
                           return (
                             <span
@@ -188,17 +240,62 @@ export default function CreatePromptDialog({
                           })}
                       </div>
                     </div>
+                    <div className="flex w-full gap-2 items-center justify-between">
+                      <FormField
+                        control={CreatePromptForm.control}
+                        name="note"
+                        render={({ field }) => (
+                          <FormItem className="w-full">
+                            <FormLabel>Note (optional)</FormLabel>
+                            <FormControl>
+                              <InputLarge
+                                {...field}
+                                className="h-20 text-primary"
+                                placeholder="Testing the prompt. Do not approve."
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={CreatePromptForm.control}
+                        name="modelSettings"
+                        render={({ field }) => (
+                          <FormItem className="w-full">
+                            <FormLabel>Model Settings (optional)</FormLabel>
+                            <FormControl>
+                              <CodeEditor
+                                value={field.value}
+                                language="json"
+                                placeholder='{ "temperature": 0.5 }'
+                                onChange={(evn) =>
+                                  field.onChange(evn.target.value)
+                                }
+                                padding={15}
+                                className="h-20 rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                                style={{
+                                  fontFamily:
+                                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     <FormField
                       control={CreatePromptForm.control}
-                      name="note"
+                      name="model"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Note</FormLabel>
+                          <FormLabel>Model (optional)</FormLabel>
                           <FormControl>
-                            <InputLarge
+                            <Input
                               {...field}
-                              className="h-20 text-primary"
-                              placeholder="Testing the prompt. Do not approve."
+                              className="text-primary"
+                              placeholder="gpt-3.5-turbo"
                             />
                           </FormControl>
                           <FormMessage />
@@ -207,18 +304,20 @@ export default function CreatePromptDialog({
                     />
                     <FormField
                       control={CreatePromptForm.control}
-                      name="approved"
+                      name="live"
                       render={({ field }) => (
                         <FormItem className="flex items-end gap-2">
                           <Checkbox
                             checked={field.value}
-                            onCheckedChange={field.onChange}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked)
+                            }
                           />
                           <FormLabel>
-                            Approve
+                            Mark as Live
                             <span className="text-xs font-normal">
                               {
-                                " (Checking this option will make the prompt the latest version and will be available for use in production.)"
+                                " (If you are using this prompt in production using the API/SDK, marking this live will ensure that this prompt is used by default for new requests.)"
                               }
                             </span>
                           </FormLabel>
@@ -229,7 +328,7 @@ export default function CreatePromptDialog({
                     <div className="flex flex-col gap-2">
                       <Label>New Version</Label>
                       <p className="text-primary">
-                        {currentVersion ? currentVersion + 1 : 1}
+                        {currentPrompt?.version ? currentPrompt.version + 1 : 1}
                       </p>
                     </div>
                   </>
@@ -259,7 +358,11 @@ export default function CreatePromptDialog({
                       Back
                     </Button>
                   )}
-                  {confirmAndSaveView && <Button type="submit">Save</Button>}
+                  {confirmAndSaveView && (
+                    <Button disabled={busy} type="submit">
+                      Save
+                    </Button>
+                  )}
                 </AlertDialogFooter>
               </form>
             </Form>

@@ -97,7 +97,7 @@ model Prompt {
   model         String?
   modelSettings Json?     @default("{}")
   version       Int       @default(1)
-  approved      Boolean   @default(false)
+  live          Boolean   @default(false)
   tags          String[]  @default([])
   spanId        String?
   note          String?

@@ -40,7 +40,7 @@ export default function PageClient({ email }: { email: string }) {
     queryKey: [`fetch-prompts-${projectId}-query`],
     queryFn: async () => {
       const response = await fetch(
-        `/api/prompt?projectId=${projectId}&page=${page}&pageSize=${PAGE_SIZE}`
+        `/api/span-prompt?projectId=${projectId}&page=${page}&pageSize=${PAGE_SIZE}`
       );
       if (!response.ok) {
         const error = await response.json();

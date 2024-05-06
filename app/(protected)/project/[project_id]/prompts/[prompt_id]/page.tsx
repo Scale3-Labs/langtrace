@@ -1,28 +1,92 @@
 "use client";
+import CreatePromptDialog from "@/components/shared/create-prompt-dialog";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
+import { ChevronLeft } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-
-const prompts: any[] = [];
+import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 export default function Prompt() {
-  const [selectedPrompt, setSelectedPrompt] = useState(
-    prompts.length > 0 ? prompts[0] : null
-  );
+  const promptsetId = useParams()?.prompt_id as string;
+  const router = useRouter();
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [selectedPrompt, setSelectedPrompt] = useState<Prompt>();
+
+  const { isLoading: promptsLoading, error: promptsError } = useQuery({
+    queryKey: [`fetch-prompts-${promptsetId}-query`],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/promptset?promptset_id=${promptsetId}`
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch tests");
+      }
+      const result = await response.json();
+      setPrompts(result?.promptsets?.prompts || []);
+      setSelectedPrompt(result?.promptsets?.prompts[0]);
+      return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch prompts", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
+
   if (!selectedPrompt)
     return (
-      <div className="p-12 flex items-center justify-center">
-        No prompts found :(
+      <div className="p-12 flex flex-col gap-2">
+        <Button
+          className="w-fit"
+          variant={"outline"}
+          onClick={() => router.back()}
+        >
+          <ChevronLeft className="w-6 h-6 mr-2" />
+          Back
+        </Button>
+        <div className="flex flex-col gap-2 items-center justify-center">
+          <p className="font-semibold text-lg">Create your first prompt</p>
+          <p className="text-muted-foreground text-sm text-center w-1/3">
+            Start by creating the first version of your prompt. Once created,
+            you can test it in the playground with different models and model
+            settings and continue to iterate and add more versions to the
+            prompt.
+          </p>
+          <CreatePromptDialog promptsetId={promptsetId} />
+        </div>
       </div>
     );
   else
     return (
       <div className="px-12 py-12 flex flex-col gap-4">
+        <div className="flex gap-4 items-center">
+          <Button
+            className="w-fit"
+            variant={"outline"}
+            onClick={() => router.back()}
+          >
+            <ChevronLeft className="w-6 h-6 mr-2" />
+            Back
+          </Button>
+          {prompts.length > 0 ? (
+            <CreatePromptDialog
+              currentPrompt={prompts[0]}
+              promptsetId={promptsetId}
+            />
+          ) : (
+            <CreatePromptDialog promptsetId={promptsetId} />
+          )}
+        </div>
         <div className="flex gap-4 w-full h-screen">
           <div className="flex flex-col gap-2 border-2 border-muted rounded-md w-[340px] p-2 overflow-y-scroll">
-            {prompts.map((prompt, i) => (
+            {prompts.map((prompt: Prompt, i) => (
               <div
                 onClick={() => setSelectedPrompt(prompt)}
                 className={cn(
@@ -41,14 +105,15 @@ export default function Prompt() {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <p
-                    className={cn(
-                      "text-white text-xs p-1 rounded-md w-fit",
-                      prompt.approved ? "bg-green-500" : "bg-orange-500"
-                    )}
-                  >
-                    {prompt.approved ? "Approved" : "Pending"}
-                  </p>
+                  {prompt.live && (
+                    <p
+                      className={cn(
+                        "text-white text-xs p-1 rounded-md w-fit bg-green-500"
+                      )}
+                    >
+                      Live
+                    </p>
+                  )}
                   <p className="text-sm">
                     {prompt.note || `Version ${prompt.version}`}
                   </p>
@@ -60,7 +125,7 @@ export default function Prompt() {
             <div className="flex flex-col gap-2">
               <Label>Prompt</Label>
               <p className="p-2 rounded-md border-2 border-muted">
-                {selectedPrompt.prompt}
+                {selectedPrompt.value}
               </p>
             </div>
             <div className="flex flex-col gap-2">
