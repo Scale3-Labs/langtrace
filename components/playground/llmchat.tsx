@@ -86,9 +86,12 @@ export default function LLMChat({
                 ...llm,
                 settings: { ...llm.settings, messages: newMessages },
               });
+              const localNewMessages = localLLM.settings.messages.map((m) =>
+                m.id === message.id ? updatedMessage : m
+              );
               setLocalLLM({
                 ...localLLM,
-                settings: { ...localLLM.settings, messages: newMessages },
+                settings: { ...localLLM.settings, messages: localNewMessages },
               });
             }}
             onRemove={() => {
