@@ -16,7 +16,7 @@ import { Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-export default function TeamView() {
+export default function ApiKeys() {
   const [busy, setBusy] = useState(false);
   const [vendorKeys, setVendorKeys] = useState<any[]>([]);
 

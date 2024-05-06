@@ -17,7 +17,7 @@ export default async function Page() {
 
   return (
     <>
-      <PageClient user={user.data} />
+      <PageClient />
     </>
   );
 }

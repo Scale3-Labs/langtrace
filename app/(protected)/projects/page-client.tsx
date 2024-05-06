@@ -225,7 +225,7 @@ function ProjectCard({
                     </p>
                   </div>
                   <div className="flex flex-row gap-1 items-center">
-                    <p className="text-sm text-muted-foreground">Prompt sets</p>
+                    <p className="text-sm text-muted-foreground">Prompts</p>
                     <p className="text-sm font-semibold">
                       {projectStats?.totalPromptsets || 0}
                     </p>

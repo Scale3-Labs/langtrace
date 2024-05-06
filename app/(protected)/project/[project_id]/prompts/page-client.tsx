@@ -1,6 +1,5 @@
 "use client";
 
-import { AddtoPromptset } from "@/components/shared/add-to-promptset";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PAGE_SIZE } from "@/lib/constants";
 import { extractSystemPromptFromLlmInputs } from "@/lib/utils";
-import { CheckCircledIcon } from "@radix-ui/react-icons";
 import { ChevronDown, ChevronRight, RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -130,9 +128,6 @@ export default function PageClient({ email }: { email: string }) {
 
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
-        <div className="w-fit">
-          <AddtoPromptset projectId={projectId} selectedData={selectedData} />
-        </div>
         <p className="text-sm font-semibold text-black bg-yellow-300 px-2 p-1 rounded-md">
           These prompts are automatically captured from your traces. The
           accuracy of these prompts are calculated based on the evaluation done
@@ -145,7 +140,6 @@ export default function PageClient({ email }: { email: string }) {
             <p className="text-xs font-medium text-left">Interactions</p>
             <p className="text-xs text-left font-medium">Prompt</p>
             <p className="text-xs font-medium text-center">Accuracy</p>
-            <p className="text-xs font-medium">Added to Dataset</p>
           </div>
           {dedupedPrompts.map((prompt: any, i: number) => {
             return (
@@ -187,26 +181,6 @@ const PromptRow = ({
 }) => {
   const [collapsed, setCollapsed] = useState(true);
   const [accuracy, setAccuracy] = useState(0);
-  const [addedToPromptset, setAddedToPromptset] = useState(false);
-
-  useQuery({
-    queryKey: [`fetch-promptdata-query-${prompt.span_id}`],
-    queryFn: async () => {
-      const response = await fetch(`/api/promptdata?spanId=${prompt.span_id}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error?.message || "Failed to fetch prompt data");
-      }
-      const result = await response.json();
-      setAddedToPromptset(result.data.length > 0);
-      return result;
-    },
-    onError: (error) => {
-      toast.error("Failed to fetch prompt data", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-    },
-  });
 
   // Get the evaluation for this prompt's content
   const attributes = prompt.attributes ? JSON.parse(prompt.attributes) : {};
@@ -302,11 +276,6 @@ const PromptRow = ({
         <p className="text-xs text-center font-semibold">
           {accuracy?.toFixed(2)}%
         </p>
-        {addedToPromptset ? (
-          <CheckCircledIcon className="text-green-600 w-5 h-5" />
-        ) : (
-          ""
-        )}
       </div>
       {!collapsed && (
         <div className="flex flex-col gap-6 p-4 border-[1px] border-muted-foreground rounded-md">
@@ -325,9 +294,6 @@ const PromptRow = ({
 function PageLoading() {
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
-      <div className="w-fit">
-        <AddtoPromptset disabled={true} />
-      </div>
       <p className="text-sm font-semibold text-black bg-yellow-300 px-2 p-1 rounded-md">
         These prompts are automatically captured from your traces. The accuracy
         of these prompts are calculated based on the evaluation done in the
