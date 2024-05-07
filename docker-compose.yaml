@@ -11,8 +11,8 @@ services:
       - .env
     ports:
       - "3000:3000"
-    command: npm run dev
-    # Uncmment this for development
+    # Uncomment this for development
+    # command: npm run dev
     # volumes:
     #   - .:/app
     restart: on-failure:5
