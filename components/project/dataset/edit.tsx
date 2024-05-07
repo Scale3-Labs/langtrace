@@ -252,9 +252,11 @@ export function EditDataSet({
 
 export function EditPromptSet({
   promptset,
+  projectId,
   className = "w-full text-left p-0 text-muted-foreground hover:text-primary flex items-center",
 }: {
   promptset: Promptset;
+  projectId: string;
   variant?: any;
   className?: string;
 }) {
@@ -343,7 +345,9 @@ export function EditPromptSet({
                       description: data.description,
                     }),
                   });
-                  await queryClient.invalidateQueries("fetch-promptsets-query");
+                  await queryClient.invalidateQueries({
+                    queryKey: ["fetch-promptsets-query", projectId],
+                  });
                   toast("Prompt registry saved!", {
                     description: "Your prompt registry has been saved.",
                   });
@@ -438,7 +442,9 @@ export function EditPromptSet({
                       id: promptset.id,
                     }),
                   });
-                  await queryClient.invalidateQueries("fetch-promptsets-query");
+                  await queryClient.invalidateQueries({
+                    queryKey: ["fetch-promptsets-query", projectId],
+                  });
                   toast("Prompt registry deleted!", {
                     description: "Your prompt registry has been deleted.",
                   });

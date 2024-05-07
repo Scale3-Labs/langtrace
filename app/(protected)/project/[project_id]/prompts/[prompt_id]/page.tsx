@@ -23,7 +23,7 @@ export default function Prompt() {
   const queryClient = useQueryClient();
 
   const { isLoading: promptsLoading, error: promptsError } = useQuery({
-    queryKey: [`fetch-prompts-${promptsetId}-query`],
+    queryKey: ["fetch-prompts-query", promptsetId],
     queryFn: async () => {
       const response = await fetch(
         `/api/promptset?promptset_id=${promptsetId}`
@@ -193,7 +193,7 @@ export default function Prompt() {
                         body: JSON.stringify(payload),
                       });
                       await queryClient.invalidateQueries({
-                        queryKey: [`fetch-prompts-${promptsetId}-query`],
+                        queryKey: ["fetch-prompts-query", promptsetId],
                       });
                       toast.success(
                         checked

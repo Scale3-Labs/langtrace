@@ -207,9 +207,9 @@ export function CreatePromptset({
                     projectId,
                   }),
                 });
-                await queryClient.invalidateQueries(
-                  "fetch-promptsets-stats-query"
-                );
+                await queryClient.invalidateQueries({
+                  queryKey: ["fetch-promptsets-query", projectId],
+                });
                 await queryClient.invalidateQueries("fetch-promptsets-query");
                 toast("Prompt registry created!", {
                   description: "Your prompt registry has been created.",
@@ -275,7 +275,7 @@ export function CreatePromptset({
             />
             <DialogFooter>
               <Button type="submit" disabled={busy}>
-                Create Promptset
+                Create Prompt Registry
                 <PlusIcon className="h-4 w-4 ml-2" />
               </Button>
             </DialogFooter>

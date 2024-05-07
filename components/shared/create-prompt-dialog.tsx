@@ -133,7 +133,7 @@ export default function CreatePromptDialog({
                       body: JSON.stringify(payload),
                     });
                     await queryClient.invalidateQueries({
-                      queryKey: [`fetch-prompts-${promptsetId}-query`],
+                      queryKey: ["fetch-prompts-query", promptsetId],
                     });
                     toast("Prompt added!", {
                       description: "Your prompt has been added.",
@@ -213,7 +213,7 @@ export default function CreatePromptDialog({
                       </div>
                     )}
                     <div className="flex flex-col gap-2">
-                      <Label>Variables</Label>
+                      <Label>New variables</Label>
                       <div className="flex flex-wrap gap-2 p-2 border-2 border-muted rounded-md min-h-12">
                         {variables.map((variable) => {
                           return (

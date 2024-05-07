@@ -24,7 +24,7 @@ export default function PromptManagement({ email }: { email: string }) {
     isLoading: promptsetsLoading,
     error: promptsetsError,
   } = useQuery({
-    queryKey: [`fetch-promptsets-${projectId}-query`],
+    queryKey: ["fetch-promptsets-query", projectId],
     queryFn: async () => {
       const response = await fetch(`/api/promptset?id=${projectId}`);
       if (!response.ok) {
@@ -74,7 +74,7 @@ export default function PromptManagement({ email }: { email: string }) {
           {promptsets?.promptsets?.map((promptset: any, i: number) => (
             <div key={i} className="relative">
               <div className="absolute top-2 right-2 z-10">
-                <EditPromptSet promptset={promptset} />
+                <EditPromptSet promptset={promptset} projectId={projectId} />
               </div>
               <Link href={`/project/${projectId}/prompts/${promptset?.id}`}>
                 <Card className="w-full md:w-[325px] h-[150px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
