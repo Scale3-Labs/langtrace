@@ -178,13 +178,7 @@ function ProjectCard({
           )}
         <Edit teamId={teamId} project={project} />
       </div>
-      <Link
-        href={
-          !projectStatsLoading && projectStats && projectStats?.totalSpans === 0
-            ? `/project/${project.id}/traces`
-            : `/project/${project.id}/metrics`
-        }
-      >
+      <Link href={`/project/${project.id}/playground`}>
         <Card className="w-full md:w-[325px] h-[180px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
           <CardHeader>
             <CardTitle className="capitalize w-1/2 truncate">
