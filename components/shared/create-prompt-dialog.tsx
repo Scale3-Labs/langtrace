@@ -213,7 +213,7 @@ export default function CreatePromptDialog({
                       </div>
                     )}
                     <div className="flex flex-col gap-2">
-                      <Label>New variables</Label>
+                      <Label>Variables</Label>
                       <div className="flex flex-wrap gap-2 p-2 border-2 border-muted rounded-md min-h-12">
                         {variables.map((variable) => {
                           return (
