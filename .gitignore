@@ -40,5 +40,3 @@ next-env.d.ts
 cli/config*.ini
 cli/build/*
 cli/dist/*
-
-.env
