@@ -1,4 +1,4 @@
-import Parent from "@/components/project/dataset/parent";
+import DataSet from "@/components/project/dataset/data-set";
 import { authOptions } from "@/lib/auth/options";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
@@ -18,7 +18,7 @@ export default async function Page() {
 
   return (
     <>
-      <Parent email={user.email as string} />
+      <DataSet email={user.email as string} />
     </>
   );
 }

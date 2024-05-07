@@ -1,3 +1,5 @@
+"use client";
+
 import CardLoading from "@/components/shared/card-skeleton";
 import {
   Card,
@@ -43,14 +45,14 @@ export default function DataSet({ email }: { email: string }) {
     return <PageLoading />;
   } else if (datasetsError) {
     return (
-      <div className="py-6 px-6 flex flex-col items-center justify-center gap-4 mt-8 w-full">
+      <div className="py-12 px-12 flex flex-col items-center justify-center gap-4 mt-8 w-full">
         <RabbitIcon size={80} />
         <p className="font-semibold">Failed to fetch datasets</p>
       </div>
     );
   } else {
     return (
-      <div className="w-full py-6 px-6 flex flex-col gap-4">
+      <div className="w-full py-12 px-12 flex flex-col gap-4">
         <div className="w-fit">
           <CreateDataset projectId={projectId} />
         </div>
@@ -99,7 +101,7 @@ export default function DataSet({ email }: { email: string }) {
 
 function PageLoading() {
   return (
-    <div className="w-full py-6 px-6 flex flex-col gap-4">
+    <div className="w-full py-12 px-12 flex flex-col gap-4">
       <div className="w-fit">
         <CreateDataset disabled={true} />
       </div>

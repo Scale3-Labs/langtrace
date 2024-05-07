@@ -33,9 +33,6 @@ export async function GET(req: NextRequest) {
         where: {
           id: promptsetId,
         },
-        include: {
-          Prompt: true,
-        },
       });
 
       if (!promptset) {
@@ -77,7 +74,7 @@ export async function GET(req: NextRequest) {
       // Combine dataset with its related, ordered Data
       const promptsetWithOrderedData = {
         ...promptset,
-        Prompt: relatedPrompt,
+        prompts: relatedPrompt,
       };
 
       return NextResponse.json({
@@ -106,11 +103,15 @@ export async function GET(req: NextRequest) {
       where: {
         projectId: id,
       },
-      include: {
-        Prompt: true,
-      },
       orderBy: {
         createdAt: "desc",
+      },
+      include: {
+        _count: {
+          select: {
+            Prompt: true,
+          },
+        },
       },
     });
 
