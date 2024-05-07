@@ -14,7 +14,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 
-export default function Prompt() {
+export default function Page() {
   const promptsetId = useParams()?.prompt_id as string;
   const router = useRouter();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
