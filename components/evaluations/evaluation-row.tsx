@@ -1,5 +1,3 @@
-"use client";
-
 import { HoverCell } from "@/components/shared/hover-cell";
 import { LLMView } from "@/components/shared/llm-view";
 import { Button } from "@/components/ui/button";

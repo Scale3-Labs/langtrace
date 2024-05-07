@@ -2,11 +2,17 @@
 
 ## Open Source & Open Telemetry(OTEL) Observability for LLM applications
 
-![Static Badge](https://img.shields.io/badge/License-AGPL--3.0-blue) ![Static Badge](https://img.shields.io/badge/npm_@langtrase/typescript--sdk-1.2.9-green) ![Static Badge](https://img.shields.io/badge/pip_langtrace--python--sdk-1.2.8-green) ![Static Badge](https://img.shields.io/badge/Development_status-Active-green)
+![Static Badge](https://img.shields.io/badge/License-AGPL--3.0-blue)
+![NPM Version](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat&logo=npm&label=%40langtrase%2Ftypescript-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-typescript-sdk)
+![PyPI - Version](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat&logo=python&label=langtrace-python-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-python-sdk)
+![Static Badge](https://img.shields.io/badge/Development_status-Active-green)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/yZGbfC?referralCode=MA2S9H)
 
 ---
 
 Langtrace is an open source observability software which lets you capture, debug and analyze traces and metrics from all your applications that leverages LLM APIs, Vector Databases and LLM based Frameworks.
+
+![image](https://github.com/Scale3-Labs/langtrace/assets/105607645/6825158c-39bb-4270-b1f9-446c36c066ee)
 
 ## Open Telemetry Support
 
@@ -28,20 +34,20 @@ To use the managed SaaS version of Langtrace, follow the steps below:
 
 ### If your application is built using **typescript/javascript**
 
-``` typescript
+```typescript
 npm i @langtrase/typescript-sdk
 ```
 
-``` typescript
+```typescript
 import * as Langtrace from '@langtrase/typescript-sdk' // Must precede any llm module imports
 Langtrace.init({ api_key: <your_api_key> })
 ```
 
 OR
 
-``` typescript
-import * as Langtrace from '@langtrase/typescript-sdk' // Must precede any llm module imports
-LangTrace.init() // LANGTRACE_API_KEY as an ENVIRONMENT variable
+```typescript
+import * as Langtrace from "@langtrase/typescript-sdk"; // Must precede any llm module imports
+LangTrace.init(); // LANGTRACE_API_KEY as an ENVIRONMENT variable
 ```
 
 ### If your application is built using **python**
@@ -62,8 +68,6 @@ from langtrace_python_sdk import langtrace
 langtrace.init() # LANGTRACE_API_KEY as an ENVIRONMENT variable
 ```
 
-
-
 ### Langtrace self hosted
 
 To run the Langtrace locally, you have to run three services:
@@ -71,6 +75,9 @@ To run the Langtrace locally, you have to run three services:
 - Next.js app
 - Postgres database
 - Clickhouse database
+
+> [!IMPORTANT]
+> Checkout [documentation](https://docs.langtrace.ai/hosting/overview) for various deployment options and configurations.
 
 Requirements:
 
@@ -93,7 +100,7 @@ The application will be available at `http://localhost:3000`.
 > if you wish to build the docker image locally and use it, run the docker compose up command with the `--build` flag.
 
 > [!TIP]
-> to manually pull the docker image from docker hub, run the following command:
+> to manually pull the docker image from [docker hub](https://hub.docker.com/r/scale3labs/langtrace-client/tags), run the following command:
 >
 > ```bash
 > docker pull scale3labs/langtrace-client:latest
@@ -101,13 +108,11 @@ The application will be available at `http://localhost:3000`.
 
 #### Take down the setup
 
-````bash
-
 To delete containers and volumes
 
 ```bash
 docker compose down -v
-````
+```
 
 `-v` flag is used to delete volumes
 
@@ -140,11 +145,11 @@ The following are some commands that may come handy during setup and debugging.
   docker logs langtrace
   ```
 
-  If you want to follow the logs
+If you want to follow the logs
 
-  ```bash
-  docker logs -f langtrace
-  ```
+```bash
+docker logs -f langtrace
+```
 
 </details>
 
@@ -194,6 +199,7 @@ Either you **update the docker compose version** OR **remove the depends_on prop
   If clickhouse server is not starting, it is likely that the port 8123 is already in use. You can change the port in the docker-compose file.
 </details>
 
+<br/>
 Install the langtrace SDK in your application by following the same instructions under the Langtrace Cloud section above for sending traces to your self hosted setup.
 
 ---
@@ -222,6 +228,12 @@ Langtrace automatically captures traces from the following vendors:
 | Pinecone     | Vector Database | :white_check_mark: | :white_check_mark: |
 | ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark: |
 | QDrant       | Vector Database | :x:                | :white_check_mark: |
+
+---
+
+## Langtrace System Architecture
+
+![image](https://github.com/Scale3-Labs/langtrace/assets/105607645/eae180dd-ebf7-4792-b076-23f75d3734a8)
 
 ---
 
