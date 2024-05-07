@@ -263,8 +263,8 @@ export default function EvaluationRow({
       </div>
       {!collapsed && (
         <LLMView
-          responses={responses}
-          prompts={prompts}
+          responses={[responses]}
+          prompts={[prompts]}
           doPiiDetection={true}
         />
       )}
