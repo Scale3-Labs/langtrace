@@ -1,5 +1,3 @@
-"use client";
-
 import { TestSetupInstructions } from "@/components/shared/setup-instructions";
 import { Spinner } from "@/components/shared/spinner";
 import { PAGE_SIZE } from "@/lib/constants";

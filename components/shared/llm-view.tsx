@@ -2,6 +2,8 @@
 
 import detectPII from "@/lib/pii";
 import { cn, safeStringify } from "@/lib/utils";
+import { useState } from "react";
+import { Button } from "../ui/button";
 
 export const LLMView = ({
   prompts,
@@ -14,10 +16,23 @@ export const LLMView = ({
   Evaluate?: React.FC;
   doPiiDetection?: boolean;
 }) => {
+  const [selectedTab, setSelectedTab] = useState(0);
   return (
     <div className="flex flex-col gap-6 p-4 border-[1px] border-muted rounded-lg shadow-md bg-primary-foreground">
+      <div className="flex items-center gap-2">
+        {prompts.map((prompt: any, i: number) => (
+          <Button
+            key={i}
+            size={"sm"}
+            variant={selectedTab === i ? "secondary" : "outline"}
+            onClick={() => setSelectedTab(i)}
+          >
+            Request {i + 1}
+          </Button>
+        ))}
+      </div>
       {prompts?.length > 0 &&
-        JSON.parse(prompts).map((prompt: any, i: number) => {
+        JSON.parse(prompts[selectedTab]).map((prompt: any, i: number) => {
           const role = prompt?.role ? prompt?.role?.toLowerCase() : "User";
           const content = prompt?.content
             ? prompt?.content
@@ -46,7 +61,7 @@ export const LLMView = ({
           );
         })}
       {responses?.length > 0 &&
-        JSON.parse(responses).map((response: any, i: number) => {
+        JSON.parse(responses[selectedTab]).map((response: any, i: number) => {
           const role =
             response?.role?.toLowerCase() ||
             response?.message?.role ||

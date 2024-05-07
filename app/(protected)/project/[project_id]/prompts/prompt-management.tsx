@@ -1,3 +1,7 @@
+"use client";
+
+import { CreatePromptset } from "@/components/project/dataset/create";
+import { EditPromptSet } from "@/components/project/dataset/edit";
 import CardLoading from "@/components/shared/card-skeleton";
 import {
   Card,
@@ -11,10 +15,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { CreatePromptset } from "./create";
-import { EditPromptSet } from "./edit";
 
-export default function PromptSet({ email }: { email: string }) {
+export default function PromptManagement({ email }: { email: string }) {
   const projectId = useParams()?.project_id as string;
 
   const {
@@ -22,18 +24,18 @@ export default function PromptSet({ email }: { email: string }) {
     isLoading: promptsetsLoading,
     error: promptsetsError,
   } = useQuery({
-    queryKey: [`fetch-promptsets-stats-${projectId}-query`],
+    queryKey: ["fetch-promptsets-query", projectId],
     queryFn: async () => {
-      const response = await fetch(`/api/stats/promptset?id=${projectId}`);
+      const response = await fetch(`/api/promptset?id=${projectId}`);
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error?.message || "Failed to fetch promptsets");
+        throw new Error(error?.message || "Failed to fetch prompt sets");
       }
       const result = await response.json();
       return result;
     },
     onError: (error) => {
-      toast.error("Failed to fetch promptsets", {
+      toast.error("Failed to fetch prompt sets", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
@@ -43,47 +45,46 @@ export default function PromptSet({ email }: { email: string }) {
     return <PageLoading />;
   } else if (promptsetsError) {
     return (
-      <div className="py-6 px-6 flex flex-col items-center justify-center gap-4 mt-8 w-full">
+      <div className="py-12 px-12 flex flex-col items-center justify-center gap-4 mt-8 w-full">
         <RabbitIcon size={80} />
         <p className="font-semibold">Failed to fetch promptsets</p>
       </div>
     );
   } else {
     return (
-      <div className="w-full py-6 px-6 flex flex-col gap-4">
+      <div className="w-full py-12 px-12 flex flex-col gap-4">
         <div className="w-fit">
           <CreatePromptset projectId={projectId} />
         </div>
         <div className="w-full flex flex-col md:flex-row flex-wrap gap-6 rounded-md">
-          {promptsets?.result?.length === 0 && (
+          {promptsets?.promptsets?.length === 0 && (
             <div className="flex flex-col gap-2 items-center justify-center w-full">
               <p className="text-center font-semibold mt-8">
-                Get started by creating your first prompt set.
+                Get started by creating your first prompt registry.
               </p>
               <p className="text-center text-sm text-muted-foreground w-1/2">
-                Prompt Sets help you categorize and manage a set of prompts. Say
-                you would like to group the prompts that give an accuracy of 90%
-                of more. You can use the eval tab to add new records to any of
-                the prompt sets.
+                A Prompt registry is a collection of versioned prompts all
+                related to a single prompt. You can create a prompt registry,
+                add a prompt and continue to update and version the prompt. You
+                can also access the prompt using the API and use it in your
+                application.
               </p>
             </div>
           )}
-          {promptsets?.result?.map((promptset: any, i: number) => (
+          {promptsets?.promptsets?.map((promptset: any, i: number) => (
             <div key={i} className="relative">
               <div className="absolute top-2 right-2 z-10">
-                <EditPromptSet promptset={promptset?.promptset} />
+                <EditPromptSet promptset={promptset} projectId={projectId} />
               </div>
-              <Link
-                href={`/project/${projectId}/datasets/promptset/${promptset?.promptset.id}`}
-              >
+              <Link href={`/project/${projectId}/prompts/${promptset?.id}`}>
                 <Card className="w-full md:w-[325px] h-[150px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
                   <CardHeader>
-                    <CardTitle>{promptset?.promptset?.name}</CardTitle>
+                    <CardTitle>{promptset?.name}</CardTitle>
                     <CardDescription>
                       <div className="flex flex-col gap-2">
-                        <p>{promptset?.promptset?.description}</p>
+                        <p>{promptset?.description}</p>
                         <p className="font-semibold text-primary">
-                          {promptset?.totalPrompts || 0} prompts
+                          {promptset?._count?.Prompt || 0} versions
                         </p>
                       </div>
                     </CardDescription>
@@ -100,13 +101,13 @@ export default function PromptSet({ email }: { email: string }) {
 
 function PageLoading() {
   return (
-    <div className="w-full py-6 px-6 flex flex-col gap-4">
+    <div className="w-full py-12 px-12 flex flex-col gap-4">
       <div className="w-fit">
         <CreatePromptset disabled={true} />
       </div>
       <div
         className={cn(
-          "flex w-full gap-12 flex-wrap md:flex-row flex-col md:items-start items-center"
+          "flex w-full gap-12 md:flex-row flex-wrap flex-col md:items-start items-center"
         )}
       >
         {Array.from({ length: 3 }).map((_, index) => (

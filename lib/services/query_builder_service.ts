@@ -50,7 +50,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     filterOperation: string = "OR"
   ): string {
     // Base query parts
-    let baseQuery = `COUNT(DISTINCT span_id) AS total_spans FROM '${tableName}'`;
+    let baseQuery = `COUNT(DISTINCT span_id) AS total_spans FROM ${tableName}`;
     let whereConditions: string[] = [];
 
     // Iterate over filters to construct WHERE conditions
@@ -89,7 +89,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     filterOperation: string = "OR"
   ): string {
     // Base query parts
-    let baseQuery = `COUNT(DISTINCT trace_id) AS total_traces FROM '${tableName}'`;
+    let baseQuery = `COUNT(DISTINCT trace_id) AS total_traces FROM ${tableName}`;
     let whereConditions: string[] = [];
 
     // Iterate over filters to construct WHERE conditions
@@ -174,7 +174,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     filterOperation: string = "OR"
   ): string {
     // Base query parts
-    let baseQuery = `trace_id, MIN(start_time) AS earliest_start_time FROM '${tableName}'`;
+    let baseQuery = `trace_id, MIN(start_time) AS earliest_start_time FROM ${tableName}`;
     let whereConditions: string[] = [];
 
     // Iterate over filters to construct WHERE conditions
@@ -216,7 +216,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     filterOperation: string = "OR"
   ): string {
     // Base query parts
-    let baseQuery = `* FROM '${tableName}' WHERE span_id = '${spanId}'`;
+    let baseQuery = `* FROM ${tableName} WHERE span_id = '${spanId}'`;
     let whereConditions: string[] = [];
 
     // Iterate over filters to construct WHERE conditions
@@ -256,7 +256,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     filterOperation: string = "OR"
   ): string {
     // Base query parts
-    let baseQuery = `* FROM '${tableName}' WHERE trace_id = '${traceId}'`;
+    let baseQuery = `* FROM ${tableName} WHERE trace_id = '${traceId}'`;
     let whereConditions: string[] = [];
 
     // Iterate over filters to construct WHERE conditions
