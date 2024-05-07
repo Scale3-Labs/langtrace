@@ -34,11 +34,13 @@ import { z } from "zod";
 export default function CreatePromptDialog({
   promptsetId,
   currentPrompt,
+  version,
   variant = "default",
   disabled = false,
 }: {
   promptsetId: string;
   currentPrompt?: Prompt;
+  version?: number;
   variant?: any;
   disabled?: boolean;
 }) {
@@ -118,9 +120,7 @@ export default function CreatePromptDialog({
                       modelSettings: data.modelSettings
                         ? JSON.parse(data.modelSettings)
                         : {},
-                      version: currentPrompt?.version
-                        ? currentPrompt.version + 1
-                        : 1,
+                      version: version || 1,
                       live: data.live || false,
                       note: data.note || "",
                       promptsetId: promptsetId,
@@ -323,7 +323,7 @@ export default function CreatePromptDialog({
                     <div className="flex flex-col gap-2">
                       <Label>New Version</Label>
                       <p className="text-primary">
-                        {currentPrompt?.version ? currentPrompt.version + 1 : 1}
+                        {version ? `Version ${version}` : "Version 1"}
                       </p>
                     </div>
                   </>

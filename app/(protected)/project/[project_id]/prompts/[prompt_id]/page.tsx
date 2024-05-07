@@ -68,7 +68,10 @@ export default function Prompt() {
             settings and continue to iterate and add more versions to the
             prompt.
           </p>
-          <CreatePromptDialog promptsetId={promptsetId} />
+          <CreatePromptDialog
+            promptsetId={promptsetId}
+            version={prompts.length + 1}
+          />
         </div>
       </div>
     );
@@ -88,9 +91,13 @@ export default function Prompt() {
             <CreatePromptDialog
               currentPrompt={selectedPrompt}
               promptsetId={promptsetId}
+              version={prompts.length + 1}
             />
           ) : (
-            <CreatePromptDialog promptsetId={promptsetId} />
+            <CreatePromptDialog
+              promptsetId={promptsetId}
+              version={prompts.length + 1}
+            />
           )}
         </div>
         <div className="flex gap-4 w-full h-screen">
