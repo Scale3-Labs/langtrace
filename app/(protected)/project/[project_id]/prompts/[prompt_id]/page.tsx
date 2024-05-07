@@ -108,11 +108,11 @@ export default function Prompt() {
                 key={prompt.id}
               >
                 <div className="flex items-center flex-col gap-2">
-                  <div className="rounded-full w-[10px] flex items-center justify-center break-normal px-6 py-3 text-xs border-2 border-muted-foreground">
-                    {prompt.version}
+                  <div className="bg-muted font-semibold shadow-md rounded-full w-[10px] flex items-center justify-center break-normal px-6 py-3 text-xs border-2 border-muted-foreground">
+                    v{prompt.version}
                   </div>
                   <Separator
-                    className="h-8 bg-muted-foreground"
+                    className="h-8 w-[4px] rounded-md bg-muted-foreground"
                     orientation="vertical"
                   />
                 </div>
@@ -120,7 +120,7 @@ export default function Prompt() {
                   {prompt.live && (
                     <p
                       className={cn(
-                        "text-white text-xs p-1 rounded-md w-fit bg-green-500"
+                        "text-white font-semibold text-xs p-1 rounded-md w-fit bg-green-500"
                       )}
                     >
                       Live
