@@ -93,16 +93,20 @@ export default function LLMChat({
                 ...localLLM,
                 settings: { ...localLLM.settings, messages: localNewMessages },
               });
+              setLLM({
+                ...localLLM,
+                settings: { ...localLLM.settings, messages: localNewMessages },
+              });
             }}
             onRemove={() => {
               const newMessages = localLLM.settings.messages.filter(
                 (m) => m.id !== message.id
               );
-              // setLLM({
-              //   ...llm,
-              //   settings: { ...llm.settings, messages: newMessages },
-              // });
               setLocalLLM({
+                ...localLLM,
+                settings: { ...localLLM.settings, messages: newMessages },
+              });
+              setLLM({
                 ...localLLM,
                 settings: { ...localLLM.settings, messages: newMessages },
               });
@@ -117,16 +121,16 @@ export default function LLMChat({
           className="mt-2"
           size={"lg"}
           onClick={() => {
-            setLLM({
-              ...llm,
+            setLocalLLM({
+              ...localLLM,
               settings: {
-                ...llm.settings,
+                ...localLLM.settings,
                 messages: [
-                  ...llm.settings.messages,
+                  ...localLLM.settings.messages,
                   {
                     id: uuidv4(),
                     role:
-                      llm.vendor === "cohere"
+                      localLLM.vendor === "cohere"
                         ? CohereAIRole.user
                         : OpenAIRole.user,
                     content: "",
@@ -134,7 +138,7 @@ export default function LLMChat({
                 ],
               },
             });
-            setLocalLLM({
+            setLLM({
               ...localLLM,
               settings: {
                 ...localLLM.settings,
@@ -158,34 +162,38 @@ export default function LLMChat({
         </Button>
       </div>
       <div className="absolute -top-6 -left-3">
-        {llm.vendor === "openai" && (
+        {localLLM.vendor === "openai" && (
           <OpenAISettingsSheet
-            settings={llm.settings as OpenAISettings}
+            settings={localLLM.settings as OpenAISettings}
             setSettings={(updatedSettings: any) => {
+              setLocalLLM({ ...localLLM, settings: updatedSettings });
               setLLM({ ...llm, settings: updatedSettings });
             }}
           />
         )}
-        {llm.vendor === "anthropic" && (
+        {localLLM.vendor === "anthropic" && (
           <AnthropicSettingsSheet
-            settings={llm.settings as AnthropicSettings}
+            settings={localLLM.settings as AnthropicSettings}
             setSettings={(updatedSettings: any) => {
+              setLocalLLM({ ...localLLM, settings: updatedSettings });
               setLLM({ ...llm, settings: updatedSettings });
             }}
           />
         )}
-        {llm.vendor === "cohere" && (
+        {localLLM.vendor === "cohere" && (
           <CohereSettingsSheet
-            settings={llm.settings as CohereSettings}
+            settings={localLLM.settings as CohereSettings}
             setSettings={(updatedSettings: any) => {
+              setLocalLLM({ ...localLLM, settings: updatedSettings });
               setLLM({ ...llm, settings: updatedSettings });
             }}
           />
         )}
-        {llm.vendor === "groq" && (
+        {localLLM.vendor === "groq" && (
           <GroqSettingsSheet
-            settings={llm.settings as GroqSettings}
+            settings={localLLM.settings as GroqSettings}
             setSettings={(updatedSettings: any) => {
+              setLocalLLM({ ...localLLM, settings: updatedSettings });
               setLLM({ ...llm, settings: updatedSettings });
             }}
           />
@@ -211,29 +219,29 @@ export default function LLMChat({
             // Calculate latency
             const startTime = performance.now();
             let response: any;
-            if (llm.vendor === "openai") {
+            if (localLLM.vendor === "openai") {
               response = await openAIHandler(
-                llm as OpenAIChatInterface,
+                localLLM as OpenAIChatInterface,
                 apiKey || ""
               );
-            } else if (llm.vendor === "anthropic") {
+            } else if (localLLM.vendor === "anthropic") {
               response = await anthropicHandler(
-                llm as AnthropicChatInterface,
+                localLLM as AnthropicChatInterface,
                 apiKey || ""
               );
-            } else if (llm.vendor === "cohere") {
+            } else if (localLLM.vendor === "cohere") {
               response = await cohereHandler(
-                llm as CohereChatInterface,
+                localLLM as CohereChatInterface,
                 apiKey || ""
               );
-            } else if (llm.vendor === "groq") {
+            } else if (localLLM.vendor === "groq") {
               response = await groqHandler(
-                llm as GroqChatInterface,
+                localLLM as GroqChatInterface,
                 apiKey || ""
               );
             }
 
-            if (llm.settings.stream === true) {
+            if (localLLM.settings.stream === true) {
               const reader = response?.body?.getReader();
               const decoder = new TextDecoder("utf-8");
 
@@ -258,6 +266,23 @@ export default function LLMChat({
                 const chunkText = decoder.decode(value, { stream: true });
                 chunkTexts.push(chunkText);
                 setLocalLLM({
+                  ...localLLM,
+                  settings: {
+                    ...localLLM.settings,
+                    messages: [
+                      ...localLLM.settings.messages,
+                      {
+                        id: uuidv4(),
+                        role:
+                          localLLM.vendor === "cohere"
+                            ? CohereAIRole.chatbot
+                            : OpenAIRole.assistant,
+                        content: chunkTexts.join(""),
+                      },
+                    ],
+                  },
+                });
+                setLLM({
                   ...llm,
                   settings: {
                     ...llm.settings,
@@ -348,12 +373,13 @@ export default function LLMChat({
 
               // cost calculation
               const inputContent =
-                llm.settings.messages[llm.settings.messages.length - 1]
-                  ?.content ?? "";
+                localLLM.settings.messages[
+                  localLLM.settings.messages.length - 1
+                ]?.content ?? "";
               const inputTokens = calculateTokens(inputContent);
               const outputTokens = calculateTokens(result);
-              const vendor = llm.vendor;
-              const model = llm.settings.model;
+              const vendor = localLLM.vendor;
+              const model = localLLM.settings.model;
               const calculatedCost = calculatePriceFromUsage(vendor, model, {
                 input_tokens: inputTokens,
                 output_tokens: outputTokens,
@@ -393,7 +419,7 @@ export default function LLMChat({
               const endTime = performance.now();
               setLatency((endTime - startTime).toFixed(2));
               let message = "";
-              if (llm.vendor === "openai" || llm.vendor === "groq") {
+              if (localLLM.vendor === "openai" || localLLM.vendor === "groq") {
                 if (data?.choices?.length > 0) {
                   if (data.choices[0]?.message?.content) {
                     message = data.choices[0].message.content;
@@ -406,8 +432,8 @@ export default function LLMChat({
                 if (data?.usage) {
                   const inputTokens = data.usage.prompt_tokens;
                   const outputTokens = data.usage.completion_tokens;
-                  const vendor = llm.vendor;
-                  const model = llm.settings.model;
+                  const vendor = localLLM.vendor;
+                  const model = localLLM.settings.model;
                   const calculatedCost = calculatePriceFromUsage(
                     vendor,
                     model,
@@ -422,7 +448,7 @@ export default function LLMChat({
                       : "";
                   setCost(totalCost);
                 }
-              } else if (llm.vendor === "anthropic") {
+              } else if (localLLM.vendor === "anthropic") {
                 if (data?.content?.length > 0) {
                   if (data.content[0].type === "text") {
                     message = data.content[0].text;
@@ -433,8 +459,8 @@ export default function LLMChat({
                 if (data?.usage) {
                   const inputTokens = data.usage.input_tokens;
                   const outputTokens = data.usage.output_tokens;
-                  const vendor = llm.vendor;
-                  const model = llm.settings.model;
+                  const vendor = localLLM.vendor;
+                  const model = localLLM.settings.model;
                   const calculatedCost = calculatePriceFromUsage(
                     vendor,
                     model,
@@ -449,7 +475,7 @@ export default function LLMChat({
                       : "";
                   setCost(totalCost);
                 }
-              } else if (llm.vendor === "cohere") {
+              } else if (localLLM.vendor === "cohere") {
                 if (data?.text) {
                   if (typeof data.text === "object") {
                     message = JSON.stringify(data.text);
@@ -460,8 +486,8 @@ export default function LLMChat({
                 if (data.meta?.billedUnits) {
                   const inputTokens = data.meta?.billedUnits?.inputTokens;
                   const outputTokens = data.meta?.billedUnits?.outputTokens;
-                  const vendor = llm.vendor;
-                  const model = llm.settings.model;
+                  const vendor = localLLM.vendor;
+                  const model = localLLM.settings.model;
                   const calculatedCost = calculatePriceFromUsage(
                     vendor,
                     model,
