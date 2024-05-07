@@ -9,21 +9,6 @@ import { TiktokenEncoding } from "js-tiktoken";
 export const SCHEDULE_CALL_LINK =
   "https://calendar.app.google/Go5gXNPcqZjAY4i47";
 
-export const CLOUD_PROVIDERS: Record<string, any> = {
-  AZURE: {
-    name: "Azure",
-    disabled: false,
-  },
-  GCP: {
-    name: "GCP",
-    disabled: true,
-  },
-  AWS: {
-    name: "AWS",
-    disabled: true,
-  },
-};
-
 // TODO: Add more models
 // https://github.com/dqbd/tiktoken/blob/74c147e19584a3a1acea0c8e0da4d39415cd33e0/wasm/src/lib.rs#L328
 export const TIKTOKEN_MODEL_MAPPING: Record<string, TiktokenEncoding> = {
@@ -198,5 +183,43 @@ export const DEFAULT_TESTS: Partial<Test>[] = [
     name: "Bias Detection",
     description:
       "Evaluating the responses for evidence of bias, including gender, racial, cultural, or ideological biases, to ensure the model's fairness and inclusivity.",
+  },
+];
+
+export const LLM_VENDOR_APIS = [
+  {
+    value: "OPENAI_API_KEY",
+    label: "OpenAI",
+  },
+  {
+    value: "ANTHROPIC_API_KEY",
+    label: "Anthropic",
+  },
+  {
+    value: "COHERE_API_KEY",
+    label: "Cohere",
+  },
+  {
+    value: "GROQ_API_KEY",
+    label: "Groq",
+  },
+];
+
+export const LLM_VENDORS = [
+  {
+    value: "openai",
+    label: "OpenAI",
+  },
+  {
+    value: "anthropic",
+    label: "Anthropic",
+  },
+  {
+    value: "cohere",
+    label: "Cohere",
+  },
+  {
+    value: "groq",
+    label: "Groq",
   },
 ];

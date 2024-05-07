@@ -1,5 +1,3 @@
-"use client";
-
 import { HoverCell } from "@/components/shared/hover-cell";
 import { LLMView } from "@/components/shared/llm-view";
 import { Button } from "@/components/ui/button";
@@ -265,8 +263,8 @@ export default function EvaluationRow({
       </div>
       {!collapsed && (
         <LLMView
-          responses={responses}
-          prompts={prompts}
+          responses={[responses]}
+          prompts={[prompts]}
           doPiiDetection={true}
         />
       )}

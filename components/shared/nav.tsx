@@ -16,6 +16,14 @@ const DashboardNavLinks = [
 
 const ProjectNavLinks = (id: string) => [
   {
+    name: "Playground",
+    href: `/project/${id}/playground`,
+  },
+  {
+    name: "Prompts",
+    href: `/project/${id}/prompts`,
+  },
+  {
     name: "Metrics",
     href: `/project/${id}/metrics`,
   },
@@ -28,18 +36,9 @@ const ProjectNavLinks = (id: string) => [
     href: `/project/${id}/evaluations`,
   },
   {
-    name: "Prompts",
-    href: `/project/${id}/prompts`,
-  },
-  {
     name: "Datasets",
     href: `/project/${id}/datasets`,
   },
-  // TODO(Karthik): To be implemented
-  // {
-  //   name: "Playground",
-  //   href: `/project/${id}/playground`,
-  // },
 ];
 
 export default function Nav() {

@@ -34,8 +34,8 @@ export const TraceRow = ({
   let model: string = "";
   let vendor: string = "";
   let userId: string = "";
-  let prompts: any = {};
-  let responses: any = {};
+  let prompts: any[] = [];
+  let responses: any[] = [];
   let cost = { total: 0, input: 0, output: 0 };
   let langgraph = false;
   for (const span of trace) {
@@ -49,8 +49,8 @@ export const TraceRow = ({
       }
       userId = attributes["user.id"];
       if (attributes["llm.prompts"] && attributes["llm.responses"]) {
-        prompts = attributes["llm.prompts"];
-        responses = attributes["llm.responses"];
+        prompts.push(attributes["llm.prompts"]);
+        responses.push(attributes["llm.responses"]);
       }
       if (attributes["llm.token.counts"]) {
         model = attributes["llm.model"];
@@ -133,11 +133,11 @@ export const TraceRow = ({
         </div>
         <p className="text-xs font-semibold">{model}</p>
         <HoverCell
-          values={prompts?.length > 0 ? JSON.parse(prompts) : []}
+          values={prompts?.length > 0 ? JSON.parse(prompts[0]) : []}
           className="flex items-center max-w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
         />
         <HoverCell
-          values={responses?.length > 0 ? JSON.parse(responses) : []}
+          values={responses?.length > 0 ? JSON.parse(responses[0]) : []}
           className="flex items-center max-w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
         />
         <p className="text-xs font-semibold">{userId}</p>
@@ -199,10 +199,7 @@ export const TraceRow = ({
               )}
             </Button>
             <Button
-              disabled={
-                Object.keys(prompts).length === 0 ||
-                Object.keys(responses).length === 0
-              }
+              disabled={prompts.length === 0 || responses.length === 0}
               onClick={() => setSelectedTab("llm")}
               variant={"ghost"}
               className="flex flex-col justify-between pb-0"

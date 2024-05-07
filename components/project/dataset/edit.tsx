@@ -252,9 +252,11 @@ export function EditDataSet({
 
 export function EditPromptSet({
   promptset,
+  projectId,
   className = "w-full text-left p-0 text-muted-foreground hover:text-primary flex items-center",
 }: {
   promptset: Promptset;
+  projectId: string;
   variant?: any;
   className?: string;
 }) {
@@ -270,8 +272,8 @@ export function EditPromptSet({
   const EditPromptSetForm = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: promptset.name || "",
-      description: promptset.description || "",
+      name: promptset?.name || "",
+      description: promptset?.description || "",
     },
   });
   return (
@@ -296,7 +298,7 @@ export function EditPromptSet({
                 }}
               >
                 <EditIcon className="h-4 w-4 mr-2" />
-                Edit Promptset
+                Edit Prompt Registry
               </button>
             </DialogTrigger>
           </DropdownMenuItem>
@@ -313,7 +315,7 @@ export function EditPromptSet({
                 }}
               >
                 <TrashIcon className="h-4 w-4 mr-2" />
-                Delete Promptset
+                Delete Prompt Registry
               </button>
             </DialogTrigger>
           </DropdownMenuItem>
@@ -322,9 +324,9 @@ export function EditPromptSet({
       {openEdit && (
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Promptset</DialogTitle>
+            <DialogTitle>Edit Prompt Registry</DialogTitle>
             <DialogDescription>
-              Edit the promptset by filling out the form below.
+              Edit the prompt registry by filling out the form below.
             </DialogDescription>
           </DialogHeader>
           <Form {...EditPromptSetForm}>
@@ -343,15 +345,17 @@ export function EditPromptSet({
                       description: data.description,
                     }),
                   });
-                  await queryClient.invalidateQueries("fetch-promptsets-query");
-                  toast("Promptset saved!", {
-                    description: "Your promptset has been saved.",
+                  await queryClient.invalidateQueries({
+                    queryKey: ["fetch-promptsets-query", projectId],
+                  });
+                  toast("Prompt registry saved!", {
+                    description: "Your prompt registry has been saved.",
                   });
                   setOpen(false);
                   EditPromptSetForm.reset();
                 } catch (error: any) {
-                  toast("Error saving your promptset!", {
-                    description: `There was an error saving your promptset: ${error.message}`,
+                  toast("Error saving your prompt registry!", {
+                    description: `There was an error saving your prompt registry: ${error.message}`,
                   });
                 } finally {
                   setBusy(false);
@@ -368,7 +372,7 @@ export function EditPromptSet({
                     <FormLabel>
                       Name
                       <Info
-                        information="The name of the promptset."
+                        information="The name of the prompt registry."
                         className="inline-block ml-2"
                       />
                     </FormLabel>
@@ -418,9 +422,9 @@ export function EditPromptSet({
       {openDelete && (
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Delete Promptset</DialogTitle>
+            <DialogTitle>Delete Prompt Registry</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this promptset?
+              Are you sure you want to delete this prompt registry?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -438,14 +442,16 @@ export function EditPromptSet({
                       id: promptset.id,
                     }),
                   });
-                  await queryClient.invalidateQueries("fetch-promptsets-query");
-                  toast("Promptset deleted!", {
-                    description: "Your prompt set has been deleted.",
+                  await queryClient.invalidateQueries({
+                    queryKey: ["fetch-promptsets-query", projectId],
+                  });
+                  toast("Prompt registry deleted!", {
+                    description: "Your prompt registry has been deleted.",
                   });
                   setOpen(false);
                 } catch (error: any) {
-                  toast("Error deleting your prompt set!", {
-                    description: `There was an error deleting your prompt set: ${error.message}`,
+                  toast("Error deleting your prompt registry!", {
+                    description: `There was an error deleting your prompt registry: ${error.message}`,
                   });
                 } finally {
                   setBusy(false);
@@ -453,7 +459,7 @@ export function EditPromptSet({
               }}
               disabled={busy}
             >
-              Delete Promptset
+              Delete Prompt Registry
             </Button>
           </DialogFooter>
         </DialogContent>
