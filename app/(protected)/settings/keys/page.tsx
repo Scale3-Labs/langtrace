@@ -1,13 +1,7 @@
 import { authOptions } from "@/lib/auth/options";
-import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import PromptManagement from "./prompt-management";
-
-export const metadata: Metadata = {
-  title: "Langtrace | Prompts",
-  description: "Manage all your prompts in one place.",
-};
+import PageClient from "./page-client";
 
 export default async function Page() {
   const session = await getServerSession(authOptions);
@@ -16,9 +10,14 @@ export default async function Page() {
   }
   const email = session?.user?.email as string;
 
+  const resp = await fetch(
+    `${process.env.NEXTAUTH_URL_INTERNAL}/api/user?email=${email}`
+  );
+  const user = await resp.json();
+
   return (
     <>
-      <PromptManagement email={email} />
+      <PageClient />
     </>
   );
 }
