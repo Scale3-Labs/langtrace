@@ -408,6 +408,10 @@ export const getChartColor = (value: number) => {
 };
 
 export function safeStringify(value: any): string {
+  if (!value) {
+    return "";
+  }
+
   // Check if the value is already a string
   if (typeof value === "string") {
     return value;
