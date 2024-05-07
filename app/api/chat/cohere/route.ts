@@ -29,9 +29,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json(response);
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || "Something went wrong" },
-      { status: error?.status || error?.message.includes("apiKey") ? 401 : 500 }
-    );
+    return NextResponse.json({
+      error: error?.message || "Something went wrong",
+      status:
+        error?.status || error?.message.includes("Status code: 401")
+          ? 401
+          : 500,
+    });
   }
 }
