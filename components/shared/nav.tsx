@@ -20,6 +20,10 @@ const ProjectNavLinks = (id: string) => [
     href: `/project/${id}/playground`,
   },
   {
+    name: "Prompts",
+    href: `/project/${id}/prompts`,
+  },
+  {
     name: "Metrics",
     href: `/project/${id}/metrics`,
   },
@@ -30,10 +34,6 @@ const ProjectNavLinks = (id: string) => [
   {
     name: "Evaluations",
     href: `/project/${id}/evaluations`,
-  },
-  {
-    name: "Prompts",
-    href: `/project/${id}/prompts`,
   },
   {
     name: "Datasets",
