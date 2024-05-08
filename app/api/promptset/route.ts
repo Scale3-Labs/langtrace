@@ -81,7 +81,12 @@ export async function GET(req: NextRequest) {
     } else {
       const session = await getServerSession(authOptions);
       if (!session || !session.user) {
-        return redirect('/login')
+        return NextResponse.json(
+          {
+            message: "Unauthorized",
+          },
+          { status: 401 }
+        );
       }
 
       const id = req.nextUrl.searchParams.get("id") as string;
@@ -193,6 +198,7 @@ export async function GET(req: NextRequest) {
       });
     }
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       {
         message: "Internal server error",
