@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
           {
             error: "No live prompts found. A prompt version must be specified",
           },
-          { status: 404 }
+          { status: 400 }
         );
       } else if (prompts.length === 0 && version !== undefined) {
         return NextResponse.json(
