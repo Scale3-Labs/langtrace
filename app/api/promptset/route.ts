@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
       if (response.status !== 200) {
         return response;
       }
-      const { promptset_id, variable, version } = parseQueryString(req.url);
+      const { promptset_id, variables, version } = parseQueryString(req.url);
 
       const projectData = await response.json();
       const projectId = projectData.data.project.id;
@@ -46,10 +46,10 @@ export async function GET(req: NextRequest) {
           { status: 404 }
         );
       }
-      if (variable !== undefined) {
+      if (variables !== undefined) {
         const errors: string[] = [];
         const variablesSet = new Set(
-          Object.entries(variable as Record<string, string>).map((variable) =>
+          Object.entries(variables as Record<string, string>).map((variable) =>
             variable.join(",")
           )
         );
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 
         livePromptVariables.forEach((key) => {
           const value =
-            variable !== null ? variable[key as keyof typeof variable] : "";
+            variables !== null ? variables[key as keyof typeof variables] ?? "" : "";
           if (!variablesSet.has(`${key},${value.length > 0 ? value : "undefined"}`)) {
             errors.push(key);
           }
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
             { status: 400 }
           );
         }
-        prompts[0].value = fillPromptStringTemplate(prompts[0].value, variable as Record<string, string>);
+        prompts[0].value = fillPromptStringTemplate(prompts[0].value, variables as Record<string, string>);
       }
       return NextResponse.json({
         ...promptSet,
