@@ -280,7 +280,12 @@ export interface PerplexitySettings {
 export interface ChatInterface {
   id: string;
   vendor: string;
-  settings: OpenAISettings | AnthropicSettings | CohereSettings | GroqSettings;
+  settings:
+    | OpenAISettings
+    | AnthropicSettings
+    | CohereSettings
+    | GroqSettings
+    | PerplexitySettings;
 }
 
 export interface OpenAIChatInterface extends ChatInterface {

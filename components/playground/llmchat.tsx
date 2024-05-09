@@ -13,6 +13,8 @@ import {
   OpenAIChatInterface,
   OpenAIRole,
   OpenAISettings,
+  PerplexityChatInterface,
+  PerplexitySettings,
 } from "@/lib/types/playground_types";
 import { calculatePriceFromUsage, calculateTokens } from "@/lib/utils";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
@@ -35,6 +37,7 @@ import {
   CohereSettingsSheet,
   GroqSettingsSheet,
   OpenAISettingsSheet,
+  PerplexitySettingsSheet,
 } from "./settings-sheet";
 
 function identity<T>(value: T): T {
@@ -191,6 +194,15 @@ export default function LLMChat({
             }}
           />
         )}
+        {localLLM.vendor === "perplexity" && (
+          <PerplexitySettingsSheet
+            settings={localLLM.settings as PerplexitySettings}
+            setSettings={(updatedSettings: any) => {
+              setLocalLLM({ ...localLLM, settings: updatedSettings });
+              setLLM({ ...llm, settings: updatedSettings });
+            }}
+          />
+        )}
       </div>
       <Button
         type="button"
@@ -230,6 +242,11 @@ export default function LLMChat({
             } else if (localLLM.vendor === "groq") {
               response = await groqHandler(
                 localLLM as GroqChatInterface,
+                apiKey || ""
+              );
+            } else if (localLLM.vendor === "perplexity") {
+              response = await groqHandler(
+                localLLM as PerplexityChatInterface,
                 apiKey || ""
               );
             }
@@ -479,6 +496,31 @@ export default function LLMChat({
                 if (data.meta?.billedUnits) {
                   const inputTokens = data.meta?.billedUnits?.inputTokens;
                   const outputTokens = data.meta?.billedUnits?.outputTokens;
+                  const vendor = localLLM.vendor;
+                  const model = localLLM.settings.model;
+                  const calculatedCost = calculatePriceFromUsage(
+                    vendor,
+                    model,
+                    {
+                      input_tokens: inputTokens,
+                      output_tokens: outputTokens,
+                    }
+                  );
+                  const totalCost =
+                    calculatedCost.total.toFixed(6) !== "0.000000"
+                      ? `\$${calculatedCost.total.toFixed(6)}`
+                      : "";
+                  setCost(totalCost);
+                }
+              } else if (localLLM.vendor === "perplexity") {
+                if (data?.choices?.length > 0) {
+                  if (data.choices[0]?.message?.content) {
+                    message = data.choices[0].message.content;
+                  }
+                }
+                if (data?.usage) {
+                  const inputTokens = data.usage.prompt_tokens;
+                  const outputTokens = data.usage.completion_tokens;
                   const vendor = localLLM.vendor;
                   const model = localLLM.settings.model;
                   const calculatedCost = calculatePriceFromUsage(

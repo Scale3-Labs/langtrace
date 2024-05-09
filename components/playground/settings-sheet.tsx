@@ -22,6 +22,7 @@ import {
   CohereSettings,
   GroqSettings,
   OpenAISettings,
+  PerplexitySettings,
 } from "@/lib/types/playground_types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CodeEditor from "@uiw/react-textarea-code-editor";
@@ -2512,6 +2513,388 @@ export function GroqSettingsSheet({
                             }}
                             type="number"
                             placeholder="Top P"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </>
+            )}
+            <SheetFooter>
+              <Button type="submit">Save changes</Button>
+            </SheetFooter>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+export function PerplexitySettingsSheet({
+  settings,
+  setSettings,
+}: {
+  settings: PerplexitySettings;
+  setSettings: any;
+}) {
+  const [open, setOpen] = useState(false);
+  const [advancedSettings, setAdvancedSettings] = useState(false);
+  const schema = z.object({
+    model: z.string(),
+    stream: z.boolean().optional(),
+    max_tokens: z.union([z.number().positive(), z.nan()]).optional(),
+    temperature: z
+      .union([
+        z.number().positive().min(0),
+        z.number().positive().max(2),
+        z.nan(),
+      ])
+      .optional(),
+    frequency_penalty: z
+      .union([z.number().min(-2), z.number().max(2)])
+      .optional(),
+    presence_penalty: z
+      .union([z.number().min(-2), z.number().max(2)])
+      .optional(),
+    top_p: z.union([z.number(), z.nan()]).optional(),
+    top_k: z.union([z.number(), z.nan()]).optional(),
+  });
+
+  const SettingsForm = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      model: settings.model ?? "gpt-3.5-turbo",
+      stream: settings.stream ?? false,
+      max_tokens: settings.max_tokens ?? undefined,
+      temperature: settings.temperature ?? 1,
+      frequency_penalty: settings.frequency_penalty ?? 0,
+      presence_penalty: settings.presence_penalty ?? 0,
+      top_p: settings.top_p ?? 1,
+      top_k: settings.top_k ?? 1,
+    },
+  });
+
+  return (
+    <Sheet onOpenChange={setOpen} open={open}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size={"lg"}>
+          <div className="flex gap-2 items-center">
+            <SettingsIcon className="h-5 w-5" />
+            <div className="flex flex-col">
+              <p className="text-xs font-semibold">OpenAI</p>
+              <p className="text-xs font-semibold">{settings.model}</p>
+            </div>
+            <Image
+              alt="OpenAI Logo"
+              src="/openai.svg"
+              width={20}
+              height={20}
+              className="p-[3px] rounded-full dark:bg-gray-400"
+            />
+          </div>
+        </Button>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Chat Settings</SheetTitle>
+          <SheetDescription>
+            Configure the settings for the OpenAI chat.
+          </SheetDescription>
+        </SheetHeader>
+        <Form {...SettingsForm}>
+          <form
+            onSubmit={SettingsForm.handleSubmit(async (data) => {
+              try {
+                const newSettings: any = {};
+                if (data.stream !== undefined) {
+                  newSettings["stream"] = data.stream;
+                }
+                if (data.model !== undefined && (data.model as string) !== "") {
+                  newSettings["model"] = data.model;
+                } else {
+                  throw new Error("Model is required");
+                }
+                if (data.max_tokens !== undefined && !isNaN(data.max_tokens)) {
+                  newSettings["max_tokens"] = data.max_tokens;
+                }
+                if (
+                  data.temperature !== undefined &&
+                  !isNaN(data.temperature)
+                ) {
+                  if (!(data.temperature >= 0 && data.temperature <= 2)) {
+                    throw new Error("Temperature must be between 0 and 2");
+                  }
+                  newSettings["temperature"] = data.temperature;
+                }
+                if (data.frequency_penalty !== undefined) {
+                  if (
+                    !(
+                      data.frequency_penalty >= -2 &&
+                      data.frequency_penalty <= 2
+                    )
+                  ) {
+                    throw new Error(
+                      "Frequency penalty must be between -2 and 2"
+                    );
+                  }
+                  newSettings["frequency_penalty"] = data.frequency_penalty;
+                }
+                if (data.presence_penalty !== undefined) {
+                  if (
+                    !(data.presence_penalty >= -2 && data.presence_penalty <= 2)
+                  ) {
+                    throw new Error(
+                      "Presence penalty must be between -2 and 2"
+                    );
+                  }
+                  newSettings["presence_penalty"] = data.presence_penalty;
+                }
+                if (data.top_p !== undefined && !isNaN(data.top_p)) {
+                  newSettings["top_p"] = data.top_p;
+                }
+                if (data.top_k !== undefined && !isNaN(data.top_k)) {
+                  newSettings["top_k"] = data.top_k;
+                }
+                setSettings({ ...settings, ...newSettings });
+                toast.success("Settings saved");
+                setOpen(false);
+              } catch (error: any) {
+                toast.error("Error saving settings", {
+                  description: error?.message,
+                });
+              }
+            })}
+            className="mt-6 px-2 flex flex-col gap-4 overflow-y-scroll h-screen pb-48"
+          >
+            <FormField
+              control={SettingsForm.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Model
+                    <Info
+                      information="The model to use for generating responses."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <ModelsDropDown
+                      value={field.value}
+                      setValue={field.onChange}
+                      vendor="openai"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={SettingsForm.control}
+              name="stream"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        onCheckedChange={(checked) => field.onChange(checked)}
+                        checked={field.value}
+                      />
+                      <div className="flex items-center">
+                        <Label>Stream</Label>
+                        <Info
+                          information="Stream the response as it is being generated."
+                          className="inline-block ml-2"
+                        />
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={SettingsForm.control}
+                name="max_tokens"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Max Tokens
+                      <Info
+                        information="The maximum number of tokens to generate."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        min={0}
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        type="number"
+                        placeholder="Max Tokens"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={SettingsForm.control}
+                name="temperature"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Temperature
+                      <Info
+                        information="What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        min={0}
+                        max={2}
+                        step={0.1}
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        type="number"
+                        placeholder="Temperature"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <Button
+              className="w-fit min-h-[40px]"
+              type="button"
+              variant={"ghost"}
+              size={"sm"}
+              onClick={() => setAdvancedSettings(!advancedSettings)}
+            >
+              Advanced settings{" "}
+              {advancedSettings ? (
+                <ChevronUp className="ml-2 h-4 w-4" />
+              ) : (
+                <ChevronDown className="ml-2 h-4 w-4" />
+              )}
+            </Button>
+            {advancedSettings && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={SettingsForm.control}
+                    name="frequency_penalty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Frequency Penalty
+                          <Info
+                            information="Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            min={-2}
+                            max={2}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="Frequency Penalty"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={SettingsForm.control}
+                    name="presence_penalty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Presence Penalty
+                          <Info
+                            information="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            min={-2}
+                            max={2}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="Presence Penalty"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={SettingsForm.control}
+                    name="top_p"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Top P
+                          <Info
+                            information="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+                        We generally recommend altering this or temperature but not both."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            step={0.1}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="Top P"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={SettingsForm.control}
+                    name="top_k"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Top K
+                          <Info
+                            information="The number of tokens to keep for highest top-k filtering, specified as an integer between 0 and 2048 inclusive. If set to 0, top-k filtering is disabled. We recommend either altering top_k or top_p, but not both."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            step={0.1}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="Top K"
                           />
                         </FormControl>
                         <FormMessage />
