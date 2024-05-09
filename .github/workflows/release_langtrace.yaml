@@ -1,0 +1,66 @@
+name: Build & Release
+run-name: "Release ${{ github.sha }}"
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  generate-version:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check labels and set version increment
+        id: set_increment
+        run: |
+          labels=$(echo "${{ toJson(github.event.pull_request.labels.*.name) }}")
+          if [[ $labels == *"major"* ]]; then
+            echo "increment=major" >> $GITHUB_OUTPUT
+          elif [[ $labels == *"minor"* ]]; then
+            echo "increment=minor" >> $GITHUB_OUTPUT
+          else
+            echo "increment=patch" >> $GITHUB_OUTPUT
+          fi
+      - name: Get next version
+        # 2023.10.2
+        uses: reecetech/version-increment@71036b212bbdc100b48aae069870f10953433346
+        id: version
+        with:
+          release_branch: main
+          use_api: true
+          scheme: semver
+          increment: ${{ steps.set_increment.outputs.increment }}
+
+  build-docker:
+    uses: "./.github/workflows/build-docker.yaml"
+    secrets: inherit
+    needs:
+      - generate-version
+    with:
+      isLatest: true
+      imageTag: ${{ needs.generate-version.outputs.new_version }}
+
+  publish:
+    runs-on: ubuntu-latest
+    needs:
+      - generate-version
+      - build-docker
+    permissions:
+      contents: write
+    steps:
+      - name: Github Checkout
+        # v4.1.1
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Release
+        # v1.14.0
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
+        with:
+          artifacts: "docker-compose.yaml"
+          tag: ${{ needs.generate-version.outputs.new_version }}
+          generateReleaseNotes: true
+          draft: false

@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { StackIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
 
@@ -37,6 +38,18 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-indigo-500";
   }
 
+  if (vendor.includes("cohere")) {
+    return "bg-red-500";
+  }
+
+  if (vendor.includes("qdrant")) {
+    return "bg-grey-500";
+  }
+
+  if (vendor.includes("qdrant")) {
+    return "bg-grey-500";
+  }
+
   return "bg-gray-500";
 }
 
@@ -73,6 +86,18 @@ export function vendorColor(vendor: string) {
     return "bg-indigo-200";
   }
 
+  if (vendor.includes("cohere")) {
+    return "bg-red-200";
+  }
+
+  if (vendor.includes("qdrant")) {
+    return "bg-grey-200";
+  }
+
+  if (vendor.includes("groq")) {
+    return "bg-slate-200";
+  }
+
   return "bg-gray-800";
 }
 
@@ -87,11 +112,33 @@ export function serviceTypeColor(serviceType: string) {
   return "bg-gray-500";
 }
 
-export function VendorLogo({ span }: { span: Span }) {
+export function VendorLogo({
+  span,
+  variant = "default",
+}: {
+  span: Span;
+  variant?: string;
+}) {
   const attributes = span.attributes ? JSON.parse(span.attributes) : {};
   let serviceName = "";
   if (attributes["langtrace.service.name"]) {
     serviceName = attributes["langtrace.service.name"].toLowerCase();
+  }
+
+  if (span.name.includes("groq") || serviceName.includes("groq")) {
+    const color = vendorColor("groq");
+    return (
+      <Image
+        alt="Groq Logo"
+        src="/groq.png"
+        width={50}
+        height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
   }
 
   if (span.name.includes("perplexity") || serviceName.includes("perplexity")) {
@@ -102,7 +149,10 @@ export function VendorLogo({ span }: { span: Span }) {
         src="/perplexity.png"
         width={20}
         height={20}
-        className={`${color} p-[3px] rounded-sm`}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
       />
     );
   }
@@ -115,7 +165,10 @@ export function VendorLogo({ span }: { span: Span }) {
         src="/openai.svg"
         width={20}
         height={20}
-        className={`${color} p-[3px] rounded-sm`}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
       />
     );
   }
@@ -128,7 +181,10 @@ export function VendorLogo({ span }: { span: Span }) {
         src="/anthropic.png"
         width={30}
         height={30}
-        className="p-[3px] rounded-md"
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
       />
     );
   }
@@ -141,7 +197,10 @@ export function VendorLogo({ span }: { span: Span }) {
         src="/pinecone.png"
         width={20}
         height={20}
-        className={`${color} p-[3px] rounded-sm`}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
       />
     );
   }
@@ -154,7 +213,10 @@ export function VendorLogo({ span }: { span: Span }) {
         src="/chroma.png"
         width={25}
         height={25}
-        className={`${color} p-[3px] rounded-sm`}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
       />
     );
   }
@@ -167,7 +229,10 @@ export function VendorLogo({ span }: { span: Span }) {
         src="/langchain.svg"
         width={30}
         height={30}
-        className={`${color} p-[3px] rounded-sm`}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
       />
     );
   }
@@ -180,15 +245,54 @@ export function VendorLogo({ span }: { span: Span }) {
         src="/llamaindex.svg"
         width={60}
         height={80}
-        className={`${color} p-[3px] rounded-sm`}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
       />
     );
   }
 
-  const color = vendorColor("langtrace");
+  if (span.name.includes("cohere") || serviceName.includes("cohere")) {
+    const color = vendorColor("cohere");
+    return (
+      <Image
+        alt="Cohere Logo"
+        src="/cohere.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (span.name.includes("qdrant") || serviceName.includes("qdrant")) {
+    const color = vendorColor("qdrant");
+    return (
+      <Image
+        alt="Qdrant Logo"
+        src="/qdrant.png"
+        width={50}
+        height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
   return (
     <div className="flex items-center bg-muted p-2 rounded-sm">
-      <StackIcon className={"w-4 h-4 text-primary rounded-sm"} />
+      <StackIcon
+        className={cn(
+          "w-4 h-4 text-primary",
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
     </div>
   );
 }

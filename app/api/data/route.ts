@@ -106,7 +106,7 @@ export async function DELETE(req: NextRequest) {
   const data = await req.json();
   const { id } = data;
 
-  const result = await prisma.data.delete({
+  await prisma.data.delete({
     where: {
       id,
     },

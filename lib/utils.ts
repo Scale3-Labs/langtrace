@@ -3,6 +3,7 @@ import { clsx, type ClassValue } from "clsx";
 import { createHash, randomBytes } from "crypto";
 import { TiktokenEncoding, getEncoding } from "js-tiktoken";
 import { NextResponse } from "next/server";
+import { prettyPrintJson } from "pretty-print-json";
 import { twMerge } from "tailwind-merge";
 import { Span } from "./clients/scale3_clickhouse/models/span";
 import {
@@ -14,6 +15,7 @@ import {
   PERPLEXITY_PRICING,
   SpanStatusCode,
 } from "./constants";
+import qs from "qs";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -178,7 +180,7 @@ function convertToDateTime64(dateTime: [number, number]): string {
 
   // Append the microseconds part to the dateString, replacing the 'Z' at the end.
   // This example results in a format with microseconds precision, assuming that's what's meant by DateTime64.
-  const dateTime64String = `${dateString.slice(0, -1)}.${String(
+  const dateTime64String = `${dateString.slice(0, -1)}${String(
     microseconds
   ).padStart(3, "0")}Z`;
 
@@ -275,6 +277,30 @@ export function prepareForClickhouse(spans: Normalized[]): Span[] {
         `An error occurred while preparing data for Clickhouse: ${error}`
       );
     }
+  });
+}
+
+export function fillPromptStringTemplate(template: string, variables: { [key: string]: string }): string {
+  return template.replace(/\{(\w+)\}/g, (match, key) => {
+      return variables[key] || match;
+  });
+}
+
+//TODO: Move to a middleware
+export function parseQueryString(url: string): Record<string, any>{
+  return qs.parse(url.split("?")[1], {
+    decoder(str) {
+      if (str === "true") return true;
+      if (str === "false") return false;
+      try {
+        return JSON.parse(str);
+      } catch {
+        return str;
+      }
+    },
+    interpretNumericEntities: true, // Ensures numeric entities are parsed correctly
+    parseArrays: true, // Ensures arrays are parsed correctly
+    allowDots: true, // Allows dot notation for nested objects
   });
 }
 
@@ -405,3 +431,33 @@ export const getChartColor = (value: number) => {
     return "green";
   }
 };
+
+export function safeStringify(value: any): string {
+  if (!value) {
+    return "";
+  }
+
+  // Check if the value is already a string
+  if (typeof value === "string") {
+    return value;
+  }
+  // If it's not a string, stringify it
+  return prettyPrintJson.toHtml(value);
+}
+
+export function estimateTokens(prompt: string): number {
+  if (prompt.length > 0) {
+    // Simplified token estimation: count the words.
+    return prompt.split(/\s+/).filter(Boolean).length;
+  }
+  return 0;
+}
+
+export function calculateTokens(content: string): number {
+  try {
+    const tiktokenModel = "cl100k_base";
+    return estimateTokensUsingTikToken(content, tiktokenModel);
+  } catch (error) {
+    return estimateTokens(content); // Fallback method
+  }
+}

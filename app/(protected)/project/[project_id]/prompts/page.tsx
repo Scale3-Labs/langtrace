@@ -2,7 +2,7 @@ import { authOptions } from "@/lib/auth/options";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import PageClient from "./page-client";
+import PromptManagement from "./prompt-management";
 
 export const metadata: Metadata = {
   title: "Langtrace | Prompts",
@@ -18,7 +18,7 @@ export default async function Page() {
 
   return (
     <>
-      <PageClient email={email} />
+      <PromptManagement email={email} />
     </>
   );
 }

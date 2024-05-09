@@ -181,14 +181,14 @@ export function CreatePromptset({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button disabled={disabled} variant={variant} className={className}>
-          Create Promptset <PlusIcon className="ml-2" />
+          Create Prompt Registry <PlusIcon className="ml-2" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Promptset</DialogTitle>
+          <DialogTitle>Create Prompt Registry</DialogTitle>
           <DialogDescription>
-            Create a new prompt set by filling out the form below.
+            Create a new prompt registry by filling out the form below.
           </DialogDescription>
         </DialogHeader>
         <Form {...CreatePromptsetForm}>
@@ -207,18 +207,18 @@ export function CreatePromptset({
                     projectId,
                   }),
                 });
-                await queryClient.invalidateQueries(
-                  "fetch-promptsets-stats-query"
-                );
+                await queryClient.invalidateQueries({
+                  queryKey: ["fetch-promptsets-query", projectId],
+                });
                 await queryClient.invalidateQueries("fetch-promptsets-query");
-                toast("Promptset created!", {
-                  description: "Your promptset has been created.",
+                toast("Prompt registry created!", {
+                  description: "Your prompt registry has been created.",
                 });
                 setOpen(false);
                 CreatePromptsetForm.reset();
               } catch (error: any) {
-                toast("Error creating your promptset!", {
-                  description: `There was an error creating your promptset: ${error.message}`,
+                toast("Error creating your prompt registry!", {
+                  description: `There was an error creating your prompt registry: ${error.message}`,
                 });
               } finally {
                 setBusy(false);
@@ -242,7 +242,7 @@ export function CreatePromptset({
                   <FormControl>
                     <Input
                       className="capitalize"
-                      placeholder="Accuracy > 90%"
+                      placeholder="Chatbot assistant"
                       {...field}
                     />
                   </FormControl>
@@ -265,7 +265,7 @@ export function CreatePromptset({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Prompts with accuracy > 90%."
+                      placeholder="Prompt for the chatbot assistant."
                       {...field}
                     />
                   </FormControl>
@@ -275,7 +275,7 @@ export function CreatePromptset({
             />
             <DialogFooter>
               <Button type="submit" disabled={busy}>
-                Create Promptset
+                Create Prompt Registry
                 <PlusIcon className="h-4 w-4 ml-2" />
               </Button>
             </DialogFooter>

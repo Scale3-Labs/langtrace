@@ -17,7 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input, InputLarge } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
@@ -165,132 +165,6 @@ export function CreateData({
             <DialogFooter>
               <Button type="submit" disabled={busy}>
                 Create Data
-                <PlusIcon className="h-4 w-4 ml-2" />
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export function CreatePrompt({
-  promptsetId,
-  disabled = false,
-  variant = "default",
-  className = "",
-}: {
-  promptsetId?: string;
-  disabled?: boolean;
-  variant?: any;
-  className?: string;
-}) {
-  const queryClient = useQueryClient();
-  const [open, setOpen] = useState<boolean>(false);
-  const [busy, setBusy] = useState<boolean>(false);
-  const schema = z.object({
-    value: z.string().min(2, "Too short").max(2000, "Too long"),
-    note: z.string().max(25, "Too long").optional(),
-  });
-  const CreatePromptsetForm = useForm({
-    resolver: zodResolver(schema),
-  });
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button disabled={disabled} variant={variant} className={className}>
-          Create Prompt <PlusIcon className="ml-2" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Create Prompt</DialogTitle>
-          <DialogDescription>
-            Create a new prompt by filling out the form below.
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...CreatePromptsetForm}>
-          <form
-            onSubmit={CreatePromptsetForm.handleSubmit(async (data) => {
-              try {
-                setBusy(true);
-                await fetch("/api/promptdata", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    datas: [{ value: data.value, note: data.note || "" }],
-                    promptsetId,
-                  }),
-                });
-                await queryClient.invalidateQueries(promptsetId);
-                toast("Prompt added!", {
-                  description: "Your prompt has been added.",
-                });
-                setOpen(false);
-                CreatePromptsetForm.reset();
-              } catch (error: any) {
-                toast("Error creating your prompt!", {
-                  description: `There was an error creating your prompt: ${error.message}`,
-                });
-              } finally {
-                setBusy(false);
-              }
-            })}
-            className="flex flex-col gap-4"
-          >
-            <FormField
-              disabled={busy}
-              control={CreatePromptsetForm.control}
-              name="value"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Value
-                    <Info
-                      information="The prompt value. Ex: You are a documentation writer. Answer in a courteous manner."
-                      className="inline-block ml-2"
-                    />
-                  </FormLabel>
-                  <FormControl>
-                    <InputLarge
-                      placeholder="You are a documentation writer. Answer in a courteous manner."
-                      // className="w-full h-20"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              disabled={busy}
-              control={CreatePromptsetForm.control}
-              name="note"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Note
-                    <Info
-                      information="Any additional notes for the prompt."
-                      className="inline-block ml-2"
-                    />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Documentation writer prompt."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="submit" disabled={busy}>
-                Create Prompt
                 <PlusIcon className="h-4 w-4 ml-2" />
               </Button>
             </DialogFooter>

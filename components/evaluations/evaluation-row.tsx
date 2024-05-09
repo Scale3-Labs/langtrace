@@ -1,5 +1,3 @@
-"use client";
-
 import { HoverCell } from "@/components/shared/hover-cell";
 import { LLMView } from "@/components/shared/llm-view";
 import { Button } from "@/components/ui/button";
@@ -215,18 +213,12 @@ export default function EvaluationRow({
         </div>
         <p className="text-xs font-medium">{model}</p>
         <HoverCell
-          className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
-          value={prompts?.length > 0 ? JSON.parse(prompts)[0]?.content : ""}
+          className="flex items-center text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          values={prompts?.length > 0 ? JSON.parse(prompts) : []}
         />
         <HoverCell
-          className="text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
-          value={
-            responses?.length > 0
-              ? JSON.parse(responses)[0]?.message?.content ||
-                JSON.parse(responses)[0]?.text ||
-                JSON.parse(responses)[0]?.content
-              : ""
-          }
+          className="flex items-center text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          values={responses?.length > 0 ? JSON.parse(responses) : []}
         />
         <p className="text-xs font-semibold">
           {cost.total.toFixed(6) !== "0.000000"
@@ -271,8 +263,8 @@ export default function EvaluationRow({
       </div>
       {!collapsed && (
         <LLMView
-          responses={responses}
-          prompts={prompts}
+          responses={[responses]}
+          prompts={[prompts]}
           doPiiDetection={true}
         />
       )}

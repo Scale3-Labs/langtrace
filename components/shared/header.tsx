@@ -15,11 +15,14 @@ import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { FileIcon, LogOutIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useQuery } from "react-query";
 import { ModeToggle } from "./mode-toggle";
 import Nav from "./nav";
+import { ProjectSwitcher } from "./project-switcher";
 
 export function Header({ email }: { email: string }) {
+  const pathname = usePathname();
   const fetchAccountStats = useQuery({
     queryKey: ["fetch-account-stats"],
     queryFn: async () => {
@@ -41,21 +44,17 @@ export function Header({ email }: { email: string }) {
   return (
     <header className="flex flex-col gap-2 w-full px-12 z-30 sticky top-0 bg-primary-foreground">
       <div className="flex justify-between items-center w-full pt-3">
+        <div className="flex items-center gap-3">
         <Link
           href="/projects"
           className="text-xl font-bold flex items-center gap-0"
         >
           Langtrace AI
         </Link>
-        <div className="flex items-end gap-3">
-          <Link href={"https://docs.langtrace.ai/introduction"} target="_blank">
-            <Button variant={"secondary"} size={"sm"}>
-              <FileIcon className="mr-2 h-4 w-4" />
-              Docs
-              <ArrowTopRightIcon className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex flex-col mr-4">
+        {pathname.includes("/project/") && <ProjectSwitcher email={email} />}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col">
             <p className="text-sm text-muted-foreground">
               Total Spans Ingested
             </p>
@@ -71,6 +70,13 @@ export function Header({ email }: { email: string }) {
               <ArrowTopRightIcon className="h-4 w-4 ml-1" />
             </Link>
           </div>
+          <Link href={"https://docs.langtrace.ai/introduction"} target="_blank">
+            <Button variant={"secondary"} size={"sm"}>
+              <FileIcon className="mr-2 h-4 w-4" />
+              Docs
+              <ArrowTopRightIcon className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
           <ModeToggle />
           <DropdownMenu>
             {!fetchUser.isLoading && fetchUser.data && (
