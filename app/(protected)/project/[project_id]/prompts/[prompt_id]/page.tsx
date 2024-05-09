@@ -1,5 +1,6 @@
 "use client";
 import CreatePromptDialog from "@/components/shared/create-prompt-dialog";
+import { PromptInstructions } from "@/components/shared/setup-instructions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -142,6 +143,12 @@ export default function Page() {
           </div>
           <div className="flex flex-col gap-8 w-full">
             <div className="flex flex-col gap-2">
+              <Label>Prompt Registry ID</Label>
+              <p className="p-2 rounded-md border-2 border-muted font-semibold text-md">
+                {promptsetId}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
               <Label>Prompt</Label>
               <p className="p-2 rounded-md border-2 border-muted">
                 {selectedPrompt.value}
@@ -221,6 +228,10 @@ export default function Page() {
                   Make this version of the prompt live
                 </p>
               </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>Use the Live prompt directly in your code</Label>
+              <PromptInstructions id={promptsetId} />
             </div>
           </div>
         </div>
