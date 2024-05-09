@@ -15,6 +15,7 @@ import {
   PERPLEXITY_PRICING,
   SpanStatusCode,
 } from "./constants";
+import qs from "qs";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -276,6 +277,30 @@ export function prepareForClickhouse(spans: Normalized[]): Span[] {
         `An error occurred while preparing data for Clickhouse: ${error}`
       );
     }
+  });
+}
+
+export function fillPromptStringTemplate(template: string, variables: { [key: string]: string }): string {
+  return template.replace(/\{(\w+)\}/g, (match, key) => {
+      return variables[key] || match;
+  });
+}
+
+//TODO: Move to a middleware
+export function parseQueryString(url: string): Record<string, any>{
+  return qs.parse(url.split("?")[1], {
+    decoder(str) {
+      if (str === "true") return true;
+      if (str === "false") return false;
+      try {
+        return JSON.parse(str);
+      } catch {
+        return str;
+      }
+    },
+    interpretNumericEntities: true, // Ensures numeric entities are parsed correctly
+    parseArrays: true, // Ensures arrays are parsed correctly
+    allowDots: true, // Allows dot notation for nested objects
   });
 }
 
