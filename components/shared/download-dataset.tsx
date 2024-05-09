@@ -1,7 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown, DownloadIcon, PlusIcon } from "lucide-react";
-import * as React from "react";
+import { DownloadIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +12,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
 import { useState } from 'react';
+import { toast } from "sonner";
 
 export function DownloadDataset({
-  datasetId
+  datasetId,
+  disabled=false,
 }: {
   datasetId: string;
+  disabled?: boolean;
 
 }) {
   const [open, setOpen] = useState(false);
@@ -28,7 +29,7 @@ export function DownloadDataset({
     setBusy(true);
     try {
       datasetId = datasetId.toString();
-      const response = await fetch(`/api/dataset-download?dataset_id=${datasetId}`, {
+      const response = await fetch(`/api/dataset/download?id=${datasetId}`, {
         method: "GET",
         headers: {
           "Content-Type": "text/csv",
@@ -73,9 +74,8 @@ export function DownloadDataset({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          Download Dataset
-          <DownloadIcon className="ml-2 h-4 w-4 shrink-0" />
+        <Button size={'icon'} variant={'outline'} disabled={disabled}>
+          <DownloadIcon className="h-4 w-4 shrink-0" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
@@ -86,11 +86,11 @@ export function DownloadDataset({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
+          <Button variant={'outline'} onClick={() => setOpen(false)} disabled={busy}>
+            Cancel
+          </Button>
           <Button disabled={busy} onClick={handleDownload}>
             Download
-          </Button>
-          <Button onClick={() => setOpen(false)} disabled={busy}>
-            Cancel
           </Button>
         </DialogFooter>
       </DialogContent>

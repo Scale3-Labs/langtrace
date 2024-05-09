@@ -1,9 +1,9 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
+import json2csv from 'json2csv';
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
-import json2csv from 'json2csv';
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     if (!session || !session.user) {
       redirect("/login");
     }
-    const datasetId = req.nextUrl.searchParams.get("dataset_id") as string;
+    const datasetId = req.nextUrl.searchParams.get("id") as string;
     const pageParam = req.nextUrl.searchParams.get("page");
     let page = pageParam ? parseInt(pageParam, 10) : 1;
     const pageSize = 500;
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     if (!datasetId) {
       return NextResponse.json(
         {
-          message: "No dataset id or project id provided",
+          message: "No dataset id provided",
         },
         { status: 404 }
       );

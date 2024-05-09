@@ -1,8 +1,9 @@
 "use client";
 
 import { CreateData } from "@/components/project/dataset/create-data";
-import { DownloadDataset } from "@/components/shared/download-dataset";
+import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
 import { EditData } from "@/components/project/dataset/edit-data";
+import { DownloadDataset } from "@/components/shared/download-dataset";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -14,7 +15,6 @@ import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
 
 export default function Dataset() {
   const dataset_id = useParams()?.dataset_id as string;
@@ -92,7 +92,7 @@ export default function Dataset() {
             Back
           </Button>
           <CreateData datasetId={dataset_id} />
-          <DownloadDataset datasetId={dataset_id} />
+          <DownloadDataset datasetId={dataset_id} disabled={fetchDataset.isLoading || currentData?.length === 0} />
         </div>
         <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
           <div className="grid grid-cols-5 items-center justify-stretch gap-3 py-3 px-4 bg-muted">
@@ -101,7 +101,7 @@ export default function Dataset() {
             <p className="text-xs font-medium">Output</p>
             <p className="text-xs font-medium text-end">Note</p>
           </div>
-          {fetchDataset.isLoading && currentData.length === 0 && (
+          {fetchDataset.isLoading && currentData?.length === 0 && (
             <div className="flex items-center justify-center">
               <p className="text-muted-foreground">
                 No data found in this dataset
