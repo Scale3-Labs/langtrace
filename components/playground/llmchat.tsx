@@ -30,6 +30,7 @@ import {
   cohereHandler,
   groqHandler,
   openAIHandler,
+  perplexityHandler,
 } from "./chat-handlers";
 import { Message } from "./common";
 import {
@@ -245,7 +246,7 @@ export default function LLMChat({
                 apiKey || ""
               );
             } else if (localLLM.vendor === "perplexity") {
-              response = await groqHandler(
+              response = await perplexityHandler(
                 localLLM as PerplexityChatInterface,
                 apiKey || ""
               );

@@ -2583,12 +2583,12 @@ export function PerplexitySettingsSheet({
           <div className="flex gap-2 items-center">
             <SettingsIcon className="h-5 w-5" />
             <div className="flex flex-col">
-              <p className="text-xs font-semibold">OpenAI</p>
+              <p className="text-xs font-semibold">Perplexity</p>
               <p className="text-xs font-semibold">{settings.model}</p>
             </div>
             <Image
-              alt="OpenAI Logo"
-              src="/openai.svg"
+              alt="Perplexity Logo"
+              src="/perplexity.png"
               width={20}
               height={20}
               className="p-[3px] rounded-full dark:bg-gray-400"
