@@ -150,7 +150,7 @@ await Langtrace.withAdditionalAttributes(async () => {
       { role: 'user', content: 'Hello, how are you?' }
     ]
   })
-}, { 'langtrace.testId': ${testId} })
+}, { 'langtrace.testId': '${testId}' })
 `
               );
             }}
@@ -165,7 +165,7 @@ await Langtrace.withAdditionalAttributes(async () => {
       { role: 'user', content: 'Hello, how are you?' }
     ]
   })
-}, { 'langtrace.testId': ${testId} })
+}, { 'langtrace.testId': '${testId}' })
 `}
           </pre>
         )}
@@ -177,7 +177,7 @@ await Langtrace.withAdditionalAttributes(async () => {
                 `
 from langtrace_python_sdk.utils.with_root_span import (with_additional_attributes)
 
-@with_additional_attributes({ langtrace.testId: ${testId} })
+@with_additional_attributes({ langtrace.testId: '${testId}' })
 def test_function():
     response = client.chat.completions.create(
         model='gpt-4',
@@ -193,7 +193,7 @@ def test_function():
 from langtrace_python_sdk.utils.with_root_span
     import (with_additional_attributes)
 
-@with_additional_attributes({ langtrace.testId: ${testId} })
+@with_additional_attributes({ langtrace.testId: '${testId}' })
 def test_function():
     response = client.chat.completions.create(
         model='gpt-4',
@@ -201,6 +201,83 @@ def test_function():
         stream=False,
     )
     return response
+`}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function PromptInstructions({ id }: { id: string }) {
+  const [sdk, setSdk] = useState("typescript");
+
+  const copyToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code);
+    return toast.success("Copied to clipboard");
+  };
+
+  return (
+    <div className="flex flex-col gap-6 border rounded-md p-4">
+      <div className="flex flex-row items-center gap-3">
+        <Button
+          onClick={() => setSdk("typescript")}
+          variant={sdk === "typescript" ? "default" : "ghost"}
+          size={"sm"}
+        >
+          TypeScript
+        </Button>
+        <Button
+          disabled={true}
+          onClick={() => setSdk("python")}
+          variant={sdk === "python" ? "default" : "ghost"}
+          size={"sm"}
+        >
+          Python (Coming Soon)
+        </Button>
+      </div>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm">
+          Pass the prompt registry ID to the function.
+          <br /> This will automatically fetch the currently Live prompt from
+          the prompt registry. Example:
+        </p>
+        {sdk === "typescript" && (
+          <pre
+            className="text-xs p-2 rounded-md bg-muted select-all selection:bg-orange-400 dark:selection:bg-orange-600"
+            onClick={() => {
+              copyToClipboard(
+                `
+import * as Langtrace from "@langtrase/typescript-sdk";
+
+const prompt = Langtrace.getPromptFromRegistry('${id}')
+`
+              );
+            }}
+          >
+            {`import * as Langtrace from "@langtrase/typescript-sdk";
+
+const prompt = Langtrace.getPromptFromRegistry('${id}')
+`}
+          </pre>
+        )}
+        {sdk === "python" && (
+          <pre
+            className="text-xs p-2 rounded-md bg-muted select-all selection:bg-orange-400 dark:selection:bg-orange-600"
+            onClick={() => {
+              copyToClipboard(
+                `
+from langtrace_python_sdk.utils import (get_prompt_from_registry)
+
+prompt = get_prompt_from_registry('${id}')
+`
+              );
+            }}
+          >
+            {`
+from langtrace_python_sdk.utils import (get_prompt_from_registry)
+
+prompt = get_prompt_from_registry('${id}')
 `}
           </pre>
         )}
