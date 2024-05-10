@@ -171,7 +171,9 @@ export default function Traces({ email }: { email: string }) {
         </div>
       </div>
       <div className="grid grid-cols-11 items-center gap-6 p-3 bg-muted">
-        <p className="ml-10 text-xs font-medium">Timestamp (UTC)</p>
+        <p className="ml-10 text-xs font-medium">
+					Time <span>&#8595;</span> ({utcTime ? "UTC" : "Local"})
+				</p>
         <p className="text-xs font-medium">Namespace</p>
         <p className="text-xs font-medium">Model</p>
         <p className="text-xs font-medium col-span-2">Input</p>

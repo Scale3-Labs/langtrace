@@ -3,10 +3,12 @@
 ## Open Source & Open Telemetry(OTEL) Observability for LLM applications
 
 ![Static Badge](https://img.shields.io/badge/License-AGPL--3.0-blue)
-![NPM Version](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat&logo=npm&label=%40langtrase%2Ftypescript-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-typescript-sdk)
-![PyPI - Version](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat&logo=python&label=langtrace-python-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-python-sdk)
+[![NPM Typescript SDK](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat&logo=npm&label=%40langtrase%2Ftypescript-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-typescript-sdk)](https://github.com/Scale3-Labs/langtrace-typescript-sdk)
+[![PyPI Python SDK](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat&logo=python&label=langtrace-python-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-python-sdk)](https://github.com/Scale3-Labs/langtrace-python-sdk)
+[![NPM Trace Attributes](https://img.shields.io/npm/v/%40langtrase%2Ftrace-attributes?style=flat&logo=npm&label=%40langtrase%2Ftrace-attributes&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-trace-attributes)](https://github.com/Scale3-Labs/langtrace-trace-attributes)
+[![PyPI Trace Attributes](https://img.shields.io/pypi/v/trace-attributes?style=flat&logo=python&label=trace-attributes&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-trace-attributes)](https://github.com/Scale3-Labs/langtrace-trace-attributes)
 ![Static Badge](https://img.shields.io/badge/Development_status-Active-green)
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/yZGbfC?referralCode=MA2S9H)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/8dNq1c?referralCode=MA2S9H)
 
 ---
 
