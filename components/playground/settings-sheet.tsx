@@ -1941,7 +1941,7 @@ export function GroqSettingsSheet({
         <SheetHeader>
           <SheetTitle>Chat Settings</SheetTitle>
           <SheetDescription>
-            Configure the settings for the OpenAI chat.
+            Configure the settings for the Groq chat.
           </SheetDescription>
         </SheetHeader>
         <Form {...SettingsForm}>
@@ -2600,7 +2600,7 @@ export function PerplexitySettingsSheet({
         <SheetHeader>
           <SheetTitle>Chat Settings</SheetTitle>
           <SheetDescription>
-            Configure the settings for the OpenAI chat.
+            Configure the settings for the Perplexity chat.
           </SheetDescription>
         </SheetHeader>
         <Form {...SettingsForm}>
@@ -2684,7 +2684,7 @@ export function PerplexitySettingsSheet({
                     <ModelsDropDown
                       value={field.value}
                       setValue={field.onChange}
-                      vendor="openai"
+                      vendor="perplexity"
                     />
                   </FormControl>
                   <FormMessage />
