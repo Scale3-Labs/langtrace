@@ -65,9 +65,9 @@ export class ClickhouseBaseClient implements IBaseChClient {
 
   async update<T>(query: string): Promise<T> {
     try {
-      return await (
+      return (await (
         await this.client.query({ query: query, format: "JSONEachRow" })
-      ).json();
+      ).json()) as T;
     } catch (err) {
       throw new Error(
         `An error occurred while trying to update the resource ${err}`
@@ -95,12 +95,12 @@ export class ClickhouseBaseClient implements IBaseChClient {
 
   async find<T>(filter: SelectStatement): Promise<T> {
     try {
-      return await (
+      return (await (
         await this.client.query({
           query: filter.toString(),
           format: "JSONEachRow",
         })
-      ).json();
+      ).json()) as T;
     } catch (err) {
       throw new Error(
         `An error occurred while trying to find the resource ${err}`
