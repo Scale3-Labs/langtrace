@@ -1,5 +1,6 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
+import { authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
@@ -87,10 +88,10 @@ export async function POST(req: NextRequest) {
       spanStartTime,
       spanId,
       traceId,
-      userId: user.id,
+      ltUserId: user.id,
       projectId,
       model,
-      score,
+      ltUserScore: score,
       prompt,
       testId,
     },
@@ -216,60 +217,104 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
-  }
-  const email = session?.user?.email as string;
-  if (!email) {
-    return NextResponse.json(
-      {
-        error: "email not found",
+  const apiKey = req.headers.get("x-api-key");
+  if(apiKey!==null) {
+    const response = await authApiKey(apiKey);
+    if(response.status!==200) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 } );
+    }
+    const projectData = await response.json();
+    const projectId = projectData.data.project.id;
+
+    let {spanId, userScore, userId} = await req.json().catch(() => ({}));
+    if(!spanId || !userScore || !userId) {
+      return NextResponse.json({ error: "spanId, userId and userScore are required in the request body" }, { status: 400 } );
+    }
+    userScore = Number(userScore);
+    if(Number.isNaN(userScore)) {
+      return NextResponse.json({ error: "userScore must be a number" }, { status: 400 } );
+    }
+    if(userScore!==1 && userScore!==-1) {
+      return NextResponse.json({ error: "userScore must be 1 or -1" }, { status: 400 } );
+    }
+    if(userId?.length === 0) {
+      return NextResponse.json({ error: "userId must be a non-empty string" }, { status: 400 } );
+    }
+    const evaluation = await prisma.evaluation.findFirst({
+      where: {
+       projectId,
+       spanId,
       },
-      { status: 404 }
-    );
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-    include: {
-      Team: true,
-    },
-  });
-
-  if (!user) {
-    return NextResponse.json(
-      {
-        error: "user not found",
+    });
+    if(!evaluation) {
+      return NextResponse.json({ error: "Evaluation not found" }, { status: 404 } );
+    }
+    const updatedEvaluation = await prisma.evaluation.update({
+      where: {
+        id: evaluation.id,
       },
-      { status: 404 }
-    );
-  }
-
-  const data = await req.json();
-  const { id, score } = data;
-
-  const evaluation = await prisma.evaluation.update({
-    where: {
-      id,
-    },
-    data: {
-      userId: user.id,
-      score,
-    },
-  });
-
-  if (!evaluation) {
-    return NextResponse.json(
-      {
-        error: "No evaluation found",
+      data: {
+        userScore,
+        userId,
       },
-      { status: 404 }
-    );
-  }
+    });
+    return NextResponse.json({ data: updatedEvaluation });
+  } else {
+    if (!session || !session.user) {
+      NextResponse.json({ error: "Unauthorized" }, { status: 401 } );
+    }
+    const email = session?.user?.email as string;
+    if (!email) {
+      return NextResponse.json(
+        {
+          error: "email not found",
+        },
+        { status: 404 }
+      );
+    }
 
-  return NextResponse.json({
-    data: evaluation,
-  });
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+      include: {
+        Team: true,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "user not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    const data = await req.json();
+    const { id, score } = data;
+
+    const evaluation = await prisma.evaluation.update({
+      where: {
+        id,
+      },
+      data: {
+        ltUserId: user.id,
+        ltUserScore: score,
+      },
+    });
+
+    if (!evaluation) {
+      return NextResponse.json(
+        {
+          error: "No evaluation found",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      data: evaluation,
+    });
+  }
 }

@@ -78,14 +78,16 @@ model Evaluation {
   spanId        String?
   traceId       String?
   model         String?
-  userId        String
+  ltUserId      String
+  ltUserScore   Int
+  userId        String?
+  userScore     Int?
   projectId     String
   testId        String
-  score         Int
   prompt        String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  User          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User          User      @relation(fields: [ltUserId], references: [id], onDelete: Cascade)
   Project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   Test          Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
 }

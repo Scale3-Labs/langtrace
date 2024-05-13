@@ -80,7 +80,8 @@ export default function EvaluationRow({
   if (!attributes) return null;
 
   // extract the metrics
-  const userScore = attributes["user.feedback.rating"] || "";
+  const userScore = evaluation?.userScore || "";
+  const userId = evaluation?.userId || "";
   const startTimeMs = new Date(
     correctTimestampFormat(span.start_time)
   ).getTime();
@@ -241,6 +242,9 @@ export default function EvaluationRow({
         </p>
         <p className="text-sm font-semibold">
           {userScore ? userScore : "Not evaluated"}
+        </p>
+        <p className="text-sm font-semibold">
+          {userId}
         </p>
         <div className=" col-span-2 flex flex-row items-center justify-evenly">
           {addedToDataset ? (

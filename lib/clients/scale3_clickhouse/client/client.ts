@@ -37,7 +37,7 @@ export class ClickhouseBaseClient implements IBaseChClient {
   constructor(database = CLICK_HOUSE_CONSTANTS.database) {
     this.client = createClient({
       database,
-      host: process.env.CLICK_HOUSE_HOST,
+      url: process.env.CLICK_HOUSE_HOST,
       username: process.env.CLICK_HOUSE_USER,
       password: process.env.CLICK_HOUSE_PASSWORD,
       compression: {
