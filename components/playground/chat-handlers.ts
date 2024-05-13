@@ -3,6 +3,7 @@ import {
   CohereChatInterface,
   GroqChatInterface,
   OpenAIChatInterface,
+  PerplexityChatInterface,
 } from "@/lib/types/playground_types";
 
 export async function openAIHandler(
@@ -290,6 +291,52 @@ export async function groqHandler(
   body.apiKey = apiKey;
 
   const response = await fetch("/api/chat/groq", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  return response;
+}
+
+export async function perplexityHandler(
+  llm: PerplexityChatInterface,
+  apiKey: string
+): Promise<any> {
+  const body: any = {};
+  if (llm.settings.messages.length > 0) {
+    body.messages = llm.settings.messages.map((m) => {
+      return { content: m.content, role: m.role };
+    });
+  }
+  if (llm.settings.model) {
+    body.model = llm.settings.model;
+  }
+  if (llm.settings.temperature) {
+    body.temperature = llm.settings.temperature;
+  }
+  if (llm.settings.max_tokens) {
+    body.max_tokens = llm.settings.max_tokens;
+  }
+  if (llm.settings.frequency_penalty) {
+    body.frequency_penalty = llm.settings.frequency_penalty;
+  }
+  if (llm.settings.presence_penalty) {
+    body.presence_penalty = llm.settings.presence_penalty;
+  }
+  if (llm.settings.stream !== undefined) {
+    body.stream = llm.settings.stream;
+  }
+  if (llm.settings.top_p) {
+    body.top_p = llm.settings.top_p;
+  }
+
+  // Get the API key from the browser store
+  body.apiKey = apiKey;
+
+  const response = await fetch("/api/chat/perplexity", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

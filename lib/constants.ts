@@ -35,6 +35,14 @@ export interface CostTableEntry {
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
+  "gpt-4o": {
+    input: 0.005,
+    output: 0.015,
+  },
+  "gpt-4o-2024-05-13": {
+    input: 0.005,
+    output: 0.015,
+  },
   "gpt-4": {
     input: 0.03,
     output: 0.06,
@@ -203,6 +211,10 @@ export const LLM_VENDOR_APIS = [
     value: "GROQ_API_KEY",
     label: "Groq",
   },
+  {
+    value: "PERPLEXITY_API_KEY",
+    label: "Perplexity",
+  },
 ];
 
 export const LLM_VENDORS = [
@@ -221,5 +233,9 @@ export const LLM_VENDORS = [
   {
     value: "groq",
     label: "Groq",
+  },
+  {
+    value: "perplexity",
+    label: "Perplexity",
   },
 ];
