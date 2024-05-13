@@ -211,6 +211,10 @@ export const LLM_VENDOR_APIS = [
     value: "GROQ_API_KEY",
     label: "Groq",
   },
+  {
+    value: "PERPLEXITY_API_KEY",
+    label: "Perplexity",
+  },
 ];
 
 export const LLM_VENDORS = [
@@ -229,5 +233,9 @@ export const LLM_VENDORS = [
   {
     value: "groq",
     label: "Groq",
+  },
+  {
+    value: "perplexity",
+    label: "Perplexity",
   },
 ];
