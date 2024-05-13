@@ -761,20 +761,19 @@ export class TraceService implements ITraceService {
           totalOutputTokens: 0,
         };
       }
-
-      const query = sql
-        .select()
-        .from(project_id)
-        .where(sql.like("attributes", "%total_tokens%"));
-      const spans: Span[] = await this.client.find<Span[]>(query);
+      const query = sql.select(
+        `JSONExtractRaw(attributes, 'llm.token.counts') AS token_counts FROM ${project_id}`
+      );
+      const spans: any[] = await this.client.find<Span[]>(query);
       let totalTokens = 0;
       let totalInputTokens = 0;
       let totalOutputTokens = 0;
       spans.forEach((span) => {
-        const parsedAttributes = JSON.parse(span.attributes || "{}");
-        const llmTokenCounts = parsedAttributes["llm.token.counts"]
-          ? JSON.parse(parsedAttributes["llm.token.counts"])
-          : {};
+        const parsedAttributes = JSON.parse(span.token_counts || "{}");
+        const llmTokenCounts =
+          typeof parsedAttributes === "string"
+            ? JSON.parse(parsedAttributes)
+            : parsedAttributes;
         const token_count = llmTokenCounts.total_tokens || 0;
         totalTokens += token_count;
 
