@@ -11,6 +11,7 @@ import {
   OpenAIChatInterface,
   OpenAIModel,
   OpenAISettings,
+  PerplexitySettings,
 } from "@/lib/types/playground_types";
 import Link from "next/link";
 import { useState } from "react";
@@ -69,6 +70,17 @@ export default function Page() {
         settings: settings,
       };
       setLLMs((currentLLMs) => [...currentLLMs, cohereChat]);
+    } else if (vendor === "perplexity") {
+      const settings: PerplexitySettings = {
+        messages: [],
+        model: "mistral-7b-instruct",
+      };
+      const perplexityChat: ChatInterface = {
+        id: uuidv4(),
+        vendor: "perplexity",
+        settings: settings,
+      };
+      setLLMs((currentLLMs) => [...currentLLMs, perplexityChat]);
     }
   };
 

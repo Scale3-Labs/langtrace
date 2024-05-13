@@ -19,6 +19,7 @@ import {
   cohereModels,
   groqModels,
   openAIModels,
+  perplexityModels,
 } from "@/lib/types/playground_types";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,8 @@ export function ModelsDropDown({
     models = cohereModels;
   } else if (vendor === "groq") {
     models = groqModels;
+  } else if (vendor === "perplexity") {
+    models = perplexityModels;
   }
   return (
     <Popover open={open} onOpenChange={setOpen}>

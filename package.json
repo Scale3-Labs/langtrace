@@ -15,6 +15,7 @@
 	},
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.20.8",
+		"@api/pplx": "file:.api/apis/pplx",
 		"@azure/arm-resources": "^5.2.0",
 		"@azure/identity": "^4.0.1",
 		"@azure/openai": "^1.0.0-beta.11",
