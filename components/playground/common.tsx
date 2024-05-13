@@ -129,13 +129,18 @@ export function Message({
               </p>
             )}
             {editing && (
-              <ExpandingTextArea
-                onChange={(value: string) => {
-                  setMessage({ ...message, content: value });
-                }}
-                value={message.content}
-                setFocusing={setEditing}
-              />
+              <div>
+                <ExpandingTextArea
+                  onChange={(value: string) => {
+                    setMessage({ ...message, content: value });
+                  }}
+                  value={message.content}
+                  setFocusing={setEditing}
+                />
+                <Button className="text-sm font-sm" size={"icon"}>
+                  Save
+                </Button>
+              </div>
             )}
           </div>
         </div>
