@@ -35,6 +35,14 @@ export interface CostTableEntry {
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
+  "gpt-4o": {
+    input: 0.005,
+    output: 0.015,
+  },
+  "gpt-4o-2024-05-13": {
+    input: 0.005,
+    output: 0.015,
+  },
   "gpt-4": {
     input: 0.03,
     output: 0.06,
