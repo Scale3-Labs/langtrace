@@ -158,6 +158,33 @@ export const groqModels = [
   },
 ];
 
+export const perplexityModels = [
+  {
+    value: "sonar-small-chat",
+    label: "Sonar Small (Chat)",
+  },
+  {
+    value: "sonar-small-online",
+    label: "Sonar Small (Online)",
+  },
+  {
+    value: "sonar-medium-chat",
+    label: "Sonar Medium (Chat)",
+  },
+  {
+    value: "sonar-medium-online",
+    label: "Sonar Medium (Online)",
+  },
+  {
+    value: "mistral-7b-instruct",
+    label: "Mistral 7B (Instruct)",
+  },
+  {
+    value: "mixtral-8x7b-instruct",
+    label: "Mixtral 8x7B (Instruct)",
+  },
+];
+
 export enum OpenAIRole {
   "user" = "user",
   "assistant" = "assistant",
@@ -248,10 +275,27 @@ export interface GroqSettings {
   user?: string;
 }
 
+export interface PerplexitySettings {
+  messages: Conversation[];
+  model: string;
+  max_tokens?: number;
+  temperature?: number;
+  top_p?: number;
+  top_k?: number;
+  stream?: boolean;
+  presence_penalty?: number;
+  frequency_penalty?: number;
+}
+
 export interface ChatInterface {
   id: string;
   vendor: string;
-  settings: OpenAISettings | AnthropicSettings | CohereSettings | GroqSettings;
+  settings:
+    | OpenAISettings
+    | AnthropicSettings
+    | CohereSettings
+    | GroqSettings
+    | PerplexitySettings;
 }
 
 export interface OpenAIChatInterface extends ChatInterface {
@@ -268,4 +312,8 @@ export interface CohereChatInterface extends ChatInterface {
 
 export interface GroqChatInterface extends ChatInterface {
   settings: GroqSettings;
+}
+
+export interface PerplexityChatInterface extends ChatInterface {
+  settings: PerplexitySettings;
 }
