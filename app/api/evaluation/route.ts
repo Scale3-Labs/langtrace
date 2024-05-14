@@ -352,7 +352,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const data = await req.json();
-    const { id, score } = data;
+    const { id, ltUserScore } = data;
 
     const evaluation = await prisma.evaluation.update({
       where: {
@@ -360,7 +360,7 @@ export async function PUT(req: NextRequest) {
       },
       data: {
         ltUserId: user.id,
-        ltUserScore: score,
+        ltUserScore,
       },
     });
 
