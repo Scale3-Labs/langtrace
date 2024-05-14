@@ -110,12 +110,12 @@ export default function EvaluationRow({
   }
   piiDetected =
     piiDetected ||
-    detectPII(
+    (responses && detectPII(
       JSON.parse(responses)[0]?.message?.content ||
         JSON.parse(responses)[0]?.text ||
         JSON.parse(responses)[0]?.content ||
         ""
-    ).length > 0;
+    ).length > 0);
 
   // score evaluation
   const evaluateSpan = async (newScore: number) => {
