@@ -59,7 +59,7 @@ export default function EvaluationRow({
       const result = await response.json();
       setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
       setScore(
-        result.evaluations.length > 0 ? result.evaluations[0].score : -100
+        result.evaluations.length > 0 ? result.evaluations[0].ltUserScore : -100
       );
       return result;
     },
@@ -132,7 +132,7 @@ export default function EvaluationRow({
           spanId: span.span_id,
           traceId: span.trace_id,
           spanStartTime: new Date(correctTimestampFormat(span.start_time)),
-          score: newScore,
+          ltUserScore: newScore,
           model: model,
           prompt: promptContent,
           testId: testId,
@@ -146,7 +146,7 @@ export default function EvaluationRow({
         },
         body: JSON.stringify({
           id: evaluation?.id,
-          score: newScore,
+          ltUserScore: newScore,
         }),
       });
     }

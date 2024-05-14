@@ -10,7 +10,7 @@
 		"predev": "npm run create-tables && npm run create-clickhouse-db",
 		"dev": "next dev",
 		"create-migration": "npx prisma migrate dev --create-only",
-		"migrate": "npx prisma migrate dev",
+		"migration": "npx prisma migrate dev",
 		"prestart": "npm run create-tables && npm run create-clickhouse-db",
 		"start": "next start",
 		"lint": "next lint"
