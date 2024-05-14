@@ -1,8 +1,7 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
-import { authApiKey } from "@/lib/utils";
+import { authApiKey, convertToDateTime64 } from "@/lib/utils";
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -42,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     const evaluation = await prisma.evaluation.create({
       data: {
-        spanStartTime,
+        spanStartTime: convertToDateTime64(spanStartTime),
         spanId,
         traceId,
         projectId,
@@ -265,7 +264,7 @@ export async function GET(req: NextRequest) {
       evaluations,
     });
   } catch (error) {
-    console.error(error);
+    console.error("hereeeee", error);
     return NextResponse.json(
       {
         message: "Internal server error",
