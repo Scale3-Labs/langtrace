@@ -79,21 +79,21 @@ export async function GET(req: NextRequest) {
     where: {
       projectId,
       testId,
-      score: {
+      ltUserScore: {
         in: [1, -1],
       },
     },
   });
 
   const totalPositive = allEvaluations.reduce((acc, evaluation) => {
-    if (evaluation.score === 1) {
+    if (evaluation.ltUserScore === 1) {
       return acc + 1;
     }
     return acc;
   }, 0);
 
   const totalNegative = allEvaluations.reduce((acc, evaluation) => {
-    if (evaluation.score === -1) {
+    if (evaluation.ltUserScore === -1) {
       return acc + 1;
     }
     return acc;

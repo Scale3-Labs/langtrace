@@ -160,7 +160,7 @@ function convertDurationToMicroseconds(duration: [number, number]): number {
   return totalMicroseconds;
 }
 
-function convertToDateTime64(dateTime: [number, number]): string {
+export function convertToDateTime64(dateTime: [number, number]): string {
   // Extract seconds and nanoseconds from the input
   const [seconds, nanoseconds] = dateTime;
 

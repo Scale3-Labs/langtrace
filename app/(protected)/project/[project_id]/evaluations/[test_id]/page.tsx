@@ -179,7 +179,7 @@ export default function Page() {
       }
       const result = await response.json();
       const sc =
-        result.evaluations.length > 0 ? result.evaluations[0].score : -1;
+        result.evaluations.length > 0 ? result.evaluations[0].ltUserScore : -1;
       onScoreSelected(sc);
       return result;
     },
@@ -220,7 +220,7 @@ export default function Page() {
 
       // Check if an evaluation already exists
       if (evaluationsData?.evaluations[0]?.id) {
-        if (evaluationsData.evaluations[0].score === score) {
+        if (evaluationsData.evaluations[0].ltUserScore === score) {
           // setBusy(false);
           return;
         }
@@ -232,7 +232,7 @@ export default function Page() {
           },
           body: JSON.stringify({
             id: evaluationsData.evaluations[0].id,
-            score: score,
+            ltUserScore: score,
           }),
         });
         queryClient.invalidateQueries({
@@ -252,7 +252,7 @@ export default function Page() {
             spanStartTime: span?.start_time
               ? new Date(correctTimestampFormat(span.start_time))
               : new Date(),
-            score: score,
+            ltUserScore: score,
             model: model,
             prompt: systemPrompt,
             testId: testId,
@@ -365,7 +365,7 @@ export default function Page() {
               ))}
             </div>
           ) : (
-            <RangeScale
+            < RangeScale
               variant="large"
               type={ScaleType.Range}
               min={testData?.test?.min}
@@ -482,8 +482,8 @@ function ConversationView({ span }: { span: any }) {
           const content = prompt?.content
             ? safeStringify(prompt?.content)
             : prompt?.function_call
-            ? safeStringify(prompt?.function_call)
-            : "No input found";
+              ? safeStringify(prompt?.function_call)
+              : "No input found";
           return (
             <div key={i} className="flex flex-col gap-2">
               <div className="flex gap-2 items-center">
