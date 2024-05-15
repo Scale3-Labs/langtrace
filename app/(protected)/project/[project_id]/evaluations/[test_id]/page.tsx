@@ -233,6 +233,7 @@ export default function Page() {
           body: JSON.stringify({
             id: evaluationsData.evaluations[0].id,
             ltUserScore: score,
+            testId
           }),
         });
         queryClient.invalidateQueries({

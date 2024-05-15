@@ -319,8 +319,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const data = await req.json();
-    const { id, ltUserScore } = data;
-
+    const { id, ltUserScore, testId } = data;
     const evaluation = await prisma.evaluation.update({
       where: {
         id,
@@ -328,9 +327,10 @@ export async function PUT(req: NextRequest) {
       data: {
         ltUserId: user.id,
         ltUserScore,
+        testId
       },
     });
-
+    console.log(evaluation);
     if (!evaluation) {
       return NextResponse.json(
         {
