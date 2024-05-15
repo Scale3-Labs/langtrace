@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
     lastNDays
   );
 
-  // get evalutaion for the last 7 days
+  // get evalutaion for the lastNDays
   // and all evaluations where score is 1 or -1
   evaluations = await prisma.evaluation.findMany({
     where: {

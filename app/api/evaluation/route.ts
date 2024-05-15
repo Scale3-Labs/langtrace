@@ -330,7 +330,7 @@ export async function PUT(req: NextRequest) {
         testId
       },
     });
-    console.log(evaluation);
+
     if (!evaluation) {
       return NextResponse.json(
         {
