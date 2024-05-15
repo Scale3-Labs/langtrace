@@ -55,6 +55,7 @@ export default function EvaluationRow({
   useQuery({
     queryKey: [`fetch-evaluation-query-${span.span_id}`],
     queryFn: async () => {
+      console.log("fetching evaluation", span.span_id);
       const response = await fetch(`/api/evaluation?spanId=${span.span_id}`);
       const result = await response.json();
       setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
@@ -131,10 +132,7 @@ export default function EvaluationRow({
           projectId: projectId,
           spanId: span.span_id,
           traceId: span.trace_id,
-          spanStartTime: new Date(correctTimestampFormat(span.start_time)),
           ltUserScore: newScore,
-          model: model,
-          prompt: promptContent,
           testId: testId,
         }),
       });

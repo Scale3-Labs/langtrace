@@ -1,5 +1,6 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
+import { TraceService } from "@/lib/services/trace_service";
 import { Evaluation } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -13,7 +14,12 @@ export async function GET(req: NextRequest) {
 
   const projectId = req.nextUrl.searchParams.get("projectId") as string;
   const testId = req.nextUrl.searchParams.get("testId") as string;
-  const byModel = req.nextUrl.searchParams.get("by_model") as string;
+  let lastNDays = Number(req.nextUrl.searchParams.get("lastNDays"));
+  let overallAccuracy = 0
+
+  if(Number.isNaN(lastNDays) || lastNDays < 0){
+    lastNDays = 7;
+  }
 
   if (!projectId) {
     return NextResponse.json(
@@ -59,76 +65,66 @@ export async function GET(req: NextRequest) {
   }
 
   let evaluations: Evaluation[] = [];
-  let allEvaluations: Evaluation[] = [];
-  let average: number = 0;
+  const traceService = new TraceService();
+    //Fetch last 7 days of spanIds from clickhouse
+  const spans =  await traceService.GetSpansInProject(
+    projectId,
+    lastNDays
+  );
 
   // get evalutaion for the last 7 days
+  // and all evaluations where score is 1 or -1
   evaluations = await prisma.evaluation.findMany({
     where: {
       projectId,
       testId,
-      spanStartTime: {
-        gte: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000),
-      },
-    },
-  });
-
-  // get average evaluation for all evaluations
-  // get all evaluations where score is 1 or -1
-  allEvaluations = await prisma.evaluation.findMany({
-    where: {
-      projectId,
-      testId,
+      spanId: { in: [...spans.map((span) => span.span_id)]},
       ltUserScore: {
         in: [1, -1],
-      },
+      }
     },
   });
-
-  const totalPositive = allEvaluations.reduce((acc, evaluation) => {
-    if (evaluation.ltUserScore === 1) {
-      return acc + 1;
-    }
-    return acc;
-  }, 0);
-
-  const totalNegative = allEvaluations.reduce((acc, evaluation) => {
-    if (evaluation.ltUserScore === -1) {
-      return acc + 1;
-    }
-    return acc;
-  }, 0);
-
-  // calculate average
-  average = (totalPositive / (totalPositive + totalNegative)) * 100;
-
-  if (byModel === "true") {
-    const evaluationsByModel = evaluations.reduce(
-      (acc: any, evaluation: Evaluation) => {
-        if (!evaluation.model) {
-          return acc;
-        }
-        if (acc[evaluation.model]) {
-          acc[evaluation.model].push(evaluation);
-        } else {
-          acc[evaluation.model] = [evaluation];
-        }
-        return acc;
-      },
-      {}
-    );
-
-    return NextResponse.json({
-      evaluations: evaluationsByModel,
-    });
-  }
-
   if (!evaluations) {
-    return NextResponse.json({ evalutions: [], average: 0 }, { status: 200 });
+    return NextResponse.json({ accuracyPerDay: [], overallAccuracy: null }, { status: 200 });
   }
+  const evalsByDate: Record<string, Evaluation[]> = {};
+  evaluations.forEach((evaluation, index) => {
+    const span = spans[index];
+    const date = span.start_time.split("T")[0];
+    if(evalsByDate[date]){
+      evalsByDate[date].push(evaluation);
+    } else {
+      evalsByDate[date] = [evaluation];
+    }
+  })
+  let totalPositive = 0;
+  let totalNegative = 0;
+
+  const accuracyPerDay = Object.entries(evalsByDate).map(([date, scores]) => {
+    let totalPositivePerDay = 0;
+    let totalNegativePerDay = 0;
+
+    scores.forEach((score) => {
+      if (score.ltUserScore === 1) {
+        totalPositivePerDay += 1;
+        totalPositive += 1;
+      } else {
+        totalNegativePerDay+= 1;
+        totalNegative += 1;
+      }
+    });
+    const accuracy = (totalPositive / (totalPositive + totalNegative)) * 100;
+    return {
+      date,
+      accuracy,
+    };
+  });
+  accuracyPerDay.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // calculate average
+  overallAccuracy = (totalPositive / (totalPositive + totalNegative)) * 100;
 
   return NextResponse.json({
-    evaluations,
-    average,
+    overallAccuracy,
+    accuracyPerDay
   });
 }

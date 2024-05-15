@@ -17,9 +17,6 @@ export async function POST(req: NextRequest) {
     const {
       traceId,
       spanId,
-      model,
-      spanStartTime,
-      prompt,
       userScore,
       userId
     } = data;
@@ -41,14 +38,11 @@ export async function POST(req: NextRequest) {
 
     const evaluation = await prisma.evaluation.create({
       data: {
-        spanStartTime: convertToDateTime64(spanStartTime),
         spanId,
         traceId,
         projectId,
-        model,
         userId,
-        userScore,
-        prompt,
+        userScore
       },
     });
     return NextResponse.json({
@@ -92,10 +86,7 @@ export async function POST(req: NextRequest) {
       traceId,
       spanId,
       projectId,
-      model,
       ltUserScore,
-      spanStartTime,
-      prompt,
       testId,
     } = data;
 
@@ -134,14 +125,11 @@ export async function POST(req: NextRequest) {
 
     const evaluation = await prisma.evaluation.create({
       data: {
-        spanStartTime,
         spanId,
         traceId,
         ltUserId: user.id,
         projectId,
-        model,
         ltUserScore,
-        prompt,
         testId,
       },
     });
@@ -170,12 +158,11 @@ export async function GET(req: NextRequest) {
     }
 
     const spanId = req.nextUrl.searchParams.get("spanId") as string;
-    const prompt = req.nextUrl.searchParams.get("prompt") as string;
 
-    if (!projectId && !spanId && !prompt) {
+    if (!projectId && !spanId) {
       return NextResponse.json(
         {
-          message: "Please provide a projectId or spanId or prompt",
+          message: "Please provide a projectId or spanId",
         },
         { status: 400 }
       );
@@ -185,24 +172,6 @@ export async function GET(req: NextRequest) {
       const evaluations = await prisma.evaluation.findFirst({
         where: {
           spanId,
-        },
-      });
-
-      if (!evaluations) {
-        return NextResponse.json({
-          evaluations: [],
-        });
-      }
-
-      return NextResponse.json({
-        evaluations: [evaluations],
-      });
-    }
-
-    if (prompt) {
-      const evaluations = await prisma.evaluation.findMany({
-        where: {
-          prompt,
         },
       });
 
@@ -264,7 +233,6 @@ export async function GET(req: NextRequest) {
       evaluations,
     });
   } catch (error) {
-    console.error("hereeeee", error);
     return NextResponse.json(
       {
         message: "Internal server error",
