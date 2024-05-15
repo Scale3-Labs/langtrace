@@ -243,12 +243,7 @@ function EvalContent({
             projectId: projectId,
             spanId: span.span_id,
             traceId: span.trace_id,
-            spanStartTime: span?.start_time
-              ? new Date(correctTimestampFormat(span.start_time))
-              : new Date(),
             ltUserScore: score,
-            model: model,
-            prompt: systemPrompt,
             testId: test.id,
           }),
         });

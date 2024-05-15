@@ -60,8 +60,6 @@ export async function GET(req: NextRequest) {
     const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '');
     const filename = `${datasetName}_${timestamp}.csv`;
 
-    console.log(`CSV file '${filename}' `);
-
     return new NextResponse(csv, {
       headers: {
         'Content-Type': 'text/csv',

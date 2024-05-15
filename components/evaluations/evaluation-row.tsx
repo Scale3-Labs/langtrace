@@ -131,10 +131,7 @@ export default function EvaluationRow({
           projectId: projectId,
           spanId: span.span_id,
           traceId: span.trace_id,
-          spanStartTime: new Date(correctTimestampFormat(span.start_time)),
           ltUserScore: newScore,
-          model: model,
-          prompt: promptContent,
           testId: testId,
         }),
       });

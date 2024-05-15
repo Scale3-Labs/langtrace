@@ -31,53 +31,8 @@ export function EvalChart({
   if (fetchAccuracy.isLoading || !fetchAccuracy.data) {
     return <LargeChartLoading />;
   } else {
-    // aggregate accuracy per day and return the data
-    const evaluations = fetchAccuracy?.data?.evaluations;
-    const accuracyPerDay = evaluations.reduce((acc: any, evaluation: any) => {
-      const date = evaluation.spanStartTime.split("T")[0];
-      if (acc[date]) {
-        acc[date].push(evaluation.score);
-      } else {
-        acc[date] = [evaluation.score];
-      }
-      return acc;
-    }, {});
-
-    // calculate accuracy by dividing the sum of scores that are only 1s by the number of evaluations times 100
-    const data = Object.keys(accuracyPerDay).map((date) => {
-      const scores = accuracyPerDay[date];
-
-      // count +1s and -1s
-      const totalPositive = scores.reduce((acc: number, score: number) => {
-        if (score === 1) {
-          return acc + 1;
-        }
-        return acc;
-      }, 0);
-
-      const totalNegative = scores.reduce((acc: number, score: number) => {
-        if (score === -1) {
-          return acc + 1;
-        }
-        return acc;
-      }, 0);
-
-      // calculate accuracy
-      const accuracy = (totalPositive / (totalPositive + totalNegative)) * 100;
-
-      return {
-        date,
-        "Evaluated Accuracy(%)": accuracy,
-      };
-    });
-
-    // sort the data by date
-    data.sort((a: any, b: any) => {
-      return (new Date(a.date) as any) - (new Date(b.date) as any);
-    });
-
-    // calculate the overall accuracy
-    const overallAccuracy = fetchAccuracy?.data?.average;
+    const data: Array<Record<string, number>> = fetchAccuracy?.data?.accuracyPerDay;
+    const overallAccuracy: number = fetchAccuracy?.data?.overallAccuracy;
 
     return (
       <>
@@ -93,7 +48,7 @@ export function EvalChart({
           </p>
           <AreaChart
             className="mt-2 h-72"
-            data={data}
+            data={data.map((dat) => ({date: dat.date, "Evaluated Accuracy(%)": dat.accuracy}))}
             index="date"
             categories={["Evaluated Accuracy(%)"]}
             colors={["purple"]}

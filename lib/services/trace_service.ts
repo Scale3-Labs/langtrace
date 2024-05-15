@@ -52,7 +52,7 @@ export interface ITraceService {
     pageSize: number,
     filters?: AttributesFilter[]
   ) => Promise<PaginationResult<Span>>;
-  GetSpansInProject: (project_id: string) => Promise<Span[]>;
+  GetSpansInProject: (project_id: string, lastNDays: number) => Promise<Span[]>;
   GetTracesInProjectPaginated: (
     project_id: string,
     page: number,
@@ -399,11 +399,22 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetSpansInProject(project_id: string): Promise<Span[]> {
+  async GetSpansInProject(project_id: string, lastNDays?: number): Promise<Span[]> {
     try {
-      const query = sql.select().from(project_id);
-      const spans: Span[] = await this.client.find<Span[]>(query);
-      return spans;
+      const query = sql
+      .select()
+      .from(project_id)
+      if(!lastNDays){
+        return await this.client.find<Span[]>(query);
+      } else {
+        const nDaysAgo = format(
+          new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
+          "yyyy-MM-dd"
+        );
+        query.where(sql.gte("start_time", nDaysAgo))
+
+        return await this.client.find<Span[]>(query);
+      }
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the spans ${error}`
