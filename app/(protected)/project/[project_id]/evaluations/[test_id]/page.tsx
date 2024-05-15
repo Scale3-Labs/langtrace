@@ -52,7 +52,7 @@ export default function Page() {
     },
   });
 
-  const [score, setScore] = useState<number>(testData?.test?.min || -1);
+  const [score, setScore] = useState<number>(testData?.test?.min ?? -1);
   const [scorePercent, setScorePercent] = useState<number>(0);
   const [color, setColor] = useState<string>("red");
   const [span, setSpan] = useState<any>(null);
@@ -179,7 +179,7 @@ export default function Page() {
       }
       const result = await response.json();
       const sc =
-        result.evaluations.length > 0 ? result.evaluations[0].ltUserScore : -1;
+        result.evaluations.length > 0 ? result.evaluations[0].ltUserScore ?? -1 : -1;
       onScoreSelected(sc);
       return result;
     },
