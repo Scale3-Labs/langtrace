@@ -52,7 +52,7 @@ export interface ITraceService {
     pageSize: number,
     filters?: AttributesFilter[]
   ) => Promise<PaginationResult<Span>>;
-  GetSpansInProject: (project_id: string) => Promise<Span[]>;
+  GetSpansInProject: (project_id: string, lastNDays: number) => Promise<Span[]>;
   GetTracesInProjectPaginated: (
     project_id: string,
     page: number,
@@ -399,11 +399,22 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetSpansInProject(project_id: string): Promise<Span[]> {
+  async GetSpansInProject(project_id: string, lastNDays?: number): Promise<Span[]> {
     try {
-      const query = sql.select().from(project_id);
-      const spans: Span[] = await this.client.find<Span[]>(query);
-      return spans;
+      const query = sql
+      .select()
+      .from(project_id)
+      if(!lastNDays){
+        return await this.client.find<Span[]>(query);
+      } else {
+        const nDaysAgo = format(
+          new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
+          "yyyy-MM-dd"
+        );
+        query.where(sql.gte("start_time", nDaysAgo))
+
+        return await this.client.find<Span[]>(query);
+      }
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the spans ${error}`
@@ -761,20 +772,19 @@ export class TraceService implements ITraceService {
           totalOutputTokens: 0,
         };
       }
-
-      const query = sql
-        .select()
-        .from(project_id)
-        .where(sql.like("attributes", "%total_tokens%"));
-      const spans: Span[] = await this.client.find<Span[]>(query);
+      const query = sql.select(
+        `JSONExtractRaw(attributes, 'llm.token.counts') AS token_counts FROM ${project_id}`
+      );
+      const spans: any[] = await this.client.find<Span[]>(query);
       let totalTokens = 0;
       let totalInputTokens = 0;
       let totalOutputTokens = 0;
       spans.forEach((span) => {
-        const parsedAttributes = JSON.parse(span.attributes || "{}");
-        const llmTokenCounts = parsedAttributes["llm.token.counts"]
-          ? JSON.parse(parsedAttributes["llm.token.counts"])
-          : {};
+        const parsedAttributes = JSON.parse(span.token_counts || "{}");
+        const llmTokenCounts =
+          typeof parsedAttributes === "string"
+            ? JSON.parse(parsedAttributes)
+            : parsedAttributes;
         const token_count = llmTokenCounts.total_tokens || 0;
         totalTokens += token_count;
 

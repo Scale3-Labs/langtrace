@@ -6,6 +6,8 @@ export interface Conversation {
 }
 
 export enum OpenAIModel {
+  "gpt-4o" = "gpt-4o",
+  "gpt-4o-2024-05-13" = "gpt-4o-2024-05-13",
   "gpt-4-turbo-preview" = "gpt-4-turbo-preview",
   "gpt-4-turbo-2024-04-09" = "gpt-4-turbo-2024-04-09",
   "gpt-4-turbo" = "gpt-4-turbo",
@@ -29,6 +31,14 @@ export enum AnthropicModel {
 }
 
 export const openAIModels = [
+  {
+    value: "gpt-4o",
+    label: "GPT-4 Omni",
+  },
+  {
+    value: "gpt-4o-2024-05-13",
+    label: "GPT-4 Omni (2024-05-13)",
+  },
   {
     value: "gpt-4-turbo-preview",
     label: "GPT-4 Turbo (Preview)",
@@ -148,6 +158,33 @@ export const groqModels = [
   },
 ];
 
+export const perplexityModels = [
+  {
+    value: "sonar-small-chat",
+    label: "Sonar Small (Chat)",
+  },
+  {
+    value: "sonar-small-online",
+    label: "Sonar Small (Online)",
+  },
+  {
+    value: "sonar-medium-chat",
+    label: "Sonar Medium (Chat)",
+  },
+  {
+    value: "sonar-medium-online",
+    label: "Sonar Medium (Online)",
+  },
+  {
+    value: "mistral-7b-instruct",
+    label: "Mistral 7B (Instruct)",
+  },
+  {
+    value: "mixtral-8x7b-instruct",
+    label: "Mixtral 8x7B (Instruct)",
+  },
+];
+
 export enum OpenAIRole {
   "user" = "user",
   "assistant" = "assistant",
@@ -238,10 +275,27 @@ export interface GroqSettings {
   user?: string;
 }
 
+export interface PerplexitySettings {
+  messages: Conversation[];
+  model: string;
+  max_tokens?: number;
+  temperature?: number;
+  top_p?: number;
+  top_k?: number;
+  stream?: boolean;
+  presence_penalty?: number;
+  frequency_penalty?: number;
+}
+
 export interface ChatInterface {
   id: string;
   vendor: string;
-  settings: OpenAISettings | AnthropicSettings | CohereSettings | GroqSettings;
+  settings:
+    | OpenAISettings
+    | AnthropicSettings
+    | CohereSettings
+    | GroqSettings
+    | PerplexitySettings;
 }
 
 export interface OpenAIChatInterface extends ChatInterface {
@@ -258,4 +312,8 @@ export interface CohereChatInterface extends ChatInterface {
 
 export interface GroqChatInterface extends ChatInterface {
   settings: GroqSettings;
+}
+
+export interface PerplexityChatInterface extends ChatInterface {
+  settings: PerplexitySettings;
 }

@@ -9,12 +9,15 @@
 		"create-clickhouse-db": "npx tsx scripts/create-clickhouse-db.ts",
 		"predev": "npm run create-tables && npm run create-clickhouse-db",
 		"dev": "next dev",
+		"create-migration": "npx prisma migrate dev --create-only",
+		"migration": "npx prisma migrate dev",
 		"prestart": "npm run create-tables && npm run create-clickhouse-db",
 		"start": "next start",
 		"lint": "next lint"
 	},
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.20.8",
+		"@api/pplx": "file:.api/apis/pplx",
 		"@azure/arm-resources": "^5.2.0",
 		"@azure/identity": "^4.0.1",
 		"@azure/openai": "^1.0.0-beta.11",

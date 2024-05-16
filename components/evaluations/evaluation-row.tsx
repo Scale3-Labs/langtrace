@@ -59,7 +59,7 @@ export default function EvaluationRow({
       const result = await response.json();
       setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
       setScore(
-        result.evaluations.length > 0 ? result.evaluations[0].score : -100
+        result.evaluations.length > 0 ? result.evaluations[0].ltUserScore : -100
       );
       return result;
     },
@@ -80,7 +80,8 @@ export default function EvaluationRow({
   if (!attributes) return null;
 
   // extract the metrics
-  const userScore = attributes["user.feedback.rating"] || "";
+  const userScore = evaluation?.userScore || "";
+  const userId = evaluation?.userId || "";
   const startTimeMs = new Date(
     correctTimestampFormat(span.start_time)
   ).getTime();
@@ -130,10 +131,7 @@ export default function EvaluationRow({
           projectId: projectId,
           spanId: span.span_id,
           traceId: span.trace_id,
-          spanStartTime: new Date(correctTimestampFormat(span.start_time)),
-          score: newScore,
-          model: model,
-          prompt: promptContent,
+          ltUserScore: newScore,
           testId: testId,
         }),
       });
@@ -145,7 +143,7 @@ export default function EvaluationRow({
         },
         body: JSON.stringify({
           id: evaluation?.id,
-          score: newScore,
+          ltUserScore: newScore,
         }),
       });
     }
@@ -241,6 +239,9 @@ export default function EvaluationRow({
         </p>
         <p className="text-sm font-semibold">
           {userScore ? userScore : "Not evaluated"}
+        </p>
+        <p className="text-sm font-semibold">
+          {userId}
         </p>
         <div className=" col-span-2 flex flex-row items-center justify-evenly">
           {addedToDataset ? (
