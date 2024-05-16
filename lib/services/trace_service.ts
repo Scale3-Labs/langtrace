@@ -9,9 +9,6 @@ import {
   QueryBuilderService,
 } from "./query_builder_service";
 
-// may want to think about how we want to store account_id in table or table name to prevent
-// having to pass in project_ids to get total spans per account
-
 export interface PaginationResult<T> {
   result: T[];
   metadata?: { page?: number; page_size?: number; total_pages: number };
@@ -20,23 +17,23 @@ export interface PaginationResult<T> {
 export interface ITraceService {
   GetTotalTracePerDayPerProject: (
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ) => Promise<number>;
   GetTotalSpansPerDayPerProject: (
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ) => Promise<number>;
   GetTokensUsedPerDayPerProject: (
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ) => Promise<number>;
   GetTokensCostPerDayPerProject: (
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ) => Promise<number>;
   GetAverageTraceLatenciesPerDayPerProject(
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (project_id: string) => Promise<number>;
@@ -176,11 +173,11 @@ export class TraceService implements ITraceService {
 
   async GetTotalSpansPerDayPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168
   ): Promise<any> {
-    const nDaysAgo = format(
-      new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-      "yyyy-MM-dd"
+    const nHoursAgo = format(
+      new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+      "yyyy-MM-dd HH:mm:ss"
     );
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -194,7 +191,7 @@ export class TraceService implements ITraceService {
           `count(*) AS spanCount`,
         ])
         .from(project_id)
-        .where(sql.gte("start_time", nDaysAgo))
+        .where(sql.gte("start_time", nHoursAgo))
         .groupBy(`toDate(parseDateTimeBestEffort(start_time))`)
         .orderBy(`toDate(parseDateTimeBestEffort(start_time))`);
       const result = await this.client.find<any>(query);
@@ -228,11 +225,11 @@ export class TraceService implements ITraceService {
 
   async GetTotalTracePerDayPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168
   ): Promise<any> {
-    const nDaysAgo = format(
-      new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-      "yyyy-MM-dd"
+    const nHoursAgo = format(
+      new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+      "yyyy-MM-dd HH:mm:ss"
     );
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -246,7 +243,7 @@ export class TraceService implements ITraceService {
           `COUNT(DISTINCT trace_id) AS traceCount`,
         ])
         .from(project_id)
-        .where(sql.gte("start_time", nDaysAgo))
+        .where(sql.gte("start_time", nHoursAgo))
         .groupBy(`toDate(parseDateTimeBestEffort(start_time))`)
         .orderBy(`toDate(parseDateTimeBestEffort(start_time))`);
       const result = await this.client.find<any>(query);
@@ -399,19 +396,20 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetSpansInProject(project_id: string, lastNDays?: number): Promise<Span[]> {
+  async GetSpansInProject(
+    project_id: string,
+    lastNHours = 168
+  ): Promise<Span[]> {
     try {
-      const query = sql
-      .select()
-      .from(project_id)
-      if(!lastNDays){
+      const query = sql.select().from(project_id);
+      if (!lastNHours) {
         return await this.client.find<Span[]>(query);
       } else {
-        const nDaysAgo = format(
-          new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-          "yyyy-MM-dd"
+        const nHoursAgo = format(
+          new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+          "yyyy-MM-dd HH:mm:ss"
         );
-        query.where(sql.gte("start_time", nDaysAgo))
+        query.where(sql.gte("start_time", nHoursAgo));
 
         return await this.client.find<Span[]>(query);
       }
@@ -496,7 +494,7 @@ export class TraceService implements ITraceService {
 
   async GetAverageTraceLatenciesPerDayPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -508,9 +506,9 @@ export class TraceService implements ITraceService {
         };
       }
 
-      const nDaysAgo = format(
-        new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-        "yyyy-MM-dd"
+      const nHoursAgo = format(
+        new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+        "yyyy-MM-dd HH:mm:ss"
       );
 
       // Directly embedding the ClickHouse-specific functions within string literals
@@ -522,7 +520,7 @@ export class TraceService implements ITraceService {
           "(toUnixTimestamp(max(parseDateTime64BestEffort(end_time))) - toUnixTimestamp(min(parseDateTime64BestEffort(start_time)))) * 1000 AS duration"
         )
         .from(project_id)
-        .where(sql.gte("start_time", nDaysAgo))
+        .where(sql.gte("start_time", nHoursAgo))
         .groupBy("trace_id");
 
       // Assembling the outer query
@@ -585,7 +583,7 @@ export class TraceService implements ITraceService {
 
   async GetTokensUsedPerDayPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -593,9 +591,9 @@ export class TraceService implements ITraceService {
         return [];
       }
 
-      const nDaysAgo = format(
-        new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-        "yyyy-MM-dd"
+      const nHoursAgo = format(
+        new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+        "yyyy-MM-dd HH:mm:ss"
       );
 
       const query = sql
@@ -606,7 +604,7 @@ export class TraceService implements ITraceService {
         .from(project_id)
         .where(
           sql.like("attributes", "%total_tokens%"),
-          sql.gte("start_time", nDaysAgo)
+          sql.gte("start_time", nHoursAgo)
         )
         .groupBy("date")
         .orderBy("date");
@@ -659,7 +657,7 @@ export class TraceService implements ITraceService {
 
   async GetTokensCostPerDayPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168 // Default to 168 hours (7 days)
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -667,9 +665,14 @@ export class TraceService implements ITraceService {
         return [];
       }
 
-      const nDaysAgo = format(
-        new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-        "yyyy-MM-dd"
+      // const nDaysAgo = format(
+      //   new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
+      //   "yyyy-MM-dd"
+      // );
+
+      const nHoursAgo = format(
+        new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+        "yyyy-MM-dd HH:mm:ss"
       );
 
       const query = sql
@@ -680,7 +683,7 @@ export class TraceService implements ITraceService {
         .from(project_id)
         .where(
           sql.like("attributes", "%total_tokens%"),
-          sql.gte("start_time", nDaysAgo)
+          sql.gte("start_time", nHoursAgo)
         )
         .groupBy("date")
         .orderBy("date");

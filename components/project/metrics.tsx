@@ -13,6 +13,8 @@ export default function Metrics({ email }: { email: string }) {
     <div className="w-full flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
         <p className="text-lg font-semibold">Usage</p>
+        {/* add dropdown for 12hrs, 1d, 3d, 5d, 7d, 30d and 60d */}
+        {/* need to pass in parameter to the chart to change the time range */}
         <Separator />
         <div className="flex flex-row items-center gap-5">
           <TokenChart projectId={project_id} />
