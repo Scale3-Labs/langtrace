@@ -21,7 +21,7 @@ export function EvalChart({
   info?: string;
 }) {
   const fetchAccuracy = useQuery({
-    queryKey: [`fetch-accuracy-${projectId}-${test.id}-${lastNHours}-query`],
+    queryKey: ["fetch-accuracy", projectId, test.id, lastNHours],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/accuracy?projectId=${projectId}&testId=${test.id}`

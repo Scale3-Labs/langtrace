@@ -18,7 +18,7 @@ export function TokenChart({
     isLoading: tokenUsageLoading,
     error: tokenUsageError,
   } = useQuery({
-    queryKey: [`fetch-metrics-usage-token-${projectId}-${lastNHours}-query`],
+    queryKey: ["fetch-metrics-usage-token", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/token?projectId=${projectId}&lastNHours=${lastNHours}`
@@ -93,7 +93,7 @@ export function CostChart({
     isLoading: costUsageLoading,
     error: costUsageError,
   } = useQuery({
-    queryKey: [`fetch-metrics-usage-cost-${projectId}-${lastNHours}-query`],
+    queryKey: ["fetch-metrics-usage-cost", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/cost?projectId=${projectId}`

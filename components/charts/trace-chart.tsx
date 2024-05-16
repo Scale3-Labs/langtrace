@@ -18,7 +18,7 @@ export function TraceSpanChart({
     isLoading: traceUsageLoading,
     error: traceUsageError,
   } = useQuery({
-    queryKey: [`fetch-metrics-usage-trace-${projectId}-${lastNHours}-query`],
+    queryKey: ["fetch-metrics-usage-trace", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/trace?projectId=${projectId}`
@@ -42,7 +42,7 @@ export function TraceSpanChart({
     isLoading: spanUsageLoading,
     error: spanUsageError,
   } = useQuery({
-    queryKey: [`fetch-metrics-usage-span-${projectId}-${lastNHours}-query`],
+    queryKey: ["fetch-metrics-usage-span", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/span?projectId=${projectId}`
@@ -137,7 +137,7 @@ export function SpanChart({
     isLoading: spanUsageLoading,
     error: spanUsageError,
   } = useQuery({
-    queryKey: [`fetch-metrics-usage-span-${projectId}-${lastNHours}-query`],
+    queryKey: ["fetch-metrics-usage-span", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/span?projectId=${projectId}`
