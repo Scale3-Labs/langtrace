@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     const traceService = new TraceService();
     const total = await traceService.GetTokensUsedPerProject(projectId);
-    const usage = await traceService.GetTokensUsedPerDayPerProject(projectId);
+    const usage = await traceService.GetTokensUsedPerHourPerProject(projectId);
     return NextResponse.json(
       {
         usage,
