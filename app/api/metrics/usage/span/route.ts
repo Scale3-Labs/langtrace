@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 
     const traceService = new TraceService();
-    const spans: any = await traceService.GetTotalSpansPerDayPerProject(
+    const spans: any = await traceService.GetTotalSpansPerHourPerProject(
       projectId,
       7 // last 7 days
     );

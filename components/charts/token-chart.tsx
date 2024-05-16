@@ -5,7 +5,13 @@ import { useQuery } from "react-query";
 import { toast } from "sonner";
 import SmallChartLoading from "./small-chart-skeleton";
 
-export function TokenChart({ projectId }: { projectId: string }) {
+export function TokenChart({
+  projectId,
+  lastNHours = 168,
+}: {
+  projectId: string;
+  lastNHours?: number;
+}) {
   const {
     data: tokenUsage,
     isLoading: tokenUsageLoading,
@@ -14,7 +20,7 @@ export function TokenChart({ projectId }: { projectId: string }) {
     queryKey: [`fetch-metrics-usage-token-${projectId}-query`],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/token?projectId=${projectId}`
+        `/api/metrics/usage/token?projectId=${projectId}&lastNHours=${lastNHours}`
       );
       if (!response.ok) {
         const error = await response.json();

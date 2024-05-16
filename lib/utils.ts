@@ -4,6 +4,7 @@ import { createHash, randomBytes } from "crypto";
 import { TiktokenEncoding, getEncoding } from "js-tiktoken";
 import { NextResponse } from "next/server";
 import { prettyPrintJson } from "pretty-print-json";
+import qs from "qs";
 import { twMerge } from "tailwind-merge";
 import { Span } from "./clients/scale3_clickhouse/models/span";
 import {
@@ -15,7 +16,6 @@ import {
   PERPLEXITY_PRICING,
   SpanStatusCode,
 } from "./constants";
-import qs from "qs";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -280,14 +280,17 @@ export function prepareForClickhouse(spans: Normalized[]): Span[] {
   });
 }
 
-export function fillPromptStringTemplate(template: string, variables: { [key: string]: string }): string {
+export function fillPromptStringTemplate(
+  template: string,
+  variables: { [key: string]: string }
+): string {
   return template.replace(/\{(\w+)\}/g, (match, key) => {
-      return variables[key] || match;
+    return variables[key] || match;
   });
 }
 
 //TODO: Move to a middleware
-export function parseQueryString(url: string): Record<string, any>{
+export function parseQueryString(url: string): Record<string, any> {
   return qs.parse(url.split("?")[1], {
     decoder(str) {
       if (str === "true") return true;
@@ -459,5 +462,16 @@ export function calculateTokens(content: string): number {
     return estimateTokensUsingTikToken(content, tiktokenModel);
   } catch (error) {
     return estimateTokens(content); // Fallback method
+  }
+}
+
+export function formatDurationForDisplay(hours: number): string {
+  if (hours === 12) {
+    return "Last 12 hours";
+  } else if (hours % 24 === 0) {
+    const days = hours / 24;
+    return `Last ${days} day${days > 1 ? "s" : ""}`;
+  } else {
+    return `Last ${hours} hours`;
   }
 }

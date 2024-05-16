@@ -15,23 +15,23 @@ export interface PaginationResult<T> {
 }
 
 export interface ITraceService {
-  GetTotalTracePerDayPerProject: (
+  GetTotalTracePerHourPerProject: (
     project_id: string,
     lastNHours?: number
   ) => Promise<number>;
-  GetTotalSpansPerDayPerProject: (
+  GetTotalSpansPerHourPerProject: (
     project_id: string,
     lastNHours?: number
   ) => Promise<number>;
-  GetTokensUsedPerDayPerProject: (
+  GetTokensUsedPerHourPerProject: (
     project_id: string,
     lastNHours?: number
   ) => Promise<number>;
-  GetTokensCostPerDayPerProject: (
+  GetTokensCostPerHourPerProject: (
     project_id: string,
     lastNHours?: number
   ) => Promise<number>;
-  GetAverageTraceLatenciesPerDayPerProject(
+  GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
     lastNHours?: number
   ): Promise<any>;
@@ -171,7 +171,7 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTotalSpansPerDayPerProject(
+  async GetTotalSpansPerHourPerProject(
     project_id: string,
     lastNHours = 168
   ): Promise<any> {
@@ -223,7 +223,7 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTotalTracePerDayPerProject(
+  async GetTotalTracePerHourPerProject(
     project_id: string,
     lastNHours = 168
   ): Promise<any> {
@@ -492,7 +492,7 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetAverageTraceLatenciesPerDayPerProject(
+  async GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
     lastNHours = 168
   ): Promise<any> {
@@ -581,7 +581,7 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTokensUsedPerDayPerProject(
+  async GetTokensUsedPerHourPerProject(
     project_id: string,
     lastNHours = 168
   ): Promise<any> {
@@ -611,7 +611,7 @@ export class TraceService implements ITraceService {
       const result = await this.client.find<any>(query);
 
       // calculate total tokens used per day
-      const tokensUsedPerDay = result.map((row: any) => {
+      const tokensUsedPerHour = result.map((row: any) => {
         let totalTokens = 0;
         let inputTokens = 0;
         let outputTokens = 0;
@@ -647,7 +647,7 @@ export class TraceService implements ITraceService {
         };
       });
 
-      return tokensUsedPerDay;
+      return tokensUsedPerHour;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
@@ -655,7 +655,7 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTokensCostPerDayPerProject(
+  async GetTokensCostPerHourPerProject(
     project_id: string,
     lastNHours = 168 // Default to 168 hours (7 days)
   ): Promise<any> {
@@ -690,7 +690,7 @@ export class TraceService implements ITraceService {
       const result = await this.client.find<any>(query);
 
       // calculate total tokens used per day
-      const costPerDay = result.map((row: any) => {
+      const costPerHour = result.map((row: any) => {
         let costs = { total: 0, input: 0, output: 0 };
         row.attributes_list.forEach((attributes: any) => {
           const parsedAttributes = JSON.parse(attributes);
@@ -711,7 +711,7 @@ export class TraceService implements ITraceService {
         };
       });
 
-      return costPerDay;
+      return costPerHour;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
