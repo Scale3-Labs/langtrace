@@ -14,6 +14,14 @@ export interface PaginationResult<T> {
   metadata?: { page?: number; page_size?: number; total_pages: number };
 }
 
+function getFormattedTime(lastNHours: number): string {
+  const nHoursAgo = format(
+    new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+    "yyyy-MM-dd HH:mm:ss"
+  );
+  return nHoursAgo;
+}
+
 export interface ITraceService {
   GetTotalTracePerHourPerProject: (
     project_id: string,
@@ -175,10 +183,7 @@ export class TraceService implements ITraceService {
     project_id: string,
     lastNHours = 168
   ): Promise<any> {
-    const nHoursAgo = format(
-      new Date(Date.now() - lastNHours * 60 * 60 * 1000),
-      "yyyy-MM-dd HH:mm:ss"
-    );
+    const nHoursAgo = getFormattedTime(lastNHours);
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
@@ -227,10 +232,7 @@ export class TraceService implements ITraceService {
     project_id: string,
     lastNHours = 168
   ): Promise<any> {
-    const nHoursAgo = format(
-      new Date(Date.now() - lastNHours * 60 * 60 * 1000),
-      "yyyy-MM-dd HH:mm:ss"
-    );
+    const nHoursAgo = getFormattedTime(lastNHours);
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
@@ -405,10 +407,7 @@ export class TraceService implements ITraceService {
       if (!lastNHours) {
         return await this.client.find<Span[]>(query);
       } else {
-        const nHoursAgo = format(
-          new Date(Date.now() - lastNHours * 60 * 60 * 1000),
-          "yyyy-MM-dd HH:mm:ss"
-        );
+        const nHoursAgo = getFormattedTime(lastNHours);
         query.where(sql.gte("start_time", nHoursAgo));
 
         return await this.client.find<Span[]>(query);
@@ -506,10 +505,7 @@ export class TraceService implements ITraceService {
         };
       }
 
-      const nHoursAgo = format(
-        new Date(Date.now() - lastNHours * 60 * 60 * 1000),
-        "yyyy-MM-dd HH:mm:ss"
-      );
+      const nHoursAgo = getFormattedTime(lastNHours);
 
       // Directly embedding the ClickHouse-specific functions within string literals
       let innerSelect = sql
@@ -591,10 +587,7 @@ export class TraceService implements ITraceService {
         return [];
       }
 
-      const nHoursAgo = format(
-        new Date(Date.now() - lastNHours * 60 * 60 * 1000),
-        "yyyy-MM-dd HH:mm:ss"
-      );
+      const nHoursAgo = getFormattedTime(lastNHours);
 
       const query = sql
         .select([
@@ -665,15 +658,7 @@ export class TraceService implements ITraceService {
         return [];
       }
 
-      // const nDaysAgo = format(
-      //   new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-      //   "yyyy-MM-dd"
-      // );
-
-      const nHoursAgo = format(
-        new Date(Date.now() - lastNHours * 60 * 60 * 1000),
-        "yyyy-MM-dd HH:mm:ss"
-      );
+      const nHoursAgo = getFormattedTime(lastNHours);
 
       const query = sql
         .select([

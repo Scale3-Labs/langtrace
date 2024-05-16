@@ -70,7 +70,7 @@ export function TraceLatencyChart({
       })
     );
 
-    const countData = metricsLatencyAverageTracePerDay?.totalTracesPerDay?.map(
+    const countData = metricsLatencyAverageTracePerDay?.totalTracesPerHour?.map(
       (data: any, index: number) => ({
         date: data?.date || "",
         "Trace Count": data?.traceCount || 0,
@@ -80,7 +80,7 @@ export function TraceLatencyChart({
     const data = avgLatencyData?.map((avgLatency: any, index: number) => {
       return {
         ...avgLatency,
-        // "Trace Count": countData[index]["Trace Count"],
+        "Trace Count": countData[index]["Trace Count"],
         "p99 Trace Latency(ms)": p99LatencyData[index]["p99 Trace Latency(ms)"],
         "p95 Trace Latency(ms)": p95LatencyData[index]["p95 Trace Latency(ms)"],
       };
