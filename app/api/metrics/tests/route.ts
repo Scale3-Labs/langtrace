@@ -71,14 +71,14 @@ export async function GET(req: NextRequest) {
       });
 
       const totalPositive = evaluations.reduce((acc, evaluation) => {
-        if (evaluation.score === 1) {
+        if (evaluation.ltUserScore === 1) {
           return acc + 1;
         }
         return acc;
       }, 0);
 
       const totalNegative = evaluations.reduce((acc, evaluation) => {
-        if (evaluation.score === -1) {
+        if (evaluation.ltUserScore === -1) {
           return acc + 1;
         }
         return acc;
