@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDurationForDisplay } from "@/lib/utils";
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -72,7 +73,7 @@ export function TokenChart({
             noDataText="Get started by sending traces to your project."
           />
           <p className="text-sm text-center text-muted-foreground">
-            Total tokens over time (last 7 days)
+            Total tokens over time {formatDurationForDisplay(lastNHours)}
           </p>
         </div>
       </>
@@ -80,7 +81,13 @@ export function TokenChart({
   }
 }
 
-export function CostChart({ projectId }: { projectId: string }) {
+export function CostChart({
+  projectId,
+  lastNHours = 168,
+}: {
+  projectId: string;
+  lastNHours?: number;
+}) {
   const {
     data: costUsage,
     isLoading: costUsageLoading,
@@ -145,7 +152,7 @@ export function CostChart({ projectId }: { projectId: string }) {
             noDataText="Get started by sending traces to your project."
           />
           <p className="text-sm text-center text-muted-foreground">
-            Total cost over time (last 7 days)
+            Total cost over time {formatDurationForDisplay(lastNHours)}
           </p>
         </div>
       </>

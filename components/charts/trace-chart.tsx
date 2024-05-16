@@ -1,11 +1,18 @@
 "use client";
 
+import { formatDurationForDisplay } from "@/lib/utils";
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 import SmallChartLoading from "./small-chart-skeleton";
 
-export function TraceSpanChart({ projectId }: { projectId: string }) {
+export function TraceSpanChart({
+  projectId,
+  lastNHours = 168,
+}: {
+  projectId: string;
+  lastNHours?: number;
+}) {
   const {
     data: traceUsage,
     isLoading: traceUsageLoading,
@@ -110,7 +117,7 @@ export function TraceSpanChart({ projectId }: { projectId: string }) {
             noDataText="Get started by sending traces to your project."
           />
           <p className="text-sm text-center text-muted-foreground">
-            Total traces over time (last 7 days)
+            Total traces over time {formatDurationForDisplay(lastNHours)}
           </p>
         </div>
       </>
@@ -118,7 +125,13 @@ export function TraceSpanChart({ projectId }: { projectId: string }) {
   }
 }
 
-export function SpanChart({ projectId }: { projectId: string }) {
+export function SpanChart({
+  projectId,
+  lastNHours = 168,
+}: {
+  projectId: string;
+  lastNHours?: number;
+}) {
   const {
     data: spanUsage,
     isLoading: spanUsageLoading,
@@ -172,7 +185,7 @@ export function SpanChart({ projectId }: { projectId: string }) {
             noDataText="Get started by sending traces to your project."
           />
           <p className="text-sm text-center text-muted-foreground">
-            Total spans over time (last 7 days)
+            Total spans over time {formatDurationForDisplay(lastNHours)}
           </p>
         </div>
       </>
