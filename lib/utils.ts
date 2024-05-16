@@ -467,11 +467,11 @@ export function calculateTokens(content: string): number {
 
 export function formatDurationForDisplay(hours: number): string {
   if (hours === 12) {
-    return "Last 12 hours";
+    return "last 12 hours";
   } else if (hours % 24 === 0) {
     const days = hours / 24;
-    return `Last ${days} day${days > 1 ? "s" : ""}`;
+    return `last ${days} day${days > 1 ? "s" : ""}`;
   } else {
-    return `Last ${hours} hours`;
+    return `last ${hours} hours`;
   }
 }

@@ -20,7 +20,7 @@ export function TraceLatencyChart({
     error: metricsLatencyAverageTracePerDayError,
   } = useQuery({
     queryKey: [
-      `fetch-metrics-latency-average-trace-per-day-${projectId}-query`,
+      `fetch-metrics-latency-average-trace-per-day-${projectId}-${lastNHours}-query`,
     ],
     queryFn: async () => {
       const response = await fetch(
