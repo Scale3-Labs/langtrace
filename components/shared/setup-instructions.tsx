@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import GenerateApiKey from "./api-key";
 
 export function SetupInstructions({ project_id }: { project_id: string }) {
-  const [sdk, setSdk] = useState("typescript");
+  const [sdk, setSdk] = useState("python");
   const [apiKey, setApiKey] = useState("<LANGTRACE_API_KEY>");
 
   const handleApiKeyGenerated = (newApiKey: string) => {
@@ -19,18 +19,18 @@ export function SetupInstructions({ project_id }: { project_id: string }) {
     <div className="flex flex-col gap-6 border rounded-md p-4">
       <div className="flex flex-row items-center gap-3">
         <Button
-          onClick={() => setSdk("typescript")}
-          variant={sdk === "typescript" ? "default" : "ghost"}
-          size={"sm"}
-        >
-          TypeScript
-        </Button>
-        <Button
           onClick={() => setSdk("python")}
           variant={sdk === "python" ? "default" : "ghost"}
           size={"sm"}
         >
           Python
+        </Button>
+        <Button
+          onClick={() => setSdk("typescript")}
+          variant={sdk === "typescript" ? "default" : "ghost"}
+          size={"sm"}
+        >
+          TypeScript
         </Button>
       </div>
       <div className="flex flex-col gap-3">
@@ -104,7 +104,7 @@ export function SetupInstructions({ project_id }: { project_id: string }) {
 }
 
 export function TestSetupInstructions({ testId }: { testId: string }) {
-  const [sdk, setSdk] = useState("typescript");
+  const [sdk, setSdk] = useState("python");
 
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -115,18 +115,18 @@ export function TestSetupInstructions({ testId }: { testId: string }) {
     <div className="flex flex-col gap-6 border rounded-md p-4">
       <div className="flex flex-row items-center gap-3">
         <Button
-          onClick={() => setSdk("typescript")}
-          variant={sdk === "typescript" ? "default" : "ghost"}
-          size={"sm"}
-        >
-          TypeScript
-        </Button>
-        <Button
           onClick={() => setSdk("python")}
           variant={sdk === "python" ? "default" : "ghost"}
           size={"sm"}
         >
           Python
+        </Button>
+        <Button
+          onClick={() => setSdk("typescript")}
+          variant={sdk === "typescript" ? "default" : "ghost"}
+          size={"sm"}
+        >
+          TypeScript
         </Button>
       </div>
       <div className="flex flex-col gap-3">
@@ -210,7 +210,7 @@ def test_function():
 }
 
 export function PromptInstructions({ id }: { id: string }) {
-  const [sdk, setSdk] = useState("typescript");
+  const [sdk, setSdk] = useState("python");
 
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -221,19 +221,19 @@ export function PromptInstructions({ id }: { id: string }) {
     <div className="flex flex-col gap-6 border rounded-md p-4">
       <div className="flex flex-row items-center gap-3">
         <Button
-          onClick={() => setSdk("typescript")}
-          variant={sdk === "typescript" ? "default" : "ghost"}
-          size={"sm"}
-        >
-          TypeScript
-        </Button>
-        <Button
           disabled={true}
           onClick={() => setSdk("python")}
           variant={sdk === "python" ? "default" : "ghost"}
           size={"sm"}
         >
           Python (Coming Soon)
+        </Button>
+        <Button
+          onClick={() => setSdk("typescript")}
+          variant={sdk === "typescript" ? "default" : "ghost"}
+          size={"sm"}
+        >
+          TypeScript
         </Button>
       </div>
       <div className="flex flex-col gap-3">

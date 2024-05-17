@@ -5,7 +5,7 @@ loadEnvConfig(process.cwd());
 
 const chClient = createClient({
 	database: "default",
-	host: process.env.CLICK_HOUSE_HOST,
+	url: process.env.CLICK_HOUSE_HOST,
 	username: process.env.CLICK_HOUSE_USER,
 	password: process.env.CLICK_HOUSE_PASSWORD,
 	compression: {

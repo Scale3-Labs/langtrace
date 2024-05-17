@@ -9,34 +9,39 @@ import {
   QueryBuilderService,
 } from "./query_builder_service";
 
-// may want to think about how we want to store account_id in table or table name to prevent
-// having to pass in project_ids to get total spans per account
-
 export interface PaginationResult<T> {
   result: T[];
   metadata?: { page?: number; page_size?: number; total_pages: number };
 }
 
+function getFormattedTime(lastNHours: number): string {
+  const nHoursAgo = format(
+    new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+    "yyyy-MM-dd HH:mm:ss"
+  );
+  return nHoursAgo;
+}
+
 export interface ITraceService {
-  GetTotalTracePerDayPerProject: (
+  GetTotalTracePerHourPerProject: (
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ) => Promise<number>;
-  GetTotalSpansPerDayPerProject: (
+  GetTotalSpansPerHourPerProject: (
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ) => Promise<number>;
-  GetTokensUsedPerDayPerProject: (
+  GetTokensUsedPerHourPerProject: (
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ) => Promise<number>;
-  GetTokensCostPerDayPerProject: (
+  GetTokensCostPerHourPerProject: (
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ) => Promise<number>;
-  GetAverageTraceLatenciesPerDayPerProject(
+  GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
-    lastNDays?: number
+    lastNHours?: number
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (project_id: string) => Promise<number>;
@@ -52,7 +57,7 @@ export interface ITraceService {
     pageSize: number,
     filters?: AttributesFilter[]
   ) => Promise<PaginationResult<Span>>;
-  GetSpansInProject: (project_id: string) => Promise<Span[]>;
+  GetSpansInProject: (project_id: string, lastNDays: number) => Promise<Span[]>;
   GetTracesInProjectPaginated: (
     project_id: string,
     page: number,
@@ -174,14 +179,11 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTotalSpansPerDayPerProject(
+  async GetTotalSpansPerHourPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168
   ): Promise<any> {
-    const nDaysAgo = format(
-      new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-      "yyyy-MM-dd"
-    );
+    const nHoursAgo = getFormattedTime(lastNHours);
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
@@ -194,7 +196,7 @@ export class TraceService implements ITraceService {
           `count(*) AS spanCount`,
         ])
         .from(project_id)
-        .where(sql.gte("start_time", nDaysAgo))
+        .where(sql.gte("start_time", nHoursAgo))
         .groupBy(`toDate(parseDateTimeBestEffort(start_time))`)
         .orderBy(`toDate(parseDateTimeBestEffort(start_time))`);
       const result = await this.client.find<any>(query);
@@ -226,14 +228,11 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTotalTracePerDayPerProject(
+  async GetTotalTracePerHourPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168
   ): Promise<any> {
-    const nDaysAgo = format(
-      new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-      "yyyy-MM-dd"
-    );
+    const nHoursAgo = getFormattedTime(lastNHours);
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
@@ -246,7 +245,7 @@ export class TraceService implements ITraceService {
           `COUNT(DISTINCT trace_id) AS traceCount`,
         ])
         .from(project_id)
-        .where(sql.gte("start_time", nDaysAgo))
+        .where(sql.gte("start_time", nHoursAgo))
         .groupBy(`toDate(parseDateTimeBestEffort(start_time))`)
         .orderBy(`toDate(parseDateTimeBestEffort(start_time))`);
       const result = await this.client.find<any>(query);
@@ -399,11 +398,20 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetSpansInProject(project_id: string): Promise<Span[]> {
+  async GetSpansInProject(
+    project_id: string,
+    lastNHours = 168
+  ): Promise<Span[]> {
     try {
       const query = sql.select().from(project_id);
-      const spans: Span[] = await this.client.find<Span[]>(query);
-      return spans;
+      if (!lastNHours) {
+        return await this.client.find<Span[]>(query);
+      } else {
+        const nHoursAgo = getFormattedTime(lastNHours);
+        query.where(sql.gte("start_time", nHoursAgo));
+
+        return await this.client.find<Span[]>(query);
+      }
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the spans ${error}`
@@ -483,9 +491,9 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetAverageTraceLatenciesPerDayPerProject(
+  async GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -497,10 +505,7 @@ export class TraceService implements ITraceService {
         };
       }
 
-      const nDaysAgo = format(
-        new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-        "yyyy-MM-dd"
-      );
+      const nHoursAgo = getFormattedTime(lastNHours);
 
       // Directly embedding the ClickHouse-specific functions within string literals
       let innerSelect = sql
@@ -511,7 +516,7 @@ export class TraceService implements ITraceService {
           "(toUnixTimestamp(max(parseDateTime64BestEffort(end_time))) - toUnixTimestamp(min(parseDateTime64BestEffort(start_time)))) * 1000 AS duration"
         )
         .from(project_id)
-        .where(sql.gte("start_time", nDaysAgo))
+        .where(sql.gte("start_time", nHoursAgo))
         .groupBy("trace_id");
 
       // Assembling the outer query
@@ -572,9 +577,9 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTokensUsedPerDayPerProject(
+  async GetTokensUsedPerHourPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -582,10 +587,7 @@ export class TraceService implements ITraceService {
         return [];
       }
 
-      const nDaysAgo = format(
-        new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-        "yyyy-MM-dd"
-      );
+      const nHoursAgo = getFormattedTime(lastNHours);
 
       const query = sql
         .select([
@@ -595,14 +597,14 @@ export class TraceService implements ITraceService {
         .from(project_id)
         .where(
           sql.like("attributes", "%total_tokens%"),
-          sql.gte("start_time", nDaysAgo)
+          sql.gte("start_time", nHoursAgo)
         )
         .groupBy("date")
         .orderBy("date");
       const result = await this.client.find<any>(query);
 
       // calculate total tokens used per day
-      const tokensUsedPerDay = result.map((row: any) => {
+      const tokensUsedPerHour = result.map((row: any) => {
         let totalTokens = 0;
         let inputTokens = 0;
         let outputTokens = 0;
@@ -638,7 +640,7 @@ export class TraceService implements ITraceService {
         };
       });
 
-      return tokensUsedPerDay;
+      return tokensUsedPerHour;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
@@ -646,9 +648,9 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTokensCostPerDayPerProject(
+  async GetTokensCostPerHourPerProject(
     project_id: string,
-    lastNDays = 7
+    lastNHours = 168 // Default to 168 hours (7 days)
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -656,10 +658,7 @@ export class TraceService implements ITraceService {
         return [];
       }
 
-      const nDaysAgo = format(
-        new Date(Date.now() - lastNDays * 24 * 60 * 60 * 1000),
-        "yyyy-MM-dd"
-      );
+      const nHoursAgo = getFormattedTime(lastNHours);
 
       const query = sql
         .select([
@@ -669,14 +668,14 @@ export class TraceService implements ITraceService {
         .from(project_id)
         .where(
           sql.like("attributes", "%total_tokens%"),
-          sql.gte("start_time", nDaysAgo)
+          sql.gte("start_time", nHoursAgo)
         )
         .groupBy("date")
         .orderBy("date");
       const result = await this.client.find<any>(query);
 
       // calculate total tokens used per day
-      const costPerDay = result.map((row: any) => {
+      const costPerHour = result.map((row: any) => {
         let costs = { total: 0, input: 0, output: 0 };
         row.attributes_list.forEach((attributes: any) => {
           const parsedAttributes = JSON.parse(attributes);
@@ -697,7 +696,7 @@ export class TraceService implements ITraceService {
         };
       });
 
-      return costPerDay;
+      return costPerHour;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
@@ -761,20 +760,19 @@ export class TraceService implements ITraceService {
           totalOutputTokens: 0,
         };
       }
-
-      const query = sql
-        .select()
-        .from(project_id)
-        .where(sql.like("attributes", "%total_tokens%"));
-      const spans: Span[] = await this.client.find<Span[]>(query);
+      const query = sql.select(
+        `JSONExtractRaw(attributes, 'llm.token.counts') AS token_counts FROM ${project_id}`
+      );
+      const spans: any[] = await this.client.find<Span[]>(query);
       let totalTokens = 0;
       let totalInputTokens = 0;
       let totalOutputTokens = 0;
       spans.forEach((span) => {
-        const parsedAttributes = JSON.parse(span.attributes || "{}");
-        const llmTokenCounts = parsedAttributes["llm.token.counts"]
-          ? JSON.parse(parsedAttributes["llm.token.counts"])
-          : {};
+        const parsedAttributes = JSON.parse(span.token_counts || "{}");
+        const llmTokenCounts =
+          typeof parsedAttributes === "string"
+            ? JSON.parse(parsedAttributes)
+            : parsedAttributes;
         const token_count = llmTokenCounts.total_tokens || 0;
         totalTokens += token_count;
 

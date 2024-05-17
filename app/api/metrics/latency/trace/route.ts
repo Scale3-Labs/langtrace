@@ -22,16 +22,13 @@ export async function GET(req: NextRequest) {
     }
 
     const traceService = new TraceService();
-    const totalTracesPerDay: any =
-      await traceService.GetTotalTracePerDayPerProject(
-        projectId,
-        7 // last 7 days
-      );
+    const totalTracesPerHour: any =
+      await traceService.GetTotalTracePerHourPerProject(projectId, 168); // last 7 days in hours
     const { averageLatencies, p99Latencies, p95Latencies } =
-      await traceService.GetAverageTraceLatenciesPerDayPerProject(projectId);
+      await traceService.GetAverageTraceLatenciesPerHourPerProject(projectId);
     return NextResponse.json(
       {
-        totalTracesPerDay,
+        totalTracesPerHour,
         averageLatencies,
         p99Latencies,
         p95Latencies,
