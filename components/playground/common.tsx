@@ -1,6 +1,6 @@
-import PromptRegistryDialog, {
-  PromptRegistry,
-} from "@/components/playground/prompt-registry-dialog";
+"use client";
+
+import PromptRegistryDialog from "@/components/playground/prompt-registry-dialog";
 import LLMPicker from "@/components/shared/llm-picker";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -125,7 +125,7 @@ export function Message({
     setTimeout(() => setEditing(false), 0); // Ensure dialog state change is processed first
   };
 
-  const handleSelectPromptRegistry = (promptRegistry: PromptRegistry) => {
+  const handleSelectPromptRegistry = (promptRegistry: any) => {
     // Handle the selected prompt registry
     console.log("Selected prompt registry:", promptRegistry);
     setDialogOpen(false);
