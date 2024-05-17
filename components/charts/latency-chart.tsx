@@ -1,19 +1,28 @@
 "use client";
 
+import { formatDurationForDisplay } from "@/lib/utils";
 import { AreaChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 import { Info } from "../shared/info";
 import LargeChartLoading from "./large-chart-skeleton";
 
-export function TraceLatencyChart({ projectId }: { projectId: string }) {
+export function TraceLatencyChart({
+  projectId,
+  lastNHours = 168,
+}: {
+  projectId: string;
+  lastNHours?: number;
+}) {
   const {
     data: metricsLatencyAverageTracePerDay,
     isLoading: metricsLatencyAverageTracePerDayLoading,
     error: metricsLatencyAverageTracePerDayError,
   } = useQuery({
     queryKey: [
-      `fetch-metrics-latency-average-trace-per-day-${projectId}-query`,
+      "fetch-metrics-latency-average-trace-per-day",
+      projectId,
+      lastNHours,
     ],
     queryFn: async () => {
       const response = await fetch(
@@ -61,7 +70,7 @@ export function TraceLatencyChart({ projectId }: { projectId: string }) {
       })
     );
 
-    const countData = metricsLatencyAverageTracePerDay?.totalTracesPerDay?.map(
+    const countData = metricsLatencyAverageTracePerDay?.totalTracesPerHour?.map(
       (data: any, index: number) => ({
         date: data?.date || "",
         "Trace Count": data?.traceCount || 0,
@@ -113,7 +122,8 @@ export function TraceLatencyChart({ projectId }: { projectId: string }) {
             noDataText="Get started by sending traces to your project."
           />
           <p className="text-sm text-center text-muted-foreground">
-            Average trace latency per day(ms) for the last 7 days
+            Average trace latency per day(ms) for the{" "}
+            {formatDurationForDisplay(lastNHours)}
           </p>
         </div>
       </>

@@ -184,7 +184,7 @@ function EvalContent({
       const response = await fetch(`/api/evaluation?spanId=${span?.span_id}`);
       const result = await response.json();
       const sc =
-        result.evaluations.length > 0 ? result.evaluations[0].score : min;
+        result.evaluations.length > 0 ? result.evaluations[0].ltUserScore : min;
       onScoreSelected(sc);
       return result;
     },
@@ -213,7 +213,7 @@ function EvalContent({
 
       // Check if an evaluation already exists
       if (evaluationsData?.evaluations[0]?.id) {
-        if (evaluationsData.evaluations[0].score === score) {
+        if (evaluationsData.evaluations[0].ltUserScore === score) {
           setBusy(false);
           return;
         }
@@ -225,7 +225,7 @@ function EvalContent({
           },
           body: JSON.stringify({
             id: evaluationsData.evaluations[0].id,
-            score: score,
+            ltUserScore: score,
           }),
         });
         queryClient.invalidateQueries([
@@ -243,12 +243,7 @@ function EvalContent({
             projectId: projectId,
             spanId: span.span_id,
             traceId: span.trace_id,
-            spanStartTime: span?.start_time
-              ? new Date(correctTimestampFormat(span.start_time))
-              : new Date(),
-            score: score,
-            model: model,
-            prompt: systemPrompt,
+            ltUserScore: score,
             testId: test.id,
           }),
         });

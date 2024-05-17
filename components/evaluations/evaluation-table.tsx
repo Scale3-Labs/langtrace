@@ -162,6 +162,7 @@ export default function EvaluationTable({
           <p className="text-xs font-medium">Duration</p>
           <p className="text-xs font-medium">Evaluated Score</p>
           <p className="text-xs font-medium">User Score</p>
+          <p className="text-xs font-medium">User Id</p>
           <p className="text-xs font-medium col-span-2">Added to Dataset</p>
         </div>
       )}

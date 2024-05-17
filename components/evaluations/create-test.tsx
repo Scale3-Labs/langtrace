@@ -50,7 +50,7 @@ export function CreateTest({
   const [step, setStep] = useState<number>(2);
   const schema = z.object({
     name: z.string().min(2, "Too short").max(30, "Too long"),
-    description: z.string().min(2, "Too short").max(200, "Too long"),
+    description: z.string().max(200, "Too long").optional(),
     min: z
       .string()
       .refine((val) => !Number.isNaN(parseInt(val, 10)))
@@ -102,7 +102,9 @@ export function CreateTest({
                   },
                   body: JSON.stringify({
                     name: data.name,
-                    description: data.description.toLowerCase(),
+                    description: data.description
+                      ? data.description.toLowerCase()
+                      : "",
                     min: data.min ? parseInt(data.min, 10) : -1,
                     max: data.max ? parseInt(data.max, 10) : 1,
                     step: data.step ? parseInt(data.step, 10) : 2,
