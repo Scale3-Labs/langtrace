@@ -1,3 +1,6 @@
+import PromptRegistryDialog, {
+  PromptRegistry,
+} from "@/components/playground/prompt-registry-dialog";
 import LLMPicker from "@/components/shared/llm-picker";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -34,15 +37,22 @@ export function ExpandingTextArea({
   value,
   onChange,
   setFocusing,
+  saveButtonRef,
 }: {
   value: string;
   onChange: any;
   setFocusing?: any;
+  saveButtonRef: React.RefObject<HTMLButtonElement>;
 }) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleClickOutside = (event: any) => {
-    if (textAreaRef.current && !textAreaRef.current.contains(event.target)) {
+    if (
+      textAreaRef.current &&
+      !textAreaRef.current.contains(event.target) &&
+      saveButtonRef.current &&
+      !saveButtonRef.current.contains(event.target)
+    ) {
       setFocusing(false);
     }
   };
@@ -107,6 +117,20 @@ export function Message({
     }
   };
   const [editing, setEditing] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleSave = () => {
+    setDialogOpen(true);
+    setTimeout(() => setEditing(false), 0); // Ensure dialog state change is processed first
+  };
+
+  const handleSelectPromptRegistry = (promptRegistry: PromptRegistry) => {
+    // Handle the selected prompt registry
+    console.log("Selected prompt registry:", promptRegistry);
+    setDialogOpen(false);
+  };
+
   return (
     <>
       <div className="flex items-center justify-between cursor-pointer group hover:bg-muted rounded-md p-4">
@@ -136,8 +160,13 @@ export function Message({
                   }}
                   value={message.content}
                   setFocusing={setEditing}
+                  saveButtonRef={saveButtonRef}
                 />
-                <Button className="text-sm font-sm" size={"icon"}>
+                <Button
+                  className="text-sm font-sm"
+                  size={"icon"}
+                  onClick={handleSave}
+                >
                   Save
                 </Button>
               </div>
@@ -156,6 +185,11 @@ export function Message({
         </Button>
       </div>
       <Separator />
+      <PromptRegistryDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSelect={handleSelectPromptRegistry}
+      />
     </>
   );
 }
