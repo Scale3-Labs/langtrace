@@ -42,7 +42,7 @@ export function Create({
   const [busy, setBusy] = useState<boolean>(false);
   const schema = z.object({
     name: z.string().min(2, "Too short").max(30, "Too long"),
-    description: z.string().min(2, "Too short").max(100, "Too long"),
+    description: z.string().max(100, "Too long").optional(),
   });
   const CreateProjectForm = useForm({
     resolver: zodResolver(schema),
@@ -73,7 +73,9 @@ export function Create({
                   },
                   body: JSON.stringify({
                     name: data.name,
-                    description: data.description.toLowerCase(),
+                    description: data.description
+                      ? data.description.toLowerCase()
+                      : "",
                     teamId,
                   }),
                 });

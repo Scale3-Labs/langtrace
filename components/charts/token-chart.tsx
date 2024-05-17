@@ -1,20 +1,27 @@
 "use client";
 
+import { formatDurationForDisplay } from "@/lib/utils";
 import { BarChart } from "@tremor/react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 import SmallChartLoading from "./small-chart-skeleton";
 
-export function TokenChart({ projectId }: { projectId: string }) {
+export function TokenChart({
+  projectId,
+  lastNHours = 168,
+}: {
+  projectId: string;
+  lastNHours?: number;
+}) {
   const {
     data: tokenUsage,
     isLoading: tokenUsageLoading,
     error: tokenUsageError,
   } = useQuery({
-    queryKey: [`fetch-metrics-usage-token-${projectId}-query`],
+    queryKey: ["fetch-metrics-usage-token", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/token?projectId=${projectId}`
+        `/api/metrics/usage/token?projectId=${projectId}&lastNHours=${lastNHours}`
       );
       if (!response.ok) {
         const error = await response.json();
@@ -66,7 +73,7 @@ export function TokenChart({ projectId }: { projectId: string }) {
             noDataText="Get started by sending traces to your project."
           />
           <p className="text-sm text-center text-muted-foreground">
-            Total tokens over time (last 7 days)
+            Total tokens over time {formatDurationForDisplay(lastNHours)}
           </p>
         </div>
       </>
@@ -74,13 +81,19 @@ export function TokenChart({ projectId }: { projectId: string }) {
   }
 }
 
-export function CostChart({ projectId }: { projectId: string }) {
+export function CostChart({
+  projectId,
+  lastNHours = 168,
+}: {
+  projectId: string;
+  lastNHours?: number;
+}) {
   const {
     data: costUsage,
     isLoading: costUsageLoading,
     error: costUsageError,
   } = useQuery({
-    queryKey: [`fetch-metrics-usage-cost-${projectId}-query`],
+    queryKey: ["fetch-metrics-usage-cost", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
         `/api/metrics/usage/cost?projectId=${projectId}`
@@ -139,7 +152,7 @@ export function CostChart({ projectId }: { projectId: string }) {
             noDataText="Get started by sending traces to your project."
           />
           <p className="text-sm text-center text-muted-foreground">
-            Total cost over time (last 7 days)
+            Total cost over time {formatDurationForDisplay(lastNHours)}
           </p>
         </div>
       </>
