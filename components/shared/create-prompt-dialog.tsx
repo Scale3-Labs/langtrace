@@ -35,11 +35,13 @@ export default function CreatePromptDialog({
   promptsetId,
   currentPrompt,
   version,
+  passedPrompt,
   variant = "default",
   disabled = false,
 }: {
   promptsetId: string;
   currentPrompt?: Prompt;
+  passedPrompt?: string;
   version?: number;
   variant?: any;
   disabled?: boolean;

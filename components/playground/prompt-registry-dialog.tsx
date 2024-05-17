@@ -1,3 +1,7 @@
+"use client";
+
+import { CreatePromptset } from "@/components/project/dataset/create";
+import CreatePromptDialog from "@/components/shared/create-prompt-dialog";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -7,23 +11,26 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { CreatePromptset } from "../project/dataset/create";
 
 export interface PromptRegistryDialogProps {
   open: boolean;
+  prompt: string;
   onClose: () => void;
   onSelect: (promptRegistry: any) => void;
 }
 
 export default function PromptRegistryDialog({
   open,
+  prompt,
   onClose,
   onSelect,
 }: PromptRegistryDialogProps) {
   const pathname = usePathname();
-
+  const [selectedPromptRegistry, setSelectedPromptRegistry] =
+    useState<any>(null);
   const projectId = pathname.split("/")[2];
 
   const {
@@ -39,6 +46,7 @@ export default function PromptRegistryDialog({
         throw new Error(error?.message || "Failed to fetch prompt sets");
       }
       const result = await response.json();
+
       return result;
     },
     onError: (error) => {
@@ -47,42 +55,54 @@ export default function PromptRegistryDialog({
       });
     },
   });
+
   if (promptsetsLoading) {
     return <div>Loading...</div>;
   }
 
-  return (
-    <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
-            Select or Create a Prompt Registry
-          </AlertDialogTitle>
-        </AlertDialogHeader>
-        <div>
-          {promptsets?.promptsets?.length > 0 ? (
-            promptsets.promptsets.map((promptset: any, i: number) => (
-              <div key={i}>
-                <button
-                  className="hover:bg-muted rounded-md p-4 w-full text-left"
-                  onClick={() => onSelect(promptset)}
-                >
-                  {promptset.name}
-                </button>
-              </div>
-            ))
-          ) : (
-            <p className="text-muted-foreground">
-              Get started by creating your first prompt registry.
-            </p>
-          )}
-        </div>
+  console.log("selected", selectedPromptRegistry);
 
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-          <CreatePromptset projectId={projectId} />
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+  return (
+    <>
+      <AlertDialog open={open} onOpenChange={onClose}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Select or Create a Prompt Registry
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <div>
+            {promptsets?.promptsets?.length > 0 ? (
+              promptsets.promptsets.map((promptset: any, i: number) => (
+                <div key={i}>
+                  <button
+                    className="hover:bg-muted rounded-md p-4 w-full text-left"
+                    onClick={() => setSelectedPromptRegistry(promptset)}
+                  >
+                    {promptset.name}
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted-foreground">
+                Get started by creating your first prompt registry.
+              </p>
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
+            <CreatePromptset projectId={projectId} />
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {selectedPromptRegistry && (
+        <CreatePromptDialog
+          promptsetId={selectedPromptRegistry.id}
+          passedPrompt={prompt}
+          version={1}
+        />
+      )}
+    </>
   );
 }
