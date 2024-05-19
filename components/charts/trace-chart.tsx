@@ -21,7 +21,7 @@ export function TraceSpanChart({
     queryKey: ["fetch-metrics-usage-trace", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/trace?projectId=${projectId}`
+        `/api/metrics/usage/trace?projectId=${projectId}&lastNHours=${lastNHours}`
       );
       if (!response.ok) {
         const error = await response.json();
