@@ -1,7 +1,6 @@
 "use client";
 
 import { CreatePromptset } from "@/components/project/dataset/create";
-import CreatePromptDialog from "@/components/shared/create-prompt-dialog";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -17,14 +16,12 @@ import { toast } from "sonner";
 
 export interface PromptRegistryDialogProps {
   open: boolean;
-  prompt: string;
   onClose: () => void;
   onSelect: (promptRegistry: any) => void;
 }
 
 export default function PromptRegistryDialog({
   open,
-  prompt,
   onClose,
   onSelect,
 }: PromptRegistryDialogProps) {
@@ -60,8 +57,6 @@ export default function PromptRegistryDialog({
     return <div>Loading...</div>;
   }
 
-  console.log("selected", selectedPromptRegistry);
-
   return (
     <>
       <AlertDialog open={open} onOpenChange={onClose}>
@@ -77,7 +72,10 @@ export default function PromptRegistryDialog({
                 <div key={i}>
                   <button
                     className="hover:bg-muted rounded-md p-4 w-full text-left"
-                    onClick={() => setSelectedPromptRegistry(promptset)}
+                    onClick={() => {
+                      setSelectedPromptRegistry(promptset);
+                      onSelect(promptset);
+                    }}
                   >
                     {promptset.name}
                   </button>
@@ -96,13 +94,6 @@ export default function PromptRegistryDialog({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {selectedPromptRegistry && (
-        <CreatePromptDialog
-          promptsetId={selectedPromptRegistry.id}
-          passedPrompt={prompt}
-          version={1}
-        />
-      )}
     </>
   );
 }

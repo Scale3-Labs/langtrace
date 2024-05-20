@@ -12,6 +12,9 @@ import {
 import { cn } from "@/lib/utils";
 import { MinusCircleIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "react-query";
+import { toast } from "sonner";
+import CreatePromptDialog from "../shared/create-prompt-dialog";
 
 export function RoleBadge({
   role,
@@ -118,17 +121,42 @@ export function Message({
   };
   const [editing, setEditing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedPromptRegistry, setSelectedPromptRegistry] =
+    useState<any>(null);
+  const [createPromptDialogOpen, setCreatePromptDialogOpen] = useState(false);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const [currentPrompt, setCurrentPrompt] = useState<any>(undefined);
+
+  useQuery({
+    queryKey: ["fetch-prompts-query", selectedPromptRegistry?.id],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/promptset?promptset_id=${selectedPromptRegistry?.id}`
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch tests");
+      }
+      const result = await response.json();
+      setCurrentPrompt(result?.promptsets?.prompts[0] || undefined);
+      return result;
+    },
+    enabled: !!selectedPromptRegistry,
+    onError: (error) => {
+      toast.error("Failed to fetch prompts", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
 
   const handleSave = () => {
     setDialogOpen(true);
-    setTimeout(() => setEditing(false), 0); // Ensure dialog state change is processed first
   };
 
   const handleSelectPromptRegistry = (promptRegistry: any) => {
-    // Handle the selected prompt registry
-    console.log("Selected prompt registry:", promptRegistry);
+    setSelectedPromptRegistry(promptRegistry);
     setDialogOpen(false);
+    setCreatePromptDialogOpen(true);
   };
 
   return (
@@ -190,6 +218,21 @@ export function Message({
         onClose={() => setDialogOpen(false)}
         onSelect={handleSelectPromptRegistry}
       />
+      {selectedPromptRegistry && (
+        <CreatePromptDialog
+          promptsetId={selectedPromptRegistry.id}
+          currentPrompt={currentPrompt}
+          passedPrompt={message.content}
+          version={
+            selectedPromptRegistry.prompts
+              ? selectedPromptRegistry.prompts.length + 1
+              : 1
+          }
+          open={createPromptDialogOpen}
+          setOpen={setCreatePromptDialogOpen}
+          showButton={false}
+        />
+      )}
     </>
   );
 }
