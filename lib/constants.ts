@@ -170,7 +170,7 @@ export const DEFAULT_TESTS: Partial<Test>[] = [
   {
     name: "Factual Accuracy",
     description:
-      "Evaluates the model's ability to provide factually correct answers, often involving comparison with verified data sources or databases.",
+      "Evaluate the model's ability to provide factually correct answers, often involving comparison with verified data sources or databases.",
   },
   {
     name: "Adversarial Testing",
