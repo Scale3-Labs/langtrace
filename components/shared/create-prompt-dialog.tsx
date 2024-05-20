@@ -63,6 +63,13 @@ export default function CreatePromptDialog({
 
   const CreatePromptForm = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      prompt: passedPrompt || currentPrompt?.value || "",
+      note: currentPrompt?.note || "",
+      live: currentPrompt?.live || false,
+      model: currentPrompt?.model || "",
+      modelSettings: JSON.stringify(currentPrompt?.modelSettings) || "",
+    },
   });
 
   const queryClient = useQueryClient();

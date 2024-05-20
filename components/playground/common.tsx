@@ -191,7 +191,7 @@ export function Message({
                   saveButtonRef={saveButtonRef}
                 />
                 <Button
-                  className="text-sm font-sm"
+                  className="text-sm px-6"
                   size={"icon"}
                   onClick={handleSave}
                 >
