@@ -387,8 +387,14 @@ export default function LLMChat({
                 localLLM.settings.messages[
                   localLLM.settings.messages.length - 1
                 ]?.content ?? "";
-              const inputTokens = calculateTokens(inputContent);
-              const outputTokens = calculateTokens(result);
+              const inputTokens = calculateTokens(
+                inputContent,
+                localLLM.settings.model
+              );
+              const outputTokens = calculateTokens(
+                result,
+                localLLM.settings.model
+              );
               const vendor = localLLM.vendor;
               const model = localLLM.settings.model;
               const calculatedCost = calculatePriceFromUsage(vendor, model, {
