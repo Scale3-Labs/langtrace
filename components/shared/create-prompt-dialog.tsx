@@ -93,14 +93,12 @@ export default function CreatePromptDialog({
   useEffect(() => {
     if (passedPrompt) {
       setPrompt(passedPrompt);
-      const vars = extractVariables(passedPrompt);
-      setVariables(vars);
     } else if (currentPrompt?.value) {
-      const vars = extractVariables(currentPrompt.value);
-      setVariables(vars);
       setPrompt(currentPrompt.value);
     }
   }, [passedPrompt, currentPrompt]);
+
+  console.log("prompt", prompt);
 
   return (
     <>
