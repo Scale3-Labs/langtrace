@@ -51,7 +51,7 @@ export function EditTest({
   const [busy, setBusy] = useState<boolean>(false);
   const schema = z.object({
     name: z.string().min(2, "Too short").max(30, "Too long"),
-    description: z.string().min(2, "Too short").max(200, "Too long"),
+    description: z.string().min(2, "Too short").max(200, "Too long").optional(),
   });
   const EditTestForm = useForm({
     resolver: zodResolver(schema),
