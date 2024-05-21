@@ -1,25 +1,20 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
-import { authApiKey, convertToDateTime64 } from "@/lib/utils";
+import { authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const apiKey = req.headers.get("x-api-key");
-  if(apiKey!==null) {
+  if (apiKey !== null) {
     const response = await authApiKey(apiKey);
-    if(response.status!==200) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 } );
+    if (response.status !== 200) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const projectData = await response.json();
     const projectId = projectData.data.project.id;
     const data = await req.json();
-    const {
-      traceId,
-      spanId,
-      userScore,
-      userId
-    } = data;
+    const { traceId, spanId, userScore, userId } = data;
     // check if an evaluation already exists for the spanId
     const existingEvaluation = await prisma.evaluation.findFirst({
       where: {
@@ -42,7 +37,7 @@ export async function POST(req: NextRequest) {
         traceId,
         projectId,
         userId,
-        userScore
+        userScore,
       },
     });
     return NextResponse.json({
@@ -51,7 +46,7 @@ export async function POST(req: NextRequest) {
   } else {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
-      NextResponse.json({ error: "Unauthorized" }, { status: 401 } );
+      NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const email = session?.user?.email as string;
     if (!email) {
@@ -61,7 +56,7 @@ export async function POST(req: NextRequest) {
         },
         { status: 404 }
       );
-  }
+    }
 
     const user = await prisma.user.findUnique({
       where: {
@@ -82,13 +77,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await req.json();
-    const {
-      traceId,
-      spanId,
-      projectId,
-      ltUserScore,
-      testId,
-    } = data;
+    const { traceId, spanId, projectId, ltUserScore, testId } = data;
 
     // check if this user has access to this project
     const project = await prisma.project.findFirst({
@@ -107,22 +96,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // check if an evaluation already exists for the spanId
-    const existingEvaluation = await prisma.evaluation.findFirst({
-      where: {
-        spanId,
-      },
-    });
-
-    if (existingEvaluation) {
-      return NextResponse.json(
-        {
-          error: "Evaluation already exists for this span",
-        },
-        { status: 400 }
-      );
-    }
-
     const evaluation = await prisma.evaluation.create({
       data: {
         spanId,
@@ -137,7 +110,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       data: evaluation,
     });
-    }
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -146,18 +119,19 @@ export async function GET(req: NextRequest) {
     const apiKey = req.headers.get("x-api-key");
     let projectId = req.nextUrl.searchParams.get("projectId") as string;
     if ((!session || !session.user) && !apiKey) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 } );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    if(apiKey){
+    if (apiKey) {
       const response = await authApiKey(apiKey);
-      if(response.status!==200) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 } );
+      if (response.status !== 200) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
       const projectData = await response.json();
       projectId = projectData.data.project.id;
     }
 
     const spanId = req.nextUrl.searchParams.get("spanId") as string;
+    const testId = req.nextUrl.searchParams.get("testId") as string;
 
     if (!projectId && !spanId) {
       return NextResponse.json(
@@ -169,11 +143,21 @@ export async function GET(req: NextRequest) {
     }
 
     if (spanId) {
-      const evaluations = await prisma.evaluation.findFirst({
-        where: {
-          spanId,
-        },
-      });
+      let evaluations;
+      if (testId) {
+        evaluations = await prisma.evaluation.findMany({
+          where: {
+            spanId,
+            testId,
+          },
+        });
+      } else {
+        evaluations = await prisma.evaluation.findFirst({
+          where: {
+            spanId,
+          },
+        });
+      }
 
       if (!evaluations) {
         return NextResponse.json({
@@ -182,12 +166,12 @@ export async function GET(req: NextRequest) {
       }
 
       return NextResponse.json({
-        evaluations: [evaluations],
+        evaluations: evaluations,
       });
     }
 
     // check if this user has access to this project
-    if(session) {
+    if (session) {
       const email = session?.user?.email as string;
       const user = await prisma.user.findUnique({
         where: {
@@ -245,36 +229,54 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const apiKey = req.headers.get("x-api-key");
-  if(apiKey!==null) {
+  if (apiKey !== null) {
     const response = await authApiKey(apiKey);
-    if(response.status!==200) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 } );
+    if (response.status !== 200) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const projectData = await response.json();
     const projectId = projectData.data.project.id;
 
-    let {spanId, userScore, userId} = await req.json().catch(() => ({}));
-    if(!spanId || !userScore || !userId) {
-      return NextResponse.json({ error: "spanId, userId and userScore are required in the request body" }, { status: 400 } );
+    let { spanId, userScore, userId } = await req.json().catch(() => ({}));
+    if (!spanId || !userScore || !userId) {
+      return NextResponse.json(
+        {
+          error:
+            "spanId, userId and userScore are required in the request body",
+        },
+        { status: 400 }
+      );
     }
     userScore = Number(userScore);
-    if(Number.isNaN(userScore)) {
-      return NextResponse.json({ error: "userScore must be a number" }, { status: 400 } );
+    if (Number.isNaN(userScore)) {
+      return NextResponse.json(
+        { error: "userScore must be a number" },
+        { status: 400 }
+      );
     }
-    if(userScore!==1 && userScore!==-1) {
-      return NextResponse.json({ error: "userScore must be 1 or -1" }, { status: 400 } );
+    if (userScore !== 1 && userScore !== -1) {
+      return NextResponse.json(
+        { error: "userScore must be 1 or -1" },
+        { status: 400 }
+      );
     }
-    if(userId?.length === 0) {
-      return NextResponse.json({ error: "userId must be a non-empty string" }, { status: 400 } );
+    if (userId?.length === 0) {
+      return NextResponse.json(
+        { error: "userId must be a non-empty string" },
+        { status: 400 }
+      );
     }
     const evaluation = await prisma.evaluation.findFirst({
       where: {
-       projectId,
-       spanId,
+        projectId,
+        spanId,
       },
     });
-    if(!evaluation) {
-      return NextResponse.json({ error: "Evaluation not found" }, { status: 404 } );
+    if (!evaluation) {
+      return NextResponse.json(
+        { error: "Evaluation not found" },
+        { status: 404 }
+      );
     }
     const updatedEvaluation = await prisma.evaluation.update({
       where: {
@@ -288,7 +290,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ data: updatedEvaluation });
   } else {
     if (!session || !session.user) {
-      NextResponse.json({ error: "Unauthorized" }, { status: 401 } );
+      NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const email = session?.user?.email as string;
     if (!email) {
@@ -327,7 +329,7 @@ export async function PUT(req: NextRequest) {
       data: {
         ltUserId: user.id,
         ltUserScore,
-        testId
+        testId,
       },
     });
 

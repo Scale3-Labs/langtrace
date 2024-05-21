@@ -1,7 +1,7 @@
 "use client";
 
-import { ScaleType } from "@/components/evaluations/eval-scale-picker";
-import { RangeScale } from "@/components/evaluations/range-scale";
+import { ScaleType } from "@/components/evaluate/eval-scale-picker";
+import { RangeScale } from "@/components/evaluate/range-scale";
 import UserLogo from "@/components/shared/user-logo";
 import { VendorLogo } from "@/components/shared/vendor-metadata";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export default function Page() {
         toast.error("Failed to fetch the test", {
           description: error?.message || "Failed to fetch test",
         });
-        router.push(`/project/${projectId}/evaluations`);
+        router.push(`/project/${projectId}/evaluate`);
         return;
       }
       const result = await response.json();
@@ -71,16 +71,6 @@ export default function Page() {
           operation: "NOT_EQUALS",
           value: "",
         },
-        // Accuracy is the default test. So no need to
-        // send the testId with the spans when using the SDK.
-        {
-          key: "langtrace.testId",
-          operation: "EQUALS",
-          value:
-            testData?.test?.name.toLowerCase() !== "factual accuracy"
-              ? testData?.test?.id
-              : "",
-        },
       ];
 
       // convert filterserviceType to a string
@@ -106,7 +96,7 @@ export default function Page() {
         toast.error("Failed to fetch the span data", {
           description: error?.message || "Failed to fetch the span data",
         });
-        router.push(`/project/${projectId}/evaluations`);
+        router.push(`/project/${projectId}/evaluate`);
         return;
       }
 
@@ -123,7 +113,7 @@ export default function Page() {
         page <= 0 ||
         page > parseInt(metadata?.total_pages)
       ) {
-        router.push(`/project/${projectId}/evaluations`);
+        router.push(`/project/${projectId}/evaluate`);
       }
 
       // Update the total pages and current page number
@@ -150,9 +140,7 @@ export default function Page() {
     evaluate();
     if (page < totalPages) {
       const nextPage = page + 1;
-      router.push(
-        `/project/${projectId}/evaluations/${testId}?page=${nextPage}`
-      );
+      router.push(`/project/${projectId}/evaluate/${testId}?page=${nextPage}`);
     }
   };
 
@@ -160,7 +148,7 @@ export default function Page() {
     if (page > 1) {
       const previousPage = page - 1;
       router.push(
-        `/project/${projectId}/evaluations/${testId}?page=${previousPage}`
+        `/project/${projectId}/evaluate/${testId}?page=${previousPage}`
       );
     }
   };
@@ -174,12 +162,14 @@ export default function Page() {
         toast.error("Failed to fetch the evaluation data", {
           description: error?.message || "Failed to fetch the evaluation data",
         });
-        router.push(`/project/${projectId}/evaluations`);
+        router.push(`/project/${projectId}/evaluate`);
         return;
       }
       const result = await response.json();
       const sc =
-        result.evaluations.length > 0 ? result.evaluations[0].ltUserScore ?? -1 : -1;
+        result.evaluations.length > 0
+          ? result.evaluations[0].ltUserScore ?? -1
+          : -1;
       onScoreSelected(sc);
       return result;
     },
@@ -196,7 +186,7 @@ export default function Page() {
       }
 
       if (event.key === "Escape") {
-        router.push(`/project/${projectId}/evaluations`);
+        router.push(`/project/${projectId}/evaluate`);
       }
     };
 
@@ -233,7 +223,7 @@ export default function Page() {
           body: JSON.stringify({
             id: evaluationsData.evaluations[0].id,
             ltUserScore: score,
-            testId
+            testId,
           }),
         });
         queryClient.invalidateQueries({
@@ -361,7 +351,7 @@ export default function Page() {
               ))}
             </div>
           ) : (
-            < RangeScale
+            <RangeScale
               variant="large"
               type={ScaleType.Range}
               min={testData?.test?.min}
@@ -432,7 +422,7 @@ export default function Page() {
         <div className="absolute bottom-5 right-5 flex gap-2 items-center">
           <Button
             variant={"outline"}
-            onClick={() => router.push(`/project/${projectId}/evaluations`)}
+            onClick={() => router.push(`/project/${projectId}/evaluate`)}
             disabled={isEvaluationLoading}
           >
             Exit
@@ -478,8 +468,8 @@ function ConversationView({ span }: { span: any }) {
           const content = prompt?.content
             ? safeStringify(prompt?.content)
             : prompt?.function_call
-              ? safeStringify(prompt?.function_call)
-              : "No input found";
+            ? safeStringify(prompt?.function_call)
+            : "No input found";
           return (
             <div key={i} className="flex flex-col gap-2">
               <div className="flex gap-2 items-center">
