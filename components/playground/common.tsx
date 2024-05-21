@@ -14,7 +14,6 @@ import { MinusCircleIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import CreatePromptDialog from "../shared/create-prompt-dialog";
 
 export function RoleBadge({
   role,
@@ -41,11 +40,13 @@ export function ExpandingTextArea({
   onChange,
   setFocusing,
   saveButtonRef,
+  handleSave,
 }: {
   value: string;
   onChange: any;
   setFocusing?: any;
   saveButtonRef: React.RefObject<HTMLButtonElement>;
+  handleSave: (open: boolean) => void;
 }) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -76,13 +77,25 @@ export function ExpandingTextArea({
   };
 
   return (
-    <textarea
-      className="rounded-md text-sm w-[290px] bg-background"
-      ref={textAreaRef}
-      defaultValue={value}
-      onChange={handleChange}
-      style={{ overflowY: "auto", resize: "none", height: "auto" }}
-    />
+    <div className="relative w-[290px]">
+      <textarea
+        className="rounded-md text-sm w-[290px] bg-background pr-10"
+        ref={textAreaRef}
+        defaultValue={value}
+        onChange={handleChange}
+        style={{ overflowY: "auto", resize: "none", height: "auto" }}
+      />
+      <div className="absolute right-2 bottom-2 py-2">
+        <Button
+          className="text-sm px-6"
+          size={"icon"}
+          onClick={() => handleSave(true)}
+          ref={saveButtonRef}
+        >
+          Save
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -123,7 +136,6 @@ export function Message({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPromptRegistry, setSelectedPromptRegistry] =
     useState<any>(null);
-  const [createPromptDialogOpen, setCreatePromptDialogOpen] = useState(false);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
   const [currentPrompt, setCurrentPrompt] = useState<any>(undefined);
 
@@ -148,16 +160,6 @@ export function Message({
       });
     },
   });
-
-  const handleSave = () => {
-    setDialogOpen(true);
-  };
-
-  const handleSelectPromptRegistry = (promptRegistry: any) => {
-    setSelectedPromptRegistry(promptRegistry);
-    setDialogOpen(false);
-    setCreatePromptDialogOpen(true);
-  };
 
   return (
     <>
@@ -189,14 +191,8 @@ export function Message({
                   value={message.content}
                   setFocusing={setEditing}
                   saveButtonRef={saveButtonRef}
+                  handleSave={setDialogOpen}
                 />
-                <Button
-                  className="text-sm px-6"
-                  size={"icon"}
-                  onClick={handleSave}
-                >
-                  Save
-                </Button>
               </div>
             )}
           </div>
@@ -214,25 +210,10 @@ export function Message({
       </div>
       <Separator />
       <PromptRegistryDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onSelect={handleSelectPromptRegistry}
+        openDialog={dialogOpen}
+        setOpenDialog={setDialogOpen}
+        passedPrompt={message.content}
       />
-      {selectedPromptRegistry && (
-        <CreatePromptDialog
-          promptsetId={selectedPromptRegistry.id}
-          currentPrompt={currentPrompt}
-          passedPrompt={message.content}
-          version={
-            selectedPromptRegistry.prompts
-              ? selectedPromptRegistry.prompts.length + 1
-              : 1
-          }
-          open={createPromptDialogOpen}
-          setOpen={setCreatePromptDialogOpen}
-          showButton={false}
-        />
-      )}
     </>
   );
 }
