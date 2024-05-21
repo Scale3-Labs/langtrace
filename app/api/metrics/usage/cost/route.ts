@@ -12,9 +12,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
+    const lastNHours = parseInt(
+      req.nextUrl.searchParams.get("lastNHours") || "168"
+    );
+
     const traceService = new TraceService();
     const total = await traceService.GetTokensCostPerProject(projectId);
-    const cost = await traceService.GetTokensCostPerHourPerProject(projectId);
+    const cost = await traceService.GetTokensCostPerHourPerProject(
+      projectId,
+      lastNHours
+    );
     return NextResponse.json(
       {
         cost,
