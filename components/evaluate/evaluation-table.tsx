@@ -1,4 +1,4 @@
-import { TestSetupInstructions } from "@/components/shared/setup-instructions";
+import { SetupInstructions } from "@/components/shared/setup-instructions";
 import { Spinner } from "@/components/shared/spinner";
 import { PAGE_SIZE } from "@/lib/constants";
 import { correctTimestampFormat } from "@/lib/trace_utils";
@@ -56,13 +56,6 @@ export default function EvaluationTable({
           key: "llm.prompts",
           operation: "NOT_EQUALS",
           value: "",
-        },
-        // Accuracy is the default test. So no need to
-        // send the testId with the spans when using the SDK.
-        {
-          key: "langtrace.testId",
-          operation: "EQUALS",
-          value: test.name.toLowerCase() !== "factual accuracy" ? test.id : "",
         },
       ];
 
@@ -150,7 +143,7 @@ export default function EvaluationTable({
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
       {currentData.length > 0 && (
-        <div className="grid grid-cols-14 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
+        <div className="grid grid-cols-15 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
           <p className="text-xs font-medium col-span-2 text-start">
             Timestamp (UTC)
           </p>
@@ -195,7 +188,7 @@ export default function EvaluationTable({
             <p className="text-sm text-muted-foreground font-semibold mb-3">
               Setup instructions 👇
             </p>
-            <TestSetupInstructions testId={test.id} />
+            <SetupInstructions project_id={projectId} />
           </div>
         )}
     </div>
@@ -205,7 +198,7 @@ export default function EvaluationTable({
 export function EvaluationTableSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-      <div className="grid grid-cols-13 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
+      <div className="grid grid-cols-15 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
         <p className="text-xs font-medium col-span-2 text-end">
           Timestamp (UTC)
         </p>
@@ -217,6 +210,7 @@ export function EvaluationTableSkeleton() {
         <p className="text-xs font-medium">Duration</p>
         <p className="text-xs font-medium">Evaluate</p>
         <p className="text-xs font-medium">User Score</p>
+        <p className="text-xs font-medium">User Id</p>
         <p className="text-xs font-medium">Added to Dataset</p>
       </div>
       {Array.from({ length: 5 }).map((span: any, i: number) => (

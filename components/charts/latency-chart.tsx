@@ -26,7 +26,7 @@ export function TraceLatencyChart({
     ],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/latency/trace?projectId=${projectId}`
+        `/api/metrics/latency/trace?projectId=${projectId}&lastNHours=${lastNHours}`
       );
       if (!response.ok) {
         const error = await response.json();

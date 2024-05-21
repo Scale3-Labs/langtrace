@@ -456,9 +456,12 @@ export function estimateTokens(prompt: string): number {
   return 0;
 }
 
-export function calculateTokens(content: string): number {
+export function calculateTokens(content: string, model: string): number {
   try {
-    const tiktokenModel = "cl100k_base";
+    let tiktokenModel: TiktokenEncoding = "cl100k_base";
+    if (model.startsWith("gpt-4o")) {
+      tiktokenModel = "o200k_base";
+    }
     return estimateTokensUsingTikToken(content, tiktokenModel);
   } catch (error) {
     return estimateTokens(content); // Fallback method
