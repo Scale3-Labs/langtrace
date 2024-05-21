@@ -133,15 +133,22 @@ export default function EvaluationRow({
                 (prompt: any) => prompt.role === "user"
               );
               if (!input) return;
+              let output =
+                responses?.length > 0
+                  ? JSON.parse(responses)[0]?.message?.content ||
+                    JSON.parse(responses)[0]?.text ||
+                    JSON.parse(responses)[0]?.content
+                  : "";
+
+              // if output is object, convert to string
+              if (typeof output === "object") {
+                output = JSON.stringify(output);
+              }
+
               const checkedData = {
                 spanId: span.span_id,
                 input: input?.content || "",
-                output:
-                  responses?.length > 0
-                    ? JSON.parse(responses)[0]?.message?.content ||
-                      JSON.parse(responses)[0]?.text ||
-                      JSON.parse(responses)[0]?.content
-                    : "",
+                output: output,
               };
               onCheckedChange(checkedData, state);
             }}
