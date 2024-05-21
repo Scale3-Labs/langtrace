@@ -66,6 +66,13 @@ export function CreateData({
           <form
             onSubmit={CreateDataForm.handleSubmit(async (data) => {
               try {
+                // stringify data.input, data.output if it's an object
+                if (typeof data.input === "object") {
+                  data.input = JSON.stringify(data.input);
+                }
+                if (typeof data.output === "object") {
+                  data.output = JSON.stringify(data.output);
+                }
                 setBusy(true);
                 await fetch("/api/data", {
                   method: "POST",
