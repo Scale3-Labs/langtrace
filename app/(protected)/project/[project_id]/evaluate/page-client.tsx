@@ -2,11 +2,11 @@
 
 import { EvalChart } from "@/components/charts/eval-chart";
 import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
-import { CreateTest } from "@/components/evaluations/create-test";
-import { EditTest } from "@/components/evaluations/edit-test";
+import { CreateTest } from "@/components/evaluate/create-test";
+import { EditTest } from "@/components/evaluate/edit-test";
 import EvaluationTable, {
   EvaluationTableSkeleton,
-} from "@/components/evaluations/evaluation-table";
+} from "@/components/evaluate/evaluation-table";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -106,17 +106,17 @@ export default function PageClient({ email }: { email: string }) {
   return (
     <div className="w-full flex flex-col">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Evaluations</h1>
+        <h1 className="text-3xl font-semibold">Manual Evaluations</h1>
         <div className="flex gap-2">
           {selectedTest && (
             <Link
-              href={`/project/${projectId}/evaluations/${selectedTest?.id}?page=1`}
+              href={`/project/${projectId}/evaluate/${selectedTest?.id}?page=1`}
             >
               <Button
                 className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 background-animate"
                 variant="default"
               >
-                Start Testing <ChevronsRight className="ml-2" />{" "}
+                Start Evaluating <ChevronsRight className="ml-2" />{" "}
               </Button>
             </Link>
           )}

@@ -66,7 +66,7 @@
 		"fs": "^0.0.1-security",
 		"groq-sdk": "^0.3.3",
 		"i": "^0.3.7",
-		"js-tiktoken": "^1.0.10",
+		"js-tiktoken": "^1.0.12",
 		"json2csv": "^6.0.0-alpha.2",
 		"langchain": "^0.1.20",
 		"lucide-react": "^0.323.0",

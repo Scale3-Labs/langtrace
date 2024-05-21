@@ -4,12 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import detectPII from "@/lib/pii";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import {
-  calculatePriceFromUsage,
-  cn,
-  extractSystemPromptFromLlmInputs,
-  formatDateTime,
-} from "@/lib/utils";
+import { calculatePriceFromUsage, cn, formatDateTime } from "@/lib/utils";
 import { Evaluation } from "@prisma/client";
 import {
   ArrowTopRightIcon,
@@ -20,7 +15,7 @@ import {
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
 
 interface CheckedData {
   input: string;
@@ -45,17 +40,17 @@ export default function EvaluationRow({
   onCheckedChange: (data: CheckedData, checked: boolean) => void;
   selectedData: CheckedData[];
 }) {
-  const queryClient = useQueryClient();
-
   const [score, setScore] = useState(-100); // 0: neutral, 1: thumbs up, -1: thumbs down
   const [collapsed, setCollapsed] = useState(true);
   const [evaluation, setEvaluation] = useState<Evaluation>();
   const [addedToDataset, setAddedToDataset] = useState(false);
 
   useQuery({
-    queryKey: [`fetch-evaluation-query-${span.span_id}`],
+    queryKey: ["fetch-evaluation-query", span.span_id, testId],
     queryFn: async () => {
-      const response = await fetch(`/api/evaluation?spanId=${span.span_id}`);
+      const response = await fetch(
+        `/api/evaluation?spanId=${span.span_id}&testId=${testId}`
+      );
       const result = await response.json();
       setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
       setScore(
@@ -66,7 +61,7 @@ export default function EvaluationRow({
   });
 
   useQuery({
-    queryKey: [`fetch-data-query-${span.span_id}`],
+    queryKey: ["fetch-data-query", span.span_id],
     queryFn: async () => {
       const response = await fetch(`/api/data?spanId=${span.span_id}`);
       const result = await response.json();
@@ -99,7 +94,6 @@ export default function EvaluationRow({
     tokenCounts = JSON.parse(attributes["llm.token.counts"]);
     cost = calculatePriceFromUsage(vendor.toLowerCase(), model, tokenCounts);
   }
-  const promptContent = extractSystemPromptFromLlmInputs(prompts);
 
   // check for pii detections
   let piiDetected = false;
@@ -111,57 +105,20 @@ export default function EvaluationRow({
   }
   piiDetected =
     piiDetected ||
-    (responses && detectPII(
-      JSON.parse(responses)[0]?.message?.content ||
-        JSON.parse(responses)[0]?.text ||
-        JSON.parse(responses)[0]?.content ||
-        ""
-    ).length > 0);
-
-  // score evaluation
-  const evaluateSpan = async (newScore: number) => {
-    if (!evaluation?.id) {
-      // Evaluate
-      await fetch("/api/evaluation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          projectId: projectId,
-          spanId: span.span_id,
-          traceId: span.trace_id,
-          ltUserScore: newScore,
-          testId: testId,
-        }),
-      });
-    } else {
-      await fetch("/api/evaluation", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: evaluation?.id,
-          ltUserScore: newScore,
-        }),
-      });
-    }
-
-    // Invalidate the evaluations query to refetch the updated evaluations
-    queryClient.invalidateQueries(`fetch-evaluation-query-${span.span_id}`);
-    queryClient.invalidateQueries(`fetch-test-averages-${projectId}-query`);
-    queryClient.invalidateQueries(
-      `fetch-accuracy-${projectId}-${testId}-query`
-    );
-  };
+    (responses &&
+      detectPII(
+        JSON.parse(responses)[0]?.message?.content ||
+          JSON.parse(responses)[0]?.text ||
+          JSON.parse(responses)[0]?.content ||
+          ""
+      ).length > 0);
 
   return (
     <div className="flex flex-col gap-3 w-full" key={key}>
       <div
         className={cn(
           !collapsed ? "border-[1px] border-muted-foreground" : "",
-          "grid grid-cols-14 items-center gap-3 py-3 px-4 w-full cursor-pointer"
+          "grid grid-cols-15 items-center gap-3 py-3 px-4 w-full cursor-pointer"
         )}
         onClick={() => setCollapsed(!collapsed)}
       >
@@ -176,15 +133,22 @@ export default function EvaluationRow({
                 (prompt: any) => prompt.role === "user"
               );
               if (!input) return;
+              let output =
+                responses?.length > 0
+                  ? JSON.parse(responses)[0]?.message?.content ||
+                    JSON.parse(responses)[0]?.text ||
+                    JSON.parse(responses)[0]?.content
+                  : "";
+
+              // if output is object, convert to string
+              if (typeof output === "object") {
+                output = JSON.stringify(output);
+              }
+
               const checkedData = {
                 spanId: span.span_id,
                 input: input?.content || "",
-                output:
-                  responses?.length > 0
-                    ? JSON.parse(responses)[0]?.message?.content ||
-                      JSON.parse(responses)[0]?.text ||
-                      JSON.parse(responses)[0]?.content
-                    : "",
+                output: output,
               };
               onCheckedChange(checkedData, state);
             }}
@@ -240,18 +204,14 @@ export default function EvaluationRow({
         <p className="text-sm font-semibold">
           {userScore ? userScore : "Not evaluated"}
         </p>
-        <p className="text-sm font-semibold">
-          {userId}
-        </p>
+        <p className="text-sm font-semibold">{userId || "Not Available"}</p>
         <div className=" col-span-2 flex flex-row items-center justify-evenly">
           {addedToDataset ? (
             <CheckCircledIcon className="text-green-600 w-5 h-5" />
           ) : (
             <CrossCircledIcon className="text-muted-foreground w-5 h-5" />
           )}
-          <Link
-            href={`/project/${projectId}/evaluations/${testId}?page=${page}`}
-          >
+          <Link href={`/project/${projectId}/evaluate/${testId}?page=${page}`}>
             <Button
               onClick={(e) => e.stopPropagation()}
               variant={"secondary"}

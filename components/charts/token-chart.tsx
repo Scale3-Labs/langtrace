@@ -96,7 +96,7 @@ export function CostChart({
     queryKey: ["fetch-metrics-usage-cost", projectId, lastNHours],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/cost?projectId=${projectId}`
+        `/api/metrics/usage/cost?projectId=${projectId}&lastNHours=${lastNHours}`
       );
       if (!response.ok) {
         const error = await response.json();
