@@ -16,6 +16,8 @@ export const TIKTOKEN_MODEL_MAPPING: Record<string, TiktokenEncoding> = {
   "gpt-35-turbo-16k": "cl100k_base",
   "gpt-35-turbo-instruct": "cl100k_base",
   "gpt-4": "cl100k_base",
+  "gpt-4o": "o200k_base",
+  "gpt-4o-2024-05-13": "o200k_base",
 };
 
 export type LangTraceAttributes = LLMSpanAttributes &
@@ -42,6 +44,14 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
   "gpt-4o-2024-05-13": {
     input: 0.005,
     output: 0.015,
+  },
+  "gpt-4-turbo": {
+    input: 0.01,
+    output: 0.03,
+  },
+  "gpt-4-turbo-2024-04-09": {
+    input: 0.01,
+    output: 0.03,
   },
   "gpt-4": {
     input: 0.03,
