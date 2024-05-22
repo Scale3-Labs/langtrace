@@ -42,6 +42,7 @@ export default function CreatePromptDialog({
   open,
   setOpen,
   showButton = true,
+  setOpenDialog,
 }: {
   promptsetId: string;
   currentPrompt?: Prompt;
@@ -52,6 +53,7 @@ export default function CreatePromptDialog({
   open: boolean;
   setOpen: (open: boolean) => void;
   showButton?: boolean;
+  setOpenDialog?: (open: boolean) => void;
 }) {
   const schema = z.object({
     prompt: z.string(),
@@ -105,8 +107,6 @@ export default function CreatePromptDialog({
     }
   }, [passedPrompt, currentPrompt]);
 
-  console.log("prompt", prompt);
-
   return (
     <>
       <AlertDialog
@@ -139,10 +139,8 @@ export default function CreatePromptDialog({
                 <form
                   className="flex flex-col gap-8"
                   onSubmit={CreatePromptForm.handleSubmit(async (data) => {
-                    console.log("hit");
                     try {
                       setBusy(true);
-                      console.log("saving");
                       const payload = {
                         value: data.prompt,
                         variables: variables,
@@ -170,6 +168,7 @@ export default function CreatePromptDialog({
                       });
                       setBusy(false);
                       setOpen(false);
+                      setOpenDialog && setOpenDialog(false);
                     } catch (error) {
                       setBusy(false);
                       console.log("err", error);
