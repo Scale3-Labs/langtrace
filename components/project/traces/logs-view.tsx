@@ -5,6 +5,8 @@ import { correctTimestampFormat } from "@/lib/trace_utils";
 import { cn, formatDateTime, parseNestedJsonFields } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { JsonView, allExpanded, defaultStyles } from "react-json-view-lite";
+import "react-json-view-lite/dist/index.css";
 import {
   serviceTypeColor,
   vendorBadgeColor,
@@ -88,9 +90,11 @@ export const LogsView = ({
         )}
       </div>
       {!collapsed && (
-        <pre className="text-xs bg-muted p-2 rounded-md whitespace-pre-wrap">
-          {parseNestedJsonFields(span.attributes)}
-        </pre>
+        <JsonView
+          data={JSON.parse(parseNestedJsonFields(span.attributes))}
+          shouldExpandNode={allExpanded}
+          style={defaultStyles}
+        />
       )}
       <Separator />
     </div>

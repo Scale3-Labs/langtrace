@@ -444,6 +444,26 @@ export function safeStringify(value: any): string {
   if (typeof value === "string") {
     return value;
   }
+
+  // if its a list, check type and stringify
+  if (Array.isArray(value)) {
+    const stringifiedList = value.map((item) => {
+      if (item?.type === "text") {
+        return item?.text;
+      } else if (item?.type === "function") {
+        return prettyPrintJson.toHtml(item);
+      } else if (item?.type === "image_url") {
+        if (typeof item?.image_url === "string") {
+          return `<img src="${item?.image_url}" />`;
+        } else if (typeof item?.image_url === "object") {
+          return `<img src="${item?.image_url?.url}" />`;
+        }
+      }
+      return item;
+    });
+    return stringifiedList.join("");
+  }
+
   // If it's not a string, stringify it
   return prettyPrintJson.toHtml(value);
 }
