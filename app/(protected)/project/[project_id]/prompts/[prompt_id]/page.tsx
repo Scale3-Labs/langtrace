@@ -20,6 +20,7 @@ export default function Page() {
   const router = useRouter();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt>();
+  const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   const [live, setLive] = useState<boolean>(false);
   const queryClient = useQueryClient();
 
@@ -72,6 +73,8 @@ export default function Page() {
           <CreatePromptDialog
             promptsetId={promptsetId}
             version={prompts.length + 1}
+            open={createDialogOpen}
+            setOpen={setCreateDialogOpen}
           />
         </div>
       </div>
@@ -93,11 +96,15 @@ export default function Page() {
               currentPrompt={selectedPrompt}
               promptsetId={promptsetId}
               version={prompts.length + 1}
+              open={createDialogOpen}
+              setOpen={setCreateDialogOpen}
             />
           ) : (
             <CreatePromptDialog
               promptsetId={promptsetId}
               version={prompts.length + 1}
+              open={createDialogOpen}
+              setOpen={setCreateDialogOpen}
             />
           )}
         </div>
@@ -247,7 +254,6 @@ function PageLoading() {
           <ChevronLeft className="w-6 h-6 mr-2" />
           Back
         </Button>
-        <CreatePromptDialog promptsetId={""} disabled={true} />
       </div>
       <div className="flex gap-4 w-full h-screen">
         <Skeleton className="w-[340px] h-screen" />

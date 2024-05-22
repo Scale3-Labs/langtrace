@@ -9,6 +9,8 @@ import {
 import { calculatePriceFromUsage, formatDateTime } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { JsonView, allExpanded, defaultStyles } from "react-json-view-lite";
+import "react-json-view-lite/dist/index.css";
 import { HoverCell } from "../../shared/hover-cell";
 import { LLMView } from "../../shared/llm-view";
 import TraceGraph from "../../traces/trace_graph";
@@ -36,6 +38,7 @@ export const TraceRow = ({
   let userId: string = "";
   let prompts: any[] = [];
   let responses: any[] = [];
+  let events: any[] = [];
   let cost = { total: 0, input: 0, output: 0 };
   let langgraph = false;
   for (const span of trace) {
@@ -78,6 +81,10 @@ export const TraceRow = ({
         cost.output += currentcost.output;
       }
     }
+
+    if (span.events) {
+      events = JSON.parse(span.events);
+    }
   }
 
   // Sort the trace based on start_time, then end_time
@@ -115,13 +122,13 @@ export const TraceRow = ({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {traceHierarchy[0].status !== "ERROR" && (
+          {traceHierarchy[0].status_code !== "ERROR" && (
             <Separator
               orientation="vertical"
               className="bg-green-400 h-6 w-1 rounded-md"
             />
           )}
-          {traceHierarchy[0].status === "ERROR" && (
+          {traceHierarchy[0].status_code === "ERROR" && (
             <Separator
               orientation="vertical"
               className="bg-red-400 h-6 w-1 rounded-md"
@@ -199,6 +206,25 @@ export const TraceRow = ({
               )}
             </Button>
             <Button
+              disabled={events.length === 0}
+              onClick={() => setSelectedTab("events")}
+              variant={"ghost"}
+              className="flex flex-col justify-between pb-0"
+            >
+              <p
+                className={
+                  selectedTab === "events"
+                    ? "text-xs text-primary font-medium"
+                    : "text-xs text-muted-foreground font-medium"
+                }
+              >
+                Events
+              </p>
+              {selectedTab === "events" && (
+                <Separator className="bg-primary h-[2px]" />
+              )}
+            </Button>
+            <Button
               disabled={prompts.length === 0 || responses.length === 0}
               onClick={() => setSelectedTab("llm")}
               variant={"ghost"}
@@ -251,6 +277,20 @@ export const TraceRow = ({
             <div className="flex flex-col px-4 mt-2">
               {trace.map((span: any, i: number) => {
                 return <LogsView key={i} span={span} utcTime={utcTime} />;
+              })}
+            </div>
+          )}
+          {selectedTab === "events" && (
+            <div className="flex flex-col px-4 mt-2">
+              {events.map((event: any, i: number) => {
+                return (
+                  <JsonView
+                    key={i}
+                    data={event}
+                    shouldExpandNode={allExpanded}
+                    style={defaultStyles}
+                  />
+                );
               })}
             </div>
           )}
