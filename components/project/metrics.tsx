@@ -44,11 +44,11 @@ export default function Metrics({ email }: { email: string }) {
           <p className="text-lg font-semibold pr-2">Usage</p>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="border p-1 rounded flex items-center bg-white">
+              <button className="border p-1 rounded flex items-center bg-muted">
                 {selectedLabel} <ChevronDownIcon className="ml-2 h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white p-2 z-50 border border-black rounded-md">
+            <DropdownMenuContent className="bg-muted p-2 z-50 border border-black rounded-md">
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup
                 value={String(lastNHours)}
@@ -58,7 +58,7 @@ export default function Metrics({ email }: { email: string }) {
                   <DropdownMenuRadioItem
                     key={range.value}
                     value={String(range.value)}
-                    className="cursor-pointer hover:bg-gray-100"
+                    className="cursor-pointer hover:bg-muted-foreground border-black"
                   >
                     {range.label}
                   </DropdownMenuRadioItem>
