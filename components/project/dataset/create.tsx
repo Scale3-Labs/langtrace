@@ -160,11 +160,13 @@ export function CreateDataset({
 
 export function CreatePromptset({
   projectId,
+  onCreate,
   disabled = false,
   variant = "default",
   className = "",
 }: {
   projectId?: string;
+  onCreate?: () => void;
   disabled?: boolean;
   variant?: any;
   className?: string;
@@ -218,6 +220,9 @@ export function CreatePromptset({
                 toast("Prompt registry created!", {
                   description: "Your prompt registry has been created.",
                 });
+                if (onCreate) {
+                  onCreate();
+                }
                 setOpen(false);
                 CreatePromptsetForm.reset();
               } catch (error: any) {
