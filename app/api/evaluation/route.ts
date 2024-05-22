@@ -166,7 +166,7 @@ export async function GET(req: NextRequest) {
       }
 
       return NextResponse.json({
-        evaluations: evaluations,
+        evaluations: Array.isArray(evaluations) ? evaluations : [evaluations],
       });
     }
 
