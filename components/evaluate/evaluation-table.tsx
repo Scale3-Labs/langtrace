@@ -164,17 +164,21 @@ export default function EvaluationTable({
       !currentData ? (
         <EvaluationTableSkeleton />
       ) : (
-        currentData.map((span: any, i: number) => (
-          <EvaluationRow
-            key={i}
-            page={i + 1}
-            span={span}
-            projectId={projectId}
-            testId={test.id}
-            onCheckedChange={onCheckedChange}
-            selectedData={selectedData}
-          />
-        ))
+        currentData.map((span: any, i: number) => {
+          if (span.status_code !== "ERROR") {
+            return (
+              <EvaluationRow
+                key={i}
+                page={i + 1}
+                span={span}
+                projectId={projectId}
+                testId={test.id}
+                onCheckedChange={onCheckedChange}
+                selectedData={selectedData}
+              />
+            );
+          }
+        })
       )}
       {showLoader && (
         <div className="flex justify-center py-8">
