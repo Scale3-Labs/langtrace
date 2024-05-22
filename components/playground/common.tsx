@@ -1,3 +1,6 @@
+"use client";
+
+import PromptRegistryDialog from "@/components/playground/prompt-registry-dialog";
 import LLMPicker from "@/components/shared/llm-picker";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import { MinusCircleIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 export function RoleBadge({
   role,
@@ -34,15 +39,24 @@ export function ExpandingTextArea({
   value,
   onChange,
   setFocusing,
+  saveButtonRef,
+  handleSave,
 }: {
   value: string;
   onChange: any;
   setFocusing?: any;
+  saveButtonRef: React.RefObject<HTMLButtonElement>;
+  handleSave: (open: boolean) => void;
 }) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleClickOutside = (event: any) => {
-    if (textAreaRef.current && !textAreaRef.current.contains(event.target)) {
+    if (
+      textAreaRef.current &&
+      !textAreaRef.current.contains(event.target) &&
+      saveButtonRef.current &&
+      !saveButtonRef.current.contains(event.target)
+    ) {
       setFocusing(false);
     }
   };
@@ -63,13 +77,25 @@ export function ExpandingTextArea({
   };
 
   return (
-    <textarea
-      className="rounded-md text-sm w-[290px] bg-background"
-      ref={textAreaRef}
-      defaultValue={value}
-      onChange={handleChange}
-      style={{ overflowY: "auto", resize: "none", height: "auto" }}
-    />
+    <div className="relative w-[290px]">
+      <textarea
+        className="rounded-md text-sm w-[290px] bg-background pr-10"
+        ref={textAreaRef}
+        defaultValue={value}
+        onChange={handleChange}
+        style={{ overflowY: "auto", resize: "none", height: "auto" }}
+      />
+      <div className="absolute right-2 bottom-2 py-2">
+        <Button
+          className="text-sm px-6"
+          size={"icon"}
+          onClick={() => handleSave(true)}
+          ref={saveButtonRef}
+        >
+          Save
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -107,6 +133,34 @@ export function Message({
     }
   };
   const [editing, setEditing] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedPromptRegistry, setSelectedPromptRegistry] =
+    useState<any>(null);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const [currentPrompt, setCurrentPrompt] = useState<any>(undefined);
+
+  useQuery({
+    queryKey: ["fetch-prompts-query", selectedPromptRegistry?.id],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/promptset?promptset_id=${selectedPromptRegistry?.id}`
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch tests");
+      }
+      const result = await response.json();
+      setCurrentPrompt(result?.promptsets?.prompts[0] || undefined);
+      return result;
+    },
+    enabled: !!selectedPromptRegistry,
+    onError: (error) => {
+      toast.error("Failed to fetch prompts", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
+
   return (
     <>
       <div className="flex items-center justify-between cursor-pointer group hover:bg-muted rounded-md p-4">
@@ -129,13 +183,17 @@ export function Message({
               </p>
             )}
             {editing && (
-              <ExpandingTextArea
-                onChange={(value: string) => {
-                  setMessage({ ...message, content: value });
-                }}
-                value={message.content}
-                setFocusing={setEditing}
-              />
+              <div>
+                <ExpandingTextArea
+                  onChange={(value: string) => {
+                    setMessage({ ...message, content: value });
+                  }}
+                  value={message.content}
+                  setFocusing={setEditing}
+                  saveButtonRef={saveButtonRef}
+                  handleSave={setDialogOpen}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -151,6 +209,11 @@ export function Message({
         </Button>
       </div>
       <Separator />
+      <PromptRegistryDialog
+        openDialog={dialogOpen}
+        setOpenDialog={setDialogOpen}
+        passedPrompt={message.content}
+      />
     </>
   );
 }
