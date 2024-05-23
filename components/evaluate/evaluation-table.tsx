@@ -56,6 +56,13 @@ export default function EvaluationTable({
           key: "llm.prompts",
           operation: "NOT_EQUALS",
           value: "",
+          type: "attribute",
+        },
+        {
+          key: "status_code",
+          operation: "NOT_EQUALS",
+          value: "ERROR",
+          type: "property",
         },
       ];
 
