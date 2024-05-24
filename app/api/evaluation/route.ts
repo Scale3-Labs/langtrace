@@ -107,17 +107,22 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      const payload: any = {
+        spanId,
+        traceId,
+        ltUserId: user.id,
+        projectId,
+        ltUserScore,
+        testId,
+        reason: reason || "",
+      };
+
+      if (dataId) {
+        payload["dataId"] = dataId;
+      }
+
       const evaluation = await prisma.evaluation.create({
-        data: {
-          spanId,
-          traceId,
-          ltUserId: user.id,
-          projectId,
-          ltUserScore,
-          testId,
-          reason: reason || "",
-          dataId: dataId || "",
-        },
+        data: payload,
       });
 
       return NextResponse.json({

@@ -60,8 +60,8 @@ export default function EvaluationTable({
         },
         {
           key: "status_code",
-          operation: "NOT_EQUALS",
-          value: "ERROR",
+          operation: "EQUALS",
+          value: "OK",
           type: "property",
         },
       ];
