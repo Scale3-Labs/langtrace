@@ -5,111 +5,132 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const apiKey = req.headers.get("x-api-key");
-  if (apiKey !== null) {
-    const response = await authApiKey(apiKey);
-    if (response.status !== 200) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const projectData = await response.json();
-    const projectId = projectData.data.project.id;
-    const data = await req.json();
-    const { traceId, spanId, userScore, userId } = data;
-    // check if an evaluation already exists for the spanId
-    const existingEvaluation = await prisma.evaluation.findFirst({
-      where: {
-        spanId,
-      },
-    });
-
-    if (existingEvaluation) {
-      return NextResponse.json(
-        {
-          error: "Evaluation already exists for this span",
+  try {
+    const apiKey = req.headers.get("x-api-key");
+    if (apiKey !== null) {
+      const response = await authApiKey(apiKey);
+      if (response.status !== 200) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const projectData = await response.json();
+      const projectId = projectData.data.project.id;
+      const data = await req.json();
+      const { traceId, spanId, userScore, userId, reason, dataId } = data;
+      // check if an evaluation already exists for the spanId
+      const existingEvaluation = await prisma.evaluation.findFirst({
+        where: {
+          spanId,
         },
-        { status: 400 }
-      );
-    }
+      });
 
-    const evaluation = await prisma.evaluation.create({
-      data: {
-        spanId,
+      if (existingEvaluation) {
+        return NextResponse.json(
+          {
+            error: "Evaluation already exists for this span",
+          },
+          { status: 400 }
+        );
+      }
+
+      const evaluation = await prisma.evaluation.create({
+        data: {
+          spanId,
+          traceId,
+          projectId,
+          userId,
+          userScore,
+          reason: reason || "",
+          dataId,
+        },
+      });
+      return NextResponse.json({
+        data: evaluation,
+      });
+    } else {
+      const session = await getServerSession(authOptions);
+      if (!session || !session.user) {
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const email = session?.user?.email as string;
+      if (!email) {
+        return NextResponse.json(
+          {
+            error: "email not found",
+          },
+          { status: 404 }
+        );
+      }
+
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+        include: {
+          Team: true,
+        },
+      });
+
+      if (!user) {
+        return NextResponse.json(
+          {
+            error: "user not found",
+          },
+          { status: 404 }
+        );
+      }
+
+      const data = await req.json();
+      const {
         traceId,
-        projectId,
-        userId,
-        userScore,
-      },
-    });
-    return NextResponse.json({
-      data: evaluation,
-    });
-  } else {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const email = session?.user?.email as string;
-    if (!email) {
-      return NextResponse.json(
-        {
-          error: "email not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        Team: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          error: "user not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    const data = await req.json();
-    const { traceId, spanId, projectId, ltUserScore, testId } = data;
-
-    // check if this user has access to this project
-    const project = await prisma.project.findFirst({
-      where: {
-        id: projectId,
-        teamId: user.teamId,
-      },
-    });
-
-    if (!project) {
-      return NextResponse.json(
-        {
-          error: "User does not have access to this project",
-        },
-        { status: 403 }
-      );
-    }
-
-    const evaluation = await prisma.evaluation.create({
-      data: {
         spanId,
-        traceId,
-        ltUserId: user.id,
         projectId,
         ltUserScore,
         testId,
-      },
-    });
+        reason,
+        dataId,
+      } = data;
 
-    return NextResponse.json({
-      data: evaluation,
-    });
+      // check if this user has access to this project
+      const project = await prisma.project.findFirst({
+        where: {
+          id: projectId,
+          teamId: user.teamId,
+        },
+      });
+
+      if (!project) {
+        return NextResponse.json(
+          {
+            error: "User does not have access to this project",
+          },
+          { status: 403 }
+        );
+      }
+
+      const evaluation = await prisma.evaluation.create({
+        data: {
+          spanId,
+          traceId,
+          ltUserId: user.id,
+          projectId,
+          ltUserScore,
+          testId,
+          reason: reason || "",
+          dataId: dataId || "",
+        },
+      });
+
+      return NextResponse.json({
+        data: evaluation,
+      });
+    }
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -227,123 +248,133 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  const apiKey = req.headers.get("x-api-key");
-  if (apiKey !== null) {
-    const response = await authApiKey(apiKey);
-    if (response.status !== 200) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const projectData = await response.json();
-    const projectId = projectData.data.project.id;
+  try {
+    const session = await getServerSession(authOptions);
+    const apiKey = req.headers.get("x-api-key");
+    if (apiKey !== null) {
+      const response = await authApiKey(apiKey);
+      if (response.status !== 200) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const projectData = await response.json();
+      const projectId = projectData.data.project.id;
 
-    let { spanId, userScore, userId } = await req.json().catch(() => ({}));
-    if (!spanId || !userScore || !userId) {
-      return NextResponse.json(
-        {
-          error:
-            "spanId, userId and userScore are required in the request body",
+      let { spanId, userScore, userId } = await req.json().catch(() => ({}));
+      if (!spanId || !userScore || !userId) {
+        return NextResponse.json(
+          {
+            error:
+              "spanId, userId and userScore are required in the request body",
+          },
+          { status: 400 }
+        );
+      }
+      userScore = Number(userScore);
+      if (Number.isNaN(userScore)) {
+        return NextResponse.json(
+          { error: "userScore must be a number" },
+          { status: 400 }
+        );
+      }
+      if (userScore !== 1 && userScore !== -1) {
+        return NextResponse.json(
+          { error: "userScore must be 1 or -1" },
+          { status: 400 }
+        );
+      }
+      if (userId?.length === 0) {
+        return NextResponse.json(
+          { error: "userId must be a non-empty string" },
+          { status: 400 }
+        );
+      }
+      const evaluation = await prisma.evaluation.findFirst({
+        where: {
+          projectId,
+          spanId,
         },
-        { status: 400 }
-      );
-    }
-    userScore = Number(userScore);
-    if (Number.isNaN(userScore)) {
-      return NextResponse.json(
-        { error: "userScore must be a number" },
-        { status: 400 }
-      );
-    }
-    if (userScore !== 1 && userScore !== -1) {
-      return NextResponse.json(
-        { error: "userScore must be 1 or -1" },
-        { status: 400 }
-      );
-    }
-    if (userId?.length === 0) {
-      return NextResponse.json(
-        { error: "userId must be a non-empty string" },
-        { status: 400 }
-      );
-    }
-    const evaluation = await prisma.evaluation.findFirst({
-      where: {
-        projectId,
-        spanId,
-      },
-    });
-    if (!evaluation) {
-      return NextResponse.json(
-        { error: "Evaluation not found" },
-        { status: 404 }
-      );
-    }
-    const updatedEvaluation = await prisma.evaluation.update({
-      where: {
-        id: evaluation.id,
-      },
-      data: {
-        userScore,
-        userId,
-      },
-    });
-    return NextResponse.json({ data: updatedEvaluation });
-  } else {
-    if (!session || !session.user) {
-      NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const email = session?.user?.email as string;
-    if (!email) {
-      return NextResponse.json(
-        {
-          error: "email not found",
+      });
+      if (!evaluation) {
+        return NextResponse.json(
+          { error: "Evaluation not found" },
+          { status: 404 }
+        );
+      }
+      const updatedEvaluation = await prisma.evaluation.update({
+        where: {
+          id: evaluation.id,
         },
-        { status: 404 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        Team: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          error: "user not found",
+        data: {
+          userScore,
+          userId,
         },
-        { status: 404 }
-      );
-    }
+      });
+      return NextResponse.json({ data: updatedEvaluation });
+    } else {
+      if (!session || !session.user) {
+        NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const email = session?.user?.email as string;
+      if (!email) {
+        return NextResponse.json(
+          {
+            error: "email not found",
+          },
+          { status: 404 }
+        );
+      }
 
-    const data = await req.json();
-    const { id, ltUserScore, testId } = data;
-    const evaluation = await prisma.evaluation.update({
-      where: {
-        id,
-      },
-      data: {
-        ltUserId: user.id,
-        ltUserScore,
-        testId,
-      },
-    });
-
-    if (!evaluation) {
-      return NextResponse.json(
-        {
-          error: "No evaluation found",
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
         },
-        { status: 404 }
-      );
-    }
+        include: {
+          Team: true,
+        },
+      });
 
-    return NextResponse.json({
-      data: evaluation,
-    });
+      if (!user) {
+        return NextResponse.json(
+          {
+            error: "user not found",
+          },
+          { status: 404 }
+        );
+      }
+
+      const data = await req.json();
+      const { id, ltUserScore, testId, reason } = data;
+      const evaluation = await prisma.evaluation.update({
+        where: {
+          id,
+        },
+        data: {
+          ltUserId: user.id,
+          ltUserScore,
+          testId,
+          reason: reason || "",
+        },
+      });
+
+      if (!evaluation) {
+        return NextResponse.json(
+          {
+            error: "No evaluation found",
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        data: evaluation,
+      });
+    }
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
   }
 }
