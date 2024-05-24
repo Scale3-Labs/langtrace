@@ -2,7 +2,7 @@
 
 import { TraceRow } from "@/components/project/traces/trace-row";
 import { PAGE_SIZE } from "@/lib/constants";
-import { AttributesFilter } from "@/lib/services/query_builder_service";
+import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -22,7 +22,7 @@ export default function Traces({ email }: { email: string }) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
   const [showLoader, setShowLoader] = useState(false);
-  const [filters, setFilters] = useState<AttributesFilter[]>([]);
+  const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
 
@@ -145,6 +145,7 @@ export default function Traces({ email }: { email: string }) {
                         key: "langtrace.service.type",
                         operation: "EQUALS",
                         value: item.key,
+                        type: "attribute",
                       },
                     ]);
                   } else {

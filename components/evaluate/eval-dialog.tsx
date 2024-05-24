@@ -119,6 +119,7 @@ function EvalContent({
           key: "llm.prompts",
           operation: "NOT_EQUALS",
           value: "",
+          type: "attribute",
         },
         // Accuracy is the default test. So no need to
         // send the testId with the spans when using the SDK.
@@ -126,6 +127,7 @@ function EvalContent({
           key: "langtrace.testId",
           operation: "EQUALS",
           value: test.name.toLowerCase() !== "factual accuracy" ? test.id : "",
+          type: "attribute",
         },
       ];
 
