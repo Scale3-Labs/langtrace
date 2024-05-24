@@ -4,8 +4,8 @@ import sql from "sql-bricks";
 import { ClickhouseBaseClient } from "../clients/scale3_clickhouse/client/client";
 import { calculatePriceFromUsage } from "../utils";
 import {
-  AttributesFilter,
   IQueryBuilderService,
+  PropertyFilter,
   QueryBuilderService,
 } from "./query_builder_service";
 
@@ -55,14 +55,14 @@ export interface ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters?: AttributesFilter[]
+    filters?: PropertyFilter[]
   ) => Promise<PaginationResult<Span>>;
   GetSpansInProject: (project_id: string, lastNDays: number) => Promise<Span[]>;
   GetTracesInProjectPaginated: (
     project_id: string,
     page: number,
     pageSize: number,
-    filters?: AttributesFilter[]
+    filters?: PropertyFilter[]
   ) => Promise<PaginationResult<Span[]>>;
   GetTokensUsedPerProject: (project_id: string) => Promise<any>;
   GetTokensUsedPerAccount: (project_ids: string[]) => Promise<number>;
@@ -347,7 +347,7 @@ export class TraceService implements ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters: AttributesFilter[] = [],
+    filters: PropertyFilter[] = [],
     filterOperation: string = "OR"
   ): Promise<PaginationResult<Span>> {
     try {
@@ -423,7 +423,7 @@ export class TraceService implements ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters: AttributesFilter[] = [],
+    filters: PropertyFilter[] = [],
     filterOperation: string = "OR"
   ): Promise<PaginationResult<Span[]>> {
     try {

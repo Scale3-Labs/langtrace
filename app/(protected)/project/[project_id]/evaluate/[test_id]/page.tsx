@@ -70,6 +70,13 @@ export default function Page() {
           key: "llm.prompts",
           operation: "NOT_EQUALS",
           value: "",
+          type: "attribute",
+        },
+        {
+          key: "status_code",
+          operation: "EQUALS",
+          value: "OK",
+          type: "property",
         },
       ];
 
