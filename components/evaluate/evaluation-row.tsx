@@ -88,8 +88,8 @@ export default function EvaluationRow({
   let vendor = "";
   let tokenCounts: any = {};
   let cost = { total: 0, input: 0, output: 0 };
+  model = attributes["llm.model"] || "";
   if (attributes["llm.token.counts"]) {
-    model = attributes["llm.model"];
     vendor = attributes["langtrace.service.name"];
     tokenCounts = JSON.parse(attributes["llm.token.counts"]);
     cost = calculatePriceFromUsage(vendor.toLowerCase(), model, tokenCounts);
