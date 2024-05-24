@@ -131,6 +131,8 @@ model Data {
   Run            Run?         @relation(fields: [runId], references: [id], onDelete: Cascade)
   datasetId      String?
   Dataset        Dataset?     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  projectId      String?
+  Project        Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
@@ -181,6 +183,7 @@ model Project {
   Dataset     Dataset[]
   Promptset   Promptset[]
   Test        Test[]
+  Data        Data[]
 }
 
 model TeamInvite {

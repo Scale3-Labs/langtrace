@@ -1,5 +1,6 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
+import { authApiKey } from "@/lib/utils";
 import { Data } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -59,21 +60,43 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    // check session
+    let projectId = "";
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
-      redirect("/login");
+      // check api key
+      const apiKey = req.headers.get("x-api-key");
+      if (!apiKey) {
+        redirect("/login");
+      }
+
+      const response = await authApiKey(apiKey!);
+      if (response.status !== 200) {
+        return response;
+      }
+
+      // Get project data
+      const projectData = await response.json();
+      projectId = projectData.data.project.id;
     }
 
     const data = await req.json();
-    const { datas, datasetId } = data;
+    const { datas, datasetId, runId } = data;
+    if (!projectId) {
+      projectId = data.projectId;
+    }
 
     const result = await prisma.data.createMany({
       data: datas.map((data: Data) => ({
         input: data.input,
         output: data.output,
+        contexts: data.contexts || [],
+        expectedOutput: data.expectedOutput || "",
         note: data.note || "",
         spanId: data.spanId || "",
-        datasetId,
+        projectId: projectId || "",
+        datasetId: datasetId || "",
+        runId: runId || "",
       })),
     });
 
@@ -98,7 +121,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const data = await req.json();
-    const { id, input, output, note } = data;
+    const { id, input, output, expectedOutput, contexts, note } = data;
 
     const result = await prisma.data.update({
       where: {
@@ -107,6 +130,8 @@ export async function PUT(req: NextRequest) {
       data: {
         input,
         output,
+        expectedOutput,
+        contexts,
         note,
       },
     });
