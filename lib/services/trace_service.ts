@@ -659,7 +659,6 @@ export class TraceService implements ITraceService {
       }
 
       const nHoursAgo = getFormattedTime(lastNHours);
-      console.log(nHoursAgo);
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
@@ -689,9 +688,7 @@ export class TraceService implements ITraceService {
         .groupBy("date", "model", "vendor")
         .orderBy("date");
 
-      console.log(query.toString());
       const result: any[] = await this.client.find(query);
-      console.log(result);
 
       const costPerHour = result.map((row: any) => {
         const llmTokenCounts = {
@@ -712,7 +709,6 @@ export class TraceService implements ITraceService {
 
       return costPerHour;
     } catch (error) {
-      console.log(error);
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
       );
