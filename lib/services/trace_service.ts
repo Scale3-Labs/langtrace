@@ -659,45 +659,60 @@ export class TraceService implements ITraceService {
       }
 
       const nHoursAgo = getFormattedTime(lastNHours);
-
+      console.log(nHoursAgo);
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
-          `groupArray(attributes) AS attributes_list`,
+          `JSONExtractString(attributes, 'llm.model') AS model`,
+          `JSONExtractString(attributes, 'langtrace.service.name') AS vendor`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
+          )
+        ) AS total_tokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+          )
+        ) AS input_tokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+          )
+        ) AS output_tokens`,
         ])
         .from(project_id)
         .where(
           sql.like("attributes", "%total_tokens%"),
           sql.gte("start_time", nHoursAgo)
         )
-        .groupBy("date")
+        .groupBy("date", "model", "vendor")
         .orderBy("date");
-      const result = await this.client.find<any>(query);
 
-      // calculate total tokens used per day
+      console.log(query.toString());
+      const result: any[] = await this.client.find(query);
+      console.log(result);
+
       const costPerHour = result.map((row: any) => {
-        let costs = { total: 0, input: 0, output: 0 };
-        row.attributes_list.forEach((attributes: any) => {
-          const parsedAttributes = JSON.parse(attributes);
-          const llmTokenCounts = parsedAttributes["llm.token.counts"]
-            ? JSON.parse(parsedAttributes["llm.token.counts"])
-            : {};
-          const model = parsedAttributes["llm.model"];
-          const vendor =
-            parsedAttributes["langtrace.service.name"].toLowerCase();
-          const cost = calculatePriceFromUsage(vendor, model, llmTokenCounts);
-          costs.total += cost.total;
-          costs.input += cost.input;
-          costs.output += cost.output;
-        });
+        const llmTokenCounts = {
+          total_tokens: row.total_tokens,
+          input_tokens: row.input_tokens,
+          output_tokens: row.output_tokens,
+        };
+        const model = row.model;
+        const vendor = row.vendor.toLowerCase();
+        const cost = calculatePriceFromUsage(vendor, model, llmTokenCounts);
         return {
           date: row.date,
-          ...costs,
+          total: cost.total,
+          input: cost.input,
+          output: cost.output,
         };
       });
 
       return costPerHour;
     } catch (error) {
+      console.log(error);
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
       );
