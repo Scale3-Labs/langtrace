@@ -715,34 +715,54 @@ export class TraceService implements ITraceService {
         };
       }
 
-      const query = sql
-        .select()
-        .from(project_id)
-        .where(sql.like("attributes", "%total_tokens%"));
-      const spans: Span[] = await this.client.find<Span[]>(query);
-      const costs: any = [];
+      const query = sql.select(`
+        JSONExtractString(attributes, 'llm.model') AS model,
+        JSONExtractString(attributes, 'langtrace.service.name') AS vendor,
+        SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
+          )
+        ) AS total_tokens,
+        SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+          )
+        ) AS input_tokens,
+        SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+          )
+        ) AS output_tokens
+        FROM ${project_id}
+        WHERE JSONHas(attributes, 'llm.token.counts')
+        GROUP BY JSONExtractString(attributes, 'llm.model'), JSONExtractString(attributes, 'langtrace.service.name')
+      `);
+      const spans: any[] = await this.client.find(query);
+
+      let total = 0;
+      let input = 0;
+      let output = 0;
+
       spans.forEach((span) => {
-        const parsedAttributes = JSON.parse(span.attributes || "{}");
-        const llmTokenCounts = parsedAttributes["llm.token.counts"]
-          ? JSON.parse(parsedAttributes["llm.token.counts"])
-          : {};
-        const model = parsedAttributes["llm.model"];
-        const vendor = parsedAttributes["langtrace.service.name"].toLowerCase();
+        const llmTokenCounts = {
+          total_tokens: span.total_tokens,
+          input_tokens: span.input_tokens,
+          output_tokens: span.output_tokens,
+        };
+        const model = span.model;
+        const vendor = span.vendor.toLowerCase();
 
         const cost = calculatePriceFromUsage(vendor, model, llmTokenCounts);
-        costs.push(cost);
+        total += cost.total;
+        input += cost.input;
+        output += cost.output;
       });
-      let result = {
-        total: 0,
-        input: 0,
-        output: 0,
+
+      return {
+        total,
+        input,
+        output,
       };
-      costs.forEach((cost: any) => {
-        result.total += cost.total;
-        result.input += cost.input;
-        result.output += cost.output;
-      });
-      return result;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
