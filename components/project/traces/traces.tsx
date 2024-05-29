@@ -1,8 +1,10 @@
 "use client";
 
 import { TraceRow } from "@/components/project/traces/trace-row";
+import { Button } from "@/components/ui/button";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -14,6 +16,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 import { Separator } from "../../ui/separator";
 import { Switch } from "../../ui/switch";
+import { FilterDialog } from "./trace-filter";
 import TraceRowSkeleton from "./trace-row-skeleton";
 
 export default function Traces({ email }: { email: string }) {
@@ -25,6 +28,7 @@ export default function Traces({ email }: { email: string }) {
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(true);
 
   useEffect(() => {
     setShowLoader(true);
@@ -127,6 +131,18 @@ export default function Traces({ email }: { email: string }) {
     },
   ];
 
+  const handleFilterDialogOpen = () => {
+    setIsFilterDialogOpen(true);
+  };
+
+  const handleFilterDialogClose = () => {
+    setIsFilterDialogOpen(false);
+  };
+
+  const handleApplyFilters = (newFilters: any) => {
+    setFilters(newFilters);
+  };
+
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
       <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
@@ -160,6 +176,15 @@ export default function Traces({ email }: { email: string }) {
               </label>
             </div>
           ))}
+          <div>
+            <Button
+              className="h-5 w-3 dark:bg-black bg-muted border border-black hover:bg-secondary"
+              onClick={() => setIsFilterDialogOpen(true)}
+            >
+              <FilterListIcon className="cursor-pointer h-4 text-black" />
+            </Button>
+            <label className="text-xs font-semibold px-2">Filters</label>
+          </div>
         </div>
         <div className="flex gap-2 items-center">
           <Label>Local time</Label>
@@ -219,6 +244,11 @@ export default function Traces({ email }: { email: string }) {
             )}
         </div>
       )}
+      <FilterDialog
+        open={true}
+        onClose={handleFilterDialogClose}
+        onApplyFilters={handleApplyFilters}
+      />
     </div>
   );
 }
