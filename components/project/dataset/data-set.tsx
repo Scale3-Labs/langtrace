@@ -24,7 +24,7 @@ export default function DataSet({ email }: { email: string }) {
     isLoading: datasetsLoading,
     error: datasetsError,
   } = useQuery({
-    queryKey: [`fetch-datasets-stats-${projectId}-query`],
+    queryKey: ["fetch-datasets-stats-query", projectId],
     queryFn: async () => {
       const response = await fetch(`/api/stats/dataset?id=${projectId}`);
       if (!response.ok) {
