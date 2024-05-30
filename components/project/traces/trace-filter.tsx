@@ -58,6 +58,8 @@ export default function FilterDialog({
   const [showChromaDB, setShowChromaDB] = React.useState<boolean>(false);
   const [showPinecone, setShowPinecone] = React.useState<boolean>(false);
   const [advancedFilters, setAdvancedFilters] = React.useState<any[]>([]);
+  const [selectedAttributeType, setSelectedAttributeType] =
+    React.useState("string");
 
   const handleFilterChange = (value: any) => {
     setSelectedFilters((prev) => {
@@ -67,6 +69,9 @@ export default function FilterDialog({
       return [...prev, value];
     });
   };
+
+  console.log(selectedFilters);
+  console.log(advancedFilters);
 
   const applyFilters = () => {
     onApplyFilters({
@@ -87,27 +92,12 @@ export default function FilterDialog({
     setAdvancedFilters(advancedFilters.filter((_, i) => i !== index));
   };
 
-  const updateAdvancedFilter = (index: number, key: string, value: any) => {
+  const updateAdvancedFilter = (index: any, field: any, value: any) => {
     const updatedFilters = advancedFilters.map((filter, i) =>
-      i === index ? { ...filter, [key]: value } : filter
+      i === index ? { ...filter, [field]: value } : filter
     );
     setAdvancedFilters(updatedFilters);
   };
-
-  const handleAttributeChange =
-    (index: number) => (event: React.ChangeEvent<{ value: unknown }>) => {
-      updateAdvancedFilter(index, "attribute", event.target.value as string);
-    };
-
-  const handleOperatorChange =
-    (index: number) => (event: React.ChangeEvent<{ value: unknown }>) => {
-      updateAdvancedFilter(index, "operator", event.target.value as string);
-    };
-
-  const handleValueChange =
-    (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      updateAdvancedFilter(index, "value", event.target.value);
-    };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -209,8 +199,10 @@ export default function FilterDialog({
                 setSelectedAttribute={(attribute) =>
                   updateAdvancedFilter(index, "attribute", attribute)
                 }
+                setSelectedAttributeType={setSelectedAttributeType}
               />
               <OperatorCombox
+                selectedAttributeType={selectedAttributeType}
                 setSelectedOperator={(operator) =>
                   updateAdvancedFilter(index, "operator", operator)
                 }
@@ -245,70 +237,72 @@ export default function FilterDialog({
 
 export function AttributesCombobox({
   setSelectedAttribute,
+  setSelectedAttributeType,
 }: {
   setSelectedAttribute: (attribute: string) => void;
+  setSelectedAttributeType: (type: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [selectedAttribute, setSelectedAttributeState] = React.useState("");
   const attributes = [
-    "langtrace.service.name",
-    "langtrace.service.type",
-    "langtrace.service.version",
-    "langtrace.sdk.name",
-    "langtrace.version",
-    "server.address",
-    "db.operation",
-    "db.system",
-    "db.namespace",
-    "db.index",
-    "db.collection.name",
-    "db.pinecone.top_k",
-    "db.chromadb.embedding_model",
-    "user.id",
-    "user.feedback.rating",
-    "langtrace.testId",
-    "langchain.task.name",
-    "langchain.inputs",
-    "langchain.outputs",
-    "llamaindex.task.name",
-    "llamaindex.inputs",
-    "llamaindex.outputs",
-    "url.full",
-    "llm.api",
-    "llm.model",
-    "llm.temperature",
-    "llm.top_p",
-    "llm.top_k",
-    "llm.user",
-    "llm.system.fingerprint",
-    "llm.prompts",
-    "llm.function.prompts",
-    "llm.responses",
-    "llm.token.counts",
-    "llm.stream",
-    "llm.encoding.format",
-    "llm.dimensions",
-    "llm.generation_id",
-    "llm.response_id",
-    "llm.citations",
-    "llm.documents",
-    "llm.is_search_required",
-    "llm.search_results",
-    "llm.tool_calls",
-    "llm.max_tokens",
-    "llm.max_input_tokens",
-    "llm.conversation_id",
-    "llm.seed",
-    "llm.frequency_penalty",
-    "llm.presence_penalty",
-    "llm.connectors",
-    "llm.tools",
-    "llm.tool_results",
-    "llm.embedding_dataset_id",
-    "llm.embedding_input_type",
-    "llm.embedding_job_name",
-    "http.max.retries",
-    "http.timeout",
+    { name: "langtrace.service.name", type: "string" },
+    { name: "langtrace.service.type", type: "string" },
+    { name: "langtrace.service.version", type: "string" },
+    { name: "langtrace.sdk.name", type: "string" },
+    { name: "langtrace.version", type: "string" },
+    { name: "server.address", type: "string" },
+    { name: "db.operation", type: "string" },
+    { name: "db.system", type: "string" },
+    { name: "db.namespace", type: "string" },
+    { name: "db.index", type: "string" },
+    { name: "db.collection.name", type: "string" },
+    { name: "db.pinecone.top_k", type: "number" },
+    { name: "db.chromadb.embedding_model", type: "string" },
+    { name: "user.id", type: "string" },
+    { name: "user.feedback.rating", type: "number" },
+    { name: "langtrace.testId", type: "string" },
+    { name: "langchain.task.name", type: "string" },
+    { name: "langchain.inputs", type: "string" },
+    { name: "langchain.outputs", type: "string" },
+    { name: "llamaindex.task.name", type: "string" },
+    { name: "llamaindex.inputs", type: "string" },
+    { name: "llamaindex.outputs", type: "string" },
+    { name: "url.full", type: "string" },
+    { name: "llm.api", type: "string" },
+    { name: "llm.model", type: "string" },
+    { name: "llm.temperature", type: "number" },
+    { name: "llm.top_p", type: "number" },
+    { name: "llm.top_k", type: "number" },
+    { name: "llm.user", type: "string" },
+    { name: "llm.system.fingerprint", type: "string" },
+    { name: "llm.prompts", type: "string" },
+    { name: "llm.function.prompts", type: "string" },
+    { name: "llm.responses", type: "string" },
+    { name: "llm.token.counts", type: "string" },
+    { name: "llm.stream", type: "boolean" },
+    { name: "llm.encoding.format", type: "string" },
+    { name: "llm.dimensions", type: "string" },
+    { name: "llm.generation_id", type: "string" },
+    { name: "llm.response_id", type: "string" },
+    { name: "llm.citations", type: "string" },
+    { name: "llm.documents", type: "string" },
+    { name: "llm.is_search_required", type: "boolean" },
+    { name: "llm.search_results", type: "string" },
+    { name: "llm.tool_calls", type: "string" },
+    { name: "llm.max_tokens", type: "string" },
+    { name: "llm.max_input_tokens", type: "string" },
+    { name: "llm.conversation_id", type: "string" },
+    { name: "llm.seed", type: "string" },
+    { name: "llm.frequency_penalty", type: "string" },
+    { name: "llm.presence_penalty", type: "string" },
+    { name: "llm.connectors", type: "string" },
+    { name: "llm.tools", type: "string" },
+    { name: "llm.tool_results", type: "string" },
+    { name: "llm.embedding_dataset_id", type: "string" },
+    { name: "llm.embedding_input_type", type: "string" },
+    { name: "llm.embedding_job_name", type: "string" },
+    { name: "http.max.retries", type: "number" },
+    { name: "http.timeout", type: "number" },
   ];
 
   return (
@@ -331,26 +325,30 @@ export function AttributesCombobox({
           <CommandGroup>
             {attributes.map((attribute) => (
               <CommandItem
-                key={attribute}
-                value={attribute}
+                key={attribute.name}
+                value={attribute.name}
                 onSelect={(currentValue) => {
+                  const selected = attributes.find(
+                    (attr) => attr.name === currentValue
+                  );
                   setSelectedAttributeState(
                     currentValue === selectedAttribute ? "" : currentValue
                   );
                   setSelectedAttribute(
                     currentValue === selectedAttribute ? "" : currentValue
                   );
+                  setSelectedAttributeType(selected ? selected.type : "string");
                   setOpen(false);
                 }}
               >
                 <Check
                   className={`mr-2 h-4 w-4 ${
-                    selectedAttribute === attribute
+                    selectedAttribute === attribute.name
                       ? "opacity-100"
                       : "opacity-0"
                   }`}
                 />
-                {attribute}
+                {attribute.name}
               </CommandItem>
             ))}
           </CommandGroup>
@@ -361,14 +359,25 @@ export function AttributesCombobox({
 }
 
 export function OperatorCombox({
+  selectedAttributeType,
   setSelectedOperator,
 }: {
+  selectedAttributeType: string;
   setSelectedOperator: (attribute: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [selectedOperator, setSelectedOperatorState] = React.useState("");
 
-  const comparisonOperators = ["equals", "greater than", "less than", "like"];
+  const comparisonOperators: Record<string, string[]> = {
+    string: ["like"],
+    number: ["equals", "greater than", "less than"],
+    boolean: ["equals"],
+  };
+
+  const operators =
+    comparisonOperators[
+      selectedAttributeType as keyof typeof comparisonOperators
+    ] || [];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -386,7 +395,7 @@ export function OperatorCombox({
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandGroup>
-            {comparisonOperators.map((operator) => (
+            {operators.map((operator) => (
               <CommandItem
                 key={operator}
                 value={operator}
