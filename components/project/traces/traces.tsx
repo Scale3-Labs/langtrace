@@ -16,7 +16,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 import { Separator } from "../../ui/separator";
 import { Switch } from "../../ui/switch";
-import { FilterDialog } from "./trace-filter";
+import FilterDialog from "./trace-filter";
 import TraceRowSkeleton from "./trace-row-skeleton";
 
 export default function Traces({ email }: { email: string }) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -16,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"; // Adjust the import path as needed
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -27,7 +29,6 @@ import {
   OpenAIMethods,
   PineconeMethods,
 } from "@langtrase/trace-attributes";
-import { Checkbox, FormControlLabel, MenuItem, TextField } from "@mui/material";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { Check, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
@@ -40,7 +41,7 @@ interface FilterDialogProps {
 
 type FilterTypes = Event | OpenAIMethods | ChromaDBMethods | PineconeMethods;
 
-export function FilterDialog({
+export default function FilterDialog({
   open,
   onClose,
   onApplyFilters,
@@ -58,8 +59,7 @@ export function FilterDialog({
   const [showPinecone, setShowPinecone] = React.useState<boolean>(false);
   const [advancedFilters, setAdvancedFilters] = React.useState<any[]>([]);
 
-  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value as FilterTypes;
+  const handleFilterChange = (value: any) => {
     setSelectedFilters((prev) => {
       if (prev.includes(value)) {
         return prev.filter((e) => e !== value);
@@ -82,8 +82,6 @@ export function FilterDialog({
       { attribute: "", operator: "equals", value: "" },
     ]);
   };
-
-  const comparisonOperators = ["equals", "greater than", "less than", "like"];
 
   const removeAdvancedFilter = (index: number) => {
     setAdvancedFilters(advancedFilters.filter((_, i) => i !== index));
@@ -113,7 +111,7 @@ export function FilterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Filter Traces</DialogTitle>
           <DialogDescription>
@@ -130,17 +128,14 @@ export function FilterDialog({
           </h4>
           {showEvents &&
             Object.values(Event).map((event) => (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedFilters.includes(event)}
-                    onChange={handleFilterChange}
-                    value={event}
-                  />
-                }
-                label={event}
-                key={event}
-              />
+              <div key={event} className="flex items-center">
+                <Checkbox
+                  checked={selectedFilters.includes(event)}
+                  value={event}
+                  onClick={() => handleFilterChange(event)}
+                />
+                <label className="ml-2">{event}</label>
+              </div>
             ))}
         </div>
         <div>
@@ -153,17 +148,15 @@ export function FilterDialog({
           </h4>
           {showOpenAI &&
             Object.values(OpenAIMethods).map((method) => (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedFilters.includes(method)}
-                    onChange={handleFilterChange}
-                    value={method}
-                  />
-                }
-                label={method}
-                key={method}
-              />
+              <div key={method} className="flex items-center">
+                <Checkbox
+                  checked={selectedFilters.includes(method)}
+                  onClick={() => handleFilterChange(method)}
+                  value={method}
+                />
+
+                <label className="ml-2">{method}</label>
+              </div>
             ))}
         </div>
         <div>
@@ -176,17 +169,15 @@ export function FilterDialog({
           </h4>
           {showChromaDB &&
             Object.values(ChromaDBMethods).map((method) => (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedFilters.includes(method)}
-                    onChange={handleFilterChange}
-                    value={method}
-                  />
-                }
-                label={method}
-                key={method}
-              />
+              <div key={method} className="flex items-center">
+                <Checkbox
+                  checked={selectedFilters.includes(method)}
+                  onClick={() => handleFilterChange(method)}
+                  value={method}
+                />
+
+                <label className="ml-2">{method}</label>
+              </div>
             ))}
         </div>
         <div>
@@ -199,61 +190,38 @@ export function FilterDialog({
           </h4>
           {showPinecone &&
             Object.values(PineconeMethods).map((method) => (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={selectedFilters.includes(method)}
-                    onChange={handleFilterChange}
-                    value={method}
-                  />
-                }
-                label={method}
-                key={method}
-              />
+              <div key={method} className="flex items-center">
+                <Checkbox
+                  checked={selectedFilters.includes(method)}
+                  onClick={() => handleFilterChange(method)}
+                  value={method}
+                />
+
+                <label className="ml-2">{method}</label>
+              </div>
             ))}
         </div>
         <div>
           <h4 className="mt-4">Advanced Filters</h4>
           {advancedFilters.map((filter, index) => (
-            <div key={index} className="flex items-center mt-2">
-              {/* <TextField
-                select
-                label="Attribute"
-                value={filter.attribute}
-                onChange={handleAttributeChange(index)}
-                className="mr-2"
-                fullWidth
-              > */}
+            <div key={index} className="flex items-center mt-2 space-x-2">
               <AttributesCombobox
                 setSelectedAttribute={(attribute) =>
                   updateAdvancedFilter(index, "attribute", attribute)
                 }
               />
-              {/* </TextField> */}
-              <TextField
-                select
-                label="Operator"
-                value={filter.operator}
-                onChange={(e) =>
-                  updateAdvancedFilter(index, "operator", e.target.value)
+              <OperatorCombox
+                setSelectedOperator={(operator) =>
+                  updateAdvancedFilter(index, "operator", operator)
                 }
-                className="mr-2"
-                fullWidth
-              >
-                {comparisonOperators.map((op) => (
-                  <MenuItem key={op} value={op}>
-                    {op}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="Value"
+              />
+              <Input
+                placeholder="Value"
                 value={filter.value}
                 onChange={(e) =>
                   updateAdvancedFilter(index, "value", e.target.value)
                 }
                 className="mr-2"
-                fullWidth
               />
               <Button onClick={() => removeAdvancedFilter(index)}>
                 Remove
@@ -417,8 +385,6 @@ export function OperatorCombox({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          {/* <CommandInput placeholder="Search attribute..." /> */}
-          {/* <CommandEmpty>No attribute found.</CommandEmpty> */}
           <CommandGroup>
             {comparisonOperators.map((operator) => (
               <CommandItem
@@ -448,5 +414,3 @@ export function OperatorCombox({
     </Popover>
   );
 }
-
-export default FilterDialog;
