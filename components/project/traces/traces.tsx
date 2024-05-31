@@ -140,8 +140,6 @@ export default function Traces({ email }: { email: string }) {
     setIsFilterDialogOpen(false);
   };
 
-  console.log(filters);
-
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
       <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
