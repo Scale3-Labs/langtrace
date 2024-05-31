@@ -305,6 +305,10 @@ export class TraceService implements ITraceService {
 
   async GetFailedSpans(project_id: string): Promise<Span[]> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
       const query = sql
         .select()
         .from(project_id)
@@ -403,6 +407,10 @@ export class TraceService implements ITraceService {
     lastNHours = 168
   ): Promise<Span[]> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
       const query = sql.select().from(project_id);
       if (!lastNHours) {
         return await this.client.find<Span[]>(query);
