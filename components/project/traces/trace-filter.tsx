@@ -33,12 +33,6 @@ import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
-interface FilterDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onApplyFilters: (filters: any) => void;
-}
-
 type FilterTypes = Event | OpenAIMethods | ChromaDBMethods | PineconeMethods;
 
 export default function FilterDialog({
@@ -104,7 +98,6 @@ export default function FilterDialog({
     );
     setAdvancedFilters(updatedFilters);
   };
-  console.log("advanced", advancedFilters);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -325,7 +318,6 @@ export function AttributesCombobox({
     : attributes.slice(0, 10);
 
   const onInputChange = (value: string) => {
-    console.log(value);
     setSearchQuery(value);
   };
 
