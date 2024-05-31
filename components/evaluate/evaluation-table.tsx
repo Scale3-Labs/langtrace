@@ -49,7 +49,7 @@ export default function EvaluationTable({
   };
 
   const fetchLlmPromptSpans = useQuery({
-    queryKey: [`fetch-llm-prompt-spans-${test.id}-query`],
+    queryKey: ["fetch-llm-prompt-spans-query", test.id],
     queryFn: async () => {
       const filters = [
         {
