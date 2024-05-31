@@ -28,7 +28,7 @@ export default function Traces({ email }: { email: string }) {
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
-  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(true);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
 
   useEffect(() => {
     setShowLoader(true);
@@ -131,17 +131,16 @@ export default function Traces({ email }: { email: string }) {
     },
   ];
 
-  const handleFilterDialogOpen = () => {
-    setIsFilterDialogOpen(true);
-  };
-
   const handleFilterDialogClose = () => {
     setIsFilterDialogOpen(false);
   };
 
   const handleApplyFilters = (newFilters: any) => {
-    setFilters(newFilters);
+    setFilters(newFilters.filters);
+    setIsFilterDialogOpen(false);
   };
+
+  console.log(filters);
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
@@ -178,10 +177,10 @@ export default function Traces({ email }: { email: string }) {
           ))}
           <div>
             <Button
-              className="h-5 w-3 dark:bg-black bg-muted border border-black hover:bg-secondary"
+              className="h-5 w-3 dark:bg-white bg-muted border border-black hover:bg-secondary"
               onClick={() => setIsFilterDialogOpen(true)}
             >
-              <FilterListIcon className="cursor-pointer h-4 text-black" />
+              <FilterListIcon className="cursor-pointer h-4 dark:bg-white text-black" />
             </Button>
             <label className="text-xs font-semibold px-2">Filters</label>
           </div>
@@ -245,7 +244,7 @@ export default function Traces({ email }: { email: string }) {
         </div>
       )}
       <FilterDialog
-        open={true}
+        open={isFilterDialogOpen}
         onClose={handleFilterDialogClose}
         onApplyFilters={handleApplyFilters}
       />

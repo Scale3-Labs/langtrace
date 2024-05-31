@@ -31,7 +31,7 @@ import {
 } from "@langtrase/trace-attributes";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { Check, ChevronsUpDown } from "lucide-react";
-import * as React from "react";
+import { useEffect, useState } from "react";
 
 interface FilterDialogProps {
   open: boolean;
@@ -50,16 +50,12 @@ export default function FilterDialog({
   onClose: () => void;
   onApplyFilters: (filters: any) => void;
 }) {
-  const [selectedFilters, setSelectedFilters] = React.useState<FilterTypes[]>(
-    []
-  );
-  const [showEvents, setShowEvents] = React.useState<boolean>(false);
-  const [showOpenAI, setShowOpenAI] = React.useState<boolean>(false);
-  const [showChromaDB, setShowChromaDB] = React.useState<boolean>(false);
-  const [showPinecone, setShowPinecone] = React.useState<boolean>(false);
-  const [advancedFilters, setAdvancedFilters] = React.useState<any[]>([]);
-  const [selectedAttributeType, setSelectedAttributeType] =
-    React.useState("string");
+  const [selectedFilters, setSelectedFilters] = useState<FilterTypes[]>([]);
+  const [showEvents, setShowEvents] = useState<boolean>(false);
+  const [showOpenAI, setShowOpenAI] = useState<boolean>(false);
+  const [showChromaDB, setShowChromaDB] = useState<boolean>(false);
+  const [showPinecone, setShowPinecone] = useState<boolean>(false);
+  const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
 
   const handleFilterChange = (value: any) => {
     setSelectedFilters((prev) => {
@@ -70,13 +66,23 @@ export default function FilterDialog({
     });
   };
 
-  console.log(selectedFilters);
-  console.log(advancedFilters);
-
   const applyFilters = () => {
+    const convertedFilters = selectedFilters.map((filter) => ({
+      key: "name",
+      operation: "EQUALS",
+      value: filter,
+      type: "property",
+    }));
+
+    const convertedAdvancedFilters = advancedFilters.map((filter) => ({
+      key: filter.attribute,
+      operation: filter.operator.toUpperCase().replace(" ", "_"),
+      value: filter.value,
+      type: "attribute",
+    }));
+
     onApplyFilters({
-      filters: selectedFilters,
-      advancedFilters,
+      filters: [...convertedFilters, ...convertedAdvancedFilters],
     });
     onClose();
   };
@@ -84,7 +90,7 @@ export default function FilterDialog({
   const addAdvancedFilter = () => {
     setAdvancedFilters([
       ...advancedFilters,
-      { attribute: "", operator: "equals", value: "" },
+      { attribute: "", operator: "EQUALS", value: "" },
     ]);
   };
 
@@ -92,12 +98,13 @@ export default function FilterDialog({
     setAdvancedFilters(advancedFilters.filter((_, i) => i !== index));
   };
 
-  const updateAdvancedFilter = (index: any, field: any, value: any) => {
+  const updateAdvancedFilter = (index: number, key: string, value: any) => {
     const updatedFilters = advancedFilters.map((filter, i) =>
-      i === index ? { ...filter, [field]: value } : filter
+      i === index ? { ...filter, [key]: value } : filter
     );
     setAdvancedFilters(updatedFilters);
   };
+  console.log("advanced", advancedFilters);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -192,17 +199,17 @@ export default function FilterDialog({
             ))}
         </div>
         <div>
-          <h4 className="mt-4">Advanced Filters</h4>
+          <h4 className="mt-4">Attributes</h4>
           {advancedFilters.map((filter, index) => (
             <div key={index} className="flex items-center mt-2 space-x-2">
               <AttributesCombobox
+                initialAttribute={filter.attribute}
                 setSelectedAttribute={(attribute) =>
                   updateAdvancedFilter(index, "attribute", attribute)
                 }
-                setSelectedAttributeType={setSelectedAttributeType}
               />
               <OperatorCombox
-                selectedAttributeType={selectedAttributeType}
+                initialOperator={filter.operator}
                 setSelectedOperator={(operator) =>
                   updateAdvancedFilter(index, "operator", operator)
                 }
@@ -221,7 +228,7 @@ export default function FilterDialog({
             </div>
           ))}
           <Button onClick={addAdvancedFilter} className="mt-2">
-            Add Advanced Filter
+            Add Attribute
           </Button>
         </div>
         <DialogFooter>
@@ -237,73 +244,94 @@ export default function FilterDialog({
 
 export function AttributesCombobox({
   setSelectedAttribute,
-  setSelectedAttributeType,
+  initialAttribute,
 }: {
   setSelectedAttribute: (attribute: string) => void;
-  setSelectedAttributeType: (type: string) => void;
+  initialAttribute: string;
 }) {
-  const [open, setOpen] = React.useState(false);
-  const [selectedAttribute, setSelectedAttributeState] = React.useState("");
+  const [open, setOpen] = useState(false);
+  const [selectedAttribute, setSelectedAttributeState] = useState(
+    initialAttribute || ""
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+
   const attributes = [
-    { name: "langtrace.service.name", type: "string" },
-    { name: "langtrace.service.type", type: "string" },
-    { name: "langtrace.service.version", type: "string" },
-    { name: "langtrace.sdk.name", type: "string" },
-    { name: "langtrace.version", type: "string" },
-    { name: "server.address", type: "string" },
-    { name: "db.operation", type: "string" },
-    { name: "db.system", type: "string" },
-    { name: "db.namespace", type: "string" },
-    { name: "db.index", type: "string" },
-    { name: "db.collection.name", type: "string" },
-    { name: "db.pinecone.top_k", type: "number" },
-    { name: "db.chromadb.embedding_model", type: "string" },
-    { name: "user.id", type: "string" },
-    { name: "user.feedback.rating", type: "number" },
-    { name: "langtrace.testId", type: "string" },
-    { name: "langchain.task.name", type: "string" },
-    { name: "langchain.inputs", type: "string" },
-    { name: "langchain.outputs", type: "string" },
-    { name: "llamaindex.task.name", type: "string" },
-    { name: "llamaindex.inputs", type: "string" },
-    { name: "llamaindex.outputs", type: "string" },
-    { name: "url.full", type: "string" },
-    { name: "llm.api", type: "string" },
-    { name: "llm.model", type: "string" },
-    { name: "llm.temperature", type: "number" },
-    { name: "llm.top_p", type: "number" },
-    { name: "llm.top_k", type: "number" },
-    { name: "llm.user", type: "string" },
-    { name: "llm.system.fingerprint", type: "string" },
-    { name: "llm.prompts", type: "string" },
-    { name: "llm.function.prompts", type: "string" },
-    { name: "llm.responses", type: "string" },
-    { name: "llm.token.counts", type: "string" },
-    { name: "llm.stream", type: "boolean" },
-    { name: "llm.encoding.format", type: "string" },
-    { name: "llm.dimensions", type: "string" },
-    { name: "llm.generation_id", type: "string" },
-    { name: "llm.response_id", type: "string" },
-    { name: "llm.citations", type: "string" },
-    { name: "llm.documents", type: "string" },
-    { name: "llm.is_search_required", type: "boolean" },
-    { name: "llm.search_results", type: "string" },
-    { name: "llm.tool_calls", type: "string" },
-    { name: "llm.max_tokens", type: "string" },
-    { name: "llm.max_input_tokens", type: "string" },
-    { name: "llm.conversation_id", type: "string" },
-    { name: "llm.seed", type: "string" },
-    { name: "llm.frequency_penalty", type: "string" },
-    { name: "llm.presence_penalty", type: "string" },
-    { name: "llm.connectors", type: "string" },
-    { name: "llm.tools", type: "string" },
-    { name: "llm.tool_results", type: "string" },
-    { name: "llm.embedding_dataset_id", type: "string" },
-    { name: "llm.embedding_input_type", type: "string" },
-    { name: "llm.embedding_job_name", type: "string" },
-    { name: "http.max.retries", type: "number" },
-    { name: "http.timeout", type: "number" },
+    "langtrace.service.name",
+    "langtrace.service.type",
+    "langtrace.service.version",
+    "langtrace.sdk.name",
+    "langtrace.version",
+    "server.address",
+    "db.operation",
+    "db.system",
+    "db.namespace",
+    "db.index",
+    "db.collection.name",
+    "db.pinecone.top_k",
+    "db.chromadb.embedding_model",
+    "user.id",
+    "user.feedback.rating",
+    "langtrace.testId",
+    "langchain.task.name",
+    "langchain.inputs",
+    "langchain.outputs",
+    "llamaindex.task.name",
+    "llamaindex.inputs",
+    "llamaindex.outputs",
+    "url.full",
+    "llm.api",
+    "llm.model",
+    "llm.temperature",
+    "llm.top_p",
+    "llm.top_k",
+    "llm.user",
+    "llm.system.fingerprint",
+    "llm.prompts",
+    "llm.function.prompts",
+    "llm.responses",
+    "llm.token.counts",
+    "llm.stream",
+    "llm.encoding.format",
+    "llm.dimensions",
+    "llm.generation_id",
+    "llm.response_id",
+    "llm.citations",
+    "llm.documents",
+    "llm.is_search_required",
+    "llm.search_results",
+    "llm.tool_calls",
+    "llm.max_tokens",
+    "llm.max_input_tokens",
+    "llm.conversation_id",
+    "llm.seed",
+    "llm.frequency_penalty",
+    "llm.presence_penalty",
+    "llm.connectors",
+    "llm.tools",
+    "llm.tool_results",
+    "llm.embedding_dataset_id",
+    "llm.embedding_input_type",
+    "llm.embedding_job_name",
+    "http.max.retries",
+    "http.timeout",
   ];
+
+  const filteredAttributes = searchQuery
+    ? attributes
+        .filter((attribute) =>
+          attribute.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .slice(0, 10)
+    : attributes.slice(0, 10);
+
+  const onInputChange = (value: string) => {
+    console.log(value);
+    setSearchQuery(value);
+  };
+
+  useEffect(() => {
+    setSelectedAttributeState(initialAttribute);
+  }, [initialAttribute]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -320,35 +348,35 @@ export function AttributesCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search attribute..." />
+          <CommandInput
+            placeholder="Search attribute..."
+            value={searchQuery}
+            onValueChange={onInputChange}
+          />
           <CommandEmpty>No attribute found.</CommandEmpty>
           <CommandGroup>
-            {attributes.map((attribute) => (
+            {filteredAttributes.map((attribute) => (
               <CommandItem
-                key={attribute.name}
-                value={attribute.name}
+                key={attribute}
+                value={attribute}
                 onSelect={(currentValue) => {
-                  const selected = attributes.find(
-                    (attr) => attr.name === currentValue
-                  );
                   setSelectedAttributeState(
                     currentValue === selectedAttribute ? "" : currentValue
                   );
                   setSelectedAttribute(
                     currentValue === selectedAttribute ? "" : currentValue
                   );
-                  setSelectedAttributeType(selected ? selected.type : "string");
                   setOpen(false);
                 }}
               >
                 <Check
                   className={`mr-2 h-4 w-4 ${
-                    selectedAttribute === attribute.name
+                    selectedAttribute === attribute
                       ? "opacity-100"
                       : "opacity-0"
                   }`}
                 />
-                {attribute.name}
+                {attribute}
               </CommandItem>
             ))}
           </CommandGroup>
@@ -359,25 +387,18 @@ export function AttributesCombobox({
 }
 
 export function OperatorCombox({
-  selectedAttributeType,
   setSelectedOperator,
+  initialOperator,
 }: {
-  selectedAttributeType: string;
   setSelectedOperator: (attribute: string) => void;
+  initialOperator: string;
 }) {
-  const [open, setOpen] = React.useState(false);
-  const [selectedOperator, setSelectedOperatorState] = React.useState("");
+  const [open, setOpen] = useState(false);
+  const [selectedOperator, setSelectedOperatorState] = useState(
+    initialOperator || ""
+  );
 
-  const comparisonOperators: Record<string, string[]> = {
-    string: ["like"],
-    number: ["equals", "greater than", "less than"],
-    boolean: ["equals"],
-  };
-
-  const operators =
-    comparisonOperators[
-      selectedAttributeType as keyof typeof comparisonOperators
-    ] || [];
+  const comparisonOperators = ["equals", "contains", "not equals"];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -395,7 +416,7 @@ export function OperatorCombox({
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandGroup>
-            {operators.map((operator) => (
+            {comparisonOperators.map((operator) => (
               <CommandItem
                 key={operator}
                 value={operator}
