@@ -35,7 +35,7 @@ export default function PageClient({ email }: { email: string }) {
   const [totalPages, setTotalPages] = useState<number>(1);
 
   const { data: testAverages, isLoading: testAveragesLoading } = useQuery({
-    queryKey: [`fetch-test-averages-${projectId}-query`],
+    queryKey: ["fetch-test-averages-query", projectId],
     queryFn: async () => {
       const response = await fetch(`/api/metrics/tests?projectId=${projectId}`);
       if (!response.ok) {
@@ -57,7 +57,7 @@ export default function PageClient({ email }: { email: string }) {
     isLoading: testsLoading,
     error: testsError,
   } = useQuery({
-    queryKey: [`fetch-tests-${projectId}-query`],
+    queryKey: ["fetch-tests-query", projectId],
     queryFn: async () => {
       const response = await fetch(`/api/test?projectId=${projectId}`);
       if (!response.ok) {
