@@ -31,7 +31,6 @@ import { toast } from "sonner";
 export default function Page() {
   const router = useRouter();
   const projectId = useParams()?.project_id as string;
-  const testId = useParams()?.test_id as string;
   const page = parseInt(useSearchParams()?.get("page") || "1");
   // const spanId = useSearchParams()?.get("span_id");
 

@@ -1,10 +1,9 @@
 import { HoverCell } from "@/components/shared/hover-cell";
-import { LLMView } from "@/components/shared/llm-view";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import detectPII from "@/lib/pii";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { calculatePriceFromUsage, cn, formatDateTime } from "@/lib/utils";
+import { calculatePriceFromUsage, formatDateTime } from "@/lib/utils";
 import { Evaluation } from "@prisma/client";
 import {
   ArrowTopRightIcon,
@@ -12,7 +11,6 @@ import {
   CrossCircledIcon,
   DotFilledIcon,
 } from "@radix-ui/react-icons";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "react-query";
@@ -27,7 +25,6 @@ export default function EvaluationRow({
   key,
   span,
   projectId,
-  testId,
   page,
   onCheckedChange,
   selectedData,
@@ -35,22 +32,18 @@ export default function EvaluationRow({
   key: number;
   span: any;
   projectId: string;
-  testId: string;
   page: number;
   onCheckedChange: (data: CheckedData, checked: boolean) => void;
   selectedData: CheckedData[];
 }) {
   const [score, setScore] = useState(-100); // 0: neutral, 1: thumbs up, -1: thumbs down
-  const [collapsed, setCollapsed] = useState(true);
   const [evaluation, setEvaluation] = useState<Evaluation>();
   const [addedToDataset, setAddedToDataset] = useState(false);
 
   useQuery({
-    queryKey: ["fetch-evaluation-query", span.span_id, testId],
+    queryKey: ["fetch-evaluation-query", span.span_id],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/evaluation?spanId=${span.span_id}&testId=${testId}`
-      );
+      const response = await fetch(`/api/evaluation?spanId=${span.span_id}`);
       const result = await response.json();
       setEvaluation(result.evaluations.length > 0 ? result.evaluations[0] : {});
       setScore(
@@ -114,16 +107,10 @@ export default function EvaluationRow({
       ).length > 0);
 
   return (
-    <div className="flex flex-col gap-3 w-full" key={key}>
-      <div
-        className={cn(
-          !collapsed ? "border-[1px] border-muted-foreground" : "",
-          "grid grid-cols-15 items-center gap-3 py-3 px-4 w-full cursor-pointer"
-        )}
-        onClick={() => setCollapsed(!collapsed)}
-      >
+    <tr key={key}>
+      <td>
         <div
-          className="flex flex-row items-center gap-2 col-span-2"
+          className="flex flex-row items-center gap-2"
           onClick={(e) => e.stopPropagation()}
         >
           <Checkbox
@@ -154,39 +141,25 @@ export default function EvaluationRow({
             }}
             checked={selectedData.some((d) => d.spanId === span.span_id)}
           />
-          <Button
-            variant={"ghost"}
-            size={"icon"}
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed && (
-              <ChevronRight className="text-muted-foreground w-5 h-5" />
-            )}
-            {!collapsed && (
-              <ChevronDown className="text-muted-foreground w-5 h-5" />
-            )}
-          </Button>
-          <p
-            className="text-xs text-muted-foreground font-semibold"
-            onClick={() => setCollapsed(!collapsed)}
-          >
+          <p className="text-xs text-muted-foreground font-semibold">
             {formatDateTime(correctTimestampFormat(span.start_time))}
           </p>
         </div>
-        <p className="text-xs font-medium">{model}</p>
+      </td>
+      <td className="text-xs font-medium">{model}</td>
+      <td>
         <HoverCell
-          className="flex items-center text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          className="h-10 w-48 overflow-hidden truncate text-xs font-semibold"
           values={prompts?.length > 0 ? JSON.parse(prompts) : []}
         />
+      </td>
+      <td>
         <HoverCell
-          className="flex items-center text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          className="w-48 overflow-hidden truncate h-10 text-xs font-semibold"
           values={responses?.length > 0 ? JSON.parse(responses) : []}
         />
-        <p className="text-xs font-semibold">
-          {cost.total.toFixed(6) !== "0.000000"
-            ? `\$${cost.total.toFixed(6)}`
-            : ""}
-        </p>
+      </td>
+      <td>
         <div className="flex flex-row gap-0 items-center font-semibold">
           {piiDetected ? (
             <DotFilledIcon className="text-red-600 w-6 h-6" />
@@ -195,23 +168,34 @@ export default function EvaluationRow({
           )}
           <p className="text-xs">{piiDetected ? "Yes" : "No"}</p>
         </div>
-        <p className="text-xs text-muted-foreground font-semibold">
-          {durationMs}ms
-        </p>
-        <p className="text-sm font-semibold">
-          {score !== -100 ? score : "Not evaluated"}
-        </p>
-        <p className="text-sm font-semibold">
-          {userScore ? userScore : "Not evaluated"}
-        </p>
-        <p className="text-sm font-semibold">{userId || "Not Available"}</p>
-        <div className=" col-span-2 flex flex-row items-center justify-evenly">
+      </td>
+      <td className="text-xs font-semibold text-center">
+        {score !== -100 ? score : "Not evaluated"}
+      </td>
+      <td className="text-xs font-semibold text-center">
+        {score !== -100 ? score : "Not evaluated"}
+      </td>
+      <td className="text-xs font-semibold text-center">
+        {score !== -100 ? score : "Not evaluated"}
+      </td>
+      <td className="text-xs font-semibold text-center">
+        {score !== -100 ? score : "Not evaluated"}
+      </td>
+      <td className="text-xs font-semibold text-center">
+        {score !== -100 ? score : "Not evaluated"}
+      </td>
+      <td className="text-xs font-semibold text-center">
+        {userScore ? userScore : "Not evaluated"}
+      </td>
+      <td className="text-xs font-semibold">{userId || "Not available"}</td>
+      <td>
+        <div className="flex flex-row items-center justify-evenly">
           {addedToDataset ? (
             <CheckCircledIcon className="text-green-600 w-5 h-5" />
           ) : (
             <CrossCircledIcon className="text-muted-foreground w-5 h-5" />
           )}
-          <Link href={`/project/${projectId}/evaluate/${testId}?page=${page}`}>
+          <Link href={`/project/${projectId}/evaluate?page=${page}`}>
             <Button
               onClick={(e) => e.stopPropagation()}
               variant={"secondary"}
@@ -221,14 +205,14 @@ export default function EvaluationRow({
             </Button>
           </Link>
         </div>
-      </div>
-      {!collapsed && (
+      </td>
+      {/* {!collapsed && (
         <LLMView
           responses={[responses]}
           prompts={[prompts]}
           doPiiDetection={true}
         />
-      )}
-    </div>
+      )} */}
+    </tr>
   );
 }

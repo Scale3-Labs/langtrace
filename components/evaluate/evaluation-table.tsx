@@ -16,8 +16,8 @@ interface CheckedData {
 }
 
 export default function EvaluationTable({
+  tests,
   projectId,
-  test,
   selectedData,
   setSelectedData,
   currentData,
@@ -27,8 +27,8 @@ export default function EvaluationTable({
   totalPages,
   setTotalPages,
 }: {
+  tests: Test[];
   projectId: string;
-  test: Test;
   selectedData: CheckedData[];
   setSelectedData: (data: CheckedData[]) => void;
   currentData: any;
@@ -49,7 +49,7 @@ export default function EvaluationTable({
   };
 
   const fetchLlmPromptSpans = useQuery({
-    queryKey: [`fetch-llm-prompt-spans-${test.id}-query`],
+    queryKey: ["fetch-llm-prompt-spans-query"],
     queryFn: async () => {
       const filters = [
         {
@@ -148,44 +148,50 @@ export default function EvaluationTable({
   });
 
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-      {currentData.length > 0 && (
-        <div className="grid grid-cols-15 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
-          <p className="text-xs font-medium col-span-2 text-start">
-            Timestamp (UTC)
-          </p>
-          <p className="text-xs font-medium">Model</p>
-          <p className="text-xs font-medium col-span-2">Input</p>
-          <p className="text-xs font-medium col-span-2">Output</p>
-          <p className="text-xs font-medium">Cost</p>
-          <p className="text-xs font-medium">PII Detected</p>
-          <p className="text-xs font-medium">Duration</p>
-          <p className="text-xs font-medium">Evaluated Score</p>
-          <p className="text-xs font-medium">User Score</p>
-          <p className="text-xs font-medium">User Id</p>
-          <p className="text-xs font-medium col-span-2">Added to Dataset</p>
-        </div>
-      )}
+    <div className="max-h-screen overflow-y-scroll">
       {fetchLlmPromptSpans.isLoading ||
       !fetchLlmPromptSpans.data ||
       !currentData ? (
         <EvaluationTableSkeleton />
       ) : (
-        currentData.map((span: any, i: number) => {
-          if (span.status_code !== "ERROR") {
-            return (
-              <EvaluationRow
-                key={i}
-                page={i + 1}
-                span={span}
-                projectId={projectId}
-                testId={test.id}
-                onCheckedChange={onCheckedChange}
-                selectedData={selectedData}
-              />
-            );
-          }
-        })
+        <table className="table-auto overflow-x-scroll w-max border-separate border-spacing-4 border border-muted rounded-md">
+          <thead>
+            <tr>
+              <th className="text-xs font-medium text-left">Timestamp (UTC)</th>
+              <th className="text-xs font-medium text-left">Model</th>
+              <th className="text-xs font-medium">Input</th>
+              <th className="text-xs font-medium">Output</th>
+              <th className="text-xs font-medium">PII Detected</th>
+              {tests.map((test: Test, i) => (
+                <th key={i} className="text-xs font-medium capitalize">
+                  {test.name}
+                </th>
+              ))}
+              <th className="text-xs font-medium">User Score</th>
+              <th className="text-xs font-medium">User Id</th>
+              <th className="text-xs font-medium text-right">
+                Added to Dataset
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentData.length > 0 &&
+              currentData.map((span: any, i: number) => {
+                if (span.status_code !== "ERROR") {
+                  return (
+                    <EvaluationRow
+                      key={i}
+                      page={i + 1}
+                      span={span}
+                      projectId={projectId}
+                      onCheckedChange={onCheckedChange}
+                      selectedData={selectedData}
+                    />
+                  );
+                }
+              })}
+          </tbody>
+        </table>
       )}
       {showLoader && (
         <div className="flex justify-center py-8">

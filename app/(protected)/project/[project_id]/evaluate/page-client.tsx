@@ -11,9 +11,8 @@ import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn, getChartColor } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Test } from "@prisma/client";
-import { ProgressCircle } from "@tremor/react";
 import { ChevronsRight, RabbitIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -104,9 +103,9 @@ export default function PageClient({ email }: { email: string }) {
       ?.average || 0;
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Manual Evaluations</h1>
+        <h1 className="text-3xl font-semibold">Evaluations</h1>
         <div className="flex gap-2">
           {selectedTest && (
             <Link
@@ -129,113 +128,31 @@ export default function PageClient({ email }: { email: string }) {
       {testAveragesLoading || testsLoading || !tests ? (
         <PageSkeleton />
       ) : tests?.tests?.length > 0 ? (
-        <div className="flex flex-row gap-4 absolute top-[14rem] w-full md:px-24 px-12">
-          <div className="bg-primary-foreground flex flex-col gap-0 border rounded-md w-[12rem] h-fit">
-            {tests?.tests?.map((test: Test, i: number) => {
-              const average =
-                testAverages?.averages?.find(
-                  (avg: any) => avg.testId === test?.id
-                )?.average || 0;
-              return (
-                <div className="flex flex-col" key={i}>
-                  <div
-                    onClick={() => {
-                      setSelectedTest(test);
-                      setCurrentData([]);
-                      setPage(1);
-                      setTotalPages(1);
-                    }}
-                    className={cn(
-                      "flex flex-col gap-4 p-4 items-start cursor-pointer",
-                      i === 0 ? "rounded-t-md" : "",
-                      i === tests?.tests?.length - 1 ? "rounded-b-md" : "",
-                      selectedTest?.id === test.id
-                        ? "dark:bg-black bg-white border-l-2 border-primary"
-                        : ""
-                    )}
-                  >
-                    <p
-                      className={cn(
-                        "text-sm text-muted-foreground font-semibold capitalize",
-                        selectedTest?.id === test.id ? "text-primary" : ""
-                      )}
-                    >
-                      {test.name}
-                    </p>
-                    <ProgressCircle
-                      color={getChartColor(average)}
-                      value={average}
-                      size="sm"
-                    >
-                      <span className="text-[0.6rem] text-primary font-bold">
-                        {Math.round(average)}%
-                      </span>
-                    </ProgressCircle>
-                  </div>
-                  <Separator />
-                </div>
-              );
-            })}
-          </div>
-          <div className="bg-primary-foreground flex flex-col gap-12 border rounded-md w-full p-4 mb-24">
-            <div className="flex flex-row gap-2">
-              <div className="flex flex-col gap-4 items-start w-[25rem]">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-xl font-semibold capitalize break-normal">
-                    {selectedTest?.name} Evaluation
-                  </h1>
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    Test ID: {selectedTest?.id}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs text-muted-foreground font-semibold">
-                    Evaluation Scale
-                  </span>
-                  <span className="text-sm text-primary">
-                    {selectedTest?.min} to {selectedTest?.max} in steps of +
-                    {selectedTest?.step}
-                  </span>
-                </div>
-                <ProgressCircle
-                  color={getChartColor(testAverage)}
-                  value={testAverage}
-                  size="md"
-                >
-                  <span className="text-sm text-primary font-bold">
-                    {Math.round(testAverage)}%
-                  </span>
-                </ProgressCircle>
-                <p className="text-sm text-muted-foreground">
-                  {selectedTest?.description}
-                </p>
-              </div>
-              {selectedTest && (
-                <EvalChart projectId={projectId} test={selectedTest} />
-              )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <AddtoDataset
+        <div className="flex flex-col gap-12 top-[16rem] w-full md:px-24 px-12 mb-24">
+          {selectedTest && (
+            <EvalChart projectId={projectId} test={selectedTest} />
+          )}
+          <div className="flex flex-col gap-2">
+            <AddtoDataset
+              projectId={projectId}
+              selectedData={selectedData}
+              className="w-fit self-end"
+            />
+
+            {selectedTest && (
+              <EvaluationTable
+                tests={tests.tests}
                 projectId={projectId}
                 selectedData={selectedData}
-                className="w-fit self-end"
+                setSelectedData={setSelectedData}
+                currentData={currentData}
+                setCurrentData={setCurrentData}
+                page={page}
+                setPage={setPage}
+                totalPages={totalPages}
+                setTotalPages={setTotalPages}
               />
-
-              {selectedTest && (
-                <EvaluationTable
-                  projectId={projectId}
-                  test={selectedTest}
-                  selectedData={selectedData}
-                  setSelectedData={setSelectedData}
-                  currentData={currentData}
-                  setCurrentData={setCurrentData}
-                  page={page}
-                  setPage={setPage}
-                  totalPages={totalPages}
-                  setTotalPages={setTotalPages}
-                />
-              )}
-            </div>
+            )}
           </div>
         </div>
       ) : (
