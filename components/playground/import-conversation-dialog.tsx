@@ -131,7 +131,7 @@ TraceDialogProps) {
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-      <DialogContent className="w-full max-w-6xl">
+      <DialogContent className="w-full max-w-6xl h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Select Conversation</DialogTitle>
           <DialogDescription>
