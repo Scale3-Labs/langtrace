@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { useParams } from "next/navigation";
-import * as React from "react";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
@@ -26,17 +24,16 @@ import { Separator } from "../ui/separator";
 export interface TraceDialogProps {
   openDialog?: boolean;
   setOpenDialog: (open: boolean) => void;
-  //   passedTrace: string;
+  selectedPrompt: string;
+  setSelectedPrompt: (prompt: string) => void;
 }
 
 export default function ImportConversationDialog({
   openDialog = false,
   setOpenDialog,
-}: //   passedTrace,
-TraceDialogProps) {
-  const [selectedTraceId, setSelectedTraceId] = React.useState("");
-  const [busy, setBusy] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
+  selectedPrompt,
+  setSelectedPrompt,
+}: TraceDialogProps) {
   const project_id = useParams()?.project_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -95,7 +92,6 @@ TraceDialogProps) {
         throw new Error(error?.message || "Failed to fetch traces");
       }
       const result = await response.json();
-      console.log(result.traces.result);
       return result;
     },
     onSuccess: (data) => {
@@ -133,7 +129,7 @@ TraceDialogProps) {
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
       <DialogContent className="w-full max-w-6xl h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Select Conversation</DialogTitle>
+          <DialogTitle>Import Conversation</DialogTitle>
           <DialogDescription>
             Select the trace to import to the playground.
           </DialogDescription>
@@ -142,7 +138,7 @@ TraceDialogProps) {
           <Label htmlFor="name" className="text-left">
             Select a trace
           </Label>
-          <div className="grid grid-cols-11 items-center gap-6 p-3 bg-muted">
+          <div className="grid grid-cols-12 items-center gap-6 p-3 bg-muted">
             <p className="ml-10 text-xs font-medium">
               Time <span>&#8595;</span> ({utcTime ? "UTC" : "Local"})
             </p>
@@ -167,7 +163,13 @@ TraceDialogProps) {
                 currentData?.map((trace: any, i: number) => {
                   return (
                     <div key={i} className="flex flex-col gap-3 px-3">
-                      <TraceRow trace={trace} utcTime={utcTime} /> <Separator />
+                      <TraceRow
+                        trace={trace}
+                        utcTime={utcTime}
+                        importTrace={true}
+                        setSelectedPrompt={setSelectedPrompt}
+                      />{" "}
+                      <Separator />
                     </div>
                   );
                 })}
@@ -185,24 +187,12 @@ TraceDialogProps) {
                       No traces available. Get started by setting up Langtrace
                       in your application.
                     </p>
-                    {/* <SetupInstructions project_id={project_id} /> */}
                   </div>
                 )}
             </div>
           )}
         </div>
-        <DialogFooter>
-          <Button
-            disabled={busy || !selectedTraceId}
-            onClick={async () => {
-              setOpen(true);
-              setSelectedTraceId(selectedTraceId);
-              //   await fetchTraces();
-            }}
-          >
-            Select
-          </Button>
-        </DialogFooter>
+        <DialogFooter></DialogFooter>
       </DialogContent>
     </Dialog>
   );
