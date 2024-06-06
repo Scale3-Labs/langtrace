@@ -39,6 +39,11 @@ export const LLMView = ({
             : prompt?.function_call
             ? prompt?.function_call
             : "";
+
+          // will add once edit image wrapper has been added in sdks
+          // const url = prompt?.content?.url;
+          // const b64Json = prompt?.content?.b64_json;
+          // const revisedPrompt = prompt?.content?.revised_prompt;
           return (
             <div
               key={i}
@@ -72,6 +77,10 @@ export const LLMView = ({
             response?.text ||
             "";
 
+          const url = response?.content?.url;
+          const b64Json = response?.content?.b64_json;
+          const revisedPrompt = response?.content?.revised_prompt;
+
           return (
             <div
               key={i}
@@ -80,16 +89,50 @@ export const LLMView = ({
               <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
                 {role}
               </span>
-              <div
-                className={cn(
-                  doPiiDetection &&
-                    typeof content === "string" &&
-                    content !== "" &&
-                    detectPII(content).length > 0 &&
-                    "underline decoration-red-600 decoration-[3px]"
-                )}
-                dangerouslySetInnerHTML={{ __html: safeStringify(content) }}
-              />
+              {!url && !b64Json && (
+                <div
+                  className={cn(
+                    doPiiDetection &&
+                      typeof content === "string" &&
+                      content !== "" &&
+                      detectPII(content).length > 0 &&
+                      "underline decoration-red-600 decoration-[3px]"
+                  )}
+                  dangerouslySetInnerHTML={{ __html: safeStringify(content) }}
+                />
+              )}
+              {url && (
+                <div>
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline"
+                  >
+                    View Image
+                  </a>
+                  <img
+                    src={url}
+                    alt="Generated Image"
+                    className="mt-2 rounded"
+                  />
+                  {revisedPrompt && (
+                    <p className="mt-2 text-gray-700">{revisedPrompt}</p>
+                  )}
+                </div>
+              )}
+              {b64Json && (
+                <div>
+                  <img
+                    src={`data:image/png;base64,${b64Json}`}
+                    alt="Generated Image"
+                    className="mt-2 rounded"
+                  />
+                  {revisedPrompt && (
+                    <p className="mt-2 text-gray-700">{revisedPrompt}</p>
+                  )}
+                </div>
+              )}
               {Evaluate && <Evaluate />}
             </div>
           );
