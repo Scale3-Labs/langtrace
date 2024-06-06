@@ -44,8 +44,8 @@ const data = [
 export function EvalChart({
   projectId,
   tests,
-  chartDescription = "Evaluated Average(%) over time (last 7 days) for LLM interactions aggregated by day.",
-  info = "Average is calculated based on the score of evaluated llm interactions in the Evaluation tab of the project. Span's start_time is used for day aggregation.",
+  chartDescription = "Trend of test scores over the selected period of time",
+  info = "Score is the sum total all the evaluated score for a test over the selected period of time.",
 }: {
   projectId: string;
   tests: Test[];
