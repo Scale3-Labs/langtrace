@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
@@ -18,6 +11,7 @@ import { useQuery } from "react-query";
 import { toast } from "sonner";
 import { TraceRow } from "../project/traces/trace-row";
 import TraceRowSkeleton from "../project/traces/trace-row-skeleton";
+import { SetupInstructions } from "../shared/setup-instructions";
 import { Spinner } from "../shared/spinner";
 import { Separator } from "../ui/separator";
 
@@ -127,18 +121,12 @@ export default function ImportConversationDialog({
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-      <DialogContent className="w-full max-w-6xl h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Import Conversation</DialogTitle>
-          <DialogDescription>
-            Select the trace to import to the playground.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="w-full max-w-6xl h-3/4 overflow-y-auto">
         <div className="flex flex-col gap-2">
           <Label htmlFor="name" className="text-left">
-            Select a trace
+            Select a prompt to import
           </Label>
-          <div className="grid grid-cols-12 items-center gap-6 p-3 bg-muted">
+          <div className="grid grid-cols-12 items-center p-3 bg-muted">
             <p className="ml-10 text-xs font-medium">
               Time <span>&#8595;</span> ({utcTime ? "UTC" : "Local"})
             </p>
@@ -187,6 +175,7 @@ export default function ImportConversationDialog({
                       No traces available. Get started by setting up Langtrace
                       in your application.
                     </p>
+                    <SetupInstructions project_id={project_id} />
                   </div>
                 )}
             </div>
