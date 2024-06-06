@@ -20,6 +20,10 @@ export default function ConversationView({ span }: { span: any }) {
             ? safeStringify(prompt?.content)
             : prompt?.function_call
             ? safeStringify(prompt?.function_call)
+            : prompt?.message?.content
+            ? safeStringify(prompt?.message?.content)
+            : prompt?.text
+            ? safeStringify(prompt?.text)
             : "No input found";
           return (
             <div key={i} className="flex flex-col gap-2">
@@ -51,13 +55,17 @@ export default function ConversationView({ span }: { span: any }) {
             response?.role?.toLowerCase() ||
             response?.message?.role ||
             "Assistant";
-          const content =
-            safeStringify(response?.content) ||
-            safeStringify(response?.message?.content) ||
-            safeStringify(response?.text) ||
-            "No output found";
+          const content = response?.content
+            ? safeStringify(response?.content)
+            : response?.function_call
+            ? safeStringify(response?.function_call)
+            : response?.message?.content
+            ? safeStringify(response?.message?.content)
+            : response?.text
+            ? safeStringify(response?.text)
+            : "No output found";
           return (
-            <div className="flex flex-col gap-2" key={i}>
+            <div className="flex flex-col gap-2 whitespace-pre-wrap" key={i}>
               <div className="flex gap-2 items-center">
                 {role === "user" ? (
                   <UserLogo />
@@ -67,7 +75,7 @@ export default function ConversationView({ span }: { span: any }) {
                 <p className="font-semibold text-md capitalize">{role}</p>
               </div>
               <div
-                className="text-sm bg-muted rounded-md px-2 py-4"
+                className="text-sm bg-muted rounded-md px-2 py-4 break-all"
                 dangerouslySetInnerHTML={{
                   __html: content,
                 }}
