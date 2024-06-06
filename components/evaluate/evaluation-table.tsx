@@ -39,6 +39,7 @@ export default function EvaluationTable({
   setTotalPages: (totalPages: number) => void;
 }) {
   const [showLoader, setShowLoader] = useState(false);
+  const [selectedSpan, setSelectedSpan] = useState();
 
   const onCheckedChange = (data: CheckedData, checked: boolean) => {
     if (checked) {
@@ -154,22 +155,31 @@ export default function EvaluationTable({
       !currentData ? (
         <EvaluationTableSkeleton />
       ) : (
-        <table className="table-auto overflow-x-scroll w-max border-separate border-spacing-4 border border-muted rounded-md">
-          <thead>
+        <table className="table-auto overflow-x-scroll w-max border-separate border-spacing-2 border border-muted rounded-md">
+          <thead className="bg-muted">
             <tr>
-              <th className="text-xs font-medium text-left">Timestamp (UTC)</th>
-              <th className="text-xs font-medium text-left">Model</th>
-              <th className="text-xs font-medium">Input</th>
-              <th className="text-xs font-medium">Output</th>
-              <th className="text-xs font-medium">PII Detected</th>
+              <th className="p-2 rounded-md text-xs font-medium text-left">
+                Timestamp (UTC)
+              </th>
+              <th className="p-2 rounded-md text-xs font-medium text-left">
+                Model
+              </th>
+              <th className="p-2 rounded-md text-xs font-medium">Input</th>
+              <th className="p-2 rounded-md text-xs font-medium">Output</th>
+              <th className="p-2 rounded-md text-xs font-medium">
+                PII Detected
+              </th>
               {tests.map((test: Test, i) => (
-                <th key={i} className="text-xs font-medium capitalize">
+                <th
+                  key={i}
+                  className="p-2 rounded-md text-xs font-medium capitalize"
+                >
                   {test.name}
                 </th>
               ))}
-              <th className="text-xs font-medium">User Score</th>
-              <th className="text-xs font-medium">User Id</th>
-              <th className="text-xs font-medium text-right">
+              <th className="p-2 rounded-md text-xs font-medium">User Score</th>
+              <th className="p-2 rounded-md text-xs font-medium">User Id</th>
+              <th className="p-2 rounded-md text-xs font-medium text-right">
                 Added to Dataset
               </th>
             </tr>
@@ -181,11 +191,13 @@ export default function EvaluationTable({
                   return (
                     <EvaluationRow
                       key={i}
-                      page={i + 1}
                       span={span}
+                      tests={tests}
                       projectId={projectId}
                       onCheckedChange={onCheckedChange}
                       selectedData={selectedData}
+                      setSelectedSpan={setSelectedSpan as any}
+                      selectedSpan={selectedSpan}
                     />
                   );
                 }

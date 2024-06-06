@@ -163,6 +163,7 @@ export async function GET(req: NextRequest) {
 
     const spanId = req.nextUrl.searchParams.get("spanId") as string;
     const testId = req.nextUrl.searchParams.get("testId") as string;
+    const includeTest = req.nextUrl.searchParams.get("includeTest") === "true";
 
     if (!projectId && !spanId) {
       return NextResponse.json(
@@ -171,34 +172,6 @@ export async function GET(req: NextRequest) {
         },
         { status: 400 }
       );
-    }
-
-    if (spanId) {
-      let evaluations;
-      if (testId) {
-        evaluations = await prisma.evaluation.findMany({
-          where: {
-            spanId,
-            testId,
-          },
-        });
-      } else {
-        evaluations = await prisma.evaluation.findFirst({
-          where: {
-            spanId,
-          },
-        });
-      }
-
-      if (!evaluations) {
-        return NextResponse.json({
-          evaluations: [],
-        });
-      }
-
-      return NextResponse.json({
-        evaluations: Array.isArray(evaluations) ? evaluations : [evaluations],
-      });
     }
 
     // check if this user has access to this project
@@ -234,9 +207,46 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    if (spanId) {
+      let evaluations;
+      if (testId) {
+        evaluations = await prisma.evaluation.findFirst({
+          where: {
+            spanId,
+            testId,
+          },
+          include: {
+            Test: includeTest,
+          },
+        });
+      } else {
+        evaluations = await prisma.evaluation.findMany({
+          where: {
+            spanId,
+          },
+          include: {
+            Test: includeTest,
+          },
+        });
+      }
+
+      if (!evaluations) {
+        return NextResponse.json({
+          evaluations: [],
+        });
+      }
+
+      return NextResponse.json({
+        evaluations: Array.isArray(evaluations) ? evaluations : [evaluations],
+      });
+    }
+
     const evaluations = await prisma.evaluation.findMany({
       where: {
         projectId,
+      },
+      include: {
+        Test: includeTest,
       },
     });
 

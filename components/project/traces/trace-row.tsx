@@ -55,7 +55,9 @@ export const TraceRow = ({
         prompts.push(attributes["llm.prompts"]);
         responses.push(attributes["llm.responses"]);
       }
-      model = attributes["llm.model"] || "";
+      if (!model) {
+        model = attributes["llm.model"] || "";
+      }
       if (attributes["llm.token.counts"]) {
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
         tokenCounts = {

@@ -8,13 +8,11 @@ import EvaluationTable, {
   EvaluationTableSkeleton,
 } from "@/components/evaluate/evaluation-table";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Test } from "@prisma/client";
-import { ChevronsRight, RabbitIcon } from "lucide-react";
-import Link from "next/link";
+import { RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "react-query";
@@ -28,7 +26,6 @@ interface CheckedData {
 
 export default function PageClient({ email }: { email: string }) {
   const projectId = useParams()?.project_id as string;
-  const [selectedTest, setSelectedTest] = useState<Test>();
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [currentData, setCurrentData] = useState<any>([]);
   const [page, setPage] = useState<number>(1);
@@ -69,12 +66,8 @@ export default function PageClient({ email }: { email: string }) {
       // sort tests by created date
       result.tests.sort(
         (a: Test, b: Test) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-
-      if (result?.tests?.length > 0) {
-        setSelectedTest(result?.tests?.[0]);
-      }
 
       return result;
     },
@@ -98,30 +91,18 @@ export default function PageClient({ email }: { email: string }) {
     );
   }
 
-  const testAverage =
-    testAverages?.averages?.find((avg: any) => avg.testId === selectedTest?.id)
-      ?.average || 0;
+  // const testAverage =
+  //   testAverages?.averages?.find((avg: any) => avg.testId === selectedTest?.id)
+  //     ?.average || 0;
 
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Evaluations</h1>
         <div className="flex gap-2">
-          {selectedTest && (
-            <Link
-              href={`/project/${projectId}/evaluate/${selectedTest?.id}?page=1`}
-            >
-              <Button
-                className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 background-animate"
-                variant="default"
-              >
-                Start Evaluating <ChevronsRight className="ml-2" />{" "}
-              </Button>
-            </Link>
-          )}
           <CreateTest projectId={projectId} variant={"outline"} />
-          {selectedTest && (
-            <EditTest projectId={projectId} test={selectedTest as Test} />
+          {tests?.tests?.length > 0 && (
+            <EditTest projectId={projectId} tests={tests?.tests} />
           )}
         </div>
       </div>
@@ -129,30 +110,25 @@ export default function PageClient({ email }: { email: string }) {
         <PageSkeleton />
       ) : tests?.tests?.length > 0 ? (
         <div className="flex flex-col gap-12 top-[16rem] w-full md:px-24 px-12 mb-24">
-          {selectedTest && (
-            <EvalChart projectId={projectId} test={selectedTest} />
-          )}
+          <EvalChart projectId={projectId} tests={tests.tests} />
           <div className="flex flex-col gap-2">
             <AddtoDataset
               projectId={projectId}
               selectedData={selectedData}
               className="w-fit self-end"
             />
-
-            {selectedTest && (
-              <EvaluationTable
-                tests={tests.tests}
-                projectId={projectId}
-                selectedData={selectedData}
-                setSelectedData={setSelectedData}
-                currentData={currentData}
-                setCurrentData={setCurrentData}
-                page={page}
-                setPage={setPage}
-                totalPages={totalPages}
-                setTotalPages={setTotalPages}
-              />
-            )}
+            <EvaluationTable
+              tests={tests.tests}
+              projectId={projectId}
+              selectedData={selectedData}
+              setSelectedData={setSelectedData}
+              currentData={currentData}
+              setCurrentData={setCurrentData}
+              page={page}
+              setPage={setPage}
+              totalPages={totalPages}
+              setTotalPages={setTotalPages}
+            />
           </div>
         </div>
       ) : (

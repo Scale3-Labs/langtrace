@@ -86,8 +86,8 @@ export async function POST(req: NextRequest) {
       projectId = data.projectId;
     }
 
-    const result = await prisma.data.createMany({
-      data: datas.map((data: Data) => ({
+    const payload = datas.map((data: Data) => {
+      const d: any = {
         input: data.input,
         output: data.output,
         contexts: data.contexts || [],
@@ -96,14 +96,23 @@ export async function POST(req: NextRequest) {
         spanId: data.spanId || "",
         projectId: projectId || "",
         datasetId: datasetId || "",
-        runId: runId || "",
-      })),
+      };
+
+      if (runId) {
+        d.runId = runId;
+      }
+      return d;
+    });
+
+    const result = await prisma.data.createMany({
+      data: payload,
     });
 
     return NextResponse.json({
       data: result,
     });
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       {
         message: "Internal server error",
