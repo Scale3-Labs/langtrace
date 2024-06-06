@@ -31,24 +31,6 @@ export default function PageClient({ email }: { email: string }) {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
 
-  const { data: testAverages, isLoading: testAveragesLoading } = useQuery({
-    queryKey: ["fetch-test-averages-query", projectId],
-    queryFn: async () => {
-      const response = await fetch(`/api/metrics/tests?projectId=${projectId}`);
-      if (!response.ok) {
-        const error = await response.json();
-        toast.error("Failed to fetch test averages", {
-          description: error?.message || "Failed to fetch test averages",
-        });
-        return { averages: [] };
-      }
-      const result = await response.json();
-      return result;
-    },
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-  });
-
   const {
     data: tests,
     isLoading: testsLoading,
@@ -72,7 +54,6 @@ export default function PageClient({ email }: { email: string }) {
       return result;
     },
     refetchOnWindowFocus: false,
-    enabled: !!testAverages,
     onError: (error) => {
       toast.error("Failed to fetch tests", {
         description: error instanceof Error ? error.message : String(error),
@@ -91,10 +72,6 @@ export default function PageClient({ email }: { email: string }) {
     );
   }
 
-  // const testAverage =
-  //   testAverages?.averages?.find((avg: any) => avg.testId === selectedTest?.id)
-  //     ?.average || 0;
-
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
@@ -106,7 +83,7 @@ export default function PageClient({ email }: { email: string }) {
           )}
         </div>
       </div>
-      {testAveragesLoading || testsLoading || !tests ? (
+      {testsLoading || !tests ? (
         <PageSkeleton />
       ) : tests?.tests?.length > 0 ? (
         <div className="flex flex-col gap-12 top-[16rem] w-full md:px-24 px-12 mb-24">

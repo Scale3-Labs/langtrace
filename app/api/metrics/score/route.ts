@@ -1,145 +1,126 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
 import { TraceService } from "@/lib/services/trace_service";
-import { Evaluation } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
-  }
-
-  const { projectId, testIds, lastNHours, filters, filterOperation } =
-    await req.json();
-
-  if (!projectId) {
-    return NextResponse.json(
-      {
-        error: "Please provide a projectId",
-      },
-      { status: 400 }
-    );
-  }
-
-  // check if this user has access to this project
-  const email = session?.user?.email as string;
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
-
-  if (!user) {
-    return NextResponse.json(
-      {
-        error: "user not found",
-      },
-      { status: 404 }
-    );
-  }
-
-  // check if this user has access to this project
-  const project = await prisma.project.findFirst({
-    where: {
-      id: projectId,
-      teamId: user.teamId,
-    },
-  });
-
-  if (!project) {
-    return NextResponse.json(
-      {
-        error: "User does not have access to this project",
-      },
-      { status: 403 }
-    );
-  }
-
-  let evaluations: Evaluation[] = [];
-  const traceService = new TraceService();
-
-  //Fetch last N hours of spanIds from clickhouse
-  const spans = await traceService.GetSpansInProject(
-    projectId,
-    lastNHours,
-    filters,
-    filterOperation
-  );
-
-  const result = [];
-  for (const testId of testIds) {
-    // get evaluation for the lastNDays
-    // and all evaluations where score is not 0
-    evaluations = await prisma.evaluation.findMany({
-      where: {
-        projectId,
-        testId,
-        spanId: { in: [...spans.map((span) => span.span_id)] },
-      },
-    });
-    if (!evaluations) {
-      result.push({
-        testId,
-        overall: 0,
-        perday: [],
-      });
-      continue;
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
     }
-    const evalsByDate: Record<string, Evaluation[]> = {};
-    evaluations.forEach((evaluation, index) => {
-      const span = spans.find((span) => span.span_id === evaluation.spanId);
-      if (!span) {
-        return;
-      }
-      const date = span.start_time.split("T")[0];
-      if (evalsByDate[date]) {
-        evalsByDate[date].push(evaluation);
-      } else {
-        evalsByDate[date] = [evaluation];
-      }
-    });
-    let totalPositive = 0;
-    let totalNegative = 0;
 
-    const perday = Object.entries(evalsByDate).map(([date, scores]) => {
-      let totalPositivePerDay = 0;
-      let totalNegativePerDay = 0;
+    const { projectId, testIds, lastNHours, filters, filterOperation } =
+      await req.json();
 
-      scores.forEach((score) => {
-        if (score.ltUserScore !== null) {
-          if (score.ltUserScore > 0) {
-            totalPositivePerDay += score.ltUserScore;
-            totalPositive += score.ltUserScore;
-          } else {
-            // make it positive
-            totalNegativePerDay += Math.abs(score.ltUserScore);
-            totalNegative += Math.abs(score.ltUserScore);
-          }
-        }
-      });
-      const res =
-        (totalPositivePerDay / (totalPositivePerDay + totalNegativePerDay)) *
-        100;
-      return {
-        date,
-        score: res,
-      };
+    if (!projectId) {
+      return NextResponse.json(
+        {
+          error: "Please provide a projectId",
+        },
+        { status: 400 }
+      );
+    }
+    1;
+    const email = session?.user?.email as string;
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
     });
-    perday.sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          error: "user not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    // check if this user has access to this project
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        teamId: user.teamId,
+      },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        {
+          error: "User does not have access to this project",
+        },
+        { status: 403 }
+      );
+    }
+
+    const traceService = new TraceService();
+    const spans = await traceService.GetSpansInProject(
+      projectId,
+      lastNHours,
+      filters,
+      filterOperation
     );
-    // calculate average
-    const overall = (totalPositive / (totalPositive + totalNegative)) * 100;
 
-    result.push({
-      testId,
-      overall,
-      perday,
-    });
+    let evaluations = [];
+    const dateScoreMap: any = {};
+
+    for (const testId of testIds) {
+      evaluations = await prisma.evaluation.findMany({
+        where: {
+          projectId,
+          testId,
+          spanId: { in: [...spans.map((span) => span.span_id)] },
+        },
+        include: {
+          Test: true,
+        },
+      });
+
+      evaluations.forEach((evaluation) => {
+        const span = spans.find((span) => span.span_id === evaluation.spanId);
+        if (!span) return;
+        const date = span.start_time.split("T")[0];
+
+        if (!dateScoreMap[date]) {
+          dateScoreMap[date] = {};
+        }
+
+        if (!dateScoreMap[date][`${testId}-${evaluation.Test?.name}`]) {
+          dateScoreMap[date][`${testId}-${evaluation.Test?.name}`] = 0;
+        }
+
+        dateScoreMap[date][`${testId}-${evaluation.Test?.name}`] +=
+          evaluation.ltUserScore || 0;
+      });
+    }
+
+    const chartData = Object.entries(dateScoreMap).map(
+      ([date, scoresByTestId]) => {
+        const entry: any = { date };
+        Object.entries(scoresByTestId as any).forEach(([testId, score]) => {
+          entry[testId] = score;
+        });
+        return entry;
+      }
+    );
+
+    chartData.sort(
+      (a, b) =>
+        new Date(a.date as string).getTime() -
+        new Date(b.date as string).getTime()
+    );
+
+    return NextResponse.json(chartData);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+      },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json(result);
 }
