@@ -33,6 +33,7 @@ import {
   perplexityHandler,
 } from "./chat-handlers";
 import { Message } from "./common";
+import ImportConversationDialog from "./import-conversation-dialog";
 import {
   AnthropicSettingsSheet,
   CohereSettingsSheet,
@@ -40,10 +41,6 @@ import {
   OpenAISettingsSheet,
   PerplexitySettingsSheet,
 } from "./settings-sheet";
-
-function identity<T>(value: T): T {
-  return value;
-}
 
 export default function LLMChat({
   llm,
@@ -60,6 +57,9 @@ export default function LLMChat({
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [cost, setCost] = useState("");
   const [latency, setLatency] = useState("");
+  const [importConversationDialogOpen, setImportConversationDialogOpen] =
+    useState(false);
+  const [initialPrompt, setInitialPrompt] = useState("");
 
   useEffect(() => {
     const vendor = LLM_VENDOR_APIS.find(
@@ -68,7 +68,44 @@ export default function LLMChat({
     if (typeof window === "undefined" || !vendor) return;
     const key = window.localStorage.getItem(vendor.value);
     setApiKey(key);
-  }, []);
+    if (initialPrompt !== "") {
+      setLocalLLM({
+        ...localLLM,
+        settings: {
+          ...localLLM.settings,
+          messages: [
+            {
+              id: uuidv4(),
+              role:
+                localLLM.vendor === "cohere"
+                  ? CohereAIRole.user
+                  : OpenAIRole.user,
+              content: initialPrompt,
+            },
+            ...localLLM.settings.messages,
+          ],
+        },
+      });
+      setLLM({
+        ...localLLM,
+        settings: {
+          ...localLLM.settings,
+          messages: [
+            {
+              id: uuidv4(),
+              role:
+                localLLM.vendor === "cohere"
+                  ? CohereAIRole.user
+                  : OpenAIRole.user,
+              content: initialPrompt,
+            },
+            ...localLLM.settings.messages,
+          ],
+        },
+      });
+      setImportConversationDialogOpen(false);
+    }
+  }, [initialPrompt]);
 
   return (
     <Card className="w-[450px] h-[600px] p-1 relative group/card">
@@ -111,6 +148,26 @@ export default function LLMChat({
           />
         ))}
       </div>
+      {/* {llm.settings.messages.length === 0 && (
+        <div className="flex items-center justify-center">
+          <Button
+            type="button"
+            size="lg"
+            variant="default"
+            onClick={() => {
+              setImportConversationDialogOpen(true);
+            }}
+          >
+            Import Prompt
+          </Button>
+          <ImportConversationDialog
+            openDialog={importConversationDialogOpen}
+            setOpenDialog={setImportConversationDialogOpen}
+            selectedPrompt={initialPrompt}
+            setSelectedPrompt={setInitialPrompt}
+          />
+        </div>
+      )}
       <div className="w-full flex items-center justify-center">
         <Button
           type="button"
@@ -157,6 +214,118 @@ export default function LLMChat({
           <PlusCircleIcon className="mr-2 h-4 w-4" />
           Add message
         </Button>
+      </div> */}
+      <div className="w-full flex items-center justify-center">
+        {llm.settings.messages.length === 0 ? (
+          <>
+            <Button
+              type="button"
+              size="lg"
+              variant="default"
+              onClick={() => {
+                setImportConversationDialogOpen(true);
+              }}
+            >
+              Import Prompt
+            </Button>
+            <ImportConversationDialog
+              openDialog={importConversationDialogOpen}
+              setOpenDialog={setImportConversationDialogOpen}
+              selectedPrompt={initialPrompt}
+              setSelectedPrompt={setInitialPrompt}
+            />
+            <span className="mx-2">or</span>
+            <Button
+              type="button"
+              size="lg"
+              variant="default"
+              onClick={() => {
+                setLocalLLM({
+                  ...localLLM,
+                  settings: {
+                    ...localLLM.settings,
+                    messages: [
+                      ...localLLM.settings.messages,
+                      {
+                        id: uuidv4(),
+                        role:
+                          localLLM.vendor === "cohere"
+                            ? CohereAIRole.user
+                            : OpenAIRole.user,
+                        content: "",
+                      },
+                    ],
+                  },
+                });
+                setLLM({
+                  ...localLLM,
+                  settings: {
+                    ...localLLM.settings,
+                    messages: [
+                      ...localLLM.settings.messages,
+                      {
+                        id: uuidv4(),
+                        role:
+                          localLLM.vendor === "cohere"
+                            ? CohereAIRole.user
+                            : OpenAIRole.user,
+                        content: "",
+                      },
+                    ],
+                  },
+                });
+              }}
+            >
+              Add Message
+            </Button>
+          </>
+        ) : (
+          <Button
+            type="button"
+            variant="secondary"
+            className="mt-2"
+            size={"lg"}
+            onClick={() => {
+              setLocalLLM({
+                ...localLLM,
+                settings: {
+                  ...localLLM.settings,
+                  messages: [
+                    ...localLLM.settings.messages,
+                    {
+                      id: uuidv4(),
+                      role:
+                        localLLM.vendor === "cohere"
+                          ? CohereAIRole.user
+                          : OpenAIRole.user,
+                      content: "",
+                    },
+                  ],
+                },
+              });
+              setLLM({
+                ...localLLM,
+                settings: {
+                  ...localLLM.settings,
+                  messages: [
+                    ...localLLM.settings.messages,
+                    {
+                      id: uuidv4(),
+                      role:
+                        localLLM.vendor === "cohere"
+                          ? CohereAIRole.user
+                          : OpenAIRole.user,
+                      content: "",
+                    },
+                  ],
+                },
+              });
+            }}
+          >
+            <PlusCircleIcon className="mr-2 h-4 w-4" />
+            Add message
+          </Button>
+        )}
       </div>
       <div className="absolute -top-6 -left-3">
         {localLLM.vendor === "openai" && (
@@ -214,204 +383,118 @@ export default function LLMChat({
       >
         <MinusIcon className="h-4 w-4" />
       </Button>
-      <Button
-        size={"sm"}
-        variant={llm.settings.messages.length === 0 ? "secondary" : "default"}
-        className="absolute bottom-4 left-4"
-        disabled={busy || llm.settings.messages.length === 0}
-        onClick={async () => {
-          setBusy(true);
-          try {
-            // Calculate latency
-            const startTime = performance.now();
-            let response: any;
-            if (localLLM.vendor === "openai") {
-              response = await openAIHandler(
-                localLLM as OpenAIChatInterface,
-                apiKey || ""
-              );
-            } else if (localLLM.vendor === "anthropic") {
-              response = await anthropicHandler(
-                localLLM as AnthropicChatInterface,
-                apiKey || ""
-              );
-            } else if (localLLM.vendor === "cohere") {
-              response = await cohereHandler(
-                localLLM as CohereChatInterface,
-                apiKey || ""
-              );
-            } else if (localLLM.vendor === "groq") {
-              response = await groqHandler(
-                localLLM as GroqChatInterface,
-                apiKey || ""
-              );
-            } else if (localLLM.vendor === "perplexity") {
-              response = await perplexityHandler(
-                localLLM as PerplexityChatInterface,
-                apiKey || ""
-              );
-            }
+      {llm.settings.messages.length > 0 && (
+        <Button
+          size={"sm"}
+          variant={llm.settings.messages.length === 0 ? "secondary" : "default"}
+          className="absolute bottom-4 left-4"
+          disabled={busy || llm.settings.messages.length === 0}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              // Calculate latency
+              const startTime = performance.now();
+              let response: any;
+              if (localLLM.vendor === "openai") {
+                response = await openAIHandler(
+                  localLLM as OpenAIChatInterface,
+                  apiKey || ""
+                );
+              } else if (localLLM.vendor === "anthropic") {
+                response = await anthropicHandler(
+                  localLLM as AnthropicChatInterface,
+                  apiKey || ""
+                );
+              } else if (localLLM.vendor === "cohere") {
+                response = await cohereHandler(
+                  localLLM as CohereChatInterface,
+                  apiKey || ""
+                );
+              } else if (localLLM.vendor === "groq") {
+                response = await groqHandler(
+                  localLLM as GroqChatInterface,
+                  apiKey || ""
+                );
+              } else if (localLLM.vendor === "perplexity") {
+                response = await perplexityHandler(
+                  localLLM as PerplexityChatInterface,
+                  apiKey || ""
+                );
+              }
 
-            if (localLLM.settings.stream === true) {
-              const reader = response?.body?.getReader();
-              const decoder = new TextDecoder("utf-8");
+              if (localLLM.settings.stream === true) {
+                const reader = response?.body?.getReader();
+                const decoder = new TextDecoder("utf-8");
 
-              // Read the stream
-              let receivedLength = 0;
-              let chunks = [];
-              let chunkTexts = [];
-              while (true) {
-                const { done, value } = (await reader?.read()) as {
-                  done: boolean;
-                  value: Uint8Array;
-                };
+                // Read the stream
+                let receivedLength = 0;
+                let chunks = [];
+                let chunkTexts = [];
+                while (true) {
+                  const { done, value } = (await reader?.read()) as {
+                    done: boolean;
+                    value: Uint8Array;
+                  };
 
-                if (done) {
-                  break;
+                  if (done) {
+                    break;
+                  }
+
+                  chunks.push(value);
+                  receivedLength += value.length;
+
+                  // Decode chunk as text
+                  const chunkText = decoder.decode(value, { stream: true });
+                  chunkTexts.push(chunkText);
+                  setLocalLLM({
+                    ...localLLM,
+                    settings: {
+                      ...localLLM.settings,
+                      messages: [
+                        ...localLLM.settings.messages,
+                        {
+                          id: uuidv4(),
+                          role:
+                            localLLM.vendor === "cohere"
+                              ? CohereAIRole.chatbot
+                              : OpenAIRole.assistant,
+                          content: chunkTexts.join(""),
+                        },
+                      ],
+                    },
+                  });
+                  setLLM({
+                    ...llm,
+                    settings: {
+                      ...llm.settings,
+                      messages: [
+                        ...llm.settings.messages,
+                        {
+                          id: uuidv4(),
+                          role:
+                            llm.vendor === "cohere"
+                              ? CohereAIRole.chatbot
+                              : OpenAIRole.assistant,
+                          content: chunkTexts.join(""),
+                        },
+                      ],
+                    },
+                  });
                 }
 
-                chunks.push(value);
-                receivedLength += value.length;
+                // Concatenate all chunks to create a final data string
+                const chunksAll = new Uint8Array(receivedLength);
+                let position = 0;
+                for (let chunk of chunks) {
+                  chunksAll.set(chunk, position);
+                  position += chunk.length;
+                }
 
-                // Decode chunk as text
-                const chunkText = decoder.decode(value, { stream: true });
-                chunkTexts.push(chunkText);
-                setLocalLLM({
-                  ...localLLM,
-                  settings: {
-                    ...localLLM.settings,
-                    messages: [
-                      ...localLLM.settings.messages,
-                      {
-                        id: uuidv4(),
-                        role:
-                          localLLM.vendor === "cohere"
-                            ? CohereAIRole.chatbot
-                            : OpenAIRole.assistant,
-                        content: chunkTexts.join(""),
-                      },
-                    ],
-                  },
-                });
-                setLLM({
-                  ...llm,
-                  settings: {
-                    ...llm.settings,
-                    messages: [
-                      ...llm.settings.messages,
-                      {
-                        id: uuidv4(),
-                        role:
-                          llm.vendor === "cohere"
-                            ? CohereAIRole.chatbot
-                            : OpenAIRole.assistant,
-                        content: chunkTexts.join(""),
-                      },
-                    ],
-                  },
-                });
-              }
+                // Decode all chunks into text
+                const result = decoder.decode(chunksAll);
 
-              // Concatenate all chunks to create a final data string
-              const chunksAll = new Uint8Array(receivedLength);
-              let position = 0;
-              for (let chunk of chunks) {
-                chunksAll.set(chunk, position);
-                position += chunk.length;
-              }
-
-              // Decode all chunks into text
-              const result = decoder.decode(chunksAll);
-
-              // ugly hack to check if the response is an error
-              if (result.includes('{"error":"401')) {
-                toast.error(
-                  <div className="flex flex-col gap-2 items-start">
-                    <p>API key is invalid or not found. Update your API key</p>
-                    <div className="w-fit">
-                      <Link
-                        href={"/settings/keys"}
-                        className="underline text-sm font-semibold flex items-center"
-                      >
-                        Update API key
-                        <ArrowTopRightIcon className="h-4 w-4 ml-1" />
-                      </Link>
-                    </div>
-                  </div>
-                );
-                const endTime = performance.now();
-                setLatency((endTime - startTime).toFixed(2));
-                return;
-              }
-
-              setLLM({
-                ...llm,
-                settings: {
-                  ...llm.settings,
-                  messages: [
-                    ...llm.settings.messages,
-                    {
-                      id: uuidv4(),
-                      role:
-                        llm.vendor === "cohere"
-                          ? CohereAIRole.chatbot
-                          : OpenAIRole.assistant,
-                      content: result,
-                    },
-                  ],
-                },
-              });
-              setLocalLLM({
-                ...localLLM,
-                settings: {
-                  ...localLLM.settings,
-                  messages: [
-                    ...localLLM.settings.messages,
-                    {
-                      id: uuidv4(),
-                      role:
-                        localLLM.vendor === "cohere"
-                          ? CohereAIRole.chatbot
-                          : OpenAIRole.assistant,
-                      content: result,
-                    },
-                  ],
-                },
-              });
-
-              const endTime = performance.now();
-              setLatency((endTime - startTime).toFixed(2));
-
-              // cost calculation
-              const inputContent =
-                localLLM.settings.messages[
-                  localLLM.settings.messages.length - 1
-                ]?.content ?? "";
-              const inputTokens = calculateTokens(
-                inputContent,
-                localLLM.settings.model
-              );
-              const outputTokens = calculateTokens(
-                result,
-                localLLM.settings.model
-              );
-              const vendor = localLLM.vendor;
-              const model = localLLM.settings.model;
-              const calculatedCost = calculatePriceFromUsage(vendor, model, {
-                input_tokens: inputTokens,
-                output_tokens: outputTokens,
-              });
-              const totalCost =
-                calculatedCost.total.toFixed(6) !== "0.000000"
-                  ? `\$${calculatedCost.total.toFixed(6)}`
-                  : "";
-              setCost(totalCost);
-            } else {
-              const data = await response.json();
-              if (data.error) {
-                let message =
-                  data.error ?? "An error occurred. Please try again.";
-                if (data.status === 401) {
+                // ugly hack to check if the response is an error
+                if (result.includes('{"error":"401')) {
                   toast.error(
                     <div className="flex flex-col gap-2 items-start">
                       <p>
@@ -428,177 +511,274 @@ export default function LLMChat({
                       </div>
                     </div>
                   );
-                } else {
-                  toast.error(message);
+                  const endTime = performance.now();
+                  setLatency((endTime - startTime).toFixed(2));
+                  return;
                 }
-                return;
-              }
-              const endTime = performance.now();
-              setLatency((endTime - startTime).toFixed(2));
-              let message = "";
-              if (localLLM.vendor === "openai" || localLLM.vendor === "groq") {
-                if (data?.choices?.length > 0) {
-                  if (data.choices[0]?.message?.content) {
-                    message = data.choices[0].message.content;
-                  } else if (data.choices[0]?.message?.tool_calls.length > 0) {
-                    message = JSON.stringify(
-                      data.choices[0].message.tool_calls
+
+                setLLM({
+                  ...llm,
+                  settings: {
+                    ...llm.settings,
+                    messages: [
+                      ...llm.settings.messages,
+                      {
+                        id: uuidv4(),
+                        role:
+                          llm.vendor === "cohere"
+                            ? CohereAIRole.chatbot
+                            : OpenAIRole.assistant,
+                        content: result,
+                      },
+                    ],
+                  },
+                });
+                setLocalLLM({
+                  ...localLLM,
+                  settings: {
+                    ...localLLM.settings,
+                    messages: [
+                      ...localLLM.settings.messages,
+                      {
+                        id: uuidv4(),
+                        role:
+                          localLLM.vendor === "cohere"
+                            ? CohereAIRole.chatbot
+                            : OpenAIRole.assistant,
+                        content: result,
+                      },
+                    ],
+                  },
+                });
+
+                const endTime = performance.now();
+                setLatency((endTime - startTime).toFixed(2));
+
+                // cost calculation
+                const inputContent =
+                  localLLM.settings.messages[
+                    localLLM.settings.messages.length - 1
+                  ]?.content ?? "";
+                const inputTokens = calculateTokens(
+                  inputContent,
+                  localLLM.settings.model
+                );
+                const outputTokens = calculateTokens(
+                  result,
+                  localLLM.settings.model
+                );
+                const vendor = localLLM.vendor;
+                const model = localLLM.settings.model;
+                const calculatedCost = calculatePriceFromUsage(vendor, model, {
+                  input_tokens: inputTokens,
+                  output_tokens: outputTokens,
+                });
+                const totalCost =
+                  calculatedCost.total.toFixed(6) !== "0.000000"
+                    ? `\$${calculatedCost.total.toFixed(6)}`
+                    : "";
+                setCost(totalCost);
+              } else {
+                const data = await response.json();
+                if (data.error) {
+                  let message =
+                    data.error ?? "An error occurred. Please try again.";
+                  if (data.status === 401) {
+                    toast.error(
+                      <div className="flex flex-col gap-2 items-start">
+                        <p>
+                          API key is invalid or not found. Update your API key
+                        </p>
+                        <div className="w-fit">
+                          <Link
+                            href={"/settings/keys"}
+                            className="underline text-sm font-semibold flex items-center"
+                          >
+                            Update API key
+                            <ArrowTopRightIcon className="h-4 w-4 ml-1" />
+                          </Link>
+                        </div>
+                      </div>
                     );
-                  }
-                }
-                if (data?.usage) {
-                  const inputTokens = data.usage.prompt_tokens;
-                  const outputTokens = data.usage.completion_tokens;
-                  const vendor = localLLM.vendor;
-                  const model = localLLM.settings.model;
-                  const calculatedCost = calculatePriceFromUsage(
-                    vendor,
-                    model,
-                    {
-                      input_tokens: inputTokens,
-                      output_tokens: outputTokens,
-                    }
-                  );
-                  const totalCost =
-                    calculatedCost.total.toFixed(6) !== "0.000000"
-                      ? `\$${calculatedCost.total.toFixed(6)}`
-                      : "";
-                  setCost(totalCost);
-                }
-              } else if (localLLM.vendor === "anthropic") {
-                if (data?.content?.length > 0) {
-                  if (data.content[0].type === "text") {
-                    message = data.content[0].text;
                   } else {
-                    message = JSON.stringify(data.content[0].text);
+                    toast.error(message);
+                  }
+                  return;
+                }
+                const endTime = performance.now();
+                setLatency((endTime - startTime).toFixed(2));
+                let message = "";
+                if (
+                  localLLM.vendor === "openai" ||
+                  localLLM.vendor === "groq"
+                ) {
+                  if (data?.choices?.length > 0) {
+                    if (data.choices[0]?.message?.content) {
+                      message = data.choices[0].message.content;
+                    } else if (
+                      data.choices[0]?.message?.tool_calls.length > 0
+                    ) {
+                      message = JSON.stringify(
+                        data.choices[0].message.tool_calls
+                      );
+                    }
+                  }
+                  if (data?.usage) {
+                    const inputTokens = data.usage.prompt_tokens;
+                    const outputTokens = data.usage.completion_tokens;
+                    const vendor = localLLM.vendor;
+                    const model = localLLM.settings.model;
+                    const calculatedCost = calculatePriceFromUsage(
+                      vendor,
+                      model,
+                      {
+                        input_tokens: inputTokens,
+                        output_tokens: outputTokens,
+                      }
+                    );
+                    const totalCost =
+                      calculatedCost.total.toFixed(6) !== "0.000000"
+                        ? `\$${calculatedCost.total.toFixed(6)}`
+                        : "";
+                    setCost(totalCost);
+                  }
+                } else if (localLLM.vendor === "anthropic") {
+                  if (data?.content?.length > 0) {
+                    if (data.content[0].type === "text") {
+                      message = data.content[0].text;
+                    } else {
+                      message = JSON.stringify(data.content[0].text);
+                    }
+                  }
+                  if (data?.usage) {
+                    const inputTokens = data.usage.input_tokens;
+                    const outputTokens = data.usage.output_tokens;
+                    const vendor = localLLM.vendor;
+                    const model = localLLM.settings.model;
+                    const calculatedCost = calculatePriceFromUsage(
+                      vendor,
+                      model,
+                      {
+                        input_tokens: inputTokens,
+                        output_tokens: outputTokens,
+                      }
+                    );
+                    const totalCost =
+                      calculatedCost.total.toFixed(6) !== "0.000000"
+                        ? `\$${calculatedCost.total.toFixed(6)}`
+                        : "";
+                    setCost(totalCost);
+                  }
+                } else if (localLLM.vendor === "cohere") {
+                  if (data?.text) {
+                    if (typeof data.text === "object") {
+                      message = JSON.stringify(data.text);
+                    } else {
+                      message = data?.text;
+                    }
+                  }
+                  if (data.meta?.billedUnits) {
+                    const inputTokens = data.meta?.billedUnits?.inputTokens;
+                    const outputTokens = data.meta?.billedUnits?.outputTokens;
+                    const vendor = localLLM.vendor;
+                    const model = localLLM.settings.model;
+                    const calculatedCost = calculatePriceFromUsage(
+                      vendor,
+                      model,
+                      {
+                        input_tokens: inputTokens,
+                        output_tokens: outputTokens,
+                      }
+                    );
+                    const totalCost =
+                      calculatedCost.total.toFixed(6) !== "0.000000"
+                        ? `\$${calculatedCost.total.toFixed(6)}`
+                        : "";
+                    setCost(totalCost);
+                  }
+                } else if (localLLM.vendor === "perplexity") {
+                  if (data?.choices?.length > 0) {
+                    if (data.choices[0]?.message?.content) {
+                      message = data.choices[0].message.content;
+                    }
+                  }
+                  if (data?.usage) {
+                    const inputTokens = data.usage.prompt_tokens;
+                    const outputTokens = data.usage.completion_tokens;
+                    const vendor = localLLM.vendor;
+                    const model = localLLM.settings.model;
+                    const calculatedCost = calculatePriceFromUsage(
+                      vendor,
+                      model,
+                      {
+                        input_tokens: inputTokens,
+                        output_tokens: outputTokens,
+                      }
+                    );
+                    const totalCost =
+                      calculatedCost.total.toFixed(6) !== "0.000000"
+                        ? `\$${calculatedCost.total.toFixed(6)}`
+                        : "";
+                    setCost(totalCost);
                   }
                 }
-                if (data?.usage) {
-                  const inputTokens = data.usage.input_tokens;
-                  const outputTokens = data.usage.output_tokens;
-                  const vendor = localLLM.vendor;
-                  const model = localLLM.settings.model;
-                  const calculatedCost = calculatePriceFromUsage(
-                    vendor,
-                    model,
-                    {
-                      input_tokens: inputTokens,
-                      output_tokens: outputTokens,
-                    }
-                  );
-                  const totalCost =
-                    calculatedCost.total.toFixed(6) !== "0.000000"
-                      ? `\$${calculatedCost.total.toFixed(6)}`
-                      : "";
-                  setCost(totalCost);
-                }
-              } else if (localLLM.vendor === "cohere") {
-                if (data?.text) {
-                  if (typeof data.text === "object") {
-                    message = JSON.stringify(data.text);
-                  } else {
-                    message = data?.text;
-                  }
-                }
-                if (data.meta?.billedUnits) {
-                  const inputTokens = data.meta?.billedUnits?.inputTokens;
-                  const outputTokens = data.meta?.billedUnits?.outputTokens;
-                  const vendor = localLLM.vendor;
-                  const model = localLLM.settings.model;
-                  const calculatedCost = calculatePriceFromUsage(
-                    vendor,
-                    model,
-                    {
-                      input_tokens: inputTokens,
-                      output_tokens: outputTokens,
-                    }
-                  );
-                  const totalCost =
-                    calculatedCost.total.toFixed(6) !== "0.000000"
-                      ? `\$${calculatedCost.total.toFixed(6)}`
-                      : "";
-                  setCost(totalCost);
-                }
-              } else if (localLLM.vendor === "perplexity") {
-                if (data?.choices?.length > 0) {
-                  if (data.choices[0]?.message?.content) {
-                    message = data.choices[0].message.content;
-                  }
-                }
-                if (data?.usage) {
-                  const inputTokens = data.usage.prompt_tokens;
-                  const outputTokens = data.usage.completion_tokens;
-                  const vendor = localLLM.vendor;
-                  const model = localLLM.settings.model;
-                  const calculatedCost = calculatePriceFromUsage(
-                    vendor,
-                    model,
-                    {
-                      input_tokens: inputTokens,
-                      output_tokens: outputTokens,
-                    }
-                  );
-                  const totalCost =
-                    calculatedCost.total.toFixed(6) !== "0.000000"
-                      ? `\$${calculatedCost.total.toFixed(6)}`
-                      : "";
-                  setCost(totalCost);
-                }
+                setLLM({
+                  ...llm,
+                  settings: {
+                    ...llm.settings,
+                    messages: [
+                      ...llm.settings.messages,
+                      {
+                        id: uuidv4(),
+                        role:
+                          llm.vendor === "cohere"
+                            ? CohereAIRole.chatbot
+                            : OpenAIRole.assistant,
+                        content: message,
+                      },
+                    ],
+                  },
+                });
+                setLocalLLM({
+                  ...localLLM,
+                  settings: {
+                    ...localLLM.settings,
+                    messages: [
+                      ...localLLM.settings.messages,
+                      {
+                        id: uuidv4(),
+                        role:
+                          localLLM.vendor === "cohere"
+                            ? CohereAIRole.chatbot
+                            : OpenAIRole.assistant,
+                        content: message,
+                      },
+                    ],
+                  },
+                });
               }
-              setLLM({
-                ...llm,
-                settings: {
-                  ...llm.settings,
-                  messages: [
-                    ...llm.settings.messages,
-                    {
-                      id: uuidv4(),
-                      role:
-                        llm.vendor === "cohere"
-                          ? CohereAIRole.chatbot
-                          : OpenAIRole.assistant,
-                      content: message,
-                    },
-                  ],
-                },
-              });
-              setLocalLLM({
-                ...localLLM,
-                settings: {
-                  ...localLLM.settings,
-                  messages: [
-                    ...localLLM.settings.messages,
-                    {
-                      id: uuidv4(),
-                      role:
-                        localLLM.vendor === "cohere"
-                          ? CohereAIRole.chatbot
-                          : OpenAIRole.assistant,
-                      content: message,
-                    },
-                  ],
-                },
-              });
+            } catch (error) {
+              toast.error("An error occurred. Please try again.");
+            } finally {
+              setBusy(false);
             }
-          } catch (error) {
-            toast.error("An error occurred. Please try again.");
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        Submit
-        {busy && (
-          <Image
-            src={theme === "dark" ? "/spinner-dark.svg" : "/spinner-light.svg"}
-            alt="Spinner"
-            width={15}
-            height={15}
-            className="ml-2"
-          />
-        )}
-        {!busy && <LucideChevronRight className="ml-2 h-4 w-4" />}
-      </Button>
+          }}
+        >
+          Submit
+          {busy && (
+            <Image
+              src={
+                theme === "dark" ? "/spinner-dark.svg" : "/spinner-light.svg"
+              }
+              alt="Spinner"
+              width={15}
+              height={15}
+              className="ml-2"
+            />
+          )}
+          {!busy && <LucideChevronRight className="ml-2 h-4 w-4" />}
+        </Button>
+      )}
       {(cost || latency) && (
         <div className="absolute bottom-2 right-4 flex flex-col gap-2 bg-primary-foreground rounded-md p-2 w-[115px]">
           <p className="text-xs">{`Cost: ${cost}`}</p>

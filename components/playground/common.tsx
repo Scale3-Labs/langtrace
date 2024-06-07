@@ -86,7 +86,7 @@ export function ExpandingTextArea({
         onChange={handleChange}
         style={{ overflowY: "auto", resize: "none", height: "auto" }}
       />
-      <div className="absolute right-1 top-[-10px] py-2">
+      <div className="absolute right-0 top-[-10px] py-2">
         <Button
           className="text-xs"
           size={"sm"}
