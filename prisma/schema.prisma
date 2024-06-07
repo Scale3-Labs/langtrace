@@ -59,17 +59,19 @@ model User {
 }
 
 model Test {
-  id          String       @id @default(cuid())
-  name        String
-  description String?
-  projectId   String
-  min         Int?         @default(-1)
-  max         Int?         @default(1)
-  step        Int?         @default(2)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  Evaluation  Evaluation[]
-  Project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id                 String       @id @default(cuid())
+  name               String
+  description        String?
+  type               String       @default("manual") // manual, automated
+  evaluationCriteria String?
+  projectId          String
+  min                Int?         @default(-1)
+  max                Int?         @default(1)
+  step               Int?         @default(2)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  Evaluation         Evaluation[]
+  Project            Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Evaluation {
@@ -80,13 +82,23 @@ model Evaluation {
   ltUserScore Int?
   userId      String?
   userScore   Int?
+  reason      String?
   projectId   String
   testId      String?
+  dataId      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  data        Data?    @relation(fields: [dataId], references: [id], onDelete: Cascade)
   User        User?    @relation(fields: [ltUserId], references: [id], onDelete: Cascade)
   Project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   Test        Test?    @relation(fields: [testId], references: [id], onDelete: Cascade)
+}
+
+model Run {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  Data        Data[]
 }
 
 model Prompt {
@@ -107,15 +119,22 @@ model Prompt {
 }
 
 model Data {
-  id        String   @id @default(cuid())
-  input     String
-  output    String
-  note      String?
-  datasetId String
-  spanId    String?
-  dataset   Dataset  @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String       @id @default(cuid())
+  input          String
+  output         String
+  contexts       String[]
+  expectedOutput String?
+  note           String?
+  spanId         String?
+  Evaluation     Evaluation[]
+  runId          String?
+  Run            Run?         @relation(fields: [runId], references: [id], onDelete: Cascade)
+  datasetId      String?
+  Dataset        Dataset?     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  projectId      String?
+  Project        Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Dataset {
@@ -164,6 +183,7 @@ model Project {
   Dataset     Dataset[]
   Promptset   Promptset[]
   Test        Test[]
+  Data        Data[]
 }
 
 model TeamInvite {

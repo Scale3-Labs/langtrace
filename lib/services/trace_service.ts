@@ -1,8 +1,7 @@
 import { Span, SpanSchema } from "@/lib/clients/scale3_clickhouse/models/span";
-import { format } from "date-fns";
 import sql from "sql-bricks";
 import { ClickhouseBaseClient } from "../clients/scale3_clickhouse/client/client";
-import { calculatePriceFromUsage } from "../utils";
+import { calculatePriceFromUsage, getFormattedTime } from "../utils";
 import {
   IQueryBuilderService,
   PropertyFilter,
@@ -12,14 +11,6 @@ import {
 export interface PaginationResult<T> {
   result: T[];
   metadata?: { page?: number; page_size?: number; total_pages: number };
-}
-
-function getFormattedTime(lastNHours: number): string {
-  const nHoursAgo = format(
-    new Date(Date.now() - lastNHours * 60 * 60 * 1000),
-    "yyyy-MM-dd HH:mm:ss"
-  );
-  return nHoursAgo;
 }
 
 export interface ITraceService {
@@ -55,9 +46,15 @@ export interface ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters?: PropertyFilter[]
+    filters?: PropertyFilter[],
+    filterOperation?: string
   ) => Promise<PaginationResult<Span>>;
-  GetSpansInProject: (project_id: string, lastNDays: number) => Promise<Span[]>;
+  GetSpansInProject: (
+    project_id: string,
+    lastNHours: number,
+    filters?: PropertyFilter[],
+    filterOperation?: string
+  ) => Promise<Span[]>;
   GetTracesInProjectPaginated: (
     project_id: string,
     page: number,
@@ -115,6 +112,10 @@ export class TraceService implements ITraceService {
 
   async GetSpanById(span_id: string, project_id: string): Promise<Span> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return {} as Span;
+      }
       const query = sql.select().from(project_id).where({ span_id });
       const span: Span[] = await this.client.find<Span[]>(query);
       return span[0];
@@ -127,6 +128,10 @@ export class TraceService implements ITraceService {
 
   async GetTraceById(trace_id: string, project_id: string): Promise<Span[]> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
       const query = sql.select().from(project_id).where({ trace_id });
       const span: Span[] = await this.client.find<Span[]>(query);
       return span;
@@ -305,6 +310,10 @@ export class TraceService implements ITraceService {
 
   async GetFailedSpans(project_id: string): Promise<Span[]> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
       const query = sql
         .select()
         .from(project_id)
@@ -400,18 +409,26 @@ export class TraceService implements ITraceService {
 
   async GetSpansInProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    filters: PropertyFilter[] = [],
+    filterOperation: string = "OR"
   ): Promise<Span[]> {
     try {
-      const query = sql.select().from(project_id);
-      if (!lastNHours) {
-        return await this.client.find<Span[]>(query);
-      } else {
-        const nHoursAgo = getFormattedTime(lastNHours);
-        query.where(sql.gte("start_time", nHoursAgo));
-
-        return await this.client.find<Span[]>(query);
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
       }
+      const query = this.queryBuilderService.GetFilteredSpansAttributesQuery(
+        project_id,
+        filters,
+        1000,
+        10,
+        filterOperation,
+        lastNHours
+      );
+      const getSpansQuery = sql.select(query);
+      const spans: Span[] = await this.client.find<Span[]>(getSpansQuery);
+      return spans;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the spans ${error}`

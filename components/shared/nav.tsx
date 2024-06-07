@@ -27,6 +27,10 @@ const ProjectNavLinks = (id: string) => [
     name: "Evaluate",
     href: `/project/${id}/evaluate`,
   },
+  // {
+  //   name: "Experiments",
+  //   href: `/project/${id}/experiments`,
+  // },
   {
     name: "Datasets",
     href: `/project/${id}/datasets`,

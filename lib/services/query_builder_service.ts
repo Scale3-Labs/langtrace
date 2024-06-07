@@ -1,3 +1,5 @@
+import { getFormattedTime } from "../utils";
+
 export interface PropertyFilter {
   key: string;
   operation: "EQUALS" | "CONTAINS" | "NOT_EQUALS";
@@ -16,7 +18,8 @@ export interface IQueryBuilderService {
     filters: PropertyFilter[],
     pageSize: number,
     offset: number,
-    filterOperation?: string
+    filterOperation?: string,
+    lastNHours?: number
   ) => string;
   GetFilteredSpanAttributesSpanById: (
     tableName: string,
@@ -121,9 +124,10 @@ export class QueryBuilderService implements IQueryBuilderService {
   GetFilteredSpansAttributesQuery(
     tableName: string,
     filters: PropertyFilter[],
-    pageSize: number,
-    offset: number,
-    filterOperation: string = "OR"
+    pageSize: number = 10,
+    offset: number = 0,
+    filterOperation: string = "OR",
+    lastNHours?: number
   ): string {
     let baseQuery = `* FROM ${tableName}`;
     let whereConditions: string[] = [];
@@ -136,7 +140,13 @@ export class QueryBuilderService implements IQueryBuilderService {
       baseQuery += ` WHERE (${whereConditions.join(` ${filterOperation} `)})`;
     }
 
-    baseQuery += ` ORDER BY start_time DESC LIMIT ${pageSize} OFFSET ${offset}`;
+    if (lastNHours) {
+      const startTime = getFormattedTime(lastNHours);
+      baseQuery += ` AND start_time >= '${startTime}'`;
+      baseQuery += ` ORDER BY start_time DESC`;
+    } else {
+      baseQuery += ` ORDER BY start_time DESC LIMIT ${pageSize} OFFSET ${offset}`;
+    }
 
     return baseQuery;
   }
