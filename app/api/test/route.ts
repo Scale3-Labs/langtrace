@@ -1,18 +1,36 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
+import { authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
+    // check session
+    let projectId = "";
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
-      redirect("/login");
+      // check api key
+      const apiKey = req.headers.get("x-api-key");
+      if (!apiKey) {
+        redirect("/login");
+      }
+
+      const response = await authApiKey(apiKey!);
+      if (response.status !== 200) {
+        return response;
+      }
+
+      // Get project data
+      const projectData = await response.json();
+      projectId = projectData.data.project.id;
     }
 
     const id = req.nextUrl.searchParams.get("id") as string;
-    const projectId = req.nextUrl.searchParams.get("projectId") as string;
+    if (!projectId) {
+      projectId = req.nextUrl.searchParams.get("projectId") as string;
+    }
     if (!projectId && !id) {
       return NextResponse.json(
         {
@@ -72,68 +90,117 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
+  try {
+    // check session
+    let projectId = "";
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      // check api key
+      const apiKey = req.headers.get("x-api-key");
+      if (!apiKey) {
+        redirect("/login");
+      }
+
+      const response = await authApiKey(apiKey!);
+      if (response.status !== 200) {
+        return response;
+      }
+
+      // Get project data
+      const projectData = await response.json();
+      projectId = projectData.data.project.id;
+    }
+
+    const data = await req.json();
+    const { name, description, type, evaluationCriteria, min, max, step } =
+      data;
+
+    if (!projectId) {
+      projectId = data.projectId;
+    }
+
+    const test = await prisma.test.create({
+      data: {
+        name: name,
+        description: description,
+        projectId: projectId,
+        type: type ?? "manual",
+        evaluationCriteria: evaluationCriteria ?? "",
+        min: min ?? -1,
+        max: max ?? 1,
+        step: step ?? 2,
+      },
+    });
+
+    return NextResponse.json({
+      data: test,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
   }
-
-  const data = await req.json();
-  const { name, description, projectId, min, max, step } = data;
-
-  const test = await prisma.test.create({
-    data: {
-      name: name,
-      description: description,
-      projectId: projectId,
-      min: min ?? -1,
-      max: max ?? 1,
-      step: step ?? 2,
-    },
-  });
-
-  return NextResponse.json({
-    data: test,
-  });
 }
 
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
+    }
+
+    const data = await req.json();
+    const { id, name, description } = data;
+
+    const test = await prisma.test.update({
+      where: {
+        id,
+      },
+      data: {
+        name,
+        description,
+      },
+    });
+
+    return NextResponse.json({
+      data: test,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
   }
-
-  const data = await req.json();
-  const { id, name, description } = data;
-
-  const test = await prisma.test.update({
-    where: {
-      id,
-    },
-    data: {
-      name,
-      description,
-    },
-  });
-
-  return NextResponse.json({
-    data: test,
-  });
 }
 
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
+    }
+
+    const data = await req.json();
+    const { id } = data;
+
+    await prisma.test.delete({
+      where: {
+        id,
+      },
+    });
+
+    return NextResponse.json({});
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
   }
-
-  const data = await req.json();
-  const { id } = data;
-
-  await prisma.test.delete({
-    where: {
-      id,
-    },
-  });
-
-  return NextResponse.json({});
 }

@@ -1,5 +1,13 @@
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -23,10 +31,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Test } from "@prisma/client";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { EditIcon, TrashIcon } from "lucide-react";
+import { Check, ChevronsUpDown, EditIcon, TrashIcon } from "lucide-react";
+import * as React from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
@@ -35,15 +50,16 @@ import { z } from "zod";
 import { Info } from "../shared/info";
 
 export function EditTest({
-  test,
+  tests,
   projectId,
   className = "w-full text-left p-0 text-muted-foreground hover:text-primary flex items-center",
 }: {
-  test: Test;
+  tests: Test[];
   projectId: string;
   variant?: any;
   className?: string;
 }) {
+  const [test, setTest] = useState<Test>();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
@@ -55,13 +71,20 @@ export function EditTest({
   });
   const EditTestForm = useForm({
     resolver: zodResolver(schema),
-    defaultValues: {
-      name: test.name || "",
-      description: test.description || "",
-    },
   });
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(value) => {
+        if (!value) {
+          setTest(undefined);
+          setOpenEdit(false);
+          setOpenDelete(false);
+          EditTestForm.reset();
+        }
+        setOpen(value);
+      }}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size={"icon"}>
@@ -124,17 +147,22 @@ export function EditTest({
                       "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                      id: test.id,
+                      id: test?.id,
                       name: data.name,
                       description: data.description,
                     }),
                   });
-                  await queryClient.invalidateQueries(
-                    `fetch-tests-${projectId}-query`
-                  );
+                  await queryClient.invalidateQueries({
+                    queryKey: ["fetch-tests-query", projectId],
+                  });
                   toast("Test saved!", {
                     description: "Your test has been saved.",
                   });
+
+                  setTest(undefined);
+                  setOpenEdit(false);
+                  setOpenDelete(false);
+                  EditTestForm.reset();
                   setOpen(false);
                 } catch (error: any) {
                   toast("Error saving your test!", {
@@ -146,58 +174,65 @@ export function EditTest({
               })}
               className="flex flex-col gap-4"
             >
-              <FormField
-                disabled={busy}
-                control={EditTestForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Name
-                      <Info
-                        information="The name of the test."
-                        className="inline-block ml-2"
-                      />
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        className="capitalize"
-                        placeholder="Needle in a haystack"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                disabled={busy}
-                control={EditTestForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Description
-                      <Info
-                        information="A brief description of the test."
-                        className="inline-block ml-2"
-                      />
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Insert the question in between random text. If the question is answered correctly, the test is passed."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter>
-                <Button type="submit" disabled={busy}>
-                  Save
-                </Button>
-              </DialogFooter>
+              {!test && <TestsDropdown tests={tests} onSelect={setTest} />}
+              {test && (
+                <>
+                  <FormField
+                    disabled={busy}
+                    control={EditTestForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Name
+                          <Info
+                            information="The name of the test."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            className="capitalize"
+                            placeholder="Needle in a haystack"
+                            {...field}
+                            defaultValue={test.name}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    disabled={busy}
+                    control={EditTestForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Description
+                          <Info
+                            information="A brief description of the test."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Insert the question in between random text. If the question is answered correctly, the test is passed."
+                            {...field}
+                            defaultValue={test?.description || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter>
+                    <Button type="submit" disabled={busy}>
+                      Save
+                    </Button>
+                  </DialogFooter>
+                </>
+              )}
             </form>
           </Form>
         </DialogContent>
@@ -207,8 +242,11 @@ export function EditTest({
           <DialogHeader>
             <DialogTitle>Delete Test</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this test?
+              {test
+                ? `Are you sure you want to delete ${test?.name} ?`
+                : "Select a test to delete."}
             </DialogDescription>
+            {!test && <TestsDropdown tests={tests} onSelect={setTest} />}
           </DialogHeader>
           <DialogFooter>
             <Button
@@ -222,15 +260,19 @@ export function EditTest({
                       "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                      id: test.id,
+                      id: test?.id,
                     }),
                   });
-                  await queryClient.invalidateQueries(
-                    `fetch-tests-${projectId}-query`
-                  );
+                  await queryClient.invalidateQueries({
+                    queryKey: ["fetch-tests-query", projectId],
+                  });
                   toast("Test deleted!", {
                     description: "Your test has been deleted.",
                   });
+                  setTest(undefined);
+                  setOpenEdit(false);
+                  setOpenDelete(false);
+                  EditTestForm.reset();
                   setOpen(false);
                 } catch (error: any) {
                   toast("Error deleting your test!", {
@@ -248,5 +290,63 @@ export function EditTest({
         </DialogContent>
       )}
     </Dialog>
+  );
+}
+
+function TestsDropdown({
+  tests,
+  onSelect,
+}: {
+  tests: Test[];
+  onSelect: (test: Test) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState("");
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {value
+            ? tests.find((test) => test.id === value)?.name
+            : "Select test..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[370px] p-0">
+        <Command>
+          <CommandInput placeholder="Search test..." />
+          <CommandList>
+            <CommandEmpty>No test found.</CommandEmpty>
+            <CommandGroup>
+              {tests.map((test) => (
+                <CommandItem
+                  key={test.id}
+                  value={test.id}
+                  onSelect={(currentValue) => {
+                    setValue(currentValue === value ? "" : currentValue);
+                    setOpen(false);
+                    onSelect(test);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === test.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {test.name}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

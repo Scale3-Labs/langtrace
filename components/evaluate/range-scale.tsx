@@ -16,6 +16,7 @@ interface RangeScaleProps {
   type?: ScaleType | "range";
   variant?: string | "default";
   disabled?: boolean;
+  disableAutoFocus?: boolean;
 }
 
 export function RangeScale({
@@ -27,11 +28,13 @@ export function RangeScale({
   type = ScaleType.Range,
   variant = "default",
   disabled = false,
+  disableAutoFocus = false,
 }: RangeScaleProps) {
   const radioRef = React.createRef<HTMLDivElement>();
   const buttonRef = React.createRef<HTMLButtonElement>();
 
   useEffect(() => {
+    if (disableAutoFocus) return;
     if (radioRef.current) {
       radioRef.current.focus();
     }

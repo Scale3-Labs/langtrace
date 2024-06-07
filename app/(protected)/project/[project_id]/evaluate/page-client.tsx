@@ -8,14 +8,11 @@ import EvaluationTable, {
   EvaluationTableSkeleton,
 } from "@/components/evaluate/evaluation-table";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn, getChartColor } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Test } from "@prisma/client";
-import { ProgressCircle } from "@tremor/react";
-import { ChevronsRight, RabbitIcon } from "lucide-react";
-import Link from "next/link";
+import { RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "react-query";
@@ -29,29 +26,10 @@ interface CheckedData {
 
 export default function PageClient({ email }: { email: string }) {
   const projectId = useParams()?.project_id as string;
-  const [selectedTest, setSelectedTest] = useState<Test>();
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [currentData, setCurrentData] = useState<any>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-
-  const { data: testAverages, isLoading: testAveragesLoading } = useQuery({
-    queryKey: ["fetch-test-averages-query", projectId],
-    queryFn: async () => {
-      const response = await fetch(`/api/metrics/tests?projectId=${projectId}`);
-      if (!response.ok) {
-        const error = await response.json();
-        toast.error("Failed to fetch test averages", {
-          description: error?.message || "Failed to fetch test averages",
-        });
-        return { averages: [] };
-      }
-      const result = await response.json();
-      return result;
-    },
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-  });
 
   const {
     data: tests,
@@ -70,17 +48,12 @@ export default function PageClient({ email }: { email: string }) {
       // sort tests by created date
       result.tests.sort(
         (a: Test, b: Test) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-
-      if (result?.tests?.length > 0) {
-        setSelectedTest(result?.tests?.[0]);
-      }
 
       return result;
     },
     refetchOnWindowFocus: false,
-    enabled: !!testAverages,
     onError: (error) => {
       toast.error("Failed to fetch tests", {
         description: error instanceof Error ? error.message : String(error),
@@ -99,143 +72,40 @@ export default function PageClient({ email }: { email: string }) {
     );
   }
 
-  const testAverage =
-    testAverages?.averages?.find((avg: any) => avg.testId === selectedTest?.id)
-      ?.average || 0;
-
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Manual Evaluations</h1>
+        <h1 className="text-3xl font-semibold">Evaluations</h1>
         <div className="flex gap-2">
-          {selectedTest && (
-            <Link
-              href={`/project/${projectId}/evaluate/${selectedTest?.id}?page=1`}
-            >
-              <Button
-                className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 background-animate"
-                variant="default"
-              >
-                Start Evaluating <ChevronsRight className="ml-2" />{" "}
-              </Button>
-            </Link>
-          )}
           <CreateTest projectId={projectId} variant={"outline"} />
-          {selectedTest && (
-            <EditTest projectId={projectId} test={selectedTest as Test} />
+          {tests?.tests?.length > 0 && (
+            <EditTest projectId={projectId} tests={tests?.tests} />
           )}
         </div>
       </div>
-      {testAveragesLoading || testsLoading || !tests ? (
+      {testsLoading || !tests ? (
         <PageSkeleton />
       ) : tests?.tests?.length > 0 ? (
-        <div className="flex flex-row gap-4 absolute top-[14rem] w-full md:px-24 px-12">
-          <div className="bg-primary-foreground flex flex-col gap-0 border rounded-md w-[12rem] h-fit">
-            {tests?.tests?.map((test: Test, i: number) => {
-              const average =
-                testAverages?.averages?.find(
-                  (avg: any) => avg.testId === test?.id
-                )?.average || 0;
-              return (
-                <div className="flex flex-col" key={i}>
-                  <div
-                    onClick={() => {
-                      setSelectedTest(test);
-                      setCurrentData([]);
-                      setPage(1);
-                      setTotalPages(1);
-                    }}
-                    className={cn(
-                      "flex flex-col gap-4 p-4 items-start cursor-pointer",
-                      i === 0 ? "rounded-t-md" : "",
-                      i === tests?.tests?.length - 1 ? "rounded-b-md" : "",
-                      selectedTest?.id === test.id
-                        ? "dark:bg-black bg-white border-l-2 border-primary"
-                        : ""
-                    )}
-                  >
-                    <p
-                      className={cn(
-                        "text-sm text-muted-foreground font-semibold capitalize",
-                        selectedTest?.id === test.id ? "text-primary" : ""
-                      )}
-                    >
-                      {test.name}
-                    </p>
-                    <ProgressCircle
-                      color={getChartColor(average)}
-                      value={average}
-                      size="sm"
-                    >
-                      <span className="text-[0.6rem] text-primary font-bold">
-                        {Math.round(average)}%
-                      </span>
-                    </ProgressCircle>
-                  </div>
-                  <Separator />
-                </div>
-              );
-            })}
-          </div>
-          <div className="bg-primary-foreground flex flex-col gap-12 border rounded-md w-full p-4 mb-24">
-            <div className="flex flex-row gap-2">
-              <div className="flex flex-col gap-4 items-start w-[25rem]">
-                <div className="flex flex-col gap-1">
-                  <h1 className="text-xl font-semibold capitalize break-normal">
-                    {selectedTest?.name} Evaluation
-                  </h1>
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    Test ID: {selectedTest?.id}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-xs text-muted-foreground font-semibold">
-                    Evaluation Scale
-                  </span>
-                  <span className="text-sm text-primary">
-                    {selectedTest?.min} to {selectedTest?.max} in steps of +
-                    {selectedTest?.step}
-                  </span>
-                </div>
-                <ProgressCircle
-                  color={getChartColor(testAverage)}
-                  value={testAverage}
-                  size="md"
-                >
-                  <span className="text-sm text-primary font-bold">
-                    {Math.round(testAverage)}%
-                  </span>
-                </ProgressCircle>
-                <p className="text-sm text-muted-foreground">
-                  {selectedTest?.description}
-                </p>
-              </div>
-              {selectedTest && (
-                <EvalChart projectId={projectId} test={selectedTest} />
-              )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <AddtoDataset
-                projectId={projectId}
-                selectedData={selectedData}
-                className="w-fit self-end"
-              />
-
-              {selectedTest && (
-                <EvaluationTable
-                  projectId={projectId}
-                  test={selectedTest}
-                  selectedData={selectedData}
-                  setSelectedData={setSelectedData}
-                  currentData={currentData}
-                  setCurrentData={setCurrentData}
-                  page={page}
-                  setPage={setPage}
-                  totalPages={totalPages}
-                  setTotalPages={setTotalPages}
-                />
-              )}
-            </div>
+        <div className="flex flex-col gap-12 top-[16rem] w-full md:px-24 px-12 mb-24">
+          <EvalChart projectId={projectId} tests={tests.tests} />
+          <div className="flex flex-col gap-2">
+            <AddtoDataset
+              projectId={projectId}
+              selectedData={selectedData}
+              className="w-fit self-end"
+            />
+            <EvaluationTable
+              tests={tests.tests}
+              projectId={projectId}
+              selectedData={selectedData}
+              setSelectedData={setSelectedData}
+              currentData={currentData}
+              setCurrentData={setCurrentData}
+              page={page}
+              setPage={setPage}
+              totalPages={totalPages}
+              setTotalPages={setTotalPages}
+            />
           </div>
         </div>
       ) : (
