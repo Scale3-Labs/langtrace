@@ -24,7 +24,7 @@ import { ProjectSwitcher } from "./project-switcher";
 export function Header({ email }: { email: string }) {
   const pathname = usePathname();
   const fetchAccountStats = useQuery({
-    queryKey: ["fetch-account-stats"],
+    queryKey: ["fetch-account-stats", email],
     queryFn: async () => {
       const response = await fetch(`/api/stats/account?email=${email}`);
       const result = await response.json();
@@ -45,13 +45,13 @@ export function Header({ email }: { email: string }) {
     <header className="flex flex-col gap-2 w-full px-12 z-30 sticky top-0 bg-primary-foreground">
       <div className="flex justify-between items-center w-full pt-3">
         <div className="flex items-center gap-3">
-        <Link
-          href="/projects"
-          className="text-xl font-bold flex items-center gap-0"
-        >
-          Langtrace AI
-        </Link>
-        {pathname.includes("/project/") && <ProjectSwitcher email={email} />}
+          <Link
+            href="/projects"
+            className="text-xl font-bold flex items-center gap-0"
+          >
+            Langtrace AI
+          </Link>
+          {pathname.includes("/project/") && <ProjectSwitcher email={email} />}
         </div>
         <div className="flex items-center gap-3">
           <div className="flex flex-col">

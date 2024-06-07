@@ -37,7 +37,7 @@ export default function PageClient({ email }: { email: string }) {
   };
 
   const fetchPrompts = useQuery({
-    queryKey: [`fetch-prompts-${projectId}-query`],
+    queryKey: ["fetch-prompts-query", projectId],
     queryFn: async () => {
       const response = await fetch(
         `/api/span-prompt?projectId=${projectId}&page=${page}&pageSize=${PAGE_SIZE}`
@@ -188,7 +188,7 @@ const PromptRow = ({
   const promptContent = extractSystemPromptFromLlmInputs(prompts);
 
   const fetchEvaluation = useQuery({
-    queryKey: [`fetch-evaluation-query-${prompt.span_id}`],
+    queryKey: ["fetch-evaluation-query", prompt.span_id],
     queryFn: async () => {
       const response = await fetch(`/api/evaluation?prompt=${promptContent}`);
 
