@@ -115,6 +115,10 @@ export class TraceService implements ITraceService {
 
   async GetSpanById(span_id: string, project_id: string): Promise<Span> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return {} as Span;
+      }
       const query = sql.select().from(project_id).where({ span_id });
       const span: Span[] = await this.client.find<Span[]>(query);
       return span[0];
@@ -127,6 +131,10 @@ export class TraceService implements ITraceService {
 
   async GetTraceById(trace_id: string, project_id: string): Promise<Span[]> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
       const query = sql.select().from(project_id).where({ trace_id });
       const span: Span[] = await this.client.find<Span[]>(query);
       return span;
@@ -305,6 +313,10 @@ export class TraceService implements ITraceService {
 
   async GetFailedSpans(project_id: string): Promise<Span[]> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
       const query = sql
         .select()
         .from(project_id)
@@ -403,6 +415,10 @@ export class TraceService implements ITraceService {
     lastNHours = 168
   ): Promise<Span[]> {
     try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
       const query = sql.select().from(project_id);
       if (!lastNHours) {
         return await this.client.find<Span[]>(query);

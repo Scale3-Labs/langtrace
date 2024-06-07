@@ -1,4 +1,5 @@
 # [Langtrace](https://www.langtrace.ai)
+Open Source Observability for LLM applications
 
 ## Open Source & Open Telemetry(OTEL) Observability for LLM applications
 
