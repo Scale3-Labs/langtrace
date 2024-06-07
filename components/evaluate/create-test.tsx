@@ -94,6 +94,18 @@ export function CreateTest({
           <form
             onSubmit={CreateTestForm.handleSubmit(async (data) => {
               try {
+                if (!data.min || !data.max || !data.step) {
+                  throw new Error("Please provide a scale for the test.");
+                }
+                if (parseInt(data.min, 10) >= parseInt(data.max, 10)) {
+                  throw new Error("Min score must be less than max score.");
+                }
+                if (parseInt(data.step, 10) <= 0) {
+                  throw new Error("Step value must be greater than 0.");
+                }
+                if (parseInt(data.min, 10) === parseInt(data.max, 10)) {
+                  throw new Error("Min score cannot be equal to max score.");
+                }
                 setBusy(true);
                 await fetch("/api/test", {
                   method: "POST",
@@ -111,9 +123,9 @@ export function CreateTest({
                     projectId,
                   }),
                 });
-                await queryClient.invalidateQueries(
-                  `fetch-tests-${projectId}-query`
-                );
+                await queryClient.invalidateQueries({
+                  queryKey: ["fetch-tests-query", projectId],
+                });
                 toast("Test created!", {
                   description: "Your test has been created.",
                 });
@@ -278,6 +290,7 @@ export function CreateTest({
                   max={max}
                   step={step}
                   selectedValue={min}
+                  disableAutoFocus={true}
                 />
               </div>
             )}

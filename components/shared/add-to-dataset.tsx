@@ -94,13 +94,14 @@ export function AddtoDataset({
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
+                    projectId,
                     datas: selectedData,
                     datasetId: selectedDatasetId,
                   }),
                 });
                 selectedData!.forEach((data) => {
                   queryClient.invalidateQueries({
-                    queryKey: [`fetch-data-query-${data.spanId}`],
+                    queryKey: ["fetch-data-query", data.spanId],
                   });
                 });
                 setBusy(false);
@@ -130,7 +131,7 @@ export default function DatasetCombobox({
   const [datasetId, setDatasetId] = React.useState("");
 
   const fetchDatasets = useQuery({
-    queryKey: ["fetch-datasets-query"],
+    queryKey: ["fetch-datasets-query", projectId],
     queryFn: async () => {
       const response = await fetch(`/api/dataset?id=${projectId}`);
       const result = await response.json();

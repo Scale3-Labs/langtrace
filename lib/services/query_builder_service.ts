@@ -1,36 +1,40 @@
-export interface AttributesFilter {
+import { getFormattedTime } from "../utils";
+
+export interface PropertyFilter {
   key: string;
   operation: "EQUALS" | "CONTAINS" | "NOT_EQUALS";
   value: string;
+  type: "attribute" | "property"; // New field to distinguish between attribute and property filters
 }
 
 export interface IQueryBuilderService {
   CountFilteredSpanAttributesQuery: (
     tableName: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     filterOperation?: string
   ) => string;
   GetFilteredSpansAttributesQuery: (
     tableName: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     pageSize: number,
     offset: number,
-    filterOperation?: string
+    filterOperation?: string,
+    lastNHours?: number
   ) => string;
   GetFilteredSpanAttributesSpanById: (
     tableName: string,
     spanId: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     filterOperation?: string
   ) => string;
   CountFilteredTraceAttributesQuery: (
     tableName: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     filterOperation?: string
   ) => string;
   GetFilteredTraceAttributesQuery: (
     tableName: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     pageSize: number,
     offset: number,
     filterOperation?: string
@@ -38,26 +42,16 @@ export interface IQueryBuilderService {
   GetFilteredTraceAttributesTraceById: (
     tableName: string,
     traceId: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     filterOperation?: string
   ) => string;
 }
 
 export class QueryBuilderService implements IQueryBuilderService {
-  CountFilteredSpanAttributesQuery(
-    tableName: string,
-    filters: AttributesFilter[],
-    filterOperation: string = "OR"
-  ): string {
-    // Base query parts
-    let baseQuery = `COUNT(DISTINCT span_id) AS total_spans FROM ${tableName}`;
-    let whereConditions: string[] = [];
-
-    // Iterate over filters to construct WHERE conditions
-    filters.forEach((filter) => {
+  private constructCondition(filter: PropertyFilter): string {
+    let condition: string;
+    if (filter.type === "attribute") {
       const attributeName = `JSONExtractString(attributes, '${filter.key}')`;
-      let condition: string;
-
       switch (filter.operation) {
         case "EQUALS":
           condition = `${attributeName} = '${filter.value}'`;
@@ -71,11 +65,36 @@ export class QueryBuilderService implements IQueryBuilderService {
         default:
           throw new Error(`Unsupported filter operation: ${filter.operation}`);
       }
+    } else {
+      switch (filter.operation) {
+        case "EQUALS":
+          condition = `${filter.key} = '${filter.value}'`;
+          break;
+        case "CONTAINS":
+          condition = `${filter.key} LIKE '%${filter.value}%'`;
+          break;
+        case "NOT_EQUALS":
+          condition = `${filter.key} != '${filter.value}'`;
+          break;
+        default:
+          throw new Error(`Unsupported filter operation: ${filter.operation}`);
+      }
+    }
+    return condition;
+  }
 
-      whereConditions.push(`(${condition})`);
+  CountFilteredSpanAttributesQuery(
+    tableName: string,
+    filters: PropertyFilter[],
+    filterOperation: string = "OR"
+  ): string {
+    let baseQuery = `COUNT(DISTINCT span_id) AS total_spans FROM ${tableName}`;
+    let whereConditions: string[] = [];
+
+    filters.forEach((filter) => {
+      whereConditions.push(`(${this.constructCondition(filter)})`);
     });
 
-    // Append WHERE conditions to the base query if any
     if (whereConditions.length > 0) {
       baseQuery += ` WHERE (${whereConditions.join(` ${filterOperation} `)})`;
     }
@@ -85,36 +104,16 @@ export class QueryBuilderService implements IQueryBuilderService {
 
   CountFilteredTraceAttributesQuery(
     tableName: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     filterOperation: string = "OR"
   ): string {
-    // Base query parts
     let baseQuery = `COUNT(DISTINCT trace_id) AS total_traces FROM ${tableName}`;
     let whereConditions: string[] = [];
 
-    // Iterate over filters to construct WHERE conditions
     filters.forEach((filter) => {
-      const attributeName = `JSONExtractString(attributes, '${filter.key}')`;
-      let condition: string;
-
-      switch (filter.operation) {
-        case "EQUALS":
-          condition = `${attributeName} = '${filter.value}'`;
-          break;
-        case "CONTAINS":
-          condition = `${attributeName} LIKE '%${filter.value}%'`;
-          break;
-        case "NOT_EQUALS":
-          condition = `${attributeName} != '${filter.value}'`;
-          break;
-        default:
-          throw new Error(`Unsupported filter operation: ${filter.operation}`);
-      }
-
-      whereConditions.push(`(${condition})`);
+      whereConditions.push(`(${this.constructCondition(filter)})`);
     });
 
-    // Append WHERE conditions to the base query if any
     if (whereConditions.length > 0) {
       baseQuery += ` WHERE (${whereConditions.join(` ${filterOperation} `)})`;
     }
@@ -124,87 +123,52 @@ export class QueryBuilderService implements IQueryBuilderService {
 
   GetFilteredSpansAttributesQuery(
     tableName: string,
-    filters: AttributesFilter[],
-    pageSize: number,
-    offset: number,
-    filterOperation: string = "OR"
+    filters: PropertyFilter[],
+    pageSize: number = 10,
+    offset: number = 0,
+    filterOperation: string = "OR",
+    lastNHours?: number
   ): string {
-    // Base query parts
     let baseQuery = `* FROM ${tableName}`;
     let whereConditions: string[] = [];
 
-    // Iterate over filters to construct WHERE conditions
     filters.forEach((filter) => {
-      const attributeName = `JSONExtractString(attributes, '${filter.key}')`;
-      let condition: string;
-
-      switch (filter.operation) {
-        case "EQUALS":
-          condition = `${attributeName} = '${filter.value}'`;
-          break;
-        case "CONTAINS":
-          condition = `${attributeName} LIKE '%${filter.value}%'`;
-          break;
-        case "NOT_EQUALS":
-          condition = `${attributeName} != '${filter.value}'`;
-          break;
-        default:
-          throw new Error(`Unsupported filter operation: ${filter.operation}`);
-      }
-
-      whereConditions.push(`(${condition})`);
+      whereConditions.push(`(${this.constructCondition(filter)})`);
     });
 
-    // Append WHERE conditions to the base query if any
     if (whereConditions.length > 0) {
       baseQuery += ` WHERE (${whereConditions.join(` ${filterOperation} `)})`;
     }
 
-    // Append LIMIT and OFFSET to the base query
-    baseQuery += ` ORDER BY start_time DESC LIMIT ${pageSize} OFFSET ${offset}`;
+    if (lastNHours) {
+      const startTime = getFormattedTime(lastNHours);
+      baseQuery += ` AND start_time >= '${startTime}'`;
+      baseQuery += ` ORDER BY start_time DESC`;
+    } else {
+      baseQuery += ` ORDER BY start_time DESC LIMIT ${pageSize} OFFSET ${offset}`;
+    }
 
     return baseQuery;
   }
 
   GetFilteredTraceAttributesQuery(
     tableName: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     pageSize: number,
     offset: number,
     filterOperation: string = "OR"
   ): string {
-    // Base query parts
     let baseQuery = `trace_id, MIN(start_time) AS earliest_start_time FROM ${tableName}`;
     let whereConditions: string[] = [];
 
-    // Iterate over filters to construct WHERE conditions
     filters.forEach((filter) => {
-      const attributeName = `JSONExtractString(attributes, '${filter.key}')`;
-      let condition: string;
-
-      switch (filter.operation) {
-        case "EQUALS":
-          condition = `${attributeName} = '${filter.value}'`;
-          break;
-        case "CONTAINS":
-          condition = `${attributeName} LIKE '%${filter.value}%'`;
-          break;
-        case "NOT_EQUALS":
-          condition = `${attributeName} != '${filter.value}'`;
-          break;
-        default:
-          throw new Error(`Unsupported filter operation: ${filter.operation}`);
-      }
-
-      whereConditions.push(`(${condition})`);
+      whereConditions.push(`(${this.constructCondition(filter)})`);
     });
 
-    // Append WHERE conditions to the base query if any
     if (whereConditions.length > 0) {
       baseQuery += ` WHERE (${whereConditions.join(` ${filterOperation} `)})`;
     }
 
-    // Append LIMIT and OFFSET to the base query
     baseQuery += ` GROUP BY trace_id ORDER BY earliest_start_time DESC LIMIT ${pageSize} OFFSET ${offset}`;
     return baseQuery;
   }
@@ -212,36 +176,16 @@ export class QueryBuilderService implements IQueryBuilderService {
   GetFilteredSpanAttributesSpanById(
     tableName: string,
     spanId: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     filterOperation: string = "OR"
   ): string {
-    // Base query parts
     let baseQuery = `* FROM ${tableName} WHERE span_id = '${spanId}'`;
     let whereConditions: string[] = [];
 
-    // Iterate over filters to construct WHERE conditions
     filters.forEach((filter) => {
-      const attributeName = `JSONExtractString(attributes, '${filter.key}')`;
-      let condition: string;
-
-      switch (filter.operation) {
-        case "EQUALS":
-          condition = `${attributeName} = '${filter.value}'`;
-          break;
-        case "CONTAINS":
-          condition = `${attributeName} LIKE '%${filter.value}%'`;
-          break;
-        case "NOT_EQUALS":
-          condition = `${attributeName} != '${filter.value}'`;
-          break;
-        default:
-          throw new Error(`Unsupported filter operation: ${filter.operation}`);
-      }
-
-      whereConditions.push(`(${condition})`);
+      whereConditions.push(`(${this.constructCondition(filter)})`);
     });
 
-    // Append WHERE conditions to the base query if any
     if (whereConditions.length > 0) {
       baseQuery += ` AND (${whereConditions.join(` ${filterOperation} `)})`;
     }
@@ -252,36 +196,16 @@ export class QueryBuilderService implements IQueryBuilderService {
   GetFilteredTraceAttributesTraceById(
     tableName: string,
     traceId: string,
-    filters: AttributesFilter[],
+    filters: PropertyFilter[],
     filterOperation: string = "OR"
   ): string {
-    // Base query parts
     let baseQuery = `* FROM ${tableName} WHERE trace_id = '${traceId}'`;
     let whereConditions: string[] = [];
 
-    // Iterate over filters to construct WHERE conditions
     filters.forEach((filter) => {
-      const attributeName = `JSONExtractString(attributes, '${filter.key}')`;
-      let condition: string;
-
-      switch (filter.operation) {
-        case "EQUALS":
-          condition = `${attributeName} = '${filter.value}'`;
-          break;
-        case "CONTAINS":
-          condition = `${attributeName} LIKE '%${filter.value}%'`;
-          break;
-        case "NOT_EQUALS":
-          condition = `${attributeName} != '${filter.value}'`;
-          break;
-        default:
-          throw new Error(`Unsupported filter operation: ${filter.operation}`);
-      }
-
-      whereConditions.push(`(${condition})`);
+      whereConditions.push(`(${this.constructCondition(filter)})`);
     });
 
-    // Append WHERE conditions to the base query if any
     if (whereConditions.length > 0) {
       baseQuery += ` AND (${whereConditions.join(` ${filterOperation} `)})`;
     }
