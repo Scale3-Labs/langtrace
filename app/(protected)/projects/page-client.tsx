@@ -143,7 +143,7 @@ function ProjectCard({
   teamId: string;
 }) {
   const { data: projectStats, isLoading: projectStatsLoading } = useQuery({
-    queryKey: [`fetch-project-stats-${project.id}`],
+    queryKey: ["fetch-project-stats", project.id],
     queryFn: async () => {
       const response = await fetch(
         `/api/stats/project?projectId=${project.id}`

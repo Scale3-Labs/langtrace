@@ -10,6 +10,7 @@ import {
   OpenAIRole,
 } from "@/lib/types/playground_types";
 import { cn } from "@/lib/utils";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { MinusCircleIcon, PlusIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
@@ -79,20 +80,22 @@ export function ExpandingTextArea({
   return (
     <div className="relative w-[290px]">
       <textarea
-        className="rounded-md text-sm w-[290px] bg-background pr-10"
+        className="rounded-md text-sm w-[290px] bg-background pr-10 pt-5"
         ref={textAreaRef}
         defaultValue={value}
         onChange={handleChange}
         style={{ overflowY: "auto", resize: "none", height: "auto" }}
       />
-      <div className="absolute right-2 bottom-2 py-2">
+      <div className="absolute right-0 top-[-10px] py-2">
         <Button
-          className="text-sm px-6"
-          size={"icon"}
+          className="text-xs"
+          size={"sm"}
+          variant="outline"
           onClick={() => handleSave(true)}
           ref={saveButtonRef}
         >
-          Save
+          Save to Registry
+          <ArrowTopRightIcon className="ml-1 w-4 h-4" />
         </Button>
       </div>
     </div>

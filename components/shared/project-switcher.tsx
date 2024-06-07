@@ -1,11 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from 'react';
+import React from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
@@ -16,9 +26,9 @@ export function ProjectSwitcher({ email }: { email: string }) {
   const {
     data: projects,
     isLoading: projectsLoading,
-    error: projectsError
+    error: projectsError,
   } = useQuery({
-    queryKey: ["fetch-projects-query"],
+    queryKey: ["fetch-projects-query", email],
     queryFn: async () => {
       const response = await fetch(`/api/projects?email=${email}`);
       if (!response.ok) {
@@ -43,7 +53,11 @@ export function ProjectSwitcher({ email }: { email: string }) {
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {projects?.projects.filter((project : any) => project.id === pathname.split("/")[2])[0]?.name}
+          {
+            projects?.projects.filter(
+              (project: any) => project.id === pathname.split("/")[2]
+            )[0]?.name
+          }
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -52,8 +66,12 @@ export function ProjectSwitcher({ email }: { email: string }) {
           <CommandInput placeholder="Search Project..." className="h-9" />
           <CommandEmpty>No project found.</CommandEmpty>
           <CommandGroup>
-            {projects?.projects.map((project : any) => (
-              <Link key={project.id} href={`/project/${project.id}/${pathname.split("/")[3]}`} legacyBehavior>
+            {projects?.projects.map((project: any) => (
+              <Link
+                key={project.id}
+                href={`/project/${project.id}/${pathname.split("/")[3]}`}
+                legacyBehavior
+              >
                 <a>
                   <CommandItem
                     value={project.id}
@@ -62,7 +80,12 @@ export function ProjectSwitcher({ email }: { email: string }) {
                     <div className="flex justify-between w-full cursor-pointer">
                       {project.name}
                       <CheckIcon
-                        className={cn("ml-auto h-4 w-4", pathname.split("/")[2] === project.id ? "opacity-100" : "opacity-0")}
+                        className={cn(
+                          "ml-auto h-4 w-4",
+                          pathname.split("/")[2] === project.id
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
                       />
                     </div>
                   </CommandItem>

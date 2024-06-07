@@ -36,7 +36,12 @@ services:
 
   clickhouse-db:
     container_name: langtrace-clickhouse
-    image: clickhouse/clickhouse-server:23.3.20.27-alpine
+    image: clickhouse/clickhouse-server:24.5.1.1763-alpine
+    environment:
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+      - CLICKHOUSE_PASSWORD=${CLICK_HOUSE_PASSWORD}
+      - CLICKHOUSE_USER=${CLICK_HOUSE_USER}
+      - CLICKHOUSE_DB=${CLICK_HOUSE_DATABASE_NAME}
     ports:
       - "8123:8123"
       - "9000:9000"
