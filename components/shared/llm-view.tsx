@@ -58,7 +58,7 @@ export const LLMView = ({
                   {role}
                   {importTrace ? (
                     <Button
-                      size={"xs"}
+                      size={"sm"}
                       className="text-xs font-medium px-2"
                       onClick={() => {
                         setSelectedPrompt!(content);
@@ -110,7 +110,7 @@ export const LLMView = ({
                   {role}
                   {importTrace ? (
                     <Button
-                      size={"xs"}
+                      size={"sm"}
                       className="text-xs font-medium px-2"
                       onClick={() => {
                         setSelectedPrompt!(content);
