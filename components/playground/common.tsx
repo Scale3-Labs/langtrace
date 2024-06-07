@@ -89,7 +89,7 @@ export function ExpandingTextArea({
       <div className="absolute right-1 top-[-10px] py-2">
         <Button
           className="text-xs"
-          size={"xs"}
+          size={"sm"}
           variant="outline"
           onClick={() => handleSave(true)}
           ref={saveButtonRef}
