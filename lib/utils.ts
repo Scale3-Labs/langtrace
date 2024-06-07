@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { clsx, type ClassValue } from "clsx";
 import { createHash, randomBytes } from "crypto";
+import { format } from "date-fns";
 import { TiktokenEncoding, getEncoding } from "js-tiktoken";
 import { NextResponse } from "next/server";
 import { prettyPrintJson } from "pretty-print-json";
@@ -497,4 +498,12 @@ export function formatDurationForDisplay(hours: number): string {
   } else {
     return `last ${hours} hours`;
   }
+}
+
+export function getFormattedTime(lastNHours: number): string {
+  const nHoursAgo = format(
+    new Date(Date.now() - lastNHours * 60 * 60 * 1000),
+    "yyyy-MM-dd HH:mm:ss"
+  );
+  return nHoursAgo;
 }
