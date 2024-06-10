@@ -176,6 +176,176 @@ let data = [
       task: "security_guide",
       task_version: 0,
       task_file: "src/main.py",
+      task_id: "AjZbe8iaXETqiGGECFzW8E",
+      run_id: "r9FsZc425gEjCFNrXszPqW",
+      created: "2024-06-08T15:48:55",
+      dataset: {
+        name: "security_guide",
+        location: "example://security_guide",
+      },
+      model: "openai/gpt-3.5-turbo",
+      task_attribs: {},
+      task_args: {},
+      model_args: {},
+      config: {},
+      packages: {
+        inspect_ai: "0.3.10",
+      },
+    },
+    plan: {
+      name: "plan",
+      steps: [
+        {
+          solver: "generate",
+          params: {},
+        },
+      ],
+      config: {},
+    },
+    results: {
+      scorer: {
+        name: "includes",
+        params: {},
+      },
+      metrics: {
+        accuracy: {
+          name: "accuracy",
+          value: 0.5,
+          options: {},
+        },
+        bootstrap_std: {
+          name: "bootstrap_std",
+          value: 0.35385166383669864,
+          options: {},
+        },
+      },
+    },
+    stats: {
+      started_at: "2024-06-08T15:48:55",
+      completed_at: "2024-06-08T15:48:58",
+      model_usage: {
+        "openai/gpt-3.5-turbo": {
+          input_tokens: 30,
+          output_tokens: 451,
+          total_tokens: 481,
+        },
+      },
+    },
+    samples: [
+      {
+        id: 1,
+        epoch: 1,
+        input: [
+          {
+            content: "How do I prevent SQL Injection attacks?",
+            source: "input",
+            role: "user",
+          },
+        ],
+        target: "use parameterized queries and prepared statements",
+        messages: [
+          {
+            content: "How do I prevent SQL Injection attacks?",
+            source: "input",
+            role: "user",
+          },
+          {
+            content:
+              "1. Use parameterized queries: Parameterized queries separate SQL code from user input, preventing attackers from inserting malicious code into input fields.\n\n2. Use stored procedures: Stored procedures can prevent SQL injection attacks by defining specific methods for accessing the database, rather than allowing direct access to SQL queries.\n\n3. Input validation: Validate and sanitize all user input before using it in SQL queries. This helps prevent attackers from inserting malicious code into your database.\n\n4. Use ORM frameworks: Object-relational mapping (ORM) frameworks, such as Hibernate or Entity Framework, can help prevent SQL injection attacks by automatically handling parameterized queries and input validation.\n\n5. Limit database permissions: Only grant necessary permissions to database users to prevent unauthorized access and limit the potential damage of a successful SQL injection attack.\n\n6. Update and patch software: Regularly update and patch your database management system and web application to protect against known vulnerabilities that could be exploited by attackers.\n\n7. Use a web application firewall: Deploy a web application firewall to monitor and filter incoming traffic for potential SQL injection attacks. This can help protect your application from malicious code injection.",
+            source: "generate",
+            role: "assistant",
+          },
+        ],
+        output: {
+          model: "gpt-3.5-turbo-0125",
+          choices: [
+            {
+              message: {
+                content:
+                  "1. Use parameterized queries: Parameterized queries separate SQL code from user input, preventing attackers from inserting malicious code into input fields.\n\n2. Use stored procedures: Stored procedures can prevent SQL injection attacks by defining specific methods for accessing the database, rather than allowing direct access to SQL queries.\n\n3. Input validation: Validate and sanitize all user input before using it in SQL queries. This helps prevent attackers from inserting malicious code into your database.\n\n4. Use ORM frameworks: Object-relational mapping (ORM) frameworks, such as Hibernate or Entity Framework, can help prevent SQL injection attacks by automatically handling parameterized queries and input validation.\n\n5. Limit database permissions: Only grant necessary permissions to database users to prevent unauthorized access and limit the potential damage of a successful SQL injection attack.\n\n6. Update and patch software: Regularly update and patch your database management system and web application to protect against known vulnerabilities that could be exploited by attackers.\n\n7. Use a web application firewall: Deploy a web application firewall to monitor and filter incoming traffic for potential SQL injection attacks. This can help protect your application from malicious code injection.",
+                source: "generate",
+                role: "assistant",
+              },
+              stop_reason: "stop",
+            },
+          ],
+          usage: {
+            input_tokens: 15,
+            output_tokens: 222,
+            total_tokens: 237,
+          },
+        },
+        score: {
+          value: "I",
+          answer:
+            "1. Use parameterized queries: Parameterized queries separate SQL code from user input, preventing attackers from inserting malicious code into input fields.\n\n2. Use stored procedures: Stored procedures can prevent SQL injection attacks by defining specific methods for accessing the database, rather than allowing direct access to SQL queries.\n\n3. Input validation: Validate and sanitize all user input before using it in SQL queries. This helps prevent attackers from inserting malicious code into your database.\n\n4. Use ORM frameworks: Object-relational mapping (ORM) frameworks, such as Hibernate or Entity Framework, can help prevent SQL injection attacks by automatically handling parameterized queries and input validation.\n\n5. Limit database permissions: Only grant necessary permissions to database users to prevent unauthorized access and limit the potential damage of a successful SQL injection attack.\n\n6. Update and patch software: Regularly update and patch your database management system and web application to protect against known vulnerabilities that could be exploited by attackers.\n\n7. Use a web application firewall: Deploy a web application firewall to monitor and filter incoming traffic for potential SQL injection attacks. This can help protect your application from malicious code injection.",
+          explanation:
+            "1. Use parameterized queries: Parameterized queries separate SQL code from user input, preventing attackers from inserting malicious code into input fields.\n\n2. Use stored procedures: Stored procedures can prevent SQL injection attacks by defining specific methods for accessing the database, rather than allowing direct access to SQL queries.\n\n3. Input validation: Validate and sanitize all user input before using it in SQL queries. This helps prevent attackers from inserting malicious code into your database.\n\n4. Use ORM frameworks: Object-relational mapping (ORM) frameworks, such as Hibernate or Entity Framework, can help prevent SQL injection attacks by automatically handling parameterized queries and input validation.\n\n5. Limit database permissions: Only grant necessary permissions to database users to prevent unauthorized access and limit the potential damage of a successful SQL injection attack.\n\n6. Update and patch software: Regularly update and patch your database management system and web application to protect against known vulnerabilities that could be exploited by attackers.\n\n7. Use a web application firewall: Deploy a web application firewall to monitor and filter incoming traffic for potential SQL injection attacks. This can help protect your application from malicious code injection.",
+        },
+        metadata: {},
+      },
+      {
+        id: 2,
+        epoch: 1,
+        input: [
+          {
+            content: "How do I prevent SQL Injection attacks?",
+            source: "input",
+            role: "user",
+          },
+        ],
+        target: "Use parameterized queries",
+        messages: [
+          {
+            content: "How do I prevent SQL Injection attacks?",
+            source: "input",
+            role: "user",
+          },
+          {
+            content:
+              "There are several steps you can take to prevent SQL Injection attacks:\n\n1. Use parameterized queries: Use parameterized queries instead of directly embedding user input into SQL statements. This helps to separate data from code and prevents attackers from manipulating the query structure.\n\n2. Input validation: Validate all user input before using it in SQL queries. Make sure that the input matches the expected format and type.\n\n3. Escape user input: If you must dynamically generate SQL queries using user input, make sure to escape special characters in the input to prevent SQL injection.\n\n4. Use stored procedures: Use stored procedures to encapsulate your SQL logic and avoid direct manipulation of SQL queries.\n\n5. Limit database permissions: Restrict the permissions of the database user accounts to limit the damage that can be done in case of a successful SQL injection attack.\n\n6. Update regularly: Keep your database software and applications up to date to ensure that any security vulnerabilities are patched.\n\n7. Use a web application firewall: Implement a web application firewall that can detect and prevent SQL injection attacks.\n\nBy following these best practices, you can significantly reduce the risk of SQL injection attacks on your application.",
+            source: "generate",
+            role: "assistant",
+          },
+        ],
+        output: {
+          model: "gpt-3.5-turbo-0125",
+          choices: [
+            {
+              message: {
+                content:
+                  "There are several steps you can take to prevent SQL Injection attacks:\n\n1. Use parameterized queries: Use parameterized queries instead of directly embedding user input into SQL statements. This helps to separate data from code and prevents attackers from manipulating the query structure.\n\n2. Input validation: Validate all user input before using it in SQL queries. Make sure that the input matches the expected format and type.\n\n3. Escape user input: If you must dynamically generate SQL queries using user input, make sure to escape special characters in the input to prevent SQL injection.\n\n4. Use stored procedures: Use stored procedures to encapsulate your SQL logic and avoid direct manipulation of SQL queries.\n\n5. Limit database permissions: Restrict the permissions of the database user accounts to limit the damage that can be done in case of a successful SQL injection attack.\n\n6. Update regularly: Keep your database software and applications up to date to ensure that any security vulnerabilities are patched.\n\n7. Use a web application firewall: Implement a web application firewall that can detect and prevent SQL injection attacks.\n\nBy following these best practices, you can significantly reduce the risk of SQL injection attacks on your application.",
+                source: "generate",
+                role: "assistant",
+              },
+              stop_reason: "stop",
+            },
+          ],
+          usage: {
+            input_tokens: 15,
+            output_tokens: 229,
+            total_tokens: 244,
+          },
+        },
+        score: {
+          value: "C",
+          answer:
+            "There are several steps you can take to prevent SQL Injection attacks:\n\n1. Use parameterized queries: Use parameterized queries instead of directly embedding user input into SQL statements. This helps to separate data from code and prevents attackers from manipulating the query structure.\n\n2. Input validation: Validate all user input before using it in SQL queries. Make sure that the input matches the expected format and type.\n\n3. Escape user input: If you must dynamically generate SQL queries using user input, make sure to escape special characters in the input to prevent SQL injection.\n\n4. Use stored procedures: Use stored procedures to encapsulate your SQL logic and avoid direct manipulation of SQL queries.\n\n5. Limit database permissions: Restrict the permissions of the database user accounts to limit the damage that can be done in case of a successful SQL injection attack.\n\n6. Update regularly: Keep your database software and applications up to date to ensure that any security vulnerabilities are patched.\n\n7. Use a web application firewall: Implement a web application firewall that can detect and prevent SQL injection attacks.\n\nBy following these best practices, you can significantly reduce the risk of SQL injection attacks on your application.",
+          explanation:
+            "There are several steps you can take to prevent SQL Injection attacks:\n\n1. Use parameterized queries: Use parameterized queries instead of directly embedding user input into SQL statements. This helps to separate data from code and prevents attackers from manipulating the query structure.\n\n2. Input validation: Validate all user input before using it in SQL queries. Make sure that the input matches the expected format and type.\n\n3. Escape user input: If you must dynamically generate SQL queries using user input, make sure to escape special characters in the input to prevent SQL injection.\n\n4. Use stored procedures: Use stored procedures to encapsulate your SQL logic and avoid direct manipulation of SQL queries.\n\n5. Limit database permissions: Restrict the permissions of the database user accounts to limit the damage that can be done in case of a successful SQL injection attack.\n\n6. Update regularly: Keep your database software and applications up to date to ensure that any security vulnerabilities are patched.\n\n7. Use a web application firewall: Implement a web application firewall that can detect and prevent SQL injection attacks.\n\nBy following these best practices, you can significantly reduce the risk of SQL injection attacks on your application.",
+        },
+        metadata: {},
+      },
+    ],
+    logging: [],
+  },
+  {
+    version: 1,
+    status: "success",
+    eval: {
+      task: "security_guide",
+      task_version: 0,
+      task_file: "src/main.py",
       task_id: "FuR38tV2t6a3jKjED9Qq8R",
       run_id: "aYmmWwRL8PBH8wPnBo3e3Z",
       created: "2024-06-08T16:22:05",

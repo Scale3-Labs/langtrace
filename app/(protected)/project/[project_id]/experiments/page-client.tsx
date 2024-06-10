@@ -5,16 +5,33 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn, formatDateTime } from "@/lib/utils";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import data from "./experiment_result";
 
 export default function Experiments() {
   const router = useRouter();
   const projectId = useParams()?.project_id as string;
+  const [comparisonRunIds, setComparisonRunIds] = useState<string[]>([]);
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Experiments</h1>
-        <Button>New Experiment</Button>
+        <div className="flex gap-2">
+          <Button>New Experiment</Button>
+          <Button
+            variant={"outline"}
+            disabled={comparisonRunIds.length < 2}
+            onClick={() => {
+              // append comparisonRunIds to query params. & only from the second run id
+              const query = comparisonRunIds
+                .map((runId, i) => (i === 0 ? "" : "&") + "run_id=" + runId)
+                .join("");
+              router.push(`/project/${projectId}/experiments/compare?${query}`);
+            }}
+          >
+            Compare
+          </Button>
+        </div>
       </div>
       <div className="flex flex-col gap-12 w-full px-12">
         <div className="overflow-y-scroll">
@@ -22,7 +39,7 @@ export default function Experiments() {
             <thead className="bg-muted">
               <tr>
                 <th className="w-12 rounded-md p-2">
-                  <Checkbox />
+                  <Checkbox disabled={true} />
                 </th>
                 <th className="p-2 rounded-md text-sm font-medium">Run ID</th>
                 <th className="p-2 rounded-md text-sm font-medium">
@@ -55,8 +72,26 @@ export default function Experiments() {
                     )
                   }
                 >
-                  <td className="px-2 py-1 text-center">
-                    <Checkbox />
+                  <td
+                    className="px-2 py-1 text-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      onCheckedChange={(value) => {
+                        if (value) {
+                          setComparisonRunIds([
+                            ...comparisonRunIds,
+                            experiment.eval.run_id,
+                          ]);
+                        } else {
+                          setComparisonRunIds(
+                            comparisonRunIds.filter(
+                              (id) => id !== experiment.eval.run_id
+                            )
+                          );
+                        }
+                      }}
+                    />
                   </td>
                   <td className="text-sm px-2 py-1">
                     {experiment.eval.run_id}
