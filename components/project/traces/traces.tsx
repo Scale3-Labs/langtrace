@@ -50,6 +50,8 @@ export default function Traces({ email }: { email: string }) {
     }
   });
 
+  console.log("filters", filters);
+
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
@@ -185,7 +187,12 @@ export default function Traces({ email }: { email: string }) {
           </div>
         </div>
         <div>
-          <UserCombobox userId={userId} setSelectedUser={setUserId} />
+          <UserCombobox
+            userId={userId}
+            setSelectedUser={setUserId}
+            applyFilters={handleApplyFilters}
+            filters={filters}
+          />
         </div>
         <div className="flex gap-2 items-center">
           <Label>Local time</Label>

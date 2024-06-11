@@ -24,9 +24,13 @@ import { toast } from "sonner";
 export function UserCombobox({
   userId,
   setSelectedUser,
+  applyFilters,
+  filters,
 }: {
   userId: string;
   setSelectedUser: (user: string) => void;
+  applyFilters: (filters: any) => void;
+  filters: any[];
 }) {
   const project_id = useParams()?.project_id as string;
   const [open, setOpen] = useState(false);
@@ -34,6 +38,34 @@ export function UserCombobox({
   const [searchQuery, setSearchQuery] = useState("");
   const [userIds, setUserIds] = useState<string[]>([]);
   const [showLoader, setShowLoader] = useState(false);
+
+  const handleSelectUser = (currentValue: string) => {
+    const newUserId = currentValue === selectedUserId ? "" : currentValue;
+    setSelectedUserIdState(newUserId);
+    setSelectedUser(newUserId);
+
+    if (newUserId) {
+      applyFilters({
+        filters: [
+          {
+            key: "user_id",
+            operation: "EQUALS",
+            value: newUserId,
+            type: "attribute",
+          },
+        ],
+      });
+    } else {
+      const updatedFilters = filters.filter(
+        (filter) => filter.key !== "user_id"
+      );
+      applyFilters({
+        filters: updatedFilters,
+      });
+    }
+
+    setOpen(false);
+  };
 
   const fetchUserIds = useQuery({
     queryKey: ["fetch-user-ids-query", project_id],
@@ -61,19 +93,9 @@ export function UserCombobox({
     return <div>Loading...</div>;
   }
 
-  //   const filteredAttributes = searchQuery
-  //     ? SpanAttributes.filter((attribute) =>
-  //         attribute.toLowerCase().includes(searchQuery.toLowerCase())
-  //       ).slice(0, 10)
-  //     : SpanAttributes.slice(0, 10);
-
   const onInputChange = (value: string) => {
     setSearchQuery(value);
   };
-
-  //   useEffect(() => {
-  //     setSelectedAttributeState(initialAttribute);
-  //   }, [initialAttribute]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -84,14 +106,14 @@ export function UserCombobox({
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {selectedUserId ? selectedUserId : "Select user id..."}
+          {selectedUserId ? selectedUserId : "Filter by user id..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandInput
-            placeholder="Search attribute..."
+            placeholder="Search users..."
             value={searchQuery}
             onValueChange={onInputChange}
           />
@@ -108,6 +130,7 @@ export function UserCombobox({
                   setSelectedUser(
                     currentValue === selectedUserId ? "" : currentValue
                   );
+                  handleSelectUser(currentValue);
                   setOpen(false);
                 }}
               >

@@ -103,13 +103,14 @@ export class TraceService implements ITraceService {
         ])
         .from(project_id);
       const result: any[] = await this.client.find(query);
+      return result
+        .map((row) => row.user_id)
+        .filter((user_id) => user_id !== "");
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the users ${error}`
       );
     }
-
-    return users;
   }
 
   async AddSpans(spans: Span[], project_id: string): Promise<void> {
