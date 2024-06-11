@@ -4,6 +4,7 @@ import { TraceRow } from "@/components/project/traces/trace-row";
 import { Button } from "@/components/ui/button";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
+import { LLMSpanAttributeNames } from "@langtrase/trace-attributes";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -47,6 +48,8 @@ export default function Traces({ email }: { email: string }) {
       fetchTraces.refetch();
     }
   });
+
+  console.log(LLMSpanAttributeNames);
 
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],

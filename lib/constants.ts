@@ -6,6 +6,19 @@ import {
 import { Test } from "@prisma/client";
 import { TiktokenEncoding } from "js-tiktoken";
 
+export declare const Vendors: {
+  readonly OPENAI: "openai";
+  readonly COHERE: "cohere";
+  readonly ANTHROPIC: "anthropic";
+  readonly GROQ: "groq";
+  readonly PINECONE: "pinecone";
+  readonly LLAMAINDEX: "llamaindex";
+  readonly CHROMADB: "chromadb";
+  readonly QDRANT: "qdrant";
+  readonly WEAVIATE: "weaviate";
+  readonly PG: "pg";
+};
+
 export const SCHEDULE_CALL_LINK =
   "https://calendar.app.google/Go5gXNPcqZjAY4i47";
 

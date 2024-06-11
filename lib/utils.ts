@@ -22,6 +22,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function extractPropertyNames(...schemas: string[][]): string[] {
+  const propertyNames = new Set<string>();
+
+  schemas.forEach((schema) => {
+    Object.keys(schema).forEach((propertyName) => {
+      propertyNames.add(propertyName);
+    });
+  });
+
+  return Array.from(propertyNames);
+}
+
 export function formatDate(isoDateString: string) {
   const dateObject = new Date(isoDateString);
 

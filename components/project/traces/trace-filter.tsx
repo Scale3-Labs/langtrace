@@ -16,24 +16,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"; // Adjust the import path as needed
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  ChromaDBMethods,
-  Event,
-  OpenAIMethods,
-  PineconeMethods,
-} from "@langtrase/trace-attributes";
+
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
-type FilterTypes = Event | OpenAIMethods | ChromaDBMethods | PineconeMethods;
+import { SpanAttributes } from "@/lib/ts_sdk_constants";
+import VendorDropdown from "./vendor-dropdown";
+// import { Event } from "@langtrase/typescript-sdk";
+
+type FilterTypes = string;
 
 export default function FilterDialog({
   open,
@@ -46,10 +45,8 @@ export default function FilterDialog({
 }) {
   const [selectedFilters, setSelectedFilters] = useState<FilterTypes[]>([]);
   const [showEvents, setShowEvents] = useState<boolean>(false);
-  const [showOpenAI, setShowOpenAI] = useState<boolean>(false);
-  const [showChromaDB, setShowChromaDB] = useState<boolean>(false);
-  const [showPinecone, setShowPinecone] = useState<boolean>(false);
   const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
+  const [showVendor, setShowVendor] = useState<{ [key: string]: boolean }>({});
 
   const handleFilterChange = (value: any) => {
     setSelectedFilters((prev) => {
@@ -99,6 +96,10 @@ export default function FilterDialog({
     setAdvancedFilters(updatedFilters);
   };
 
+  const toggleVendor = (vendor: string) => {
+    setShowVendor((prev) => ({ ...prev, [vendor]: !prev[vendor] }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
@@ -128,69 +129,36 @@ export default function FilterDialog({
               </div>
             ))}
         </div>
-        <div>
-          <h4
-            onClick={() => setShowOpenAI(!showOpenAI)}
-            className="cursor-pointer flex items-center"
-          >
-            OpenAI
-            <ChevronDownIcon className="ml-2 h-4 w-4" />
-          </h4>
-          {showOpenAI &&
-            Object.values(OpenAIMethods).map((method) => (
-              <div key={method} className="flex items-center">
-                <Checkbox
-                  checked={selectedFilters.includes(method)}
-                  onClick={() => handleFilterChange(method)}
-                  value={method}
-                />
-
-                <label className="ml-2">{method}</label>
-              </div>
-            ))}
-        </div>
-        <div>
-          <h4
-            onClick={() => setShowChromaDB(!showChromaDB)}
-            className="cursor-pointer flex items-center"
-          >
-            ChromaDB
-            <ChevronDownIcon className="ml-2 h-4 w-4" />
-          </h4>
-          {showChromaDB &&
-            Object.values(ChromaDBMethods).map((method) => (
-              <div key={method} className="flex items-center">
-                <Checkbox
-                  checked={selectedFilters.includes(method)}
-                  onClick={() => handleFilterChange(method)}
-                  value={method}
-                />
-
-                <label className="ml-2">{method}</label>
-              </div>
-            ))}
-        </div>
-        <div>
-          <h4
-            onClick={() => setShowPinecone(!showPinecone)}
-            className="cursor-pointer flex items-center"
-          >
-            Pinecone
-            <ChevronDownIcon className="ml-2 h-4 w-4" />
-          </h4>
-          {showPinecone &&
-            Object.values(PineconeMethods).map((method) => (
-              <div key={method} className="flex items-center">
-                <Checkbox
-                  checked={selectedFilters.includes(method)}
-                  onClick={() => handleFilterChange(method)}
-                  value={method}
-                />
-
-                <label className="ml-2">{method}</label>
-              </div>
-            ))}
-        </div>
+        {/* {(Object.keys(Vendors) as Array<keyof typeof Vendors>).map((vendor) => (
+          <div key={vendor}>
+            <h4
+              onClick={() => toggleVendor(vendor)}
+              className="cursor-pointer flex items-center"
+            >
+              {Vendors[vendor]}
+              <ChevronDownIcon className="ml-2 h-4 w-4" />
+            </h4>
+            {showVendor[vendor] &&
+              TracedFunctionsByVendor[vendor as SupportedVendors].map(
+                (method: any) => (
+                  <div key={method} className="flex items-center">
+                    <Checkbox
+                      checked={selectedFilters.includes(method)}
+                      onClick={() => handleFilterChange(method)}
+                      value={method}
+                    />
+                    <label className="ml-2">{method}</label>
+                  </div>
+                )
+              )}
+          </div>
+        ))} */}
+        <VendorDropdown
+          toggleVendor={toggleVendor}
+          showVendor={showVendor}
+          selectedFilters={selectedFilters}
+          handleFilterChange={handleFilterChange}
+        />
         <div>
           <h4 className="mt-4">Attributes</h4>
           {advancedFilters.map((filter, index) => (
@@ -248,74 +216,11 @@ export function AttributesCombobox({
   );
   const [searchQuery, setSearchQuery] = useState("");
 
-  const attributes = [
-    "langtrace.service.name",
-    "langtrace.service.type",
-    "langtrace.service.version",
-    "langtrace.sdk.name",
-    "langtrace.version",
-    "server.address",
-    "db.operation",
-    "db.system",
-    "db.namespace",
-    "db.index",
-    "db.collection.name",
-    "db.pinecone.top_k",
-    "db.chromadb.embedding_model",
-    "user.id",
-    "user.feedback.rating",
-    "langtrace.testId",
-    "langchain.task.name",
-    "langchain.inputs",
-    "langchain.outputs",
-    "llamaindex.task.name",
-    "llamaindex.inputs",
-    "llamaindex.outputs",
-    "url.full",
-    "llm.api",
-    "llm.model",
-    "llm.temperature",
-    "llm.top_p",
-    "llm.top_k",
-    "llm.user",
-    "llm.system.fingerprint",
-    "llm.prompts",
-    "llm.function.prompts",
-    "llm.responses",
-    "llm.token.counts",
-    "llm.stream",
-    "llm.encoding.format",
-    "llm.dimensions",
-    "llm.generation_id",
-    "llm.response_id",
-    "llm.citations",
-    "llm.documents",
-    "llm.is_search_required",
-    "llm.search_results",
-    "llm.tool_calls",
-    "llm.max_tokens",
-    "llm.max_input_tokens",
-    "llm.conversation_id",
-    "llm.seed",
-    "llm.frequency_penalty",
-    "llm.presence_penalty",
-    "llm.connectors",
-    "llm.tools",
-    "llm.tool_results",
-    "llm.embedding_dataset_id",
-    "llm.embedding_input_type",
-    "llm.embedding_job_name",
-    "http.max.retries",
-    "http.timeout",
-  ];
-
   const filteredAttributes = searchQuery
-    ? attributes
-        .filter((attribute) =>
-          attribute.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        .slice(0, 10)
-    : attributes.slice(0, 10);
+    ? SpanAttributes.filter((attribute) =>
+        attribute.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 10)
+    : SpanAttributes.slice(0, 10);
 
   const onInputChange = (value: string) => {
     setSearchQuery(value);

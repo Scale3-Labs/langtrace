@@ -27,8 +27,7 @@
 		"@headlessui/react": "^1.7.18",
 		"@headlessui/tailwindcss": "^0.2.0",
 		"@hookform/resolvers": "^3.3.4",
-		"@langtrase/trace-attributes": "^1.0.53",
-		"@langtrase/typescript-sdk": "^3.3.0",
+		"@langtrase/typescript-sdk": "^3.3.2",
 		"@mui/icons-material": "^5.15.14",
 		"@mui/material": "^5.15.14",
 		"@mui/x-tree-view": "^6.17.0",
@@ -129,7 +128,8 @@
 		"prisma": "^5.13.0",
 		"tailwindcss": "^3.4.1",
 		"ts-node": "^10.9.2",
-		"typescript": "^5"
+		"typescript": "^5",
+		"webpack": "^5.91.0"
 	},
 	"browser": {
 		"crypto": false
