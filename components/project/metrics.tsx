@@ -49,7 +49,11 @@ export default function Metrics({ email }: { email: string }) {
             <p className="text-lg font-semibold">Latency</p>
           </div>
           <Separator />
-          <TraceLatencyChart projectId={project_id} lastNHours={lastNHours} />
+          <TraceLatencyChart
+            userId={userId}
+            projectId={project_id}
+            lastNHours={lastNHours}
+          />
         </div>
       </div>
     </div>

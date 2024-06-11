@@ -36,7 +36,8 @@ export interface ITraceService {
   ) => Promise<number>;
   GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: number
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (project_id: string) => Promise<number>;
@@ -556,7 +557,8 @@ export class TraceService implements ITraceService {
 
   async GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    userId?: number
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -570,6 +572,13 @@ export class TraceService implements ITraceService {
 
       const nHoursAgo = getFormattedTime(lastNHours);
 
+      const conditions = [sql.gte("start_time", nHoursAgo)];
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+        );
+      }
+
       // Directly embedding the ClickHouse-specific functions within string literals
       let innerSelect = sql
         .select(
@@ -579,7 +588,7 @@ export class TraceService implements ITraceService {
           "(toUnixTimestamp(max(parseDateTime64BestEffort(end_time))) - toUnixTimestamp(min(parseDateTime64BestEffort(start_time)))) * 1000 AS duration"
         )
         .from(project_id)
-        .where(sql.gte("start_time", nHoursAgo))
+        .where(...conditions)
         .groupBy("trace_id");
 
       // Assembling the outer query

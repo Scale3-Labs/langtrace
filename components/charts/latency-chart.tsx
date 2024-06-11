@@ -10,9 +10,11 @@ import LargeChartLoading from "./large-chart-skeleton";
 export function TraceLatencyChart({
   projectId,
   lastNHours = 168,
+  userId,
 }: {
   projectId: string;
   lastNHours?: number;
+  userId?: string;
 }) {
   const {
     data: metricsLatencyAverageTracePerDay,
@@ -23,10 +25,11 @@ export function TraceLatencyChart({
       "fetch-metrics-latency-average-trace-per-day",
       projectId,
       lastNHours,
+      userId,
     ],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/latency/trace?projectId=${projectId}&lastNHours=${lastNHours}`
+        `/api/metrics/latency/trace?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}`
       );
       if (!response.ok) {
         const error = await response.json();
