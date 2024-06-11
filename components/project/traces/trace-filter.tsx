@@ -39,9 +39,21 @@ export default function FilterDialog({
   onApplyFilters: (filters: any) => void;
 }) {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [showEvents, setShowEvents] = useState<boolean>(false);
   const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
   const [showVendor, setShowVendor] = useState<{ [key: string]: boolean }>({});
+
+  useEffect(() => {
+    if (!open) {
+      setAdvancedFilters((filters) =>
+        filters.filter(
+          (filter) =>
+            filter.value !== null &&
+            filter.value !== undefined &&
+            filter.value !== ""
+        )
+      );
+    }
+  }, [open]);
 
   const handleFilterChange = (value: any) => {
     setSelectedFilters((prev) => {
@@ -53,6 +65,13 @@ export default function FilterDialog({
   };
 
   const applyFilters = () => {
+    const validAdvancedFilters = advancedFilters.filter(
+      (filter) =>
+        filter.value !== null &&
+        filter.value !== undefined &&
+        filter.value !== ""
+    );
+
     const convertedFilters = selectedFilters.map((filter) => ({
       key: "name",
       operation: "EQUALS",
@@ -60,7 +79,7 @@ export default function FilterDialog({
       type: "property",
     }));
 
-    const convertedAdvancedFilters = advancedFilters.map((filter) => ({
+    const convertedAdvancedFilters = validAdvancedFilters.map((filter) => ({
       key: filter.attribute,
       operation: filter.operator.toUpperCase().replace(" ", "_"),
       value: filter.value,
@@ -97,7 +116,7 @@ export default function FilterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Filter Traces</DialogTitle>
           <DialogDescription>
@@ -250,7 +269,7 @@ export function OperatorCombox({
 }) {
   const [open, setOpen] = useState(false);
   const [selectedOperator, setSelectedOperatorState] = useState(
-    initialOperator || ""
+    initialOperator.toLowerCase() || ""
   );
 
   const comparisonOperators = ["equals", "contains", "not equals"];
@@ -290,7 +309,7 @@ export function OperatorCombox({
                     selectedOperator === operator ? "opacity-100" : "opacity-0"
                   }`}
                 />
-                {operator}
+                {operator.toLowerCase()}
               </CommandItem>
             ))}
           </CommandGroup>

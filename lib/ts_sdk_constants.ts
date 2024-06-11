@@ -28,6 +28,7 @@ export type SupportedVendors = (typeof Vendors)[keyof typeof Vendors];
 
 export const OPENAI_APIS = [
   "openai.chat.completion",
+  "openai.chat.completions.create",
   "openai.images.generate",
   "openai.images.edit",
 ];

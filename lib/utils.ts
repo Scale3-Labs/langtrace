@@ -26,7 +26,7 @@ export function extractPropertyNames(...schemas: string[][]): string[] {
   const propertyNames = new Set<string>();
 
   schemas.forEach((schema) => {
-    Object.keys(schema).forEach((propertyName) => {
+    schema.forEach((propertyName) => {
       propertyNames.add(propertyName);
     });
   });
