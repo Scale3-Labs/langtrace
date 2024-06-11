@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
+    console.log("projectId", projectId);
 
     if (!projectId) {
       return NextResponse.json(

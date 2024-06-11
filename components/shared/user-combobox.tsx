@@ -22,10 +22,11 @@ import { useQuery } from "react-query";
 import { toast } from "sonner";
 
 export function UserCombobox({
+  userId,
   setSelectedUser,
 }: {
-  setSelectedAttribute: (attribute: string) => void;
-  initialAttribute: string;
+  userId: string;
+  setSelectedUser: (user: string) => void;
 }) {
   const project_id = useParams()?.project_id as string;
   const [open, setOpen] = useState(false);
@@ -50,7 +51,7 @@ export function UserCombobox({
     },
     onError: (error) => {
       setShowLoader(false);
-      toast.error("Failed to fetch dataset", {
+      toast.error("Failed to fetch user ids", {
         description: error instanceof Error ? error.message : String(error),
       });
     },

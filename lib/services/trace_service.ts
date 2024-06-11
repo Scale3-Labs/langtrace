@@ -97,14 +97,12 @@ export class TraceService implements ITraceService {
       if (!tableExists) {
         return [];
       }
-      const query =
-        sql.select(`SELECT DISTINCT JSONExtractString(attributes, 'user_id') AS user_id
-      FROM your_table
-      WHERE JSONExtractString(attributes, 'user_id') IS NOT NULL;
-      `);
-
+      const query = sql
+        .select([
+          `DISTINCT JSONExtractString(attributes, 'user_id') AS user_id`,
+        ])
+        .from(project_id);
       const result: any[] = await this.client.find(query);
-      console.log(result);
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the users ${error}`
