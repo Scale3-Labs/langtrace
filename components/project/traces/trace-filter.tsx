@@ -163,7 +163,9 @@ export default function FilterDialog({
           </Button>
         </div>
         <DialogFooter>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button variant={"outline"} onClick={onClose}>
+            Cancel
+          </Button>
           <Button variant={"default"} onClick={applyFilters} color="primary">
             Apply Filters
           </Button>
