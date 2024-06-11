@@ -4,7 +4,6 @@ import { UtilityButton } from "@/components/experiments/report-utility";
 import { Conversation } from "@/components/shared/conversation-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -31,12 +30,30 @@ export default function Experiments() {
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-2xl font-semibold">Run ID: {runId}</h1>
-        <Button variant={data.length > 0 ? "default" : "outline"}>
+        <div className="flex gap-2 items-center">
+          <h1 className="text-2xl font-semibold">Run ID: {runId}</h1>
+          <Badge
+            className={cn(
+              "capitalize",
+              experiment.status === "success"
+                ? "text-green-600 bg-green-200 hover:bg-green-200"
+                : "text-destructive bg-red-200 hover:bg-red-200"
+            )}
+          >
+            {experiment.status}
+          </Badge>
+        </div>
+        <Button
+          variant={
+            data?.length > 0 && experiment && experiment?.samples?.length > 0
+              ? "default"
+              : "outline"
+          }
+        >
           New Experiment
         </Button>
       </div>
-      <div className="flex flex-col gap-12 w-full px-12">
+      <div className="flex flex-col gap-6 w-full px-12">
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => router.back()}>
             <ChevronLeft className="text-muted-foreground" size={20} />
@@ -45,6 +62,7 @@ export default function Experiments() {
           <Button
             variant={"outline"}
             size={"icon"}
+            disabled={!experiment?.samples || experiment?.samples?.length === 0}
             onClick={() => {
               setExpand(
                 expand.map(() => {
@@ -53,14 +71,26 @@ export default function Experiments() {
               );
             }}
           >
-            {expand.some((v) => v === false) && (
-              <MoveDiagonal className="text-muted-foreground" size={20} />
-            )}
-            {!expand.some((v) => v === false) && (
-              <X className="text-muted-foreground" size={20} />
-            )}
+            {expand.some((v: any) => v === false) && <MoveDiagonal size={20} />}
+            {!expand.some((v: any) => v === false) && <X size={20} />}
           </Button>
         </div>
+        {experiment?.error && (
+          <div className="flex flex-col gap-4">
+            <p className="text-xl text-center font-semibold">
+              An error occurred while running this experiment. See below for
+              more details
+            </p>
+            <div className="flex flex-col gap-2 p-2 border border-muted-foreground bg-muted rounded-md">
+              <pre className="text-start text-md">
+                {experiment.error.message || "An error occurred."}
+              </pre>
+              <pre className="text-start text-sm">
+                {experiment.error.traceback || "No traceback available."}
+              </pre>
+            </div>
+          </div>
+        )}
         {!experiment ||
           (experiment?.samples?.length === 0 && (
             <div className="flex flex-col items-center gap-2 mt-6">
@@ -75,9 +105,6 @@ export default function Experiments() {
             <table className="table-auto overflow-x-scroll w-screen border-separate border border-muted rounded-md">
               <thead className="bg-muted">
                 <tr>
-                  <th className="w-12 rounded-md p-2">
-                    <Checkbox />
-                  </th>
                   <th className="p-2 rounded-md text-sm font-medium">Input</th>
                   <th className="p-2 rounded-md text-sm font-medium">Target</th>
                   <th className="p-2 rounded-md text-sm font-medium">{`Output - (${experiment.eval.model})`}</th>
@@ -87,7 +114,7 @@ export default function Experiments() {
                 </tr>
               </thead>
               <tbody>
-                {experiment.samples.map((sample, i) => (
+                {experiment.samples.map((sample: any, i: number) => (
                   <SampleRow
                     key={i}
                     index={i}
@@ -97,7 +124,7 @@ export default function Experiments() {
                     expand={expand[i]}
                     setExpand={(value: boolean, index: number) => {
                       setExpand(
-                        expand.map((_, j) => {
+                        expand.map((_: any, j: number) => {
                           return j === index ? value : expand[j];
                         })
                       );
@@ -134,9 +161,6 @@ function SampleRow({
       className="hover:cursor-pointer hover:bg-muted group"
       onClick={() => setOpen(!open)}
     >
-      <td className="px-2 py-1 text-center">
-        <Checkbox onClick={(e) => e.stopPropagation()} />
-      </td>
       <td
         className={cn(
           "text-sm px-2 py-1 max-w-80 relative",

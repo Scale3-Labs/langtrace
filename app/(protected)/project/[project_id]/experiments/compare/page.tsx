@@ -71,7 +71,7 @@ export default function Experiments() {
                 </tr>
               </thead>
               <tbody>
-                {experiments[0].samples.map((_, i) => (
+                {experiments[0].samples.map((_: any, i: number) => (
                   <SampleRow key={i} index={i} experiments={experiments} />
                 ))}
               </tbody>
