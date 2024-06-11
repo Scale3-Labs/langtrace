@@ -24,11 +24,13 @@ export interface ITraceService {
   ) => Promise<number>;
   GetTokensUsedPerHourPerProject: (
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: number
   ) => Promise<number>;
   GetTokensCostPerHourPerProject: (
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: number
   ) => Promise<number>;
   GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
@@ -620,7 +622,8 @@ export class TraceService implements ITraceService {
 
   async GetTokensUsedPerHourPerProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    userId?: number
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -629,6 +632,15 @@ export class TraceService implements ITraceService {
       }
 
       const nHoursAgo = getFormattedTime(lastNHours);
+      const conditions = [
+        sql.like("attributes", "%total_tokens%"),
+        sql.gte("start_time", nHoursAgo),
+      ];
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+        );
+      }
 
       const query = sql
         .select([
@@ -636,10 +648,7 @@ export class TraceService implements ITraceService {
           `groupArray(attributes) AS attributes_list`,
         ])
         .from(project_id)
-        .where(
-          sql.like("attributes", "%total_tokens%"),
-          sql.gte("start_time", nHoursAgo)
-        )
+        .where(...conditions)
         .groupBy("date")
         .orderBy("date");
       const result = await this.client.find<any>(query);
@@ -691,7 +700,8 @@ export class TraceService implements ITraceService {
 
   async GetTokensCostPerHourPerProject(
     project_id: string,
-    lastNHours = 168 // Default to 168 hours (7 days)
+    lastNHours = 168,
+    userId?: number
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -700,32 +710,40 @@ export class TraceService implements ITraceService {
       }
 
       const nHoursAgo = getFormattedTime(lastNHours);
+
+      const conditions = [
+        sql.like("attributes", "%total_tokens%"),
+        sql.gte("start_time", nHoursAgo),
+      ];
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+        );
+      }
+
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
           `JSONExtractString(attributes, 'llm.model') AS model`,
           `JSONExtractString(attributes, 'langtrace.service.name') AS vendor`,
           `SUM(
-          JSONExtractInt(
-            JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
-          )
-        ) AS total_tokens`,
+            JSONExtractInt(
+              JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
+            )
+          ) AS total_tokens`,
           `SUM(
-          JSONExtractInt(
-            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
-          )
-        ) AS input_tokens`,
+            JSONExtractInt(
+              JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+            )
+          ) AS input_tokens`,
           `SUM(
-          JSONExtractInt(
-            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
-          )
-        ) AS output_tokens`,
+            JSONExtractInt(
+              JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+            )
+          ) AS output_tokens`,
         ])
         .from(project_id)
-        .where(
-          sql.like("attributes", "%total_tokens%"),
-          sql.gte("start_time", nHoursAgo)
-        )
+        .where(...conditions)
         .groupBy("date", "model", "vendor")
         .orderBy("date");
 

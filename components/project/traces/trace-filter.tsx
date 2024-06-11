@@ -122,7 +122,7 @@ export default function FilterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Filter Traces</DialogTitle>
           <DialogDescription>
