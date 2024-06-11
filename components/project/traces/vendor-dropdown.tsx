@@ -13,18 +13,14 @@ import {
 } from "@/lib/ts_sdk_constants";
 
 export default function VendorDropdown({
-  toggleVendor,
-  showVendor,
   selectedFilters,
   handleFilterChange,
 }: {
-  toggleVendor: (vendor: keyof typeof Vendors) => void;
-  showVendor: { [key: string]: boolean };
   selectedFilters: string[];
   handleFilterChange: (method: string) => void;
 }) {
   return (
-    <Accordion type="single">
+    <Accordion type="single" collapsible>
       <AccordionItem value="events">
         <AccordionTrigger>events</AccordionTrigger>
         <AccordionContent>
@@ -42,23 +38,20 @@ export default function VendorDropdown({
       </AccordionItem>
       {(Object.keys(Vendors) as Array<keyof typeof Vendors>).map((vendor) => (
         <AccordionItem key={vendor} value={vendor}>
-          <AccordionTrigger onClick={() => toggleVendor(vendor)}>
-            {Vendors[vendor]}
-          </AccordionTrigger>
+          <AccordionTrigger>{Vendors[vendor]}</AccordionTrigger>
           <AccordionContent>
-            {showVendor[vendor] &&
-              TracedFunctionsByVendor[vendor as SupportedVendors].map(
-                (method: any) => (
-                  <div key={method} className="flex items-center">
-                    <Checkbox
-                      checked={selectedFilters.includes(method)}
-                      onClick={() => handleFilterChange(method)}
-                      value={method}
-                    />
-                    <label className="ml-2">{method}</label>
-                  </div>
-                )
-              )}
+            {TracedFunctionsByVendor[vendor as SupportedVendors].map(
+              (method: any) => (
+                <div key={method} className="flex items-center">
+                  <Checkbox
+                    checked={selectedFilters.includes(method)}
+                    onClick={() => handleFilterChange(method)}
+                    value={method}
+                  />
+                  <label className="ml-2">{method}</label>
+                </div>
+              )
+            )}
           </AccordionContent>
         </AccordionItem>
       ))}

@@ -40,7 +40,6 @@ export default function FilterDialog({
 }) {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
-  const [showVendor, setShowVendor] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     if (!open) {
@@ -110,10 +109,6 @@ export default function FilterDialog({
     setAdvancedFilters(updatedFilters);
   };
 
-  const toggleVendor = (vendor: string) => {
-    setShowVendor((prev) => ({ ...prev, [vendor]: !prev[vendor] }));
-  };
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl h-[80vh] overflow-y-auto">
@@ -124,8 +119,6 @@ export default function FilterDialog({
           </DialogDescription>
         </DialogHeader>
         <VendorDropdown
-          toggleVendor={toggleVendor}
-          showVendor={showVendor}
           selectedFilters={selectedFilters}
           handleFilterChange={handleFilterChange}
         />
