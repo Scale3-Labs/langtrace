@@ -16,11 +16,13 @@ export interface PaginationResult<T> {
 export interface ITraceService {
   GetTotalTracePerHourPerProject: (
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: number
   ) => Promise<number>;
   GetTotalSpansPerHourPerProject: (
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: number
   ) => Promise<number>;
   GetTokensUsedPerHourPerProject: (
     project_id: string,
@@ -212,7 +214,8 @@ export class TraceService implements ITraceService {
 
   async GetTotalSpansPerHourPerProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    userId?: number
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -221,13 +224,21 @@ export class TraceService implements ITraceService {
         return [];
       }
 
+      const conditions = [sql.gte("start_time", nHoursAgo)];
+
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+        );
+      }
+
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
           `count(*) AS spanCount`,
         ])
         .from(project_id)
-        .where(sql.gte("start_time", nHoursAgo))
+        .where(...conditions)
         .groupBy(`toDate(parseDateTimeBestEffort(start_time))`)
         .orderBy(`toDate(parseDateTimeBestEffort(start_time))`);
       const result = await this.client.find<any>(query);
@@ -261,7 +272,8 @@ export class TraceService implements ITraceService {
 
   async GetTotalTracePerHourPerProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    userId?: number
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -270,13 +282,21 @@ export class TraceService implements ITraceService {
         return [];
       }
 
+      const conditions = [sql.gte("start_time", nHoursAgo)];
+
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+        );
+      }
+
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
           `COUNT(DISTINCT trace_id) AS traceCount`,
         ])
         .from(project_id)
-        .where(sql.gte("start_time", nHoursAgo))
+        .where(...conditions)
         .groupBy(`toDate(parseDateTimeBestEffort(start_time))`)
         .orderBy(`toDate(parseDateTimeBestEffort(start_time))`);
       const result = await this.client.find<any>(query);
