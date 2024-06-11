@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -24,15 +23,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import VendorDropdown from "./vendor-dropdown";
-// import { Event } from "@langtrase/typescript-sdk";
-
-type FilterTypes = string;
 
 export default function FilterDialog({
   open,
@@ -43,7 +38,7 @@ export default function FilterDialog({
   onClose: () => void;
   onApplyFilters: (filters: any) => void;
 }) {
-  const [selectedFilters, setSelectedFilters] = useState<FilterTypes[]>([]);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [showEvents, setShowEvents] = useState<boolean>(false);
   const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
   const [showVendor, setShowVendor] = useState<{ [key: string]: boolean }>({});
@@ -109,50 +104,6 @@ export default function FilterDialog({
             Select filters to apply to the traces.
           </DialogDescription>
         </DialogHeader>
-        <div>
-          <h4
-            onClick={() => setShowEvents(!showEvents)}
-            className="cursor-pointer flex items-center"
-          >
-            Events
-            <ChevronDownIcon className="ml-2 h-4 w-4" />
-          </h4>
-          {showEvents &&
-            Object.values(Event).map((event) => (
-              <div key={event} className="flex items-center">
-                <Checkbox
-                  checked={selectedFilters.includes(event)}
-                  value={event}
-                  onClick={() => handleFilterChange(event)}
-                />
-                <label className="ml-2">{event}</label>
-              </div>
-            ))}
-        </div>
-        {/* {(Object.keys(Vendors) as Array<keyof typeof Vendors>).map((vendor) => (
-          <div key={vendor}>
-            <h4
-              onClick={() => toggleVendor(vendor)}
-              className="cursor-pointer flex items-center"
-            >
-              {Vendors[vendor]}
-              <ChevronDownIcon className="ml-2 h-4 w-4" />
-            </h4>
-            {showVendor[vendor] &&
-              TracedFunctionsByVendor[vendor as SupportedVendors].map(
-                (method: any) => (
-                  <div key={method} className="flex items-center">
-                    <Checkbox
-                      checked={selectedFilters.includes(method)}
-                      onClick={() => handleFilterChange(method)}
-                      value={method}
-                    />
-                    <label className="ml-2">{method}</label>
-                  </div>
-                )
-              )}
-          </div>
-        ))} */}
         <VendorDropdown
           toggleVendor={toggleVendor}
           showVendor={showVendor}
@@ -183,18 +134,25 @@ export default function FilterDialog({
                 }
                 className="mr-2"
               />
-              <Button onClick={() => removeAdvancedFilter(index)}>
+              <Button
+                variant={"destructive"}
+                onClick={() => removeAdvancedFilter(index)}
+              >
                 Remove
               </Button>
             </div>
           ))}
-          <Button onClick={addAdvancedFilter} className="mt-2">
+          <Button
+            variant={"secondary"}
+            onClick={addAdvancedFilter}
+            className="mt-2"
+          >
             Add Attribute
           </Button>
         </div>
         <DialogFooter>
           <Button onClick={onClose}>Cancel</Button>
-          <Button onClick={applyFilters} color="primary">
+          <Button variant={"default"} onClick={applyFilters} color="primary">
             Apply Filters
           </Button>
         </DialogFooter>

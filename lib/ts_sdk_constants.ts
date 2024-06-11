@@ -17,6 +17,13 @@ export const Vendors = {
   pg: "pg",
 } as const;
 
+export const Events = [
+  "stream.start",
+  "stream.output",
+  "stream.end",
+  "response",
+];
+
 export type SupportedVendors = (typeof Vendors)[keyof typeof Vendors];
 
 export const OPENAI_APIS = [
