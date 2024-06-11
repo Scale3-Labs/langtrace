@@ -79,6 +79,7 @@ export interface ITraceService {
     project_ids: string[]
   ) => Promise<number>;
   AddSpans: (spans: Span[], project_id: string) => Promise<void>;
+  GetUsersInProject: (project_id: string) => Promise<string[]>;
 }
 
 export class TraceService implements ITraceService {
@@ -87,6 +88,30 @@ export class TraceService implements ITraceService {
   constructor() {
     this.client = new ClickhouseBaseClient();
     this.queryBuilderService = new QueryBuilderService();
+  }
+
+  async GetUsersInProject(project_id: string): Promise<string[]> {
+    let users: string[] = [];
+    try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+      const query =
+        sql.select(`SELECT DISTINCT JSONExtractString(attributes, 'user_id') AS user_id
+      FROM your_table
+      WHERE JSONExtractString(attributes, 'user_id') IS NOT NULL;
+      `);
+
+      const result: any[] = await this.client.find(query);
+      console.log(result);
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the users ${error}`
+      );
+    }
+
+    return users;
   }
 
   async AddSpans(spans: Span[], project_id: string): Promise<void> {
