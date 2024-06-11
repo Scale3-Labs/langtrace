@@ -26,6 +26,7 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { UserCombobox } from "@/components/shared/user-combobox";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import VendorDropdown from "./vendor-dropdown";
 
@@ -40,6 +41,7 @@ export default function FilterDialog({
 }) {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
 
   useEffect(() => {
     if (!open) {
@@ -84,6 +86,15 @@ export default function FilterDialog({
       value: filter.value,
       type: "attribute",
     }));
+
+    if (selectedUserId) {
+      convertedAdvancedFilters.push({
+        key: "user_id",
+        operation: "EQUALS",
+        value: selectedUserId,
+        type: "attribute",
+      });
+    }
 
     onApplyFilters({
       filters: [...convertedFilters, ...convertedAdvancedFilters],
@@ -161,6 +172,13 @@ export default function FilterDialog({
           >
             Add Attribute
           </Button>
+        </div>
+        <div>
+          <h4 className="mt-4">User Id</h4>
+          <UserCombobox
+            selectedUser={selectedUserId}
+            setSelectedUser={setSelectedUserId}
+          />
         </div>
         <DialogFooter>
           <Button variant={"outline"} onClick={onClose}>

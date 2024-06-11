@@ -1,7 +1,6 @@
 "use client";
 
 import { TraceRow } from "@/components/project/traces/trace-row";
-import { UserCombobox } from "@/components/shared/user-combobox";
 import { Button } from "@/components/ui/button";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
@@ -186,14 +185,13 @@ export default function Traces({ email }: { email: string }) {
             <label className="text-xs font-semibold px-2">Filters</label>
           </div>
         </div>
-        <div>
+        {/* <div>
           <UserCombobox
-            userId={userId}
             setSelectedUser={setUserId}
             applyFilters={handleApplyFilters}
             filters={filters}
           />
-        </div>
+        </div> */}
         <div className="flex gap-2 items-center">
           <Label>Local time</Label>
           <Switch

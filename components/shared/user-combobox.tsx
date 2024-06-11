@@ -22,19 +22,15 @@ import { useQuery } from "react-query";
 import { toast } from "sonner";
 
 export function UserCombobox({
-  userId,
   setSelectedUser,
-  applyFilters,
-  filters,
+  selectedUser,
 }: {
-  userId: string;
   setSelectedUser: (user: string) => void;
-  applyFilters: (filters: any) => void;
-  filters: any[];
+  selectedUser?: string;
 }) {
   const project_id = useParams()?.project_id as string;
   const [open, setOpen] = useState(false);
-  const [selectedUserId, setSelectedUserIdState] = useState("");
+  const [selectedUserId, setSelectedUserIdState] = useState(selectedUser || "");
   const [searchQuery, setSearchQuery] = useState("");
   const [userIds, setUserIds] = useState<string[]>([]);
   const [showLoader, setShowLoader] = useState(false);
@@ -43,26 +39,6 @@ export function UserCombobox({
     const newUserId = currentValue === selectedUserId ? "" : currentValue;
     setSelectedUserIdState(newUserId);
     setSelectedUser(newUserId);
-
-    if (newUserId) {
-      applyFilters({
-        filters: [
-          {
-            key: "user_id",
-            operation: "EQUALS",
-            value: newUserId,
-            type: "attribute",
-          },
-        ],
-      });
-    } else {
-      const updatedFilters = filters.filter(
-        (filter) => filter.key !== "user_id"
-      );
-      applyFilters({
-        filters: updatedFilters,
-      });
-    }
 
     setOpen(false);
   };
