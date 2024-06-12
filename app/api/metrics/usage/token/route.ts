@@ -26,7 +26,6 @@ export async function GET(req: NextRequest) {
         }
       );
     }
-    console.log(model);
     const traceService = new TraceService();
     const usage = await traceService.GetTokensUsedPerHourPerProject(
       projectId,
@@ -48,7 +47,6 @@ export async function GET(req: NextRequest) {
         0
       ),
     };
-    console.log(usage);
     return NextResponse.json(
       {
         usage,
