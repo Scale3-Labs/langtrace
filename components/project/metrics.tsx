@@ -33,16 +33,19 @@ export default function Metrics({ email }: { email: string }) {
         <div className="flex flex-row items-center gap-5">
           <TokenChart
             userId={userId}
+            model={model}
             projectId={project_id}
             lastNHours={lastNHours}
           />
           <CostChart
             userId={userId}
+            model={model}
             projectId={project_id}
             lastNHours={lastNHours}
           />
           <TraceSpanChart
             userId={userId}
+            model={model}
             projectId={project_id}
             lastNHours={lastNHours}
           />
@@ -56,6 +59,7 @@ export default function Metrics({ email }: { email: string }) {
           <Separator />
           <TraceLatencyChart
             userId={userId}
+            model={model}
             projectId={project_id}
             lastNHours={lastNHours}
           />

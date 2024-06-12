@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
       req.nextUrl.searchParams.get("lastNHours") || "168"
     );
     const userId = req.nextUrl.searchParams.get("userId") || "";
+    const model = req.nextUrl.searchParams.get("model") || "";
 
     if (!projectId) {
       return NextResponse.json(
@@ -30,7 +31,8 @@ export async function GET(req: NextRequest) {
     const traces: any = await traceService.GetTotalTracePerHourPerProject(
       projectId,
       lastNHours,
-      userId
+      userId,
+      model
     );
     const total = traces.reduce(
       (acc: number, curr: { traceCount: string }) =>

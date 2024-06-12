@@ -10,20 +10,28 @@ export function TraceSpanChart({
   projectId,
   lastNHours = 168,
   userId,
+  model,
 }: {
   projectId: string;
   lastNHours?: number;
   userId?: string;
+  model?: string;
 }) {
   const {
     data: traceUsage,
     isLoading: traceUsageLoading,
     error: traceUsageError,
   } = useQuery({
-    queryKey: ["fetch-metrics-usage-trace", projectId, lastNHours, userId],
+    queryKey: [
+      "fetch-metrics-usage-trace",
+      projectId,
+      lastNHours,
+      userId,
+      model,
+    ],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/trace?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}`
+        `/api/metrics/usage/trace?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}&model=${model}`
       );
       if (!response.ok) {
         const error = await response.json();

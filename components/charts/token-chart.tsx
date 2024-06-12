@@ -10,20 +10,28 @@ export function TokenChart({
   projectId,
   lastNHours = 168,
   userId,
+  model,
 }: {
   projectId: string;
   lastNHours?: number;
   userId?: string;
+  model?: string;
 }) {
   const {
     data: tokenUsage,
     isLoading: tokenUsageLoading,
     error: tokenUsageError,
   } = useQuery({
-    queryKey: ["fetch-metrics-usage-token", projectId, lastNHours, userId],
+    queryKey: [
+      "fetch-metrics-usage-token",
+      projectId,
+      lastNHours,
+      userId,
+      model,
+    ],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/token?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}`
+        `/api/metrics/usage/token?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}&model=${model}`
       );
       if (!response.ok) {
         const error = await response.json();
@@ -87,20 +95,28 @@ export function CostChart({
   projectId,
   lastNHours = 168,
   userId,
+  model,
 }: {
   projectId: string;
   lastNHours?: number;
   userId?: string;
+  model?: string;
 }) {
   const {
     data: costUsage,
     isLoading: costUsageLoading,
     error: costUsageError,
   } = useQuery({
-    queryKey: ["fetch-metrics-usage-cost", projectId, lastNHours, userId],
+    queryKey: [
+      "fetch-metrics-usage-cost",
+      projectId,
+      lastNHours,
+      userId,
+      model,
+    ],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/cost?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}`
+        `/api/metrics/usage/cost?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}&model=${model}`
       );
       if (!response.ok) {
         const error = await response.json();
