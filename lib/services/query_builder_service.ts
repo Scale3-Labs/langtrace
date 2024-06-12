@@ -86,7 +86,7 @@ export class QueryBuilderService implements IQueryBuilderService {
   CountFilteredSpanAttributesQuery(
     tableName: string,
     filters: PropertyFilter[],
-    filterOperation: string = "AND"
+    filterOperation: string = "OR"
   ): string {
     let baseQuery = `COUNT(DISTINCT span_id) AS total_spans FROM ${tableName}`;
     let whereConditions: string[] = [];
@@ -105,7 +105,7 @@ export class QueryBuilderService implements IQueryBuilderService {
   CountFilteredTraceAttributesQuery(
     tableName: string,
     filters: PropertyFilter[],
-    filterOperation: string = "AND"
+    filterOperation: string = "OR"
   ): string {
     let baseQuery = `COUNT(DISTINCT trace_id) AS total_traces FROM ${tableName}`;
     let whereConditions: string[] = [];
@@ -126,7 +126,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     filters: PropertyFilter[],
     pageSize: number = 10,
     offset: number = 0,
-    filterOperation: string = "AND",
+    filterOperation: string = "OR",
     lastNHours?: number
   ): string {
     let baseQuery = `* FROM ${tableName}`;
@@ -156,7 +156,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     filters: PropertyFilter[],
     pageSize: number,
     offset: number,
-    filterOperation: string = "AND"
+    filterOperation: string = "OR"
   ): string {
     let baseQuery = `trace_id, MIN(start_time) AS earliest_start_time FROM ${tableName}`;
     let whereConditions: string[] = [];
@@ -177,7 +177,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     tableName: string,
     spanId: string,
     filters: PropertyFilter[],
-    filterOperation: string = "AND"
+    filterOperation: string = "OR"
   ): string {
     let baseQuery = `* FROM ${tableName} WHERE span_id = '${spanId}'`;
     let whereConditions: string[] = [];
@@ -197,7 +197,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     tableName: string,
     traceId: string,
     filters: PropertyFilter[],
-    filterOperation: string = "AND"
+    filterOperation: string = "OR"
   ): string {
     let baseQuery = `* FROM ${tableName} WHERE trace_id = '${traceId}'`;
     let whereConditions: string[] = [];

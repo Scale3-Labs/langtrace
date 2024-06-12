@@ -404,7 +404,7 @@ export class TraceService implements ITraceService {
     page: number,
     pageSize: number,
     filters: PropertyFilter[] = [],
-    filterOperation: string = "AND"
+    filterOperation: string = "OR"
   ): Promise<PaginationResult<Span>> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -458,7 +458,7 @@ export class TraceService implements ITraceService {
     project_id: string,
     lastNHours = 168,
     filters: PropertyFilter[] = [],
-    filterOperation: string = "AND"
+    filterOperation: string = "OR"
   ): Promise<Span[]> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -488,7 +488,7 @@ export class TraceService implements ITraceService {
     page: number,
     pageSize: number,
     filters: PropertyFilter[] = [],
-    filterOperation: string = "AND"
+    filterOperation: string = "OR"
   ): Promise<PaginationResult<Span[]>> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
