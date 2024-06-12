@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const lastNHours = parseInt(
       req.nextUrl.searchParams.get("lastNHours") || "168"
     );
-    const userId = parseInt(req.nextUrl.searchParams.get("userId") || "");
+    const userId = req.nextUrl.searchParams.get("userId") || "";
 
     const traceService = new TraceService();
     const cost = await traceService.GetTokensCostPerHourPerProject(

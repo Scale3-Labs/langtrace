@@ -17,27 +17,27 @@ export interface ITraceService {
   GetTotalTracePerHourPerProject: (
     project_id: string,
     lastNHours?: number,
-    userId?: number
+    userId?: string
   ) => Promise<number>;
   GetTotalSpansPerHourPerProject: (
     project_id: string,
     lastNHours?: number,
-    userId?: number
+    userId?: string
   ) => Promise<number>;
   GetTokensUsedPerHourPerProject: (
     project_id: string,
     lastNHours?: number,
-    userId?: number
+    userId?: string
   ) => Promise<number>;
   GetTokensCostPerHourPerProject: (
     project_id: string,
     lastNHours?: number,
-    userId?: number
+    userId?: string
   ) => Promise<number>;
   GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
     lastNHours?: number,
-    userId?: number
+    userId?: string
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (project_id: string) => Promise<number>;
@@ -216,7 +216,7 @@ export class TraceService implements ITraceService {
   async GetTotalSpansPerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: number
+    userId?: string
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -229,7 +229,7 @@ export class TraceService implements ITraceService {
 
       if (userId) {
         conditions.push(
-          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
         );
       }
 
@@ -274,7 +274,7 @@ export class TraceService implements ITraceService {
   async GetTotalTracePerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: number
+    userId?: string
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -287,7 +287,7 @@ export class TraceService implements ITraceService {
 
       if (userId) {
         conditions.push(
-          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
         );
       }
 
@@ -558,7 +558,7 @@ export class TraceService implements ITraceService {
   async GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: number
+    userId?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -575,7 +575,7 @@ export class TraceService implements ITraceService {
       const conditions = [sql.gte("start_time", nHoursAgo)];
       if (userId) {
         conditions.push(
-          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
         );
       }
 
@@ -652,7 +652,7 @@ export class TraceService implements ITraceService {
   async GetTokensUsedPerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: number
+    userId?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -667,7 +667,7 @@ export class TraceService implements ITraceService {
       ];
       if (userId) {
         conditions.push(
-          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
         );
       }
 
@@ -730,7 +730,7 @@ export class TraceService implements ITraceService {
   async GetTokensCostPerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: number
+    userId?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -746,7 +746,7 @@ export class TraceService implements ITraceService {
       ];
       if (userId) {
         conditions.push(
-          sql.eq("JSONExtractInt(attributes, 'user_id')", userId)
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
         );
       }
 
