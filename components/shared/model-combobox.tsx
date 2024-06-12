@@ -56,8 +56,8 @@ export function ModelCombobox({
       const result = await response.json();
       return result;
     },
-    onSuccess: (data: { modelIDs: any }) => {
-      setModelIds(data?.modelIDs || []);
+    onSuccess: (data: { models: any }) => {
+      setModelIds(data?.models || []);
     },
     onError: (error) => {
       setShowLoader(false);
@@ -95,7 +95,7 @@ export function ModelCombobox({
             value={searchQuery}
             onValueChange={onInputChange}
           />
-          <CommandEmpty>No attribute found.</CommandEmpty>
+          <CommandEmpty>No models found.</CommandEmpty>
           <CommandGroup>
             {modelIds.map((id: string) => (
               <CommandItem

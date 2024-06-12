@@ -6,6 +6,7 @@ import { TraceLatencyChart } from "../charts/latency-chart";
 import { CostChart, TokenChart } from "../charts/token-chart";
 import { TraceSpanChart } from "../charts/trace-chart";
 import DayFilter, { timeRanges } from "../shared/day-filter";
+import { ModelCombobox } from "../shared/model-combobox";
 import { UserCombobox } from "../shared/user-combobox";
 import { Separator } from "../ui/separator";
 
@@ -13,6 +14,7 @@ export default function Metrics({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
   const [lastNHours, setLastNHours] = useState(timeRanges[0].value);
   const [userId, setUserId] = useState("");
+  const [model, setModel] = useState("");
 
   return (
     <div className="w-full flex flex-col gap-6 p-6">
@@ -22,6 +24,9 @@ export default function Metrics({ email }: { email: string }) {
           <DayFilter lastNHours={lastNHours} setLastNHours={setLastNHours} />
           <div className="px-2">
             <UserCombobox setSelectedUser={setUserId} selectedUser={userId} />
+          </div>
+          <div className="px-2">
+            <ModelCombobox selectedModel={model} setSelectedModel={setModel} />
           </div>
         </div>
         <Separator />

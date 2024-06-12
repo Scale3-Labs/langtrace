@@ -85,6 +85,7 @@ export interface ITraceService {
   ) => Promise<number>;
   AddSpans: (spans: Span[], project_id: string) => Promise<void>;
   GetUsersInProject: (project_id: string) => Promise<string[]>;
+  GetModelsInProject: (project_id: string) => Promise<string[]>;
 }
 
 export class TraceService implements ITraceService {
@@ -96,7 +97,6 @@ export class TraceService implements ITraceService {
   }
 
   async GetUsersInProject(project_id: string): Promise<string[]> {
-    let users: string[] = [];
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
@@ -114,6 +114,26 @@ export class TraceService implements ITraceService {
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the users ${error}`
+      );
+    }
+  }
+
+  async GetModelsInProject(project_id: string): Promise<string[]> {
+    try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+      const query = sql
+        .select([
+          `DISTINCT JSONExtractString(attributes, 'llm.model') AS model`,
+        ])
+        .from(project_id);
+      const result: any[] = await this.client.find(query);
+      return result.map((row) => row.model).filter((model) => model !== "");
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the models ${error}`
       );
     }
   }
