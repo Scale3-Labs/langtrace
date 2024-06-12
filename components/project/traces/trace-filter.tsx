@@ -22,6 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -184,6 +185,21 @@ export default function FilterDialog({
           <Button variant={"outline"} onClick={onClose}>
             Cancel
           </Button>
+          {(selectedFilters.length > 0 ||
+            advancedFilters.length > 0 ||
+            selectedUserId !== "") && (
+            <Button
+              variant={"destructive"}
+              onClick={() => {
+                setSelectedFilters([]);
+                setAdvancedFilters([]);
+                setSelectedUserId("");
+              }}
+            >
+              <ClearIcon className="h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
           <Button variant={"default"} onClick={applyFilters} color="primary">
             Apply Filters
           </Button>

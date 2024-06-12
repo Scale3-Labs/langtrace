@@ -16,7 +16,7 @@ import {
 
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -34,6 +34,8 @@ export function UserCombobox({
   const [searchQuery, setSearchQuery] = useState("");
   const [userIds, setUserIds] = useState<string[]>([]);
   const [showLoader, setShowLoader] = useState(false);
+  const [internalSelectedUser, setInternalSelectedUser] =
+    useState(selectedUser);
 
   const handleSelectUser = (currentValue: string) => {
     const newUserId = currentValue === selectedUserId ? "" : currentValue;
@@ -42,6 +44,11 @@ export function UserCombobox({
 
     setOpen(false);
   };
+
+  useEffect(() => {
+    setSelectedUserIdState(selectedUser || "");
+    setInternalSelectedUser(selectedUser || "");
+  }, [selectedUser]);
 
   const fetchUserIds = useQuery({
     queryKey: ["fetch-user-ids-query", project_id],
