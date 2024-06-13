@@ -24,16 +24,16 @@ const ProjectNavLinks = (id: string) => [
     href: `/project/${id}/traces`,
   },
   {
-    name: "Evaluate",
-    href: `/project/${id}/evaluate`,
+    name: "Annotations",
+    href: `/project/${id}/annotations`,
   },
   {
     name: "Datasets",
     href: `/project/${id}/datasets`,
   },
   {
-    name: "Experiments",
-    href: `/project/${id}/experiments`,
+    name: "Evaluations",
+    href: `/project/${id}/evaluations`,
   },
   {
     name: "Playground",

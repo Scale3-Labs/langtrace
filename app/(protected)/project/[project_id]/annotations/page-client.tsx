@@ -1,12 +1,12 @@
 "use client";
 
-import { EvalChart } from "@/components/charts/eval-chart";
-import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
-import { CreateTest } from "@/components/evaluate/create-test";
-import { EditTest } from "@/components/evaluate/edit-test";
+import { CreateTest } from "@/components/annotations/create-test";
+import { EditTest } from "@/components/annotations/edit-test";
 import EvaluationTable, {
   EvaluationTableSkeleton,
-} from "@/components/evaluate/evaluation-table";
+} from "@/components/annotations/evaluation-table";
+import { EvalChart } from "@/components/charts/eval-chart";
+import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { Button } from "@/components/ui/button";
 import { Test } from "@prisma/client";
@@ -73,7 +73,7 @@ export default function PageClient({ email }: { email: string }) {
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Evaluations</h1>
+        <h1 className="text-3xl font-semibold">Annotate & Measure</h1>
         <div className="flex gap-2">
           <CreateTest projectId={projectId} variant={"outline"} />
           {tests?.tests?.length > 0 && (

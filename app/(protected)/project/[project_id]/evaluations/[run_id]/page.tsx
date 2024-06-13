@@ -1,6 +1,6 @@
 "use client";
 
-import { UtilityButton } from "@/components/experiments/report-utility";
+import { UtilityButton } from "@/components/evaluations/report-utility";
 import { Conversation } from "@/components/shared/conversation-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,20 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, MoveDiagonal, X } from "lucide-react";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import {
+  ChevronLeft,
+  ChevronRight,
+  FlaskConical,
+  MoveDiagonal,
+  X,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
-export default function Experiments() {
+export default function Evaluation() {
   const router = useRouter();
   const runId = useParams()?.run_id as string;
   const projectId = useParams()?.project_id as string;
@@ -36,11 +43,11 @@ export default function Experiments() {
       );
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error?.message || "Failed to fetch the experiment");
+        throw new Error(error?.message || "Failed to fetch the evaluation");
       }
       const result = await response.json();
       if (!result.run || !result.run.log) {
-        throw new Error("No experiment found");
+        throw new Error("No evaluations found");
       }
       const exp = JSON.parse(result.run.log);
       setExperiment(exp);
@@ -52,7 +59,7 @@ export default function Experiments() {
       return result;
     },
     onError: (error) => {
-      toast.error("Failed to fetch the experiment", {
+      toast.error("Failed to fetch the evaluation", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
@@ -84,7 +91,9 @@ export default function Experiments() {
               : "default"
           }
         >
-          New Experiment
+          New Evaluation
+          <FlaskConical className="ml-1 h-4 w-4" />
+          <ArrowTopRightIcon className="ml-1 h-4 w-4" />
         </Button>
       </div>
       <div className="flex flex-col gap-6 w-full px-12">
@@ -121,7 +130,7 @@ export default function Experiments() {
         {experiment?.error && (
           <div className="flex flex-col gap-4">
             <p className="text-xl text-center font-semibold">
-              An error occurred while running this experiment. See below for
+              An error occurred while running this evaluation. See below for
               more details
             </p>
             <div className="flex flex-col gap-2 p-2 border border-muted-foreground bg-muted rounded-md">
@@ -137,7 +146,7 @@ export default function Experiments() {
         {experimentError && (
           <div className="flex flex-col items-center gap-2 mt-6">
             <p className="text-center text-md">
-              Failed to fetch the experiment. Please try again later.
+              Failed to fetch the evaluation. Please try again later.
             </p>
           </div>
         )}
@@ -145,9 +154,13 @@ export default function Experiments() {
           experiment?.samples?.length === 0) && (
           <div className="flex flex-col items-center gap-2 mt-6">
             <p className="text-center text-md">
-              No samples found for this experiment.
+              No samples found for this evaluation.
             </p>
-            <Button className="w-fit">New Experiment</Button>
+            <Button className="w-fit">
+              New Evaluation
+              <FlaskConical className="ml-1 h-4 w-4" />
+              <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+            </Button>
           </div>
         )}
         {!experimentLoading &&

@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { ChevronLeft } from "lucide-react";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import { ChevronLeft, FlaskConical } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
-export default function Experiments() {
+export default function Compare() {
   const router = useRouter();
   // get run id from query params
   const searchParams = useSearchParams();
@@ -31,11 +32,11 @@ export default function Experiments() {
         );
         if (!response.ok) {
           const error = await response.json();
-          throw new Error(error?.message || "Failed to fetch the experiment");
+          throw new Error(error?.message || "Failed to fetch the evaluation");
         }
         const result = await response.json();
         if (!result.run || !result.run.log) {
-          throw new Error("No experiment found");
+          throw new Error("No evaluation found");
         }
         return JSON.parse(result.run.log);
       });
@@ -45,7 +46,7 @@ export default function Experiments() {
       return exps;
     },
     onError: (error) => {
-      toast.error("Failed to fetch one or more experiments", {
+      toast.error("Failed to fetch one or more evaluations", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
@@ -70,15 +71,19 @@ export default function Experiments() {
             (experiments?.length === 0 && (
               <div className="flex flex-col items-center gap-2 mt-6">
                 <p className="text-center text-md">
-                  No experiments found for comparison.
+                  No evaluations found for comparison.
                 </p>
-                <Button className="w-fit">New Experiment</Button>
+                <Button className="w-fit">
+                  New Evaluation
+                  <FlaskConical className="ml-1 h-4 w-4" />
+                  <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+                </Button>
               </div>
             )))}
         {experimentsError && !experimentsLoading && (
           <div className="flex flex-col items-center gap-2 mt-6">
             <p className="text-center text-md">
-              Something went wrong while fetching the experiments. Please try
+              Something went wrong while fetching the evaluations. Please try
               again.
             </p>
           </div>
@@ -86,8 +91,8 @@ export default function Experiments() {
         {!experimentsLoading && !isComparable && (
           <div className="flex flex-col items-center gap-2 mt-24">
             <p className="text-center text-md">
-              The selected experiments are not comparable. Please select
-              experiments ran against the same dataset.
+              The selected evaluations are not comparable. Please select
+              evaluations ran against the same dataset.
             </p>
             <Button onClick={() => router.back()}>
               <ChevronLeft className="text-muted-foreground" size={20} />

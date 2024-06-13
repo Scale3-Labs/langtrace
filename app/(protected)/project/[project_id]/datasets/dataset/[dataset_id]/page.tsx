@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PAGE_SIZE } from "@/lib/constants";
 import { Data } from "@prisma/client";
-import { ChevronLeft } from "lucide-react";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import { ChevronLeft, FlaskConical } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -98,6 +99,11 @@ export default function Dataset() {
             datasetId={dataset_id}
             disabled={fetchDataset.isLoading || currentData?.length === 0}
           />
+          <Button variant="outline">
+            Run Evaluation
+            <FlaskConical className="ml-1 h-4 w-4" />
+            <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+          </Button>
         </div>
         <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
           <div className="grid grid-cols-5 items-center justify-stretch gap-3 py-3 px-4 bg-muted">

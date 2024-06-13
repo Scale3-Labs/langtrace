@@ -6,13 +6,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Run } from "@prisma/client";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import { FlaskConical } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
-export default function Experiments() {
+export default function Evaluations() {
   const router = useRouter();
   const projectId = useParams()?.project_id as string;
   const [comparisonRunIds, setComparisonRunIds] = useState<string[]>([]);
@@ -39,7 +41,7 @@ export default function Experiments() {
       );
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error?.message || "Failed to fetch experiments");
+        throw new Error(error?.message || "Failed to fetch evaluations");
       }
       const result = await response.json();
       return result;
@@ -67,7 +69,7 @@ export default function Experiments() {
       setShowLoader(false);
     },
     onError: (error) => {
-      toast.error("Failed to fetch experiments", {
+      toast.error("Failed to fetch evaluations", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
@@ -76,11 +78,8 @@ export default function Experiments() {
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Experiments</h1>
+        <h1 className="text-3xl font-semibold">Evaluations</h1>
         <div className="flex gap-2">
-          <Button variant={currentData.length > 0 ? "outline" : "default"}>
-            New Experiment
-          </Button>
           <Button
             variant={currentData.length > 0 ? "default" : "outline"}
             disabled={comparisonRunIds.length < 2}
@@ -89,10 +88,15 @@ export default function Experiments() {
               const query = comparisonRunIds
                 .map((runId, i) => (i === 0 ? "" : "&") + "run_id=" + runId)
                 .join("");
-              router.push(`/project/${projectId}/experiments/compare?${query}`);
+              router.push(`/project/${projectId}/evaluations/compare?${query}`);
             }}
           >
             Compare
+          </Button>
+          <Button variant={currentData.length > 0 ? "outline" : "default"}>
+            New Evaluation
+            <FlaskConical className="ml-1 h-4 w-4" />
+            <ArrowTopRightIcon className="ml-1 h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -103,9 +107,13 @@ export default function Experiments() {
               <p className="text-center text-md">
                 {fetchExperiments.isError
                   ? "Something went wrong. Please try later."
-                  : "No experiments found. Get started by running your first experiment."}
+                  : "No evaluations found. Get started by running your first evaluation."}
               </p>
-              <Button>New Experiment</Button>
+              <Button>
+                New Evaluation
+                <FlaskConical className="ml-1 h-4 w-4" />
+                <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+              </Button>
             </div>
           )}
           {currentData.length > 0 && (
@@ -155,7 +163,7 @@ export default function Experiments() {
                         className="hover:cursor-pointer hover:bg-muted"
                         onClick={() =>
                           router.push(
-                            `/project/${projectId}/experiments/${log?.eval?.run_id}`
+                            `/project/${projectId}/evaluations/${log?.eval?.run_id}`
                           )
                         }
                       >
