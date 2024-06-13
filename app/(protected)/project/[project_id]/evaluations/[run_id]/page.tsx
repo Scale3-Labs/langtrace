@@ -86,7 +86,7 @@ export default function Evaluation() {
             </Badge>
           )}
         </div>
-        <Link href={EVALUATIONS_DOCS_URL}>
+        <Link href={EVALUATIONS_DOCS_URL} target="_blank">
           <Button
             variant={
               experiment && experiment?.samples?.length > 0
@@ -160,7 +160,7 @@ export default function Evaluation() {
             <p className="text-center text-md">
               No samples found for this evaluation.
             </p>
-            <Link href={EVALUATIONS_DOCS_URL}>
+            <Link href={EVALUATIONS_DOCS_URL} target="_blank">
               <Button className="w-fit">
                 New Evaluation
                 <FlaskConical className="ml-1 h-4 w-4" />

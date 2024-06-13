@@ -75,7 +75,7 @@ export default function Compare() {
                 <p className="text-center text-md">
                   No evaluations found for comparison.
                 </p>
-                <Link href={EVALUATIONS_DOCS_URL}>
+                <Link href={EVALUATIONS_DOCS_URL} target="_blank">
                   <Button className="w-fit">
                     New Evaluation
                     <FlaskConical className="ml-1 h-4 w-4" />

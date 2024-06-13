@@ -96,7 +96,7 @@ export default function Evaluations() {
           >
             Compare
           </Button>
-          <Link href={EVALUATIONS_DOCS_URL}>
+          <Link href={EVALUATIONS_DOCS_URL} target="_blank">
             <Button variant={currentData.length > 0 ? "outline" : "default"}>
               New Evaluation
               <FlaskConical className="ml-1 h-4 w-4" />
@@ -114,7 +114,7 @@ export default function Evaluations() {
                   ? "Something went wrong. Please try later."
                   : "No evaluations found. Get started by running your first evaluation."}
               </p>
-              <Link href={EVALUATIONS_DOCS_URL}>
+              <Link href={EVALUATIONS_DOCS_URL} target="_blank">
                 <Button>
                   New Evaluation
                   <FlaskConical className="ml-1 h-4 w-4" />
