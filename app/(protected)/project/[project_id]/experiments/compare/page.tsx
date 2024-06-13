@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -50,10 +51,6 @@ export default function Experiments() {
     },
   });
 
-  if (experimentsLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="px-12 py-12 flex flex-col gap-2 bg-muted">
@@ -67,16 +64,26 @@ export default function Experiments() {
             Back
           </Button>
         </div>
-        {!experiments ||
-          (experiments?.length === 0 && (
-            <div className="flex flex-col items-center gap-2 mt-6">
-              <p className="text-center text-md">
-                No experiments found for comparison.
-              </p>
-              <Button className="w-fit">New Experiment</Button>
-            </div>
-          ))}
-        {!isComparable && (
+        {!experimentsLoading &&
+          !experimentsError &&
+          (!experiments ||
+            (experiments?.length === 0 && (
+              <div className="flex flex-col items-center gap-2 mt-6">
+                <p className="text-center text-md">
+                  No experiments found for comparison.
+                </p>
+                <Button className="w-fit">New Experiment</Button>
+              </div>
+            )))}
+        {experimentsError && !experimentsLoading && (
+          <div className="flex flex-col items-center gap-2 mt-6">
+            <p className="text-center text-md">
+              Something went wrong while fetching the experiments. Please try
+              again.
+            </p>
+          </div>
+        )}
+        {!experimentsLoading && !isComparable && (
           <div className="flex flex-col items-center gap-2 mt-24">
             <p className="text-center text-md">
               The selected experiments are not comparable. Please select
@@ -88,7 +95,8 @@ export default function Experiments() {
             </Button>
           </div>
         )}
-        {isComparable &&
+        {!experimentsLoading &&
+          isComparable &&
           experiments &&
           experiments[0]?.samples &&
           experiments[0]?.samples?.length > 0 && (
@@ -119,6 +127,7 @@ export default function Experiments() {
               </table>
             </div>
           )}
+        {experimentsLoading && <Skeleton className="w-full h-96" />}
       </div>
     </div>
   );

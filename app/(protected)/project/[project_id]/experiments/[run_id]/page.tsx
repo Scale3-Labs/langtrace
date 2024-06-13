@@ -12,6 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, MoveDiagonal, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -57,26 +58,24 @@ export default function Experiments() {
     },
   });
 
-  if (experimentLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="px-12 py-12 flex justify-between bg-muted">
         <div className="flex flex-col gap-2">
           <h1 className="text-lg font-semibold">Run ID</h1>
           <p className="text-md">{runId}</p>
-          <Badge
-            className={cn(
-              "capitalize w-fit",
-              experiment.status === "success"
-                ? "text-green-600 bg-green-200 hover:bg-green-200"
-                : "text-destructive bg-red-200 hover:bg-red-200"
-            )}
-          >
-            {experiment.status}
-          </Badge>
+          {!experimentError && !experimentLoading && (
+            <Badge
+              className={cn(
+                "capitalize w-fit",
+                experiment.status === "success"
+                  ? "text-green-600 bg-green-200 hover:bg-green-200"
+                  : "text-destructive bg-red-200 hover:bg-red-200"
+              )}
+            >
+              {experiment.status}
+            </Badge>
+          )}
         </div>
         <Button
           variant={
@@ -94,24 +93,30 @@ export default function Experiments() {
             <ChevronLeft className="text-muted-foreground" size={20} />
             Back
           </Button>
-          <Button
-            variant={"outline"}
-            size={"icon"}
-            disabled={!experiment?.samples || experiment?.samples?.length === 0}
-            onClick={() => {
-              setExpand(
-                expand &&
-                  expand.map(() => {
-                    return !expand[0];
-                  })
-              );
-            }}
-          >
-            {expand && expand.some((v: any) => v === false) && (
-              <MoveDiagonal size={20} />
-            )}
-            {expand && !expand.some((v: any) => v === false) && <X size={20} />}
-          </Button>
+          {!experimentError && !experimentLoading && (
+            <Button
+              variant={"outline"}
+              size={"icon"}
+              disabled={
+                !experiment?.samples || experiment?.samples?.length === 0
+              }
+              onClick={() => {
+                setExpand(
+                  expand &&
+                    expand.map(() => {
+                      return !expand[0];
+                    })
+                );
+              }}
+            >
+              {expand && expand.some((v: any) => v === false) && (
+                <MoveDiagonal size={20} />
+              )}
+              {expand && !expand.some((v: any) => v === false) && (
+                <X size={20} />
+              )}
+            </Button>
+          )}
         </div>
         {experiment?.error && (
           <div className="flex flex-col gap-4">
@@ -129,7 +134,15 @@ export default function Experiments() {
             </div>
           </div>
         )}
-        {(!experiment?.samples || experiment?.samples?.length === 0) && (
+        {experimentError && (
+          <div className="flex flex-col items-center gap-2 mt-6">
+            <p className="text-center text-md">
+              Failed to fetch the experiment. Please try again later.
+            </p>
+          </div>
+        )}
+        {((!experimentError && !experimentLoading && !experiment?.samples) ||
+          experiment?.samples?.length === 0) && (
           <div className="flex flex-col items-center gap-2 mt-6">
             <p className="text-center text-md">
               No samples found for this experiment.
@@ -137,42 +150,49 @@ export default function Experiments() {
             <Button className="w-fit">New Experiment</Button>
           </div>
         )}
-        {experiment?.samples && experiment?.samples?.length > 0 && (
-          <div className="overflow-y-scroll">
-            <table className="table-auto overflow-x-scroll w-screen border-separate border border-muted rounded-md">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="p-2 rounded-md text-sm font-medium">Input</th>
-                  <th className="p-2 rounded-md text-sm font-medium">Target</th>
-                  <th className="p-2 rounded-md text-sm font-medium">{`Output - (${experiment.eval.model})`}</th>
-                  <th className="p-2 rounded-md text-sm font-medium">
-                    Explanation
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {experiment.samples.map((sample: any, i: number) => (
-                  <SampleRow
-                    key={i}
-                    index={i}
-                    plan={experiment.plan}
-                    sample={sample}
-                    model={experiment.eval.model}
-                    expand={expand ? expand[i] : false}
-                    setExpand={(value: boolean, index: number) => {
-                      setExpand(
-                        expand &&
-                          expand.map((_: any, j: number) => {
-                            return j === index ? value : expand[j];
-                          })
-                      );
-                    }}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {!experimentLoading &&
+          experiment?.samples &&
+          experiment?.samples?.length > 0 && (
+            <div className="overflow-y-scroll">
+              <table className="table-auto overflow-x-scroll w-screen border-separate border border-muted rounded-md">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="p-2 rounded-md text-sm font-medium">
+                      Input
+                    </th>
+                    <th className="p-2 rounded-md text-sm font-medium">
+                      Target
+                    </th>
+                    <th className="p-2 rounded-md text-sm font-medium">{`Output - (${experiment.eval.model})`}</th>
+                    <th className="p-2 rounded-md text-sm font-medium">
+                      Explanation
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {experiment.samples.map((sample: any, i: number) => (
+                    <SampleRow
+                      key={i}
+                      index={i}
+                      plan={experiment.plan}
+                      sample={sample}
+                      model={experiment.eval.model}
+                      expand={expand ? expand[i] : false}
+                      setExpand={(value: boolean, index: number) => {
+                        setExpand(
+                          expand &&
+                            expand.map((_: any, j: number) => {
+                              return j === index ? value : expand[j];
+                            })
+                        );
+                      }}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        {experimentLoading && <Skeleton className="w-full h-96" />}
       </div>
     </div>
   );
