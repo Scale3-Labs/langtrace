@@ -22,10 +22,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import ClearIcon from "@mui/icons-material/Clear";
 
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { UserCombobox } from "@/components/shared/user-combobox";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import VendorDropdown from "./vendor-dropdown";
 
@@ -40,6 +42,7 @@ export default function FilterDialog({
 }) {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
 
   useEffect(() => {
     if (!open) {
@@ -85,6 +88,15 @@ export default function FilterDialog({
       type: "attribute",
     }));
 
+    if (selectedUserId) {
+      convertedAdvancedFilters.push({
+        key: "user_id",
+        operation: "EQUALS",
+        value: selectedUserId,
+        type: "attribute",
+      });
+    }
+
     onApplyFilters({
       filters: [...convertedFilters, ...convertedAdvancedFilters],
     });
@@ -111,7 +123,7 @@ export default function FilterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Filter Traces</DialogTitle>
           <DialogDescription>
@@ -162,10 +174,32 @@ export default function FilterDialog({
             Add Attribute
           </Button>
         </div>
+        <div>
+          <h4 className="mt-4">User Id</h4>
+          <UserCombobox
+            selectedUser={selectedUserId}
+            setSelectedUser={setSelectedUserId}
+          />
+        </div>
         <DialogFooter>
           <Button variant={"outline"} onClick={onClose}>
             Cancel
           </Button>
+          {(selectedFilters.length > 0 ||
+            advancedFilters.length > 0 ||
+            selectedUserId !== "") && (
+            <Button
+              variant={"destructive"}
+              onClick={() => {
+                setSelectedFilters([]);
+                setAdvancedFilters([]);
+                setSelectedUserId("");
+              }}
+            >
+              <ClearIcon className="h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
           <Button variant={"default"} onClick={applyFilters} color="primary">
             Apply Filters
           </Button>

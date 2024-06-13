@@ -6,49 +6,31 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
+
   if (!session || !session.user) {
     redirect("/login");
   }
 
   try {
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
-    const lastNHours = parseInt(
-      req.nextUrl.searchParams.get("lastNHours") || "168"
-    );
-    const userId = req.nextUrl.searchParams.get("userId") || "";
 
     if (!projectId) {
       return NextResponse.json(
-        JSON.stringify({ message: "projectId is required" }),
-        {
-          status: 400,
-        }
+        { error: "Please provide a projectId" },
+        { status: 400 }
       );
     }
 
     const traceService = new TraceService();
-    const traces: any = await traceService.GetTotalTracePerHourPerProject(
-      projectId,
-      lastNHours,
-      userId
-    );
-    const total = traces.reduce(
-      (acc: number, curr: { traceCount: string }) =>
-        acc + Number(curr.traceCount),
-      0
-    );
-
+    const userIDs = await traceService.GetUsersInProject(projectId);
     return NextResponse.json(
-      {
-        traces,
-        total,
-      },
+      { userIDs },
       {
         status: 200,
       }
     );
   } catch (error) {
-    return NextResponse.json(JSON.stringify({ message: error }), {
+    return NextResponse.json(JSON.stringify({ error }), {
       status: 400,
     });
   }

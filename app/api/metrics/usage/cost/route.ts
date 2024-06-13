@@ -15,13 +15,29 @@ export async function GET(req: NextRequest) {
     const lastNHours = parseInt(
       req.nextUrl.searchParams.get("lastNHours") || "168"
     );
+    const userId = req.nextUrl.searchParams.get("userId") || "";
 
     const traceService = new TraceService();
-    const total = await traceService.GetTokensCostPerProject(projectId);
     const cost = await traceService.GetTokensCostPerHourPerProject(
       projectId,
-      lastNHours
+      lastNHours,
+      userId
     );
+    const total = {
+      total: cost.reduce(
+        (acc: any, curr: { total: any }) => acc + curr.total,
+        0
+      ),
+      input: cost.reduce(
+        (acc: any, curr: { input: any }) => acc + curr.input,
+        0
+      ),
+      output: cost.reduce(
+        (acc: any, curr: { output: any }) => acc + curr.output,
+        0
+      ),
+    };
+
     return NextResponse.json(
       {
         cost,

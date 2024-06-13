@@ -9,19 +9,21 @@ import SmallChartLoading from "./small-chart-skeleton";
 export function TokenChart({
   projectId,
   lastNHours = 168,
+  userId,
 }: {
   projectId: string;
   lastNHours?: number;
+  userId?: string;
 }) {
   const {
     data: tokenUsage,
     isLoading: tokenUsageLoading,
     error: tokenUsageError,
   } = useQuery({
-    queryKey: ["fetch-metrics-usage-token", projectId, lastNHours],
+    queryKey: ["fetch-metrics-usage-token", projectId, lastNHours, userId],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/token?projectId=${projectId}&lastNHours=${lastNHours}`
+        `/api/metrics/usage/token?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}`
       );
       if (!response.ok) {
         const error = await response.json();
@@ -46,10 +48,10 @@ export function TokenChart({
           <div className="flex flex-row gap-4 h-12">
             <div className="flex flex-col gap-1">
               <p className="text-sm font-semibold text-start">
-                Total Input Tokens: {tokenUsage?.totalInputTokens || 0}
+                Total Input Tokens: {tokenUsage?.inputTokens || 0}
               </p>
               <p className="text-sm font-semibold text-start">
-                Total Output Tokens: {tokenUsage?.totalOutputTokens || 0}
+                Total Output Tokens: {tokenUsage?.outputTokens || 0}
               </p>
             </div>
             <p className="text-sm font-semibold text-start">
@@ -84,19 +86,21 @@ export function TokenChart({
 export function CostChart({
   projectId,
   lastNHours = 168,
+  userId,
 }: {
   projectId: string;
   lastNHours?: number;
+  userId?: string;
 }) {
   const {
     data: costUsage,
     isLoading: costUsageLoading,
     error: costUsageError,
   } = useQuery({
-    queryKey: ["fetch-metrics-usage-cost", projectId, lastNHours],
+    queryKey: ["fetch-metrics-usage-cost", projectId, lastNHours, userId],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/cost?projectId=${projectId}&lastNHours=${lastNHours}`
+        `/api/metrics/usage/cost?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}`
       );
       if (!response.ok) {
         const error = await response.json();
