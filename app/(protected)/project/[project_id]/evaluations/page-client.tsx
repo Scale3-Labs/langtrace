@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EVALUATIONS_DOCS_URL } from "@/lib/constants";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Run } from "@prisma/client";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { FlaskConical } from "lucide-react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -94,11 +96,13 @@ export default function Evaluations() {
           >
             Compare
           </Button>
-          <Button variant={currentData.length > 0 ? "outline" : "default"}>
-            New Evaluation
-            <FlaskConical className="ml-1 h-4 w-4" />
-            <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-          </Button>
+          <Link href={EVALUATIONS_DOCS_URL}>
+            <Button variant={currentData.length > 0 ? "outline" : "default"}>
+              New Evaluation
+              <FlaskConical className="ml-1 h-4 w-4" />
+              <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </div>
       {!fetchExperiments.isLoading && (
@@ -110,11 +114,13 @@ export default function Evaluations() {
                   ? "Something went wrong. Please try later."
                   : "No evaluations found. Get started by running your first evaluation."}
               </p>
-              <Button>
-                New Evaluation
-                <FlaskConical className="ml-1 h-4 w-4" />
-                <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-              </Button>
+              <Link href={EVALUATIONS_DOCS_URL}>
+                <Button>
+                  New Evaluation
+                  <FlaskConical className="ml-1 h-4 w-4" />
+                  <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           )}
           {currentData.length > 0 && (

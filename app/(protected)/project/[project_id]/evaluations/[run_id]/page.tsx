@@ -13,6 +13,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EVALUATIONS_DOCS_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import {
@@ -22,6 +23,7 @@ import {
   MoveDiagonal,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "react-query";
@@ -84,17 +86,19 @@ export default function Evaluation() {
             </Badge>
           )}
         </div>
-        <Button
-          variant={
-            experiment && experiment?.samples?.length > 0
-              ? "outline"
-              : "default"
-          }
-        >
-          New Evaluation
-          <FlaskConical className="ml-1 h-4 w-4" />
-          <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-        </Button>
+        <Link href={EVALUATIONS_DOCS_URL}>
+          <Button
+            variant={
+              experiment && experiment?.samples?.length > 0
+                ? "outline"
+                : "default"
+            }
+          >
+            New Evaluation
+            <FlaskConical className="ml-1 h-4 w-4" />
+            <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+          </Button>
+        </Link>
       </div>
       <div className="flex flex-col gap-6 w-full px-12">
         <div className="flex gap-2">
@@ -156,11 +160,13 @@ export default function Evaluation() {
             <p className="text-center text-md">
               No samples found for this evaluation.
             </p>
-            <Button className="w-fit">
-              New Evaluation
-              <FlaskConical className="ml-1 h-4 w-4" />
-              <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-            </Button>
+            <Link href={EVALUATIONS_DOCS_URL}>
+              <Button className="w-fit">
+                New Evaluation
+                <FlaskConical className="ml-1 h-4 w-4" />
+                <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         )}
         {!experimentLoading &&

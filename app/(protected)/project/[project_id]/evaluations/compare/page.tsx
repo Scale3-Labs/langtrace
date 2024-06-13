@@ -3,9 +3,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EVALUATIONS_DOCS_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { ChevronLeft, FlaskConical } from "lucide-react";
+import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "react-query";
@@ -73,11 +75,13 @@ export default function Compare() {
                 <p className="text-center text-md">
                   No evaluations found for comparison.
                 </p>
-                <Button className="w-fit">
-                  New Evaluation
-                  <FlaskConical className="ml-1 h-4 w-4" />
-                  <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-                </Button>
+                <Link href={EVALUATIONS_DOCS_URL}>
+                  <Button className="w-fit">
+                    New Evaluation
+                    <FlaskConical className="ml-1 h-4 w-4" />
+                    <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
             )))}
         {experimentsError && !experimentsLoading && (
