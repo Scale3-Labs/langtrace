@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
       req.nextUrl.searchParams.get("lastNHours") || "168"
     );
     const userId = req.nextUrl.searchParams.get("userId") || "";
+    const model = req.nextUrl.searchParams.get("model") || "";
     if (!projectId) {
       return NextResponse.json(
         JSON.stringify({ message: "projectId is required" }),
@@ -30,13 +31,15 @@ export async function GET(req: NextRequest) {
       await traceService.GetTotalTracePerHourPerProject(
         projectId,
         lastNHours,
-        userId
+        userId,
+        model
       );
     const { averageLatencies, p99Latencies, p95Latencies } =
       await traceService.GetAverageTraceLatenciesPerHourPerProject(
         projectId,
         lastNHours,
-        userId
+        userId,
+        model
       );
     return NextResponse.json(
       {

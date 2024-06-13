@@ -17,7 +17,8 @@ export interface ITraceService {
   GetTotalTracePerHourPerProject: (
     project_id: string,
     lastNHours?: number,
-    userId?: string
+    userId?: string,
+    model?: string
   ) => Promise<number>;
   GetTotalSpansPerHourPerProject: (
     project_id: string,
@@ -27,17 +28,20 @@ export interface ITraceService {
   GetTokensUsedPerHourPerProject: (
     project_id: string,
     lastNHours?: number,
-    userId?: string
+    userId?: string,
+    model?: string
   ) => Promise<number>;
   GetTokensCostPerHourPerProject: (
     project_id: string,
     lastNHours?: number,
-    userId?: string
+    userId?: string,
+    model?: string
   ) => Promise<number>;
   GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
     lastNHours?: number,
-    userId?: string
+    userId?: string,
+    model?: string
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (project_id: string) => Promise<number>;
@@ -85,6 +89,7 @@ export interface ITraceService {
   ) => Promise<number>;
   AddSpans: (spans: Span[], project_id: string) => Promise<void>;
   GetUsersInProject: (project_id: string) => Promise<string[]>;
+  GetModelsInProject: (project_id: string) => Promise<string[]>;
 }
 
 export class TraceService implements ITraceService {
@@ -96,7 +101,6 @@ export class TraceService implements ITraceService {
   }
 
   async GetUsersInProject(project_id: string): Promise<string[]> {
-    let users: string[] = [];
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
@@ -114,6 +118,26 @@ export class TraceService implements ITraceService {
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the users ${error}`
+      );
+    }
+  }
+
+  async GetModelsInProject(project_id: string): Promise<string[]> {
+    try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+      const query = sql
+        .select([
+          `DISTINCT JSONExtractString(attributes, 'llm.model') AS model`,
+        ])
+        .from(project_id);
+      const result: any[] = await this.client.find(query);
+      return result.map((row) => row.model).filter((model) => model !== "");
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the models ${error}`
       );
     }
   }
@@ -274,7 +298,8 @@ export class TraceService implements ITraceService {
   async GetTotalTracePerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: string
+    userId?: string,
+    model?: string
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -288,6 +313,12 @@ export class TraceService implements ITraceService {
       if (userId) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (model) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
         );
       }
 
@@ -558,7 +589,8 @@ export class TraceService implements ITraceService {
   async GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: string
+    userId?: string,
+    model?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -576,6 +608,12 @@ export class TraceService implements ITraceService {
       if (userId) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (model) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
         );
       }
 
@@ -652,7 +690,8 @@ export class TraceService implements ITraceService {
   async GetTokensUsedPerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: string
+    userId?: string,
+    model?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -668,6 +707,12 @@ export class TraceService implements ITraceService {
       if (userId) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (model) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
         );
       }
 
@@ -730,7 +775,8 @@ export class TraceService implements ITraceService {
   async GetTokensCostPerHourPerProject(
     project_id: string,
     lastNHours = 168,
-    userId?: string
+    userId?: string,
+    model?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -747,6 +793,12 @@ export class TraceService implements ITraceService {
       if (userId) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (model) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
         );
       }
 
