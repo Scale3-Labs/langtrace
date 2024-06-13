@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@/components/shared/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -245,6 +246,11 @@ export default function Evaluations() {
                   })}
                 </tbody>
               </table>
+              {showLoader && (
+                <div className="flex justify-center py-8">
+                  <Spinner className="h-8 w-8 text-center" />
+                </div>
+              )}
             </div>
           )}
         </div>
