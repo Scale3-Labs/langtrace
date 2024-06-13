@@ -7,6 +7,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 import { Run } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
@@ -14,21 +15,50 @@ export default function Experiments() {
   const router = useRouter();
   const projectId = useParams()?.project_id as string;
   const [comparisonRunIds, setComparisonRunIds] = useState<string[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [currentData, setCurrentData] = useState<any>([]);
+  const [showLoader, setShowLoader] = useState(false);
 
-  const {
-    data: experiments,
-    isLoading: experimentsLoading,
-    error: experimentsError,
-  } = useQuery({
+  const scrollableDivRef = useBottomScrollListener(() => {
+    if (fetchExperiments.isRefetching) {
+      return;
+    }
+    if (page <= totalPages) {
+      setShowLoader(true);
+      fetchExperiments.refetch();
+    }
+  });
+
+  const fetchExperiments = useQuery({
     queryKey: ["fetch-experiments-query"],
     queryFn: async () => {
-      const response = await fetch(`/api/run?projectId=${projectId}`);
+      const response = await fetch(
+        `/api/run?projectId=${projectId}&page=${page}&pageSize=25`
+      );
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error?.message || "Failed to fetch experiments");
       }
       const result = await response.json();
       return result;
+    },
+    onSuccess: (data) => {
+      const newData = data.runs || [];
+      const metadata = data?.metadata || {};
+
+      setTotalPages(parseInt(metadata?.total_pages) || 1);
+      if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
+        setPage(parseInt(metadata?.page) + 1);
+      }
+      // Merge the new data with the existing data
+      if (currentData.length > 0) {
+        const updatedData = [...currentData, ...newData];
+        setCurrentData(updatedData);
+      } else {
+        setCurrentData(newData);
+      }
+      setShowLoader(false);
     },
     onError: (error) => {
       toast.error("Failed to fetch experiments", {
@@ -37,7 +67,7 @@ export default function Experiments() {
     },
   });
 
-  if (experimentsLoading) {
+  if (fetchExperiments.isLoading) {
     return <div>Loading...</div>;
   }
 
@@ -46,13 +76,11 @@ export default function Experiments() {
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Experiments</h1>
         <div className="flex gap-2">
-          <Button
-            variant={experiments?.runs?.length > 0 ? "outline" : "default"}
-          >
+          <Button variant={currentData.length > 0 ? "outline" : "default"}>
             New Experiment
           </Button>
           <Button
-            variant={experiments?.runs?.length > 0 ? "default" : "outline"}
+            variant={currentData.length > 0 ? "default" : "outline"}
             disabled={comparisonRunIds.length < 2}
             onClick={() => {
               // append comparisonRunIds to query params. & only from the second run id
@@ -67,7 +95,7 @@ export default function Experiments() {
         </div>
       </div>
       <div className="flex flex-col gap-12 w-full px-12">
-        {experiments && experiments.runs && experiments.runs?.length === 0 && (
+        {currentData.length === 0 && (
           <div className="flex flex-col items-center gap-2 mt-24">
             <p className="text-center text-md">
               No experiments found. Get started by running your first
@@ -76,8 +104,8 @@ export default function Experiments() {
             <Button>New Experiment</Button>
           </div>
         )}
-        {experiments && experiments.runs && experiments.runs?.length > 0 && (
-          <div className="overflow-y-scroll">
+        {currentData.length > 0 && (
+          <div className="overflow-y-scroll" ref={scrollableDivRef as any}>
             <table className="table-auto overflow-x-scroll w-max border-separate border border-muted rounded-md mt-6">
               <thead className="bg-muted">
                 <tr>
@@ -107,7 +135,7 @@ export default function Experiments() {
                 </tr>
               </thead>
               <tbody>
-                {experiments?.runs.map((experiment: Run) => {
+                {currentData.map((experiment: Run) => {
                   const log: any = JSON.parse(experiment.log as string);
                   return (
                     <tr
