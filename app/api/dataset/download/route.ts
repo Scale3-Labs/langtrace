@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
     });
 
     const result: any = [];
-    // convert the data to include only input, output and expectedOutput fields. Rename output to target
+    // convert the data to include only input, output and annotatedOutput fields. Rename output to target
     data.forEach((d) => {
       result.push({
         input: d.input,
