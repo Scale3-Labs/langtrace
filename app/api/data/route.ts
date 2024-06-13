@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         input: data.input,
         output: data.output,
         contexts: data.contexts || [],
-        expectedOutput: data.expectedOutput || "",
+        annotatedOutput: data.annotatedOutput || "",
         note: data.note || "",
         spanId: data.spanId || "",
         projectId: projectId || "",
@@ -130,7 +130,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const data = await req.json();
-    const { id, input, output, expectedOutput, contexts, note } = data;
+    const { id, input, output, annotatedOutput, contexts, note } = data;
 
     const result = await prisma.data.update({
       where: {
@@ -139,7 +139,7 @@ export async function PUT(req: NextRequest) {
       data: {
         input,
         output,
-        expectedOutput,
+        annotatedOutput,
         contexts,
         note,
       },

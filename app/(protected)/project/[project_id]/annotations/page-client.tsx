@@ -1,16 +1,14 @@
 "use client";
 
-import { EvalChart } from "@/components/charts/eval-chart";
-import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
-import { CreateTest } from "@/components/evaluate/create-test";
-import { EditTest } from "@/components/evaluate/edit-test";
+import { CreateTest } from "@/components/annotations/create-test";
+import { EditTest } from "@/components/annotations/edit-test";
 import EvaluationTable, {
   EvaluationTableSkeleton,
-} from "@/components/evaluate/evaluation-table";
+} from "@/components/annotations/evaluation-table";
+import { EvalChart } from "@/components/charts/eval-chart";
+import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Test } from "@prisma/client";
 import { RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -75,7 +73,7 @@ export default function PageClient({ email }: { email: string }) {
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Evaluations</h1>
+        <h1 className="text-3xl font-semibold">Annotate & Measure</h1>
         <div className="flex gap-2">
           <CreateTest projectId={projectId} variant={"outline"} />
           {tests?.tests?.length > 0 && (
@@ -123,57 +121,12 @@ export default function PageClient({ email }: { email: string }) {
 function PageSkeleton() {
   return (
     <div className="w-full flex flex-col">
-      <div className="flex flex-row gap-4 absolute top-[14rem] w-full md:px-24 px-12">
-        <div className="bg-primary-foreground flex flex-col gap-0 border rounded-md w-[12rem] h-fit">
-          {Array.from({ length: 5 }).map((_, i) => {
-            return (
-              <div className="flex flex-col" key={i}>
-                <div
-                  className={cn(
-                    "flex flex-col gap-4 p-4 items-start cursor-pointer",
-                    i === 0 ? "rounded-t-md" : "",
-                    i === 4 ? "rounded-b-md" : ""
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "text-sm text-muted-foreground font-semibold capitalize",
-                      i === 0 ? "text-primary" : ""
-                    )}
-                  >
-                    <Skeleton className="w-20 h-6" />
-                  </div>
-                  <span className="text-[0.6rem] text-primary font-bold">
-                    <Skeleton className="w-20 h-6" />
-                  </span>
-                </div>
-                <Separator />
-              </div>
-            );
-          })}
+      <div className="flex flex-col gap-12 top-[16rem] w-full md:px-24 px-12 mb-24">
+        <LargeChartSkeleton />
+        <div className="flex flex-col gap-2">
+          <Button variant="outline" disabled={true} />
         </div>
-        <div className="bg-primary-foreground flex flex-col gap-12 border rounded-md w-full p-4 mb-24">
-          <div className="flex flex-row">
-            <div className="flex flex-col gap-3 items-start w-[25rem]">
-              <div className="flex flex-col gap-1">
-                <div className="text-xl font-semibold capitalize">
-                  <Skeleton className="w-20 h-6" />
-                </div>
-                <span className="text-xs font-semibold text-muted-foreground">
-                  <Skeleton className="w-20 h-6" />
-                </span>
-              </div>
-              <span className="text-sm text-primary font-bold">
-                <Skeleton className="w-20 h-6" />
-              </span>
-              <div className="text-sm text-muted-foreground">
-                <Skeleton className="w-20 h-6" />
-              </div>
-            </div>
-            <LargeChartSkeleton />
-          </div>
-          <EvaluationTableSkeleton />
-        </div>
+        <EvaluationTableSkeleton />
       </div>
     </div>
   );

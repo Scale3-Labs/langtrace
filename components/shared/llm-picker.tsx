@@ -42,7 +42,7 @@ export default function LLMPicker({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder="Search llm provider..." />
           <CommandEmpty>No LLM provider found.</CommandEmpty>
           <CommandGroup>
             {LLM_VENDORS.map((llm) => (

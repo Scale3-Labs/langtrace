@@ -1,4 +1,5 @@
 import { correctTimestampFormat } from "@/lib/trace_utils";
+import { getVendorFromSpan } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import React, { useState } from "react";
 import { VendorLogo } from "../shared/vendor-metadata";
@@ -74,6 +75,8 @@ const SpanItem: React.FC<SpanItemProps> = ({
   )
     color = "bg-indigo-500";
 
+  const vendor = getVendorFromSpan(span as any);
+
   return (
     <div className="flex flex-col gap-3 w-full mt-2">
       <div className="flex items-center">
@@ -94,7 +97,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
             (span.children.length === 0 && (
               <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
             ))}
-          <VendorLogo span={span} />
+          <VendorLogo vendor={vendor} />
           <span className="text-xs">{span.name}</span>
         </div>
         <div
