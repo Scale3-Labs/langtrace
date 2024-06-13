@@ -54,7 +54,7 @@ export const TraceRow = ({
           langgraph = true;
         }
       }
-      userId = attributes["user.id"];
+      userId = attributes["user_id"];
       if (attributes["llm.prompts"] && attributes["llm.responses"]) {
         prompts.push(attributes["llm.prompts"]);
         responses.push(attributes["llm.responses"]);

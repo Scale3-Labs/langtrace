@@ -9,19 +9,29 @@ import SmallChartLoading from "./small-chart-skeleton";
 export function TraceSpanChart({
   projectId,
   lastNHours = 168,
+  userId,
+  model,
 }: {
   projectId: string;
   lastNHours?: number;
+  userId?: string;
+  model?: string;
 }) {
   const {
     data: traceUsage,
     isLoading: traceUsageLoading,
     error: traceUsageError,
   } = useQuery({
-    queryKey: ["fetch-metrics-usage-trace", projectId, lastNHours],
+    queryKey: [
+      "fetch-metrics-usage-trace",
+      projectId,
+      lastNHours,
+      userId,
+      model,
+    ],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/trace?projectId=${projectId}&lastNHours=${lastNHours}`
+        `/api/metrics/usage/trace?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}&model=${model}`
       );
       if (!response.ok) {
         const error = await response.json();
@@ -42,10 +52,10 @@ export function TraceSpanChart({
     isLoading: spanUsageLoading,
     error: spanUsageError,
   } = useQuery({
-    queryKey: ["fetch-metrics-usage-span", projectId, lastNHours],
+    queryKey: ["fetch-metrics-usage-span", projectId, lastNHours, userId],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/span?projectId=${projectId}`
+        `/api/metrics/usage/span?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}`
       );
       if (!response.ok) {
         const error = await response.json();
