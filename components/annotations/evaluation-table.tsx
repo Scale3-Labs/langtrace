@@ -227,17 +227,14 @@ export default function EvaluationTable({
 export function EvaluationTableSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-      <div className="grid grid-cols-15 items-center gap-3 py-3 px-4 bg-muted rounded-t-md">
-        <p className="text-xs font-medium col-span-2 text-end">
+      <div className="grid grid-cols-10 items-center gap-2 p-1 bg-muted rounded-t-md">
+        <p className="p-2 rounded-md text-xs font-medium text-left">
           Timestamp (UTC)
         </p>
-        <p className="text-xs font-medium">Model</p>
+        <p className="p-2 rounded-md text-xs font-medium text-left">Model</p>
         <p className="text-xs font-medium col-span-2">Input</p>
         <p className="text-xs font-medium col-span-2">Output</p>
-        <p className="text-xs font-medium">Cost</p>
         <p className="text-xs font-medium">PII Detected</p>
-        <p className="text-xs font-medium">Duration</p>
-        <p className="text-xs font-medium">Evaluate</p>
         <p className="text-xs font-medium">User Score</p>
         <p className="text-xs font-medium">User Id</p>
         <p className="text-xs font-medium">Added to Dataset</p>

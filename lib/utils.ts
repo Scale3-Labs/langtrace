@@ -519,3 +519,59 @@ export function getFormattedTime(lastNHours: number): string {
   );
   return nHoursAgo;
 }
+
+export function getVendorFromSpan(span: Span): string {
+  const attributes = span.attributes ? JSON.parse(span.attributes) : {};
+  let serviceName = "";
+  if (attributes["langtrace.service.name"]) {
+    serviceName = attributes["langtrace.service.name"].toLowerCase();
+  }
+  let vendor = "";
+  if (span.name.includes("groq") || serviceName.includes("groq")) {
+    vendor = "groq";
+  } else if (
+    span.name.includes("perplexity") ||
+    serviceName.includes("perplexity")
+  ) {
+    vendor = "perplexity";
+  } else if (span.name.includes("openai") || serviceName.includes("openai")) {
+    vendor = "openai";
+  } else if (
+    span.name.includes("anthropic") ||
+    serviceName.includes("anthropic")
+  ) {
+    vendor = "anthropic";
+  } else if (
+    span.name.includes("pinecone") ||
+    serviceName.includes("pinecone")
+  ) {
+    vendor = "pinecone";
+  } else if (
+    span.name.includes("chromadb") ||
+    serviceName.includes("chromadb")
+  ) {
+    vendor = "chromadb";
+  } else if (
+    span.name.includes("langchain") ||
+    serviceName.includes("langchain")
+  ) {
+    vendor = "langchain";
+  } else if (
+    span.name.includes("llamaindex") ||
+    serviceName.includes("llamaindex")
+  ) {
+    vendor = "llamaindex";
+  } else if (span.name.includes("cohere") || serviceName.includes("cohere")) {
+    vendor = "cohere";
+  } else if (span.name.includes("qdrant") || serviceName.includes("qdrant")) {
+    vendor = "qdrant";
+  } else if (
+    span.name.includes("weaviate") ||
+    serviceName.includes("weaviate")
+  ) {
+    vendor = "weaviate";
+  } else if (span.name.includes("pg") || serviceName.includes("pg")) {
+    vendor = "pg";
+  }
+  return vendor;
+}

@@ -218,7 +218,7 @@ export default function EvaluationRow({
             onInteractOutside={(e) => {
               e.preventDefault();
             }}
-            className={cn("w-[1500px] overflow-y-scroll")}
+            className={cn("w-2/3 overflow-y-scroll")}
             onClick={(e) => e.stopPropagation()}
           >
             <SheetHeader>

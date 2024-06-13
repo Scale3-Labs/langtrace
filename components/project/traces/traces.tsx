@@ -175,14 +175,15 @@ export default function Traces({ email }: { email: string }) {
               </label>
             </div>
           ))}
-          <div>
+          <div className="flex items-center gap-1">
             <Button
-              className="h-5 w-3 dark:bg-white bg-muted border border-black hover:bg-secondary"
+              variant={"outline"}
+              size={"icon"}
               onClick={() => setIsFilterDialogOpen(true)}
             >
-              <FilterListIcon className="cursor-pointer h-4 dark:bg-white text-black" />
+              <FilterListIcon className="cursor-pointer" />
             </Button>
-            <label className="text-xs font-semibold px-2">Filters</label>
+            <p className="text-xs font-semibold">Advanced Filters</p>
           </div>
         </div>
         <div className="flex gap-2 items-center">
