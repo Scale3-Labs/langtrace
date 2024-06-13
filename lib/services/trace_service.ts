@@ -790,7 +790,6 @@ export class TraceService implements ITraceService {
         sql.like("attributes", "%total_tokens%"),
         sql.gte("start_time", nHoursAgo),
       ];
-
       if (userId) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'user_id')", userId)
