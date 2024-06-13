@@ -107,7 +107,7 @@ export default function Dataset() {
             <Badge variant={"outline"} className="text-sm">
               Dataset ID: {dataset_id}
             </Badge>
-            <Link href={EVALUATIONS_DOCS_URL}>
+            <Link href={EVALUATIONS_DOCS_URL} target="_blank">
               <Button variant="outline">
                 Run Evaluation
                 <FlaskConical className="ml-1 h-4 w-4" />
