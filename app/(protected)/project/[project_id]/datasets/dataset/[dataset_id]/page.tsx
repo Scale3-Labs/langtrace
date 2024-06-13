@@ -17,6 +17,7 @@ import { useQuery } from "react-query";
 import { toast } from "sonner";
 
 export default function Dataset() {
+  const projectId = useParams()?.project_id as string;
   const dataset_id = useParams()?.dataset_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -92,7 +93,11 @@ export default function Dataset() {
             Back
           </Button>
           <CreateData datasetId={dataset_id} />
-          <DownloadDataset datasetId={dataset_id} disabled={fetchDataset.isLoading || currentData?.length === 0} />
+          <DownloadDataset
+            projectId={projectId}
+            datasetId={dataset_id}
+            disabled={fetchDataset.isLoading || currentData?.length === 0}
+          />
         </div>
         <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
           <div className="grid grid-cols-5 items-center justify-stretch gap-3 py-3 px-4 bg-muted">

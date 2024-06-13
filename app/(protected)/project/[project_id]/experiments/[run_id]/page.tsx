@@ -16,25 +16,60 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, MoveDiagonal, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import data from "../experiment_result";
+import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 export default function Experiments() {
   const router = useRouter();
   const runId = useParams()?.run_id as string;
-  const experiment = data.find((exp) => exp.eval.run_id === runId);
-  const [expand, setExpand] = useState(
-    experiment?.samples && experiment?.samples?.length > 0
-      ? experiment?.samples.map(() => false)
-      : []
-  );
+  const projectId = useParams()?.project_id as string;
+
+  const [expand, setExpand] = useState<boolean[]>();
+  const [experiment, setExperiment] = useState<any>({});
+
+  const { isLoading: experimentLoading, error: experimentError } = useQuery({
+    queryKey: ["fetch-experiments-query", projectId, runId],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/run?projectId=${projectId}&runId=${runId}`
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch the experiment");
+      }
+      const result = await response.json();
+      if (!result.run || !result.run.log) {
+        throw new Error("No experiment found");
+      }
+      const exp = JSON.parse(result.run.log);
+      setExperiment(exp);
+      setExpand(
+        exp?.samples && exp?.samples?.length > 0
+          ? exp?.samples.map(() => false)
+          : []
+      );
+      return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch the experiment", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
+
+  if (experimentLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <div className="flex gap-2 items-center">
-          <h1 className="text-2xl font-semibold">Run ID: {runId}</h1>
+      <div className="px-12 py-12 flex justify-between bg-muted">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-lg font-semibold">Run ID</h1>
+          <p className="text-md">{runId}</p>
           <Badge
             className={cn(
-              "capitalize",
+              "capitalize w-fit",
               experiment.status === "success"
                 ? "text-green-600 bg-green-200 hover:bg-green-200"
                 : "text-destructive bg-red-200 hover:bg-red-200"
@@ -45,9 +80,9 @@ export default function Experiments() {
         </div>
         <Button
           variant={
-            data?.length > 0 && experiment && experiment?.samples?.length > 0
-              ? "default"
-              : "outline"
+            experiment && experiment?.samples?.length > 0
+              ? "outline"
+              : "default"
           }
         >
           New Experiment
@@ -65,14 +100,17 @@ export default function Experiments() {
             disabled={!experiment?.samples || experiment?.samples?.length === 0}
             onClick={() => {
               setExpand(
-                expand.map(() => {
-                  return !expand[0];
-                })
+                expand &&
+                  expand.map(() => {
+                    return !expand[0];
+                  })
               );
             }}
           >
-            {expand.some((v: any) => v === false) && <MoveDiagonal size={20} />}
-            {!expand.some((v: any) => v === false) && <X size={20} />}
+            {expand && expand.some((v: any) => v === false) && (
+              <MoveDiagonal size={20} />
+            )}
+            {expand && !expand.some((v: any) => v === false) && <X size={20} />}
           </Button>
         </div>
         {experiment?.error && (
@@ -91,15 +129,14 @@ export default function Experiments() {
             </div>
           </div>
         )}
-        {!experiment ||
-          (experiment?.samples?.length === 0 && (
-            <div className="flex flex-col items-center gap-2 mt-6">
-              <p className="text-center text-md">
-                No samples found for this experiment.
-              </p>
-              <Button className="w-fit">New Experiment</Button>
-            </div>
-          ))}
+        {(!experiment?.samples || experiment?.samples?.length === 0) && (
+          <div className="flex flex-col items-center gap-2 mt-6">
+            <p className="text-center text-md">
+              No samples found for this experiment.
+            </p>
+            <Button className="w-fit">New Experiment</Button>
+          </div>
+        )}
         {experiment?.samples && experiment?.samples?.length > 0 && (
           <div className="overflow-y-scroll">
             <table className="table-auto overflow-x-scroll w-screen border-separate border border-muted rounded-md">
@@ -121,12 +158,13 @@ export default function Experiments() {
                     plan={experiment.plan}
                     sample={sample}
                     model={experiment.eval.model}
-                    expand={expand[i]}
+                    expand={expand ? expand[i] : false}
                     setExpand={(value: boolean, index: number) => {
                       setExpand(
-                        expand.map((_: any, j: number) => {
-                          return j === index ? value : expand[j];
-                        })
+                        expand &&
+                          expand.map((_: any, j: number) => {
+                            return j === index ? value : expand[j];
+                          })
                       );
                     }}
                   />

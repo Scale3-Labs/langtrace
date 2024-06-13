@@ -2,39 +2,63 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { ChevronLeft } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import data from "../experiment_result";
+import { useQuery } from "react-query";
+import { toast } from "sonner";
 
 export default function Experiments() {
   const router = useRouter();
   // get run id from query params
   const searchParams = useSearchParams();
+  const projectId = useParams()?.project_id as string;
   const runIds = searchParams.getAll("run_id") as string[];
-  const experiments = data.filter((exp) => runIds.includes(exp.eval.run_id));
-  const isComparable = verifyIfSampleInputsMatch(runIds, data);
-  if (!isComparable) {
-    return (
-      <div className="flex flex-col items-center gap-2 mt-24">
-        <p className="text-center text-md">
-          The selected experiments are not comparable. Please select experiments
-          ran against the same dataset.
-        </p>
-        <Button className="w-fit">New Experiment</Button>
-      </div>
-    );
+  const [isComparable, setIsComparable] = useState<boolean>(false);
+
+  const {
+    data: experiments,
+    isLoading: experimentsLoading,
+    error: experimentsError,
+  } = useQuery({
+    queryKey: ["fetch-experiments-query", projectId, ...runIds],
+    queryFn: async () => {
+      const fetchPromises = runIds.map(async (runId) => {
+        const response = await fetch(
+          `/api/run?projectId=${projectId}&runId=${runId}`
+        );
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error?.message || "Failed to fetch the experiment");
+        }
+        const result = await response.json();
+        if (!result.run || !result.run.log) {
+          throw new Error("No experiment found");
+        }
+        return JSON.parse(result.run.log);
+      });
+
+      const exps = await Promise.all(fetchPromises);
+      setIsComparable(verifyIfSampleInputsMatch(exps));
+      return exps;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch one or more experiments", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
+
+  if (experimentsLoading) {
+    return <div>Loading...</div>;
   }
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        {/* <h1 className="text-2xl font-semibold">Run ID: {runId}</h1> */}
-        <Button variant={data.length > 0 ? "default" : "outline"}>
-          New Experiment
-        </Button>
+      <div className="px-12 py-12 flex flex-col gap-2 bg-muted">
+        <h1 className="text-md font-semibold">Comparing Runs</h1>
+        <p className="text-sm w-1/2">{runIds.join(", ")}</p>
       </div>
       <div className="flex flex-col gap-12 w-full px-12">
         <div className="flex gap-2">
@@ -52,32 +76,49 @@ export default function Experiments() {
               <Button className="w-fit">New Experiment</Button>
             </div>
           ))}
-        {experiments[0]?.samples && experiments[0]?.samples?.length > 0 && (
-          <div className="overflow-y-scroll">
-            <table className="table-auto overflow-x-scroll w-screen border-separate border border-muted rounded-md">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="w-12 rounded-md p-2">
-                    <Checkbox />
-                  </th>
-                  <th className="p-2 rounded-md text-sm font-medium">Input</th>
-                  <th className="p-2 rounded-md text-sm font-medium">Target</th>
-                  {experiments.map((experiment, i) => (
-                    <th
-                      key={i}
-                      className="p-2 rounded-md text-sm font-medium"
-                    >{`Output - (${experiment.eval.model})`}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {experiments[0].samples.map((_: any, i: number) => (
-                  <SampleRow key={i} index={i} experiments={experiments} />
-                ))}
-              </tbody>
-            </table>
+        {!isComparable && (
+          <div className="flex flex-col items-center gap-2 mt-24">
+            <p className="text-center text-md">
+              The selected experiments are not comparable. Please select
+              experiments ran against the same dataset.
+            </p>
+            <Button onClick={() => router.back()}>
+              <ChevronLeft className="text-muted-foreground" size={20} />
+              Back
+            </Button>
           </div>
         )}
+        {isComparable &&
+          experiments &&
+          experiments[0]?.samples &&
+          experiments[0]?.samples?.length > 0 && (
+            <div className="overflow-y-scroll">
+              <table className="table-auto overflow-x-scroll w-screen border-separate border border-muted rounded-md">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="p-2 rounded-md text-sm font-medium">
+                      Input
+                    </th>
+                    <th className="p-2 rounded-md text-sm font-medium">
+                      Target
+                    </th>
+                    {experiments &&
+                      experiments.map((experiment, i) => (
+                        <th
+                          key={i}
+                          className="p-2 rounded-md text-sm font-medium"
+                        >{`Output - (${experiment.eval.model})`}</th>
+                      ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {experiments[0].samples.map((_: any, i: number) => (
+                    <SampleRow key={i} index={i} experiments={experiments} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
       </div>
     </div>
   );
@@ -96,9 +137,6 @@ function SampleRow({
       className="hover:cursor-pointer hover:bg-muted group"
       onClick={() => setOpen(!open)}
     >
-      <td className="px-2 py-1 text-center">
-        <Checkbox onClick={(e) => e.stopPropagation()} />
-      </td>
       <td className={cn("text-sm px-2 py-1 max-w-80 relative")}>
         {typeof experiments[0]?.samples[index]?.input === "string"
           ? experiments[0]?.samples[index]?.input
@@ -144,11 +182,14 @@ function SampleRow({
   );
 }
 
-function verifyIfSampleInputsMatch(runIds: string[], data: any): boolean {
-  const experiments = data.filter((exp: any) =>
-    runIds.includes(exp.eval.run_id)
-  );
+function verifyIfSampleInputsMatch(experiments: any[]): boolean {
   if (experiments.length === 0) return false;
+
+  // also check if the length of samples is the same for all experiments
+  for (let j = 1; j < experiments?.length; j++) {
+    if (experiments[j]?.samples?.length !== experiments[0]?.samples?.length)
+      return false;
+  }
 
   // iterate through each experiment and each sample and check if the input of sample at index i matches with the input of sample at index i for all experiments
   for (let i = 0; i < experiments[0]?.samples?.length; i++) {
