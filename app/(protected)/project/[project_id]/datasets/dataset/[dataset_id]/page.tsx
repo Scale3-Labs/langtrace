@@ -5,11 +5,14 @@ import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleto
 import { EditData } from "@/components/project/dataset/edit-data";
 import { DownloadDataset } from "@/components/shared/download-dataset";
 import { Spinner } from "@/components/shared/spinner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { PAGE_SIZE } from "@/lib/constants";
+import { EVALUATIONS_DOCS_URL, PAGE_SIZE } from "@/lib/constants";
 import { Data } from "@prisma/client";
-import { ChevronLeft } from "lucide-react";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import { ChevronLeft, FlaskConical } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -17,6 +20,7 @@ import { useQuery } from "react-query";
 import { toast } from "sonner";
 
 export default function Dataset() {
+  const projectId = useParams()?.project_id as string;
   const dataset_id = useParams()?.dataset_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -86,13 +90,31 @@ export default function Dataset() {
   } else {
     return (
       <div className="w-full py-6 px-6 flex flex-col gap-4">
-        <div className="flex gap-4 items-center w-fit">
-          <Button variant="secondary" onClick={() => window.history.back()}>
-            <ChevronLeft className="mr-1" />
-            Back
-          </Button>
-          <CreateData datasetId={dataset_id} />
-          <DownloadDataset datasetId={dataset_id} disabled={fetchDataset.isLoading || currentData?.length === 0} />
+        <div className="flex justify-between items-center">
+          <div className="flex gap-4 items-center w-fit">
+            <Button variant="secondary" onClick={() => window.history.back()}>
+              <ChevronLeft className="mr-1" />
+              Back
+            </Button>
+            <CreateData datasetId={dataset_id} />
+            <DownloadDataset
+              projectId={projectId}
+              datasetId={dataset_id}
+              disabled={fetchDataset.isLoading || currentData?.length === 0}
+            />
+          </div>
+          <div className="flex gap-4 items-center w-fit">
+            <Badge variant={"outline"} className="text-sm">
+              Dataset ID: {dataset_id}
+            </Badge>
+            <Link href={EVALUATIONS_DOCS_URL} target="_blank">
+              <Button variant="outline">
+                Run Evaluation
+                <FlaskConical className="ml-1 h-4 w-4" />
+                <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
         <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
           <div className="grid grid-cols-5 items-center justify-stretch gap-3 py-3 px-4 bg-muted">

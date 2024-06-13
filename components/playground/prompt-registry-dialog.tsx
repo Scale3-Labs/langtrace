@@ -172,7 +172,7 @@ export function PromptRegistryCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-[250px] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder="Search prompt sets..." />
           <CommandEmpty>No promptset found.</CommandEmpty>
           <CommandGroup>
             {promptsets?.promptsets?.map((promptset: Promptset) => (

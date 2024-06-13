@@ -99,6 +99,7 @@ export const LLMView = ({
           const url = response?.content?.url;
           const b64Json = response?.content?.b64_json;
           const revisedPrompt = response?.content?.revised_prompt;
+          const isPicture = url || b64Json;
 
           return (
             <div
@@ -108,7 +109,7 @@ export const LLMView = ({
               <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
                 <div className="flex justify-between">
                   {role}
-                  {importTrace ? (
+                  {importTrace && !isPicture ? (
                     <Button
                       size={"sm"}
                       className="text-xs font-medium px-2"

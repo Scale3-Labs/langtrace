@@ -95,10 +95,18 @@ model Evaluation {
 }
 
 model Run {
-  id          String  @id @default(cuid())
-  name        String
+  id          String   @id @default(cuid())
+  runId       String
+  taskId      String
   description String?
-  Data        Data[]
+  wfVersion   String?
+  log         Json?
+  datasetId   String?
+  projectId   String
+  Dataset     Dataset? @relation(fields: [datasetId], references: [id])
+  Project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Prompt {
@@ -119,22 +127,20 @@ model Prompt {
 }
 
 model Data {
-  id             String       @id @default(cuid())
-  input          String
-  output         String
-  contexts       String[]
-  expectedOutput String?
-  note           String?
-  spanId         String?
-  Evaluation     Evaluation[]
-  runId          String?
-  Run            Run?         @relation(fields: [runId], references: [id], onDelete: Cascade)
-  datasetId      String?
-  Dataset        Dataset?     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  projectId      String?
-  Project        Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id              String       @id @default(cuid())
+  input           String
+  output          String
+  contexts        String[]
+  annotatedOutput String?
+  note            String?
+  spanId          String?
+  Evaluation      Evaluation[]
+  datasetId       String?
+  Dataset         Dataset?     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  projectId       String?
+  Project         Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 }
 
 model Dataset {
@@ -146,6 +152,7 @@ model Dataset {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   Data        Data[]
+  Run         Run[]
 }
 
 model Promptset {
@@ -184,6 +191,7 @@ model Project {
   Promptset   Promptset[]
   Test        Test[]
   Data        Data[]
+  Run         Run[]
 }
 
 model TeamInvite {

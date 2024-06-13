@@ -1,8 +1,10 @@
 "use client";
 
 import { TraceRow } from "@/components/project/traces/trace-row";
+import { Button } from "@/components/ui/button";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -14,6 +16,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 import { Separator } from "../../ui/separator";
 import { Switch } from "../../ui/switch";
+import FilterDialog from "./trace-filter";
 import TraceRowSkeleton from "./trace-row-skeleton";
 
 export default function Traces({ email }: { email: string }) {
@@ -25,6 +28,9 @@ export default function Traces({ email }: { email: string }) {
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [clearFilters, setClearFilters] = useState(false);
+  const [clearFiltersKey, setClearFiltersKey] = useState(0);
 
   useEffect(() => {
     setShowLoader(true);
@@ -47,13 +53,13 @@ export default function Traces({ email }: { email: string }) {
   const fetchTraces = useQuery({
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
-      // convert filterserviceType to a string
       const apiEndpoint = "/api/traces";
       const body = {
         page,
         pageSize: PAGE_SIZE,
         projectId: project_id,
         filters: filters,
+        filterOperation: "AND",
       };
 
       const response = await fetch(apiEndpoint, {
@@ -127,6 +133,15 @@ export default function Traces({ email }: { email: string }) {
     },
   ];
 
+  const handleFilterDialogClose = () => {
+    setIsFilterDialogOpen(false);
+  };
+
+  const handleApplyFilters = (newFilters: any) => {
+    setFilters(newFilters.filters);
+    setIsFilterDialogOpen(false);
+  };
+
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
       <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
@@ -160,6 +175,16 @@ export default function Traces({ email }: { email: string }) {
               </label>
             </div>
           ))}
+          <div className="flex items-center gap-1">
+            <Button
+              variant={"outline"}
+              size={"icon"}
+              onClick={() => setIsFilterDialogOpen(true)}
+            >
+              <FilterListIcon className="cursor-pointer" />
+            </Button>
+            <p className="text-xs font-semibold">Advanced Filters</p>
+          </div>
         </div>
         <div className="flex gap-2 items-center">
           <Label>Local time</Label>
@@ -219,6 +244,11 @@ export default function Traces({ email }: { email: string }) {
             )}
         </div>
       )}
+      <FilterDialog
+        open={isFilterDialogOpen}
+        onClose={handleFilterDialogClose}
+        onApplyFilters={handleApplyFilters}
+      />
     </div>
   );
 }
