@@ -16,23 +16,32 @@ export interface PaginationResult<T> {
 export interface ITraceService {
   GetTotalTracePerHourPerProject: (
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: string,
+    model?: string
   ) => Promise<number>;
   GetTotalSpansPerHourPerProject: (
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: string
   ) => Promise<number>;
   GetTokensUsedPerHourPerProject: (
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: string,
+    model?: string
   ) => Promise<number>;
   GetTokensCostPerHourPerProject: (
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: string,
+    model?: string
   ) => Promise<number>;
   GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
-    lastNHours?: number
+    lastNHours?: number,
+    userId?: string,
+    model?: string
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (project_id: string) => Promise<number>;
@@ -79,6 +88,8 @@ export interface ITraceService {
     project_ids: string[]
   ) => Promise<number>;
   AddSpans: (spans: Span[], project_id: string) => Promise<void>;
+  GetUsersInProject: (project_id: string) => Promise<string[]>;
+  GetModelsInProject: (project_id: string) => Promise<string[]>;
 }
 
 export class TraceService implements ITraceService {
@@ -87,6 +98,48 @@ export class TraceService implements ITraceService {
   constructor() {
     this.client = new ClickhouseBaseClient();
     this.queryBuilderService = new QueryBuilderService();
+  }
+
+  async GetUsersInProject(project_id: string): Promise<string[]> {
+    try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+      const query = sql
+        .select([
+          `DISTINCT JSONExtractString(attributes, 'user_id') AS user_id`,
+        ])
+        .from(project_id);
+      const result: any[] = await this.client.find(query);
+      return result
+        .map((row) => row.user_id)
+        .filter((user_id) => user_id !== "");
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the users ${error}`
+      );
+    }
+  }
+
+  async GetModelsInProject(project_id: string): Promise<string[]> {
+    try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return [];
+      }
+      const query = sql
+        .select([
+          `DISTINCT JSONExtractString(attributes, 'llm.model') AS model`,
+        ])
+        .from(project_id);
+      const result: any[] = await this.client.find(query);
+      return result.map((row) => row.model).filter((model) => model !== "");
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the models ${error}`
+      );
+    }
   }
 
   async AddSpans(spans: Span[], project_id: string): Promise<void> {
@@ -186,7 +239,8 @@ export class TraceService implements ITraceService {
 
   async GetTotalSpansPerHourPerProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    userId?: string
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -195,13 +249,21 @@ export class TraceService implements ITraceService {
         return [];
       }
 
+      const conditions = [sql.gte("start_time", nHoursAgo)];
+
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
           `count(*) AS spanCount`,
         ])
         .from(project_id)
-        .where(sql.gte("start_time", nHoursAgo))
+        .where(...conditions)
         .groupBy(`toDate(parseDateTimeBestEffort(start_time))`)
         .orderBy(`toDate(parseDateTimeBestEffort(start_time))`);
       const result = await this.client.find<any>(query);
@@ -235,7 +297,9 @@ export class TraceService implements ITraceService {
 
   async GetTotalTracePerHourPerProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    userId?: string,
+    model?: string
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -244,13 +308,27 @@ export class TraceService implements ITraceService {
         return [];
       }
 
+      const conditions = [sql.gte("start_time", nHoursAgo)];
+
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (model) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+        );
+      }
+
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
           `COUNT(DISTINCT trace_id) AS traceCount`,
         ])
         .from(project_id)
-        .where(sql.gte("start_time", nHoursAgo))
+        .where(...conditions)
         .groupBy(`toDate(parseDateTimeBestEffort(start_time))`)
         .orderBy(`toDate(parseDateTimeBestEffort(start_time))`);
       const result = await this.client.find<any>(query);
@@ -510,7 +588,9 @@ export class TraceService implements ITraceService {
 
   async GetAverageTraceLatenciesPerHourPerProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    userId?: string,
+    model?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -524,6 +604,19 @@ export class TraceService implements ITraceService {
 
       const nHoursAgo = getFormattedTime(lastNHours);
 
+      const conditions = [sql.gte("start_time", nHoursAgo)];
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (model) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+        );
+      }
+
       // Directly embedding the ClickHouse-specific functions within string literals
       let innerSelect = sql
         .select(
@@ -533,7 +626,7 @@ export class TraceService implements ITraceService {
           "(toUnixTimestamp(max(parseDateTime64BestEffort(end_time))) - toUnixTimestamp(min(parseDateTime64BestEffort(start_time)))) * 1000 AS duration"
         )
         .from(project_id)
-        .where(sql.gte("start_time", nHoursAgo))
+        .where(...conditions)
         .groupBy("trace_id");
 
       // Assembling the outer query
@@ -596,7 +689,9 @@ export class TraceService implements ITraceService {
 
   async GetTokensUsedPerHourPerProject(
     project_id: string,
-    lastNHours = 168
+    lastNHours = 168,
+    userId?: string,
+    model?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -605,6 +700,21 @@ export class TraceService implements ITraceService {
       }
 
       const nHoursAgo = getFormattedTime(lastNHours);
+      const conditions = [
+        sql.like("attributes", "%total_tokens%"),
+        sql.gte("start_time", nHoursAgo),
+      ];
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (model) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+        );
+      }
 
       const query = sql
         .select([
@@ -612,10 +722,7 @@ export class TraceService implements ITraceService {
           `groupArray(attributes) AS attributes_list`,
         ])
         .from(project_id)
-        .where(
-          sql.like("attributes", "%total_tokens%"),
-          sql.gte("start_time", nHoursAgo)
-        )
+        .where(...conditions)
         .groupBy("date")
         .orderBy("date");
       const result = await this.client.find<any>(query);
@@ -667,7 +774,9 @@ export class TraceService implements ITraceService {
 
   async GetTokensCostPerHourPerProject(
     project_id: string,
-    lastNHours = 168 // Default to 168 hours (7 days)
+    lastNHours = 168,
+    userId?: string,
+    model?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -676,32 +785,46 @@ export class TraceService implements ITraceService {
       }
 
       const nHoursAgo = getFormattedTime(lastNHours);
+
+      const conditions = [
+        sql.like("attributes", "%total_tokens%"),
+        sql.gte("start_time", nHoursAgo),
+      ];
+      if (userId) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (model) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+        );
+      }
+
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
           `JSONExtractString(attributes, 'llm.model') AS model`,
           `JSONExtractString(attributes, 'langtrace.service.name') AS vendor`,
           `SUM(
-          JSONExtractInt(
-            JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
-          )
-        ) AS total_tokens`,
+            JSONExtractInt(
+              JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
+            )
+          ) AS total_tokens`,
           `SUM(
-          JSONExtractInt(
-            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
-          )
-        ) AS input_tokens`,
+            JSONExtractInt(
+              JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+            )
+          ) AS input_tokens`,
           `SUM(
-          JSONExtractInt(
-            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
-          )
-        ) AS output_tokens`,
+            JSONExtractInt(
+              JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+            )
+          ) AS output_tokens`,
         ])
         .from(project_id)
-        .where(
-          sql.like("attributes", "%total_tokens%"),
-          sql.gte("start_time", nHoursAgo)
-        )
+        .where(...conditions)
         .groupBy("date", "model", "vendor")
         .orderBy("date");
 

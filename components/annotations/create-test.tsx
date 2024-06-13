@@ -106,6 +106,10 @@ export function CreateTest({
                 if (parseInt(data.min, 10) === parseInt(data.max, 10)) {
                   throw new Error("Min score cannot be equal to max score.");
                 }
+                // check for a range of at least 2
+                if (parseInt(data.max, 10) - parseInt(data.min, 10) < 2) {
+                  throw new Error("Range must be at least 2.");
+                }
                 setBusy(true);
                 await fetch("/api/test", {
                   method: "POST",

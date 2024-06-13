@@ -171,7 +171,6 @@ export default function CreatePromptDialog({
                       setOpenDialog && setOpenDialog(false);
                     } catch (error) {
                       setBusy(false);
-                      console.log("err", error);
                       toast.error("Failed to create prompt");
                     }
                   })}

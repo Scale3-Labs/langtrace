@@ -5,6 +5,8 @@ import {
 } from "@langtrase/trace-attributes";
 import { Test } from "@prisma/client";
 import { TiktokenEncoding } from "js-tiktoken";
+export const EVALUATIONS_DOCS_URL =
+  "https://docs.langtrace.ai/features/evaluations";
 
 export const SCHEDULE_CALL_LINK =
   "https://calendar.app.google/Go5gXNPcqZjAY4i47";

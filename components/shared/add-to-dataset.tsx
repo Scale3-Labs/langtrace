@@ -161,7 +161,7 @@ export default function DatasetCombobox({
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <Command>
-            <CommandInput placeholder="Search framework..." />
+            <CommandInput placeholder="Search dataset..." />
             <CommandEmpty>No dataset found.</CommandEmpty>
             <CommandGroup>
               {fetchDatasets.data?.datasets?.map((dataset: Dataset) => (

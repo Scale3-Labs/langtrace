@@ -113,19 +113,13 @@ export function serviceTypeColor(serviceType: string) {
 }
 
 export function VendorLogo({
-  span,
+  vendor,
   variant = "default",
 }: {
-  span: Span;
+  vendor: string;
   variant?: string;
 }) {
-  const attributes = span.attributes ? JSON.parse(span.attributes) : {};
-  let serviceName = "";
-  if (attributes["langtrace.service.name"]) {
-    serviceName = attributes["langtrace.service.name"].toLowerCase();
-  }
-
-  if (span.name.includes("groq") || serviceName.includes("groq")) {
+  if (vendor.includes("groq")) {
     const color = vendorColor("groq");
     return (
       <Image
@@ -141,7 +135,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("perplexity") || serviceName.includes("perplexity")) {
+  if (vendor.includes("perplexity")) {
     const color = vendorColor("perplexity");
     return (
       <Image
@@ -157,7 +151,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("openai") || serviceName.includes("openai")) {
+  if (vendor.includes("openai")) {
     const color = vendorColor("openai");
     return (
       <Image
@@ -173,7 +167,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("anthropic") || serviceName.includes("anthropic")) {
+  if (vendor.includes("anthropic")) {
     const color = vendorColor("anthropic");
     return (
       <Image
@@ -189,7 +183,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("pinecone") || serviceName.includes("pinecone")) {
+  if (vendor.includes("pinecone")) {
     const color = vendorColor("pinecone");
     return (
       <Image
@@ -205,7 +199,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("chromadb") || serviceName.includes("chromadb")) {
+  if (vendor.includes("chromadb")) {
     const color = vendorColor("chromadb");
     return (
       <Image
@@ -221,7 +215,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("langchain") || serviceName.includes("langchain")) {
+  if (vendor.includes("langchain")) {
     const color = vendorColor("langchain");
     return (
       <Image
@@ -237,7 +231,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("llamaindex") || serviceName.includes("llamaindex")) {
+  if (vendor.includes("llamaindex")) {
     const color = vendorColor("llamaindex");
     return (
       <Image
@@ -253,7 +247,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("cohere") || serviceName.includes("cohere")) {
+  if (vendor.includes("cohere")) {
     const color = vendorColor("cohere");
     return (
       <Image
@@ -269,7 +263,7 @@ export function VendorLogo({
     );
   }
 
-  if (span.name.includes("qdrant") || serviceName.includes("qdrant")) {
+  if (vendor.includes("qdrant")) {
     const color = vendorColor("qdrant");
     return (
       <Image
