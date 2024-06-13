@@ -54,7 +54,12 @@ export default function Experiments() {
       // Merge the new data with the existing data
       if (currentData.length > 0) {
         const updatedData = [...currentData, ...newData];
-        setCurrentData(updatedData);
+        // Remove duplicates
+        const uniqueData = updatedData.filter(
+          (v: any, i: number, a: any) =>
+            a.findIndex((t: any) => t.id === v.id) === i
+        );
+        setCurrentData(uniqueData);
       } else {
         setCurrentData(newData);
       }
