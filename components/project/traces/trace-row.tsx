@@ -6,7 +6,7 @@ import {
   convertTracesToHierarchy,
   correctTimestampFormat,
 } from "@/lib/trace_utils";
-import { calculatePriceFromUsage, formatDateTime } from "@/lib/utils";
+import { calculatePriceFromUsage, cn, formatDateTime } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { JsonView, allExpanded, defaultStyles } from "react-json-view-lite";
@@ -104,11 +104,10 @@ export const TraceRow = ({
   return (
     <div className="flex flex-col gap-3">
       <div
-        className={
-          importTrace
-            ? "grid grid-cols-12 items-center gap-6 cursor-pointer"
-            : "grid grid-cols-11 items-center gap-6 cursor-pointer"
-        }
+        className={cn(
+          importTrace ? "grid-cols-12" : "grid-cols-11",
+          "grid items-center gap-6 cursor-pointer"
+        )}
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex flex-row items-center gap-2">
@@ -149,14 +148,22 @@ export const TraceRow = ({
           </p>
         </div>
         <p className="text-xs font-semibold">{model}</p>
-        <HoverCell
-          values={prompts?.length > 0 ? JSON.parse(prompts[0]) : []}
-          className="flex items-center max-w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
-        />
-        <HoverCell
-          values={responses?.length > 0 ? JSON.parse(responses[0]) : []}
-          className="flex items-center max-w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
-        />
+        {prompts?.length > 0 ? (
+          <HoverCell
+            values={JSON.parse(prompts[0])}
+            className="flex items-center max-w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          />
+        ) : (
+          <p className="text-xs font-semibold col-span-2"></p>
+        )}
+        {responses?.length > 0 ? (
+          <HoverCell
+            values={JSON.parse(responses[0])}
+            className="flex items-center max-w-fit text-xs h-10 truncate overflow-y-scroll font-semibold col-span-2"
+          />
+        ) : (
+          <p className="text-xs font-semibold col-span-2"></p>
+        )}
         <p className="text-xs font-semibold">{userId}</p>
         <p className="text-xs">
           {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
