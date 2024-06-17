@@ -206,6 +206,25 @@ export const TraceRow = ({
                 )}
               </Button>
             )}
+            <Button
+              disabled={prompts.length === 0 || responses.length === 0}
+              onClick={() => setSelectedTab("llm")}
+              variant={"ghost"}
+              className="flex flex-col justify-between pb-0"
+            >
+              <p
+                className={
+                  selectedTab === "llm"
+                    ? "text-xs text-primary font-medium"
+                    : "text-xs text-muted-foreground font-medium"
+                }
+              >
+                LLM Requests
+              </p>
+              {selectedTab === "llm" && (
+                <Separator className="bg-primary h-[2px]" />
+              )}
+            </Button>
             {!importTrace && (
               <Button
                 onClick={() => setSelectedTab("logs")}
@@ -219,7 +238,7 @@ export const TraceRow = ({
                       : "text-xs text-muted-foreground font-medium"
                   }
                 >
-                  Logs
+                  {`Logs  (${trace?.length ?? 0} total)`}
                 </p>
                 {selectedTab === "logs" && (
                   <Separator className="bg-primary h-[2px]" />
@@ -240,32 +259,13 @@ export const TraceRow = ({
                       : "text-xs text-muted-foreground font-medium"
                   }
                 >
-                  Events
+                  Events/Errors
                 </p>
                 {selectedTab === "events" && (
                   <Separator className="bg-primary h-[2px]" />
                 )}
               </Button>
             )}
-            <Button
-              disabled={prompts.length === 0 || responses.length === 0}
-              onClick={() => setSelectedTab("llm")}
-              variant={"ghost"}
-              className="flex flex-col justify-between pb-0"
-            >
-              <p
-                className={
-                  selectedTab === "llm"
-                    ? "text-xs text-primary font-medium"
-                    : "text-xs text-muted-foreground font-medium"
-                }
-              >
-                LLM Requests
-              </p>
-              {selectedTab === "llm" && (
-                <Separator className="bg-primary h-[2px]" />
-              )}
-            </Button>
             {langgraph && !importTrace && (
               <Button
                 onClick={() => setSelectedTab("langgraph")}
