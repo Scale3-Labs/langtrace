@@ -572,6 +572,8 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "weaviate";
   } else if (span.name.includes("pg") || serviceName.includes("pg")) {
     vendor = "pg";
+  } else if (span.name.includes("dspy") || serviceName.includes("dspy")) {
+    vendor = "dspy";
   }
   return vendor;
 }
