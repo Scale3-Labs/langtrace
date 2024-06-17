@@ -46,8 +46,16 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-grey-500";
   }
 
-  if (vendor.includes("qdrant")) {
-    return "bg-grey-500";
+  if (vendor.includes("dspy")) {
+    return "bg-red-500";
+  }
+
+  if (vendor.includes("weaviate")) {
+    return "bg-green-500";
+  }
+
+  if (vendor.includes("pg")) {
+    return "bg-blue-500";
   }
 
   return "bg-gray-500";
@@ -96,6 +104,18 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("groq")) {
     return "bg-slate-200";
+  }
+
+  if (vendor.includes("dspy")) {
+    return "bg-red-200";
+  }
+
+  if (vendor.includes("weaviate")) {
+    return "bg-green-200";
+  }
+
+  if (vendor.includes("pg")) {
+    return "bg-blue-200";
   }
 
   return "bg-gray-800";
@@ -269,6 +289,54 @@ export function VendorLogo({
       <Image
         alt="Qdrant Logo"
         src="/qdrant.png"
+        width={50}
+        height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("dspy")) {
+    const color = vendorColor("dspy");
+    return (
+      <Image
+        alt="DSPy Logo"
+        src="/dspy.png"
+        width={50}
+        height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("weaviate")) {
+    const color = vendorColor("weaviate");
+    return (
+      <Image
+        alt="Weaviate Logo"
+        src="/weaviate.png"
+        width={50}
+        height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("pg")) {
+    const color = vendorColor("pg");
+    return (
+      <Image
+        alt="Postgres Logo"
+        src="/pg.png"
         width={50}
         height={50}
         className={cn(
