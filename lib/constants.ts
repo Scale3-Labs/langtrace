@@ -84,6 +84,10 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     input: 0.0005,
     output: 0.0015,
   },
+  "gpt-3.5-turbo-0613": {
+    input: 0.0005,
+    output: 0.0015,
+  },
   "gpt-3.5-turbo-instruct": {
     input: 0.0015,
     output: 0.002,
