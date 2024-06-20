@@ -1,5 +1,6 @@
 "use client";
 import CreatePromptDialog from "@/components/shared/create-prompt-dialog";
+import HowTo from "@/components/shared/how-to";
 import { PromptInstructions } from "@/components/shared/setup-instructions";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -54,6 +55,7 @@ export default function Page() {
   if (!selectedPrompt)
     return (
       <div className="p-12 flex flex-col gap-2">
+        <HowTo link="https://docs.langtrace.ai/features/manage_prompts" />
         <Button
           className="w-fit"
           variant={"outline"}
@@ -82,6 +84,7 @@ export default function Page() {
   else
     return (
       <div className="px-12 py-12 flex flex-col gap-4">
+        <HowTo link="https://docs.langtrace.ai/features/manage_prompts" />
         <div className="flex gap-4 items-center">
           <Button
             className="w-fit"

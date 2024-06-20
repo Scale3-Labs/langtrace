@@ -124,7 +124,7 @@ export default function ImportTraceConversation({
           Import Traced Conversation
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-6xl h-[600px] overflow-y-hidden">
+      <DialogContent className="w-full max-w-6xl h-[600px] overflow-y-scroll">
         <div className="flex flex-col gap-2">
           <Label htmlFor="name" className="text-left text-lg mb-4">
             Select a conversation to import
