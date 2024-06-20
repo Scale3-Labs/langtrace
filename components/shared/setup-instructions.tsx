@@ -103,7 +103,6 @@ export function SetupInstructions({ project_id }: { project_id: string }) {
   );
 }
 
-
 export function PromptInstructions({ id }: { id: string }) {
   const [sdk, setSdk] = useState("python");
 
@@ -116,12 +115,11 @@ export function PromptInstructions({ id }: { id: string }) {
     <div className="flex flex-col gap-6 border rounded-md p-4">
       <div className="flex flex-row items-center gap-3">
         <Button
-          disabled={true}
           onClick={() => setSdk("python")}
           variant={sdk === "python" ? "default" : "ghost"}
           size={"sm"}
         >
-          Python (Coming Soon)
+          Python
         </Button>
         <Button
           onClick={() => setSdk("typescript")}
@@ -162,15 +160,15 @@ const prompt = Langtrace.getPromptFromRegistry('${id}')
             onClick={() => {
               copyToClipboard(
                 `
-from langtrace_python_sdk.utils import (get_prompt_from_registry)
+                from langtrace_python_sdk import get_prompt_from_registry
 
-prompt = get_prompt_from_registry('${id}')
+                prompt = get_prompt_from_registry('${id}')
 `
               );
             }}
           >
-            {`
-from langtrace_python_sdk.utils import (get_prompt_from_registry)
+            {`// Must precede any llm module imports
+from langtrace_python_sdk import get_prompt_from_registry
 
 prompt = get_prompt_from_registry('${id}')
 `}
