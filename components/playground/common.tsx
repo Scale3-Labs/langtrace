@@ -1,9 +1,8 @@
-"use client";
-
 import PromptRegistryDialog from "@/components/playground/prompt-registry-dialog";
 import LLMPicker from "@/components/shared/llm-picker";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { LLM_VENDORS, LLM_VENDOR_APIS } from "@/lib/constants";
 import {
   CohereAIRole,
   Conversation,
@@ -12,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { MinusCircleIcon, PlusIcon } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -84,7 +84,7 @@ export function ExpandingTextArea({
         ref={textAreaRef}
         defaultValue={value}
         onChange={handleChange}
-        style={{ overflowY: "auto", resize: "none", height: "auto" }}
+        style={{ overflowY: "auto", height: "auto" }}
       />
       <div className="absolute right-0 top-[-10px] py-2">
         <Button
@@ -223,13 +223,45 @@ export function Message({
 
 export function AddLLMChat({ onAdd }: { onAdd: (vendor: string) => void }) {
   const [vendor, setVendor] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [vendorKey, setVendorKey] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const keys = LLM_VENDORS.map((vendor) => {
+      const keyName = LLM_VENDOR_APIS.find(
+        (api) => api.label.toUpperCase() === vendor.value.toUpperCase()
+      );
+      if (!keyName) return null;
+      const key = window.localStorage.getItem(keyName.value.toUpperCase());
+      if (!key) return null;
+      return { value: keyName.value.toUpperCase(), label: vendor.label, key };
+    });
+    const venKey = keys.find((key) => key?.label.toLowerCase() === vendor);
+    setVendorKey(venKey?.key || "");
+  }, [busy, vendor]);
+
   return (
-    <div className="w-[450px] h-[600px] rounded-lg border border-dashed border-muted-foreground flex items-center justify-center gap-1">
-      <LLMPicker setVendor={setVendor} />
-      <Button size={"sm"} onClick={() => onAdd(vendor)}>
-        Add
-        <PlusIcon className="ml-2 h-4 w-4" />
-      </Button>
+    <div className="w-[450px] h-[600px] rounded-lg border border-dashed border-muted-foreground flex flex-col items-center justify-center gap-4">
+      <div className="flex items-center gap-2">
+        <LLMPicker setVendor={setVendor} />
+        <Button
+          size={"sm"}
+          onClick={() => onAdd(vendor)}
+          disabled={vendorKey === "" || vendor === "" || busy}
+        >
+          Add
+          <PlusIcon className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+      {vendorKey === "" && (
+        <span className="text-sm font-semibold w-72">
+          Please add your {vendor} API key in the{" "}
+          <Link href="/settings/keys" className="underline text-blue-400">
+            settings page.
+          </Link>
+        </span>
+      )}
     </div>
   );
 }

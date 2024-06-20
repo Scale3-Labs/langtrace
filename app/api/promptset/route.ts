@@ -1,6 +1,10 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
-import { authApiKey, fillPromptStringTemplate, parseQueryString } from "@/lib/utils";
+import {
+  authApiKey,
+  fillPromptStringTemplate,
+  parseQueryString,
+} from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
@@ -25,7 +29,10 @@ export async function GET(req: NextRequest) {
         include: {
           Prompt: {
             where: {
-              OR: version !== undefined ? [{ version: version }] : [{ live: true }],
+              OR:
+                version !== undefined
+                  ? [{ version: version }]
+                  : [{ live: true }],
             },
           },
         },
@@ -57,8 +64,14 @@ export async function GET(req: NextRequest) {
 
         livePromptVariables.forEach((key) => {
           const value =
-            variables !== null ? variables[key as keyof typeof variables] ?? "" : "";
-          if (!variablesSet.has(`${key},${value.length > 0 ? value : "undefined"}`)) {
+            variables !== null
+              ? variables[key as keyof typeof variables] ?? ""
+              : "";
+          if (
+            !variablesSet.has(
+              `${key},${value.length > 0 ? value : "undefined"}`
+            )
+          ) {
             errors.push(key);
           }
         });
@@ -66,17 +79,24 @@ export async function GET(req: NextRequest) {
           const moreThanOneError = errors.length > 1;
           return NextResponse.json(
             {
-              error: `${moreThanOneError ? "Variables" : "Variable"} ${errors.join(", ")} ${moreThanOneError ? "are" : "is"} missing`,
+              error: `${
+                moreThanOneError ? "Variables" : "Variable"
+              } ${errors.join(", ")} ${
+                moreThanOneError ? "are" : "is"
+              } missing`,
             },
             { status: 400 }
           );
         }
-        prompts[0].value = fillPromptStringTemplate(prompts[0].value, variables as Record<string, string>);
+        prompts[0].value = fillPromptStringTemplate(
+          prompts[0].value,
+          variables as Record<string, string>
+        );
       }
       return NextResponse.json({
         ...promptSet,
         Prompt: undefined,
-        prompts: prompts
+        prompts: prompts,
       });
     } else {
       const session = await getServerSession(authOptions);

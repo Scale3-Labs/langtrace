@@ -21,13 +21,9 @@ import { LogsView } from "./logs-view";
 export const TraceRow = ({
   trace,
   utcTime,
-  importTrace = false,
-  setSelectedPrompt,
 }: {
   trace: any;
   utcTime: boolean;
-  importTrace?: boolean;
-  setSelectedPrompt?: (prompt: string) => void;
 }) => {
   const traceHierarchy = convertTracesToHierarchy(trace);
   const totalTime = calculateTotalTime(trace);
@@ -104,10 +100,7 @@ export const TraceRow = ({
   return (
     <div className="flex flex-col gap-3">
       <div
-        className={cn(
-          importTrace ? "grid-cols-12" : "grid-cols-11",
-          "grid items-center gap-6 cursor-pointer"
-        )}
+        className={cn("grid-cols-11 grid items-center gap-6 cursor-pointer")}
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex flex-row items-center gap-2">
@@ -186,26 +179,24 @@ export const TraceRow = ({
       {!collapsed && (
         <div className="flex flex-col">
           <div className="flex flex-row gap-2">
-            {!importTrace && (
-              <Button
-                onClick={() => setSelectedTab("trace")}
-                variant={"ghost"}
-                className="flex flex-col justify-between pb-0"
+            <Button
+              onClick={() => setSelectedTab("trace")}
+              variant={"ghost"}
+              className="flex flex-col justify-between pb-0"
+            >
+              <p
+                className={
+                  selectedTab === "trace"
+                    ? "text-xs text-primary font-medium"
+                    : "text-xs text-muted-foreground font-medium"
+                }
               >
-                <p
-                  className={
-                    selectedTab === "trace"
-                      ? "text-xs text-primary font-medium"
-                      : "text-xs text-muted-foreground font-medium"
-                  }
-                >
-                  Trace
-                </p>
-                {selectedTab === "trace" && (
-                  <Separator className="bg-primary h-[2px]" />
-                )}
-              </Button>
-            )}
+                Trace
+              </p>
+              {selectedTab === "trace" && (
+                <Separator className="bg-primary h-[2px]" />
+              )}
+            </Button>
             <Button
               disabled={prompts.length === 0 || responses.length === 0}
               onClick={() => setSelectedTab("llm")}
@@ -225,48 +216,44 @@ export const TraceRow = ({
                 <Separator className="bg-primary h-[2px]" />
               )}
             </Button>
-            {!importTrace && (
-              <Button
-                onClick={() => setSelectedTab("logs")}
-                variant={"ghost"}
-                className="flex flex-col justify-between pb-0"
+            <Button
+              onClick={() => setSelectedTab("logs")}
+              variant={"ghost"}
+              className="flex flex-col justify-between pb-0"
+            >
+              <p
+                className={
+                  selectedTab === "logs"
+                    ? "text-xs text-primary font-medium"
+                    : "text-xs text-muted-foreground font-medium"
+                }
               >
-                <p
-                  className={
-                    selectedTab === "logs"
-                      ? "text-xs text-primary font-medium"
-                      : "text-xs text-muted-foreground font-medium"
-                  }
-                >
-                  {`Logs  (${trace?.length ?? 0} total)`}
-                </p>
-                {selectedTab === "logs" && (
-                  <Separator className="bg-primary h-[2px]" />
-                )}
-              </Button>
-            )}
-            {!importTrace && (
-              <Button
-                disabled={events.length === 0}
-                onClick={() => setSelectedTab("events")}
-                variant={"ghost"}
-                className="flex flex-col justify-between pb-0"
+                {`Logs  (${trace?.length ?? 0} total)`}
+              </p>
+              {selectedTab === "logs" && (
+                <Separator className="bg-primary h-[2px]" />
+              )}
+            </Button>
+            <Button
+              disabled={events.length === 0}
+              onClick={() => setSelectedTab("events")}
+              variant={"ghost"}
+              className="flex flex-col justify-between pb-0"
+            >
+              <p
+                className={
+                  selectedTab === "events"
+                    ? "text-xs text-primary font-medium"
+                    : "text-xs text-muted-foreground font-medium"
+                }
               >
-                <p
-                  className={
-                    selectedTab === "events"
-                      ? "text-xs text-primary font-medium"
-                      : "text-xs text-muted-foreground font-medium"
-                  }
-                >
-                  Events/Errors
-                </p>
-                {selectedTab === "events" && (
-                  <Separator className="bg-primary h-[2px]" />
-                )}
-              </Button>
-            )}
-            {langgraph && !importTrace && (
+                Events/Errors
+              </p>
+              {selectedTab === "events" && (
+                <Separator className="bg-primary h-[2px]" />
+              )}
+            </Button>
+            {langgraph && (
               <Button
                 onClick={() => setSelectedTab("langgraph")}
                 variant={"ghost"}
@@ -288,7 +275,7 @@ export const TraceRow = ({
             )}
           </div>
           <Separator />
-          {selectedTab === "trace" && !importTrace && (
+          {selectedTab === "trace" && (
             <TraceGraph
               totalSpans={trace.length}
               spans={traceHierarchy}
@@ -296,14 +283,14 @@ export const TraceRow = ({
               startTime={startTime}
             />
           )}
-          {selectedTab === "logs" && !importTrace && (
+          {selectedTab === "logs" && (
             <div className="flex flex-col px-4 mt-2">
               {trace.map((span: any, i: number) => {
                 return <LogsView key={i} span={span} utcTime={utcTime} />;
               })}
             </div>
           )}
-          {selectedTab === "events" && !importTrace && (
+          {selectedTab === "events" && (
             <div className="flex flex-col px-4 mt-2">
               {events.map((event: any, i: number) => {
                 return (
@@ -317,17 +304,12 @@ export const TraceRow = ({
               })}
             </div>
           )}
-          {(selectedTab === "llm" || importTrace) && (
+          {selectedTab === "llm" && (
             <div className="flex flex-col px-4 mt-2">
-              <LLMView
-                prompts={prompts}
-                responses={responses}
-                importTrace={importTrace}
-                setSelectedPrompt={setSelectedPrompt}
-              />
+              <LLMView prompts={prompts} responses={responses} />
             </div>
           )}
-          {selectedTab === "langgraph" && !importTrace && (
+          {selectedTab === "langgraph" && (
             <div className="h-[500px]">
               <LanggraphView trace={trace} />
             </div>
