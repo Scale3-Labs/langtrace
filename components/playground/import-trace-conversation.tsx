@@ -13,7 +13,6 @@ import TraceRowSkeleton from "../project/traces/trace-row-skeleton";
 import { SetupInstructions } from "../shared/setup-instructions";
 import { Spinner } from "../shared/spinner";
 import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
 
 export default function ImportTraceConversation({
   setMessages,
@@ -147,14 +146,14 @@ export default function ImportTraceConversation({
             <PageSkeleton />
           ) : (
             <div
-              className="flex flex-col gap-3 rounded-md border border-muted h-[450px] overflow-y-scroll"
+              className="flex flex-col rounded-md border border-muted h-[450px] overflow-y-scroll"
               ref={scrollableDivRef as any}
             >
               {!fetchTraces.isLoading &&
                 fetchTraces?.data &&
                 currentData?.map((trace: any, i: number) => {
                   return (
-                    <div key={i} className="flex flex-col gap-3 px-3">
+                    <div key={i} className="px-3">
                       <ConversationRow
                         trace={trace}
                         utcTime={false}
@@ -164,7 +163,6 @@ export default function ImportTraceConversation({
                           setOpenDialog(false);
                         }}
                       />{" "}
-                      <Separator />
                     </div>
                   );
                 })}

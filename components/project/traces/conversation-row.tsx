@@ -79,6 +79,11 @@ export const ConversationRow = ({
     }
   }
 
+  if (prompts.length === 0 && responses.length === 0) {
+    // if there are no prompts or responses, then it is likely that the trace is not an LLM trace
+    return;
+  }
+
   // Sort the trace based on start_time, then end_time
   trace.sort((a: any, b: any) => {
     if (a.start_time === b.start_time) {
@@ -88,7 +93,7 @@ export const ConversationRow = ({
   });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 py-3">
       <div
         className={"grid-cols-12 grid items-center gap-6 cursor-pointer"}
         onClick={() => setCollapsed(!collapsed)}
@@ -173,6 +178,7 @@ export const ConversationRow = ({
           />
         </div>
       )}
+      <Separator />
     </div>
   );
 };
