@@ -2,23 +2,25 @@
 
 import detectPII from "@/lib/pii";
 import { cn, safeStringify } from "@/lib/utils";
+import { UploadIcon } from "lucide-react";
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { Button } from "../ui/button";
 
 export const LLMView = ({
   prompts,
   responses,
+  setMessages,
   Evaluate = () => null,
   doPiiDetection = false,
   importTrace = false,
-  setSelectedPrompt,
 }: {
   prompts: any;
   responses: any;
+  setMessages?: (messages: any[]) => void;
   Evaluate?: React.FC;
   doPiiDetection?: boolean;
   importTrace?: boolean;
-  setSelectedPrompt?: (prompt: string) => void;
 }) => {
   const [selectedTab, setSelectedTab] = useState(0);
   return (
@@ -34,6 +36,39 @@ export const LLMView = ({
             Request {i + 1}
           </Button>
         ))}
+        {importTrace && (
+          <Button
+            size={"sm"}
+            onClick={() => {
+              if (!setMessages) return;
+              const messages: any[] = [];
+              JSON.parse(prompts[selectedTab]).forEach((prompt: any) => {
+                const role = prompt?.role
+                  ? prompt?.role?.toLowerCase()
+                  : "user";
+                const content = prompt?.content
+                  ? prompt?.content
+                  : prompt?.function_call
+                  ? prompt?.function_call
+                  : "";
+                messages.push({ role: role, content: content, id: uuidv4() });
+              });
+              JSON.parse(responses[selectedTab]).forEach((response: any) => {
+                const role = response?.role?.toLowerCase() || "assistant";
+                const content =
+                  response?.content ||
+                  response?.message?.content ||
+                  response?.text ||
+                  "";
+                messages.push({ role: role, content: content, id: uuidv4() });
+              });
+              setMessages(messages);
+            }}
+          >
+            <UploadIcon className="h-4 w-4 mr-2" />
+            Import Conversation
+          </Button>
+        )}
       </div>
       {prompts?.length > 0 &&
         JSON.parse(prompts[selectedTab]).map((prompt: any, i: number) => {
@@ -54,22 +89,7 @@ export const LLMView = ({
               className="text-xs bg-muted w-fit p-1 rounded-md leading-6"
             >
               <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
-                <div className="flex justify-between">
-                  {role}
-                  {importTrace ? (
-                    <Button
-                      size={"sm"}
-                      className="text-xs font-medium px-2"
-                      onClick={() => {
-                        setSelectedPrompt!(content);
-                      }}
-                    >
-                      Import
-                    </Button>
-                  ) : (
-                    <></>
-                  )}
-                </div>
+                <div className="flex justify-between">{role}</div>
               </span>{" "}
               <div
                 className={cn(
@@ -107,22 +127,7 @@ export const LLMView = ({
               className="text-xs leading-6 w-fit p-1 rounded-md bg-muted"
             >
               <span className="font-semibold dark:text-red-400 text-red-600 capitalize">
-                <div className="flex justify-between">
-                  {role}
-                  {importTrace && !isPicture ? (
-                    <Button
-                      size={"sm"}
-                      className="text-xs font-medium px-2"
-                      onClick={() => {
-                        setSelectedPrompt!(content);
-                      }}
-                    >
-                      Import
-                    </Button>
-                  ) : (
-                    <></>
-                  )}
-                </div>
+                <div className="flex justify-between">{role}</div>
               </span>
               {!url && !b64Json && (
                 <div

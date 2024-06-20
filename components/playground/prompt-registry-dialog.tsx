@@ -1,5 +1,3 @@
-"use client";
-
 import { CreatePromptset } from "@/components/project/dataset/create";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +29,7 @@ import { useQuery } from "react-query";
 import { toast } from "sonner";
 import CreatePromptDialog from "../shared/create-prompt-dialog";
 
+import { Skeleton } from "@mui/material";
 import { Promptset } from "@prisma/client";
 
 export interface PromptRegistryDialogProps {
@@ -150,7 +149,7 @@ export function PromptRegistryCombobox({
   });
 
   if (promptsetsLoading) {
-    return <div>Loading...</div>;
+    return <Skeleton className="h-72 w-48" />;
   }
 
   return (

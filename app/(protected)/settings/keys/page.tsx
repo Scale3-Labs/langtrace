@@ -8,12 +8,6 @@ export default async function Page() {
   if (!session || !session.user) {
     redirect("/login");
   }
-  const email = session?.user?.email as string;
-
-  const resp = await fetch(
-    `${process.env.NEXTAUTH_URL_INTERNAL}/api/user?email=${email}`
-  );
-  const user = await resp.json();
 
   return (
     <>
