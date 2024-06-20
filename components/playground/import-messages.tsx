@@ -3,6 +3,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Button } from "../ui/button";
 import ImportPrompt from "./import-prompt";
@@ -18,7 +19,11 @@ export default function ImportMessages({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size={"icon"} className={className}>
+        <Button
+          variant="outline"
+          size={"icon"}
+          className={cn(className, "bg-muted")}
+        >
           <DotsHorizontalIcon />
         </Button>
       </DropdownMenuTrigger>

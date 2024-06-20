@@ -659,7 +659,7 @@ export default function LLMChat({
         </Button>
       )}
       {(cost || latency) && (
-        <div className="absolute bottom-2 right-4 flex flex-col gap-2 bg-primary-foreground rounded-md p-2 w-[115px]">
+        <div className="absolute bottom-14 right-4 flex flex-col gap-2 bg-primary-foreground rounded-md p-2 w-[115px] shadow-md">
           <p className="text-xs">{`Cost: ${cost}`}</p>
           <p className="text-xs break-all">{`Latency: ${latency}ms`}</p>
         </div>
