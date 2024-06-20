@@ -2,6 +2,7 @@
 
 import { AddLLMChat } from "@/components/playground/common";
 import LLMChat from "@/components/playground/llmchat";
+import HowTo from "@/components/shared/how-to";
 import {
   AnthropicModel,
   AnthropicSettings,
@@ -86,6 +87,7 @@ export default function Page() {
 
   return (
     <div className="px-12 py-6 flex flex-col gap-8">
+      <HowTo link="https://docs.langtrace.ai/features/playground" />
       <span className="text-sm font-semibold">
         Note: Dont forget to add your LLM provider API keys in the{" "}
         <Link href="/settings/keys" className="underline text-blue-400">
