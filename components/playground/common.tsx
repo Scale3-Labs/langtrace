@@ -1,5 +1,3 @@
-"use client";
-
 import PromptRegistryDialog from "@/components/playground/prompt-registry-dialog";
 import LLMPicker from "@/components/shared/llm-picker";
 import { Button } from "@/components/ui/button";
@@ -84,7 +82,7 @@ export function ExpandingTextArea({
         ref={textAreaRef}
         defaultValue={value}
         onChange={handleChange}
-        style={{ overflowY: "auto", resize: "none", height: "auto" }}
+        style={{ overflowY: "auto", height: "auto" }}
       />
       <div className="absolute right-0 top-[-10px] py-2">
         <Button

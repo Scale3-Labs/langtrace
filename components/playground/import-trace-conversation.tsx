@@ -1,42 +1,32 @@
-"use client";
-
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { PAGE_SIZE } from "@/lib/constants";
-import { PropertyFilter } from "@/lib/services/query_builder_service";
+import { DialogTrigger } from "@radix-ui/react-dialog";
+import { StackIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { TraceRow } from "../project/traces/trace-row";
+import { ConversationRow } from "../project/traces/conversation-row";
 import TraceRowSkeleton from "../project/traces/trace-row-skeleton";
 import { SetupInstructions } from "../shared/setup-instructions";
 import { Spinner } from "../shared/spinner";
+import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 
-export interface TraceDialogProps {
-  openDialog?: boolean;
-  setOpenDialog: (open: boolean) => void;
-  selectedPrompt: string;
-  setSelectedPrompt: (prompt: string) => void;
-}
-
-export default function ImportConversationDialog({
-  openDialog = false,
-  setOpenDialog,
-  selectedPrompt,
-  setSelectedPrompt,
-}: TraceDialogProps) {
+export default function ImportTraceConversation({
+  setMessages,
+}: {
+  setMessages: (messages: any) => void;
+}) {
   const project_id = useParams()?.project_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
   const [showLoader, setShowLoader] = useState(false);
-  const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
-  const [utcTime, setUtcTime] = useState(true);
-  //   const [utcTime, setUtcTime] = useState(true);
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     setShowLoader(true);
@@ -44,7 +34,7 @@ export default function ImportConversationDialog({
     setPage(1);
     setTotalPages(1);
     setEnableFetch(true);
-  }, [filters]);
+  }, []);
 
   const scrollableDivRef = useBottomScrollListener(() => {
     if (fetchTraces.isRefetching) {
@@ -121,14 +111,28 @@ export default function ImportConversationDialog({
 
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-      <DialogContent className="w-full max-w-6xl h-3/4 overflow-y-auto">
+      <DialogTrigger>
+        <Button
+          type="button"
+          size="sm"
+          className="w-full flex justify-start gap-2"
+          variant={"ghost"}
+          onClick={() => {
+            setOpenDialog(true);
+          }}
+        >
+          <StackIcon className="h-4 w-4" />
+          Import Traced Conversation
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="w-full max-w-6xl h-[600px] overflow-y-hidden">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="name" className="text-left">
-            Select a prompt to import
+          <Label htmlFor="name" className="text-left text-lg mb-4">
+            Select a conversation to import
           </Label>
           <div className="grid grid-cols-12 items-center p-3 bg-muted">
             <p className="ml-10 text-xs font-medium">
-              Time <span>&#8595;</span> ({utcTime ? "UTC" : "Local"})
+              Time <span>&#8595;</span> Local
             </p>
             <p className="text-xs font-medium">Namespace</p>
             <p className="text-xs font-medium">Model</p>
@@ -143,7 +147,7 @@ export default function ImportConversationDialog({
             <PageSkeleton />
           ) : (
             <div
-              className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll"
+              className="flex flex-col gap-3 rounded-md border border-muted h-[450px] overflow-y-scroll"
               ref={scrollableDivRef as any}
             >
               {!fetchTraces.isLoading &&
@@ -151,11 +155,14 @@ export default function ImportConversationDialog({
                 currentData?.map((trace: any, i: number) => {
                   return (
                     <div key={i} className="flex flex-col gap-3 px-3">
-                      <TraceRow
+                      <ConversationRow
                         trace={trace}
-                        utcTime={utcTime}
+                        utcTime={false}
                         importTrace={true}
-                        setSelectedPrompt={setSelectedPrompt}
+                        setMessages={(messages: any[]) => {
+                          setMessages(messages);
+                          setOpenDialog(false);
+                        }}
                       />{" "}
                       <Separator />
                     </div>
@@ -165,6 +172,9 @@ export default function ImportConversationDialog({
                 <div className="flex justify-center py-8">
                   <Spinner className="h-8 w-8 text-center" />
                 </div>
+              )}
+              {page < totalPages && (
+                <div className="bg-gradient-to-t from-muted-foreground to-transparent absolute bottom-0 left-0 right-0 h-12" />
               )}
               {!fetchTraces.isLoading &&
                 fetchTraces?.data &&
@@ -181,7 +191,6 @@ export default function ImportConversationDialog({
             </div>
           )}
         </div>
-        <DialogFooter></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -189,7 +198,7 @@ export default function ImportConversationDialog({
 
 function PageSkeleton() {
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
+    <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen">
       {Array.from({ length: 3 }).map((_, index) => (
         <TraceRowSkeleton key={index} />
       ))}
