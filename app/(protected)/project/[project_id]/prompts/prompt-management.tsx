@@ -3,6 +3,7 @@
 import { CreatePromptset } from "@/components/project/dataset/create";
 import { EditPromptSet } from "@/components/project/dataset/edit";
 import CardLoading from "@/components/shared/card-skeleton";
+import HowTo from "@/components/shared/how-to";
 import {
   Card,
   CardDescription,
@@ -53,6 +54,7 @@ export default function PromptManagement({ email }: { email: string }) {
   } else {
     return (
       <div className="w-full py-12 px-12 flex flex-col gap-4">
+        <HowTo link="https://docs.langtrace.ai/features/manage_prompts" />
         <div className="w-fit">
           <CreatePromptset projectId={projectId} />
         </div>
