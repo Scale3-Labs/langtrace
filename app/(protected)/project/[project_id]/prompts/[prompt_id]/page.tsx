@@ -2,10 +2,10 @@
 import CreatePromptDialog from "@/components/shared/create-prompt-dialog";
 import { PromptInstructions } from "@/components/shared/setup-instructions";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
@@ -150,6 +150,48 @@ export default function Page() {
           </div>
           <div className="flex flex-col gap-8 w-full">
             <div className="flex flex-col gap-2">
+              <Label>Go Live</Label>
+              <div className="flex items-center gap-2 w-fit">
+                <Switch
+                  checked={live}
+                  onCheckedChange={async (checked) => {
+                    setLive(checked as boolean);
+                    try {
+                      const payload = {
+                        ...selectedPrompt,
+                        live: checked,
+                      };
+                      await fetch("/api/prompt", {
+                        method: "PUT",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(payload),
+                      });
+                      await queryClient.invalidateQueries({
+                        queryKey: ["fetch-prompts-query", promptsetId],
+                      });
+                      toast.success(
+                        checked
+                          ? "This prompt is now live"
+                          : "This prompt is no longer live. Make sure to make another prompt live"
+                      );
+                    } catch (error) {
+                      toast.error("Failed to make prompt live", {
+                        description:
+                          error instanceof Error
+                            ? error.message
+                            : String(error),
+                      });
+                    }
+                  }}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Make this version of the prompt live
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
               <Label>Prompt Registry ID</Label>
               <p className="p-2 rounded-md border-2 border-muted font-semibold text-md">
                 {promptsetId}
@@ -193,48 +235,6 @@ export default function Page() {
                     "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
                 }}
               />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label>Go Live</Label>
-              <div className="flex items-center gap-2 w-fit">
-                <Checkbox
-                  checked={live}
-                  onCheckedChange={async (checked) => {
-                    setLive(checked as boolean);
-                    try {
-                      const payload = {
-                        ...selectedPrompt,
-                        live: checked,
-                      };
-                      await fetch("/api/prompt", {
-                        method: "PUT",
-                        headers: {
-                          "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(payload),
-                      });
-                      await queryClient.invalidateQueries({
-                        queryKey: ["fetch-prompts-query", promptsetId],
-                      });
-                      toast.success(
-                        checked
-                          ? "This prompt is now live"
-                          : "This prompt is no longer live. Make sure to make another prompt live"
-                      );
-                    } catch (error) {
-                      toast.error("Failed to make prompt live", {
-                        description:
-                          error instanceof Error
-                            ? error.message
-                            : String(error),
-                      });
-                    }
-                  }}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Make this version of the prompt live
-                </p>
-              </div>
             </div>
             <div className="flex flex-col gap-2">
               <Label>Use the Live prompt directly in your code</Label>

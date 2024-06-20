@@ -33,7 +33,7 @@ import {
   perplexityHandler,
 } from "./chat-handlers";
 import { Message } from "./common";
-import ImportConversationDialog from "./import-conversation-dialog";
+import ImportMessages from "./import-messages";
 import {
   AnthropicSettingsSheet,
   CohereSettingsSheet,
@@ -57,9 +57,18 @@ export default function LLMChat({
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [cost, setCost] = useState("");
   const [latency, setLatency] = useState("");
-  const [importConversationDialogOpen, setImportConversationDialogOpen] =
-    useState(false);
   const [initialPrompt, setInitialPrompt] = useState("");
+
+  const setMessages = (messages: any[]) => {
+    setLocalLLM({
+      ...localLLM,
+      settings: { ...localLLM.settings, messages: messages },
+    });
+    setLLM({
+      ...llm,
+      settings: { ...llm.settings, messages: messages },
+    });
+  };
 
   useEffect(() => {
     const vendor = LLM_VENDOR_APIS.find(
@@ -103,7 +112,6 @@ export default function LLMChat({
           ],
         },
       });
-      setImportConversationDialogOpen(false);
     }
   }, [initialPrompt]);
 
@@ -148,138 +156,8 @@ export default function LLMChat({
           />
         ))}
       </div>
-      {/* {llm.settings.messages.length === 0 && (
-        <div className="flex items-center justify-center">
-          <Button
-            type="button"
-            size="lg"
-            variant="default"
-            onClick={() => {
-              setImportConversationDialogOpen(true);
-            }}
-          >
-            Import Prompt
-          </Button>
-          <ImportConversationDialog
-            openDialog={importConversationDialogOpen}
-            setOpenDialog={setImportConversationDialogOpen}
-            selectedPrompt={initialPrompt}
-            setSelectedPrompt={setInitialPrompt}
-          />
-        </div>
-      )}
       <div className="w-full flex items-center justify-center">
-        <Button
-          type="button"
-          variant={llm.settings.messages.length === 0 ? "default" : "secondary"}
-          className="mt-2"
-          size={"lg"}
-          onClick={() => {
-            setLocalLLM({
-              ...localLLM,
-              settings: {
-                ...localLLM.settings,
-                messages: [
-                  ...localLLM.settings.messages,
-                  {
-                    id: uuidv4(),
-                    role:
-                      localLLM.vendor === "cohere"
-                        ? CohereAIRole.user
-                        : OpenAIRole.user,
-                    content: "",
-                  },
-                ],
-              },
-            });
-            setLLM({
-              ...localLLM,
-              settings: {
-                ...localLLM.settings,
-                messages: [
-                  ...localLLM.settings.messages,
-                  {
-                    id: uuidv4(),
-                    role:
-                      localLLM.vendor === "cohere"
-                        ? CohereAIRole.user
-                        : OpenAIRole.user,
-                    content: "",
-                  },
-                ],
-              },
-            });
-          }}
-        >
-          <PlusCircleIcon className="mr-2 h-4 w-4" />
-          Add message
-        </Button>
-      </div> */}
-      <div className="w-full flex items-center justify-center">
-        {llm.settings.messages.length === 0 ? (
-          <>
-            <Button
-              type="button"
-              size="lg"
-              variant="default"
-              onClick={() => {
-                setImportConversationDialogOpen(true);
-              }}
-            >
-              Import Prompt
-            </Button>
-            <ImportConversationDialog
-              openDialog={importConversationDialogOpen}
-              setOpenDialog={setImportConversationDialogOpen}
-              selectedPrompt={initialPrompt}
-              setSelectedPrompt={setInitialPrompt}
-            />
-            <span className="mx-2">or</span>
-            <Button
-              type="button"
-              size="lg"
-              variant="default"
-              onClick={() => {
-                setLocalLLM({
-                  ...localLLM,
-                  settings: {
-                    ...localLLM.settings,
-                    messages: [
-                      ...localLLM.settings.messages,
-                      {
-                        id: uuidv4(),
-                        role:
-                          localLLM.vendor === "cohere"
-                            ? CohereAIRole.user
-                            : OpenAIRole.user,
-                        content: "",
-                      },
-                    ],
-                  },
-                });
-                setLLM({
-                  ...localLLM,
-                  settings: {
-                    ...localLLM.settings,
-                    messages: [
-                      ...localLLM.settings.messages,
-                      {
-                        id: uuidv4(),
-                        role:
-                          localLLM.vendor === "cohere"
-                            ? CohereAIRole.user
-                            : OpenAIRole.user,
-                        content: "",
-                      },
-                    ],
-                  },
-                });
-              }}
-            >
-              Add Message
-            </Button>
-          </>
-        ) : (
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="secondary"
@@ -325,7 +203,8 @@ export default function LLMChat({
             <PlusCircleIcon className="mr-2 h-4 w-4" />
             Add message
           </Button>
-        )}
+          <ImportMessages setMessages={setMessages} className="mt-2" />
+        </div>
       </div>
       <div className="absolute -top-6 -left-3">
         {localLLM.vendor === "openai" && (
@@ -780,7 +659,7 @@ export default function LLMChat({
         </Button>
       )}
       {(cost || latency) && (
-        <div className="absolute bottom-2 right-4 flex flex-col gap-2 bg-primary-foreground rounded-md p-2 w-[115px]">
+        <div className="absolute bottom-14 right-4 flex flex-col gap-2 bg-primary-foreground rounded-md p-2 w-[115px] shadow-md">
           <p className="text-xs">{`Cost: ${cost}`}</p>
           <p className="text-xs break-all">{`Latency: ${latency}ms`}</p>
         </div>
