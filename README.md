@@ -135,7 +135,7 @@ Langtrace automatically captures traces from the following vendors:
 | DSPy         | Framework       | :x:                | :white_check_mark: |
 | Pinecone     | Vector Database | :white_check_mark: | :white_check_mark: |
 | ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark: |
-| QDrant       | Vector Database | :x:                | :white_check_mark: |
+| QDrant       | Vector Database | :white_check_mark: | :white_check_mark: |
 | Weaviate     | Vector Database | :white_check_mark: | :white_check_mark: |
 
 ---
