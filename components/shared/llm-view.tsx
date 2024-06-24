@@ -25,7 +25,7 @@ export const LLMView = ({
   const [selectedTab, setSelectedTab] = useState(0);
   return (
     <div className="flex flex-col gap-6 p-4 border-[1px] border-muted rounded-lg shadow-md bg-primary-foreground">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {prompts.map((prompt: any, i: number) => (
           <Button
             key={i}
