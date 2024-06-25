@@ -25,7 +25,7 @@ export const LLMView = ({
   const [selectedTab, setSelectedTab] = useState(0);
   return (
     <div className="flex flex-col gap-6 p-4 border-[1px] border-muted rounded-lg shadow-md bg-primary-foreground">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {prompts.map((prompt: any, i: number) => (
           <Button
             key={i}
@@ -72,12 +72,24 @@ export const LLMView = ({
       </div>
       {prompts?.length > 0 &&
         JSON.parse(prompts[selectedTab]).map((prompt: any, i: number) => {
-          const role = prompt?.role ? prompt?.role?.toLowerCase() : "User";
-          const content = prompt?.content
-            ? prompt?.content
-            : prompt?.function_call
-            ? prompt?.function_call
-            : "";
+          let role;
+          let content;
+          // check if prompt is a list
+          if (Array.isArray(prompt) && prompt.length > 0) {
+            role = prompt[0]?.role ? prompt[0]?.role?.toLowerCase() : "User";
+            content = prompt[0]?.content
+              ? prompt[0]?.content
+              : prompt[0]?.function_call
+              ? prompt[0]?.function_call
+              : "";
+          } else {
+            role = prompt?.role ? prompt?.role?.toLowerCase() : "User";
+            content = prompt?.content
+              ? prompt?.content
+              : prompt?.function_call
+              ? prompt?.function_call
+              : "";
+          }
 
           // will add once edit image wrapper has been added in sdks
           // const url = prompt?.content?.url;

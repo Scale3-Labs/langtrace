@@ -51,13 +51,15 @@ export function ProjectSwitcher({ email }: { email: string }) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="flex w-[200px] justify-between"
         >
+          <p className="truncate">
           {
             projects?.projects.filter(
               (project: any) => project.id === pathname.split("/")[2]
             )[0]?.name
           }
+          </p>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -78,7 +80,7 @@ export function ProjectSwitcher({ email }: { email: string }) {
                     onSelect={() => setOpen(false)}
                   >
                     <div className="flex justify-between w-full cursor-pointer">
-                      {project.name}
+                      <p className="truncate">{project.name}</p>
                       <CheckIcon
                         className={cn(
                           "ml-auto h-4 w-4",
