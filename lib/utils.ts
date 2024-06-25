@@ -355,6 +355,13 @@ export function parseNestedJsonFields(obj: string) {
     "llm.responses",
     "langchain.inputs",
     "langchain.outputs",
+    "crewai.crew.config",
+    "crewai.agent.config",
+    "crewai.task.config",
+    "dspy.optimizer.module.prog",
+    "dspy.optimizer.config",
+    "dspy.signature.args",
+    "embedder",
   ];
   fieldsToParse.forEach((field) => {
     if (jsonObject[field] && typeof jsonObject[field] === "string") {
@@ -574,6 +581,8 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "pg";
   } else if (span.name.includes("dspy") || serviceName.includes("dspy")) {
     vendor = "dspy";
+  } else if (span.name.includes("crewai") || serviceName.includes("crewai")) {
+    vendor = "crewai";
   }
   return vendor;
 }
