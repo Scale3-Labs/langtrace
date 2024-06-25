@@ -205,6 +205,7 @@ export default function Traces({ email }: { email: string }) {
         <p className="text-xs font-medium col-span-2">Input</p>
         <p className="text-xs font-medium col-span-2">Output</p>
         <p className="text-xs font-medium">User ID</p>
+        <p className="text-xs font-medium">Prompt ID</p>
         <p className="text-xs font-medium">Input / Output / Total Tokens</p>
         <p className="text-xs font-medium">Token Cost</p>
         <p className="text-xs font-medium">Duration(ms)</p>

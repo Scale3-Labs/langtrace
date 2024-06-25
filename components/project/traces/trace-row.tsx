@@ -36,6 +36,7 @@ export const TraceRow = ({
   let model: string = "";
   let vendor: string = "";
   let userId: string = "";
+  let promptId: string = "";
   let prompts: any[] = [];
   let responses: any[] = [];
   let events: any[] = [];
@@ -55,6 +56,7 @@ export const TraceRow = ({
         prompts.push(attributes["llm.prompts"]);
         responses.push(attributes["llm.responses"]);
       }
+      promptId = attributes["prompt_id"];
       if (!model) {
         model = attributes["llm.model"] || "";
       }
@@ -158,6 +160,7 @@ export const TraceRow = ({
           <p className="text-xs font-semibold col-span-2"></p>
         )}
         <p className="text-xs font-semibold">{userId}</p>
+        <p className="text-xs font-semibold">{promptId}</p>
         <p className="text-xs">
           {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
           {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "/" : ""}
