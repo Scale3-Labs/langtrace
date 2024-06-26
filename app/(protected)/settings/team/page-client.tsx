@@ -11,6 +11,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,8 +25,39 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 export default function TeamView({ user }: { user: any }) {
-  // const queryClient = useQueryClient();
+  const [apiKey, setApiKey] = useState(
+    "*****************************************"
+  );
   const [busy, setBusy] = useState(false);
+
+  const handleApiKeyGenerated = (newApiKey: string) => {
+    setApiKey(newApiKey);
+  };
+
+  const generateApiKey = async () => {
+    try {
+      setBusy(true);
+      const response = await fetch(`/api/api-key?team_id=${user.Team.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const result = await response.json();
+      setApiKey(result.data.apiKey);
+      handleApiKeyGenerated(result.data.apiKey);
+      toast("Copy your API Key!", {
+        description: "Please copy your API key. It will not be shown again.",
+      });
+    } catch (error: any) {
+      toast("Error generating API Key!", {
+        description: `There was an error generating your API Key: ${error.message}`,
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const NameFormSchema = z.object({
     name: z
       .string()
@@ -71,17 +103,6 @@ export default function TeamView({ user }: { user: any }) {
       <CardContent className="w-full">
         <Form {...NameDetailsForm}>
           <form className="flex w-full flex-col gap-4">
-            <div className="flex items-center bg-muted p-2 rounded-md justify-between">
-              <p
-                onClick={() => {
-                  navigator.clipboard.writeText(user.Team.id);
-                  toast.success("Copied to clipboard");
-                }}
-                className="text-sm select-all selection:bg-blue-200"
-              >
-                {user.Team.id}
-              </p>
-            </div>
             <FormField
               disabled={busy}
               control={NameDetailsForm.control}
@@ -100,7 +121,50 @@ export default function TeamView({ user }: { user: any }) {
                 </FormItem>
               )}
             />
+            <FormLabel>Team ID</FormLabel>
+            <div className="flex items-center bg-muted p-2 rounded-md justify-between">
+              <p
+                onClick={() => {
+                  navigator.clipboard.writeText(user.Team.id);
+                  toast.success("Copied to clipboard");
+                }}
+                className="text-sm select-all selection:bg-blue-200"
+              >
+                {user.Team.id}
+              </p>
+            </div>
+            <FormLabel>API Key</FormLabel>
+            <FormDescription className="text-red-600 font-bold">
+              Note: Click to copy this API key as it will NOT be shown again. If
+              you already have an API key, it will be replaced.
+            </FormDescription>
+            <div className="flex items-center bg-muted p-2 rounded-md justify-between">
+              {apiKey && (
+                <div className="flex items-center bg-muted p-2 rounded-md justify-between">
+                  <p
+                    onClick={() => {
+                      navigator.clipboard.writeText(apiKey);
+                      toast.success("Copied to clipboard");
+                    }}
+                    className="text-sm select-all selection:bg-blue-200"
+                  >
+                    {apiKey}
+                  </p>
+                  <button
+                    className="bg-primary-foreground rounded-md"
+                    onClick={() => {
+                      navigator.clipboard.writeText(apiKey);
+                      toast.success("Copied to clipboard");
+                    }}
+                  />
+                </div>
+              )}
+              <Button onClick={generateApiKey} disabled={busy}>
+                Generate API Key
+              </Button>
+            </div>
             <Button
+              type="button" // Add this line to prevent form submission
               disabled={busy}
               onClick={NameDetailsForm.handleSubmit(saveNameDetails)}
               className="w-fit"

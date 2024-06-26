@@ -50,12 +50,11 @@ export async function POST(req: NextRequest) {
       redirect("/login");
     }
   } else {
-    const response = await authApiKey(apiKey);
+    const response = await authApiKey(apiKey, true);
     if (response.status !== 200) {
       return response;
     }
   }
-
   const data = await req.json();
   const { name, description, teamId } = data;
   let createDefaultTests = data.createDefaultTests;
