@@ -164,7 +164,7 @@ export default function TeamView({ user }: { user: any }) {
               </Button>
             </div>
             <Button
-              type="button" // Add this line to prevent form submission
+              type="button"
               disabled={busy}
               onClick={NameDetailsForm.handleSubmit(saveNameDetails)}
               className="w-fit"
