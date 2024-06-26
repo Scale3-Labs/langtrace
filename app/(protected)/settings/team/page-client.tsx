@@ -71,6 +71,17 @@ export default function TeamView({ user }: { user: any }) {
       <CardContent className="w-full">
         <Form {...NameDetailsForm}>
           <form className="flex w-full flex-col gap-4">
+            <div className="flex items-center bg-muted p-2 rounded-md justify-between">
+              <p
+                onClick={() => {
+                  navigator.clipboard.writeText(user.Team.id);
+                  toast.success("Copied to clipboard");
+                }}
+                className="text-sm select-all selection:bg-blue-200"
+              >
+                {user.Team.id}
+              </p>
+            </div>
             <FormField
               disabled={busy}
               control={NameDetailsForm.control}
