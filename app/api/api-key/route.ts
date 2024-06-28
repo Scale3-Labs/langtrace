@@ -1,5 +1,8 @@
+import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
 import { generateApiKey, hashApiKey } from "@/lib/utils";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 // for generating new API key
@@ -44,4 +47,56 @@ export async function POST(req: NextRequest) {
       apiKey: apiKey,
     },
   });
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
+    }
+
+    const teamId = req.nextUrl.searchParams.get("teamId") as string;
+    const projectId = req.nextUrl.searchParams.get("projectId") as string;
+
+    if (!teamId && !projectId) {
+      return NextResponse.json(
+        {
+          error: "No projectId or teamId provided",
+        },
+        { status: 404 }
+      );
+    }
+
+    if (teamId) {
+      const result = await prisma.team.findUnique({
+        where: {
+          id: teamId,
+        },
+      });
+
+      return NextResponse.json({
+        data: result,
+      });
+    }
+
+    if (projectId) {
+      const result = await prisma.project.findUnique({
+        where: {
+          id: projectId,
+        },
+      });
+
+      return NextResponse.json({
+        data: result,
+      });
+    }
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
+  }
 }

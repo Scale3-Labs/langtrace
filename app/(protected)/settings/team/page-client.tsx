@@ -19,15 +19,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CodeIcon, RefreshCwIcon } from "lucide-react";
 import { useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 export default function TeamView({ user }: { user: any }) {
-  const [apiKey, setApiKey] = useState(
-    "*****************************************"
-  );
+  const [apiKey, setApiKey] = useState<string>();
   const [busy, setBusy] = useState(false);
 
   const handleApiKeyGenerated = (newApiKey: string) => {
@@ -135,34 +134,47 @@ export default function TeamView({ user }: { user: any }) {
             </div>
             <FormLabel>API Key</FormLabel>
             <FormDescription className="text-red-600 font-bold">
-              Note: Click to copy this API key as it will NOT be shown again. If
-              you already have an API key, it will be replaced.
+              {user.Team.apiKeyHash && !apiKey
+                ? "Note: If you regenerate the API key, the old key will be replaced."
+                : "Note: Click to copy this API key as it will NOT be shown again."}
             </FormDescription>
-            <div className="flex items-center bg-muted p-2 rounded-md justify-between">
-              {apiKey && (
-                <div className="flex items-center bg-muted p-2 rounded-md justify-between">
-                  <p
-                    onClick={() => {
-                      navigator.clipboard.writeText(apiKey);
-                      toast.success("Copied to clipboard");
-                    }}
-                    className="text-sm select-all selection:bg-blue-200"
-                  >
-                    {apiKey}
-                  </p>
-                  <button
-                    className="bg-primary-foreground rounded-md"
-                    onClick={() => {
-                      navigator.clipboard.writeText(apiKey);
-                      toast.success("Copied to clipboard");
-                    }}
-                  />
-                </div>
-              )}
-              <Button onClick={generateApiKey} disabled={busy}>
-                Generate API Key
+            {apiKey && (
+              <div className="flex items-center bg-muted p-2 rounded-md justify-between">
+                <p
+                  onClick={() => {
+                    navigator.clipboard.writeText(apiKey);
+                    toast.success("Copied to clipboard");
+                  }}
+                  className="text-sm select-all selection:bg-blue-200"
+                >
+                  {apiKey}
+                </p>
+                <button
+                  className="bg-primary-foreground rounded-md"
+                  onClick={() => {
+                    navigator.clipboard.writeText(apiKey);
+                    toast.success("Copied to clipboard");
+                  }}
+                />
+              </div>
+            )}
+            {!apiKey && (
+              <Button
+                className="w-fit"
+                variant={user.Team.apiKeyHash ? "destructive" : "default"}
+                onClick={generateApiKey}
+                disabled={busy}
+              >
+                {user.Team.apiKeyHash ? (
+                  <RefreshCwIcon className="mr-2 h-4 w-4" />
+                ) : (
+                  <CodeIcon className="mr-2 h-4 w-4" />
+                )}
+                {user.Team.apiKeyHash
+                  ? "Re-generate API Key"
+                  : "Generate API Key"}
               </Button>
-            </div>
+            )}
             <Button
               type="button"
               disabled={busy}
