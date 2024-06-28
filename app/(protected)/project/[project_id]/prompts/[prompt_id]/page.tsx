@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ClipboardIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
@@ -196,9 +196,24 @@ export default function Page() {
             </div>
             <div className="flex flex-col gap-2">
               <Label>Prompt Registry ID</Label>
-              <p className="p-2 rounded-md border-2 border-muted font-semibold text-md">
-                {promptsetId}
-              </p>
+              <div className="flex items-center border-2 border-muted p-2 rounded-md cursor-pointer font-semibold text-md">
+                <p
+                  onClick={() => {
+                    navigator.clipboard.writeText(promptsetId);
+                    toast.success("Copied to clipboard");
+                  }}
+                  className="flex-grow"
+                >
+                  {promptsetId}
+                </p>
+                <ClipboardIcon
+                  className="h-4 w-4 cursor-pointer text-muted-foreground"
+                  onClick={() => {
+                    navigator.clipboard.writeText(promptsetId);
+                    toast.success("Copied to clipboard");
+                  }}
+                />
+              </div>
             </div>
             <div className="flex flex-col gap-2">
               <Label>Prompt</Label>
