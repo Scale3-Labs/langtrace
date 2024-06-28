@@ -58,12 +58,21 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
+  if (vendor.includes("crewai")) {
+    return "bg-red-500";
+  }
+
+
   return "bg-gray-500";
 }
 
 export function vendorColor(vendor: string) {
   if (!vendor) {
     return "bg-gray-200";
+  }
+
+  if (vendor.includes("crewai")) {
+    return "bg-red-200";
   }
 
   if (vendor.includes("perplexity")) {
@@ -274,6 +283,22 @@ export function VendorLogo({
         alt="Cohere Logo"
         src="/cohere.png"
         width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("crewai")) {
+    const color = vendorColor("crewai");
+    return (
+      <Image
+        alt="CrewAI Logo"
+        src="/crewai.png"
+        width={60}
         height={30}
         className={cn(
           `${color} p-[3px]`,

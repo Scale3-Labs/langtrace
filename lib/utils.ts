@@ -320,7 +320,10 @@ export function parseQueryString(url: string): Record<string, any> {
   });
 }
 
-export async function authApiKey(api_key?: string): Promise<NextResponse> {
+export async function authApiKey(
+  api_key?: string,
+  team_auth?: boolean
+): Promise<NextResponse> {
   if (!api_key) {
     return NextResponse.json(
       {
@@ -330,6 +333,22 @@ export async function authApiKey(api_key?: string): Promise<NextResponse> {
     );
   }
 
+  if (team_auth) {
+    const team = await prisma.team.findFirst({
+      where: {
+        apiKeyHash: hashApiKey(api_key),
+      },
+    });
+
+    if (!team) {
+      return NextResponse.json(
+        { error: "Unauthorized. Invalid API key" },
+        { status: 401 }
+      );
+    } else {
+      return NextResponse.json({ data: { team: team } }, { status: 200 });
+    }
+  }
   const project = await prisma.project.findFirst({
     where: {
       apiKeyHash: hashApiKey(api_key),
@@ -355,6 +374,13 @@ export function parseNestedJsonFields(obj: string) {
     "llm.responses",
     "langchain.inputs",
     "langchain.outputs",
+    "crewai.crew.config",
+    "crewai.agent.config",
+    "crewai.task.config",
+    "dspy.optimizer.module.prog",
+    "dspy.optimizer.config",
+    "dspy.signature.args",
+    "embedder",
   ];
   fieldsToParse.forEach((field) => {
     if (jsonObject[field] && typeof jsonObject[field] === "string") {
@@ -574,6 +600,8 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "pg";
   } else if (span.name.includes("dspy") || serviceName.includes("dspy")) {
     vendor = "dspy";
+  } else if (span.name.includes("crewai") || serviceName.includes("crewai")) {
+    vendor = "crewai";
   }
   return vendor;
 }
