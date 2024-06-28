@@ -12,7 +12,15 @@ import { ClipboardIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export default function GenerateApiKey({ projectId, onApiKeyGenerated }: { projectId: string; onApiKeyGenerated?: (apiKey: string) => void }) {
+export default function GenerateApiKey({
+  projectId,
+  teamId,
+  onApiKeyGenerated,
+}: {
+  projectId?: string;
+  teamId?: string;
+  onApiKeyGenerated?: (apiKey: string) => void;
+}) {
   const [busy, setBusy] = useState(false);
   const [apiKey, setApiKey] = useState("");
 
@@ -56,12 +64,15 @@ export default function GenerateApiKey({ projectId, onApiKeyGenerated }: { proje
             onClick={async () => {
               try {
                 setBusy(true);
-                const response = await fetch(`/api/api-key?id=${projectId}`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                });
+                const response = await fetch(
+                  `/api/api-key?project_id=${projectId}&team_id=${teamId}`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
                 const result = await response.json();
                 setApiKey(result.data.apiKey);
                 onApiKeyGenerated?.(result.data.apiKey);

@@ -27,6 +27,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { PromptCombobox } from "@/components/shared/prompt-combobox";
 import { UserCombobox } from "@/components/shared/user-combobox";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import VendorDropdown from "./vendor-dropdown";
@@ -43,6 +44,7 @@ export default function FilterDialog({
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedPromptId, setSelectedPromptId] = useState<string>("");
 
   useEffect(() => {
     if (!open) {
@@ -93,6 +95,15 @@ export default function FilterDialog({
         key: "user_id",
         operation: "EQUALS",
         value: selectedUserId,
+        type: "attribute",
+      });
+    }
+
+    if (selectedPromptId) {
+      convertedAdvancedFilters.push({
+        key: "prompt_id",
+        operation: "EQUALS",
+        value: selectedPromptId,
         type: "attribute",
       });
     }
@@ -181,19 +192,28 @@ export default function FilterDialog({
             setSelectedUser={setSelectedUserId}
           />
         </div>
+        <div>
+          <h4 className="mt-4">Prompt Id</h4>
+          <PromptCombobox
+            selectedPrompt={selectedPromptId}
+            setSelectedPrompt={setSelectedPromptId}
+          />
+        </div>
         <DialogFooter>
           <Button variant={"outline"} onClick={onClose}>
             Cancel
           </Button>
           {(selectedFilters.length > 0 ||
             advancedFilters.length > 0 ||
-            selectedUserId !== "") && (
+            selectedUserId !== "" ||
+            selectedPromptId !== "") && (
             <Button
               variant={"destructive"}
               onClick={() => {
                 setSelectedFilters([]);
                 setAdvancedFilters([]);
                 setSelectedUserId("");
+                setSelectedPromptId("");
               }}
             >
               <ClearIcon className="h-4 w-4" />
