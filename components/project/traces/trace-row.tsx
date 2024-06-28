@@ -104,7 +104,7 @@ export const TraceRow = ({
   return (
     <div className="flex flex-col gap-3">
       <div
-        className={cn("grid-cols-11 grid items-center gap-6 cursor-pointer")}
+        className={cn("grid-cols-13 grid items-center gap-6 cursor-pointer")}
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex flex-row items-center gap-2">

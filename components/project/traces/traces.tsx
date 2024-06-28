@@ -196,7 +196,7 @@ export default function Traces({ email }: { email: string }) {
           <Label>UTC</Label>
         </div>
       </div>
-      <div className="grid grid-cols-11 items-center gap-6 p-3 bg-muted">
+      <div className="grid grid-cols-13 items-center gap-6 p-3 bg-muted">
         <p className="ml-10 text-xs font-medium">
           Time <span>&#8595;</span> ({utcTime ? "UTC" : "Local"})
         </p>
