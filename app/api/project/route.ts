@@ -83,8 +83,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const { apiKeyHash, ...projectWithoutApiKeyHash } = project;
+
   return NextResponse.json({
-    data: project,
+    data: projectWithoutApiKeyHash,
   });
 }
 
