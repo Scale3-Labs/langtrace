@@ -1,6 +1,7 @@
 import { authOptions } from "@/lib/auth/options";
 import { DEFAULT_TESTS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
+import { authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
@@ -42,11 +43,18 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user) {
-    redirect("/login");
+  const apiKey = req.headers.get("x-api-key");
+  if (!apiKey) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      redirect("/login");
+    }
+  } else {
+    const response = await authApiKey(apiKey, true);
+    if (response.status !== 200) {
+      return response;
+    }
   }
-
   const data = await req.json();
   const { name, description, teamId } = data;
   let createDefaultTests = data.createDefaultTests;
@@ -75,8 +83,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const { apiKeyHash, ...projectWithoutApiKeyHash } = project;
+
   return NextResponse.json({
-    data: project,
+    data: projectWithoutApiKeyHash,
   });
 }
 
