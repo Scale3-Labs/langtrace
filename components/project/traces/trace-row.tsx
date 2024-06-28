@@ -36,6 +36,8 @@ export const TraceRow = ({
   let model: string = "";
   let vendor: string = "";
   let userId: string = "";
+  let promptId: string = "";
+  let promptVersion: string = "";
   let prompts: any[] = [];
   let responses: any[] = [];
   let events: any[] = [];
@@ -55,6 +57,8 @@ export const TraceRow = ({
         prompts.push(attributes["llm.prompts"]);
         responses.push(attributes["llm.responses"]);
       }
+      promptId = attributes["prompt_id"];
+      promptVersion = attributes["prompt_version"];
       if (!model) {
         model = attributes["llm.model"] || "";
       }
@@ -100,7 +104,7 @@ export const TraceRow = ({
   return (
     <div className="flex flex-col gap-3">
       <div
-        className={cn("grid-cols-11 grid items-center gap-6 cursor-pointer")}
+        className={cn("grid-cols-13 grid items-center gap-6 cursor-pointer")}
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="flex flex-row items-center gap-2">
@@ -158,6 +162,8 @@ export const TraceRow = ({
           <p className="text-xs font-semibold col-span-2"></p>
         )}
         <p className="text-xs font-semibold">{userId}</p>
+        <p className="text-xs font-semibold">{promptId}</p>
+        <p className="text-xs font-semibold">{promptVersion}</p>
         <p className="text-xs">
           {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
           {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "/" : ""}
