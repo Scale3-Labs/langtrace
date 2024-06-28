@@ -196,7 +196,7 @@ export default function Traces({ email }: { email: string }) {
           <Label>UTC</Label>
         </div>
       </div>
-      <div className="grid grid-cols-11 items-center gap-6 p-3 bg-muted">
+      <div className="grid grid-cols-13 items-center gap-6 p-3 bg-muted">
         <p className="ml-10 text-xs font-medium">
           Time <span>&#8595;</span> ({utcTime ? "UTC" : "Local"})
         </p>
@@ -205,6 +205,8 @@ export default function Traces({ email }: { email: string }) {
         <p className="text-xs font-medium col-span-2">Input</p>
         <p className="text-xs font-medium col-span-2">Output</p>
         <p className="text-xs font-medium">User ID</p>
+        <p className="text-xs font-medium">Prompt ID</p>
+        <p className="text-xs font-medium">Prompt Version</p>
         <p className="text-xs font-medium">Input / Output / Total Tokens</p>
         <p className="text-xs font-medium">Token Cost</p>
         <p className="text-xs font-medium">Duration(ms)</p>
