@@ -261,7 +261,7 @@ export function Edit({
                 try {
                   setBusy(true);
                   const response = await fetch(
-                    `/api/api-key?id=${project.id}`,
+                    `/api/api-key?project_id=${project.id}`,
                     {
                       method: "POST",
                       headers: {
