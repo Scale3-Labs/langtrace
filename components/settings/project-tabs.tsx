@@ -1,18 +1,20 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import Tabs from "../shared/tabs";
 
-export default function ProjectSettingsTabs({}: {}) {
+export default function ProjectSettingsTabs() {
+  const id = useParams()?.project_id as string;
   const tabs = [
-    {
-      name: "Api Key",
-      value: "apiKey",
-      href: "/settings/api-key",
-    },
     {
       name: "General",
       value: "general",
-      href: "/settings/general",
+      href: `/project/${id}/settings/general`,
+    },
+    {
+      name: "API Key",
+      value: "apiKey",
+      href: `/project/${id}/settings/api-key`,
     },
   ];
 

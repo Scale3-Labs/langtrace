@@ -1,4 +1,4 @@
-import SettingsTabs from "@/components/settings/project-tabs";
+import ProjectSettingsTabs from "@/components/settings/project-tabs";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <h1 className="text-3xl font-semibold">Project Settings</h1>
       </div>
       <div className="flex gap-10 md:px-24 px-12 py-12">
-        <SettingsTabs />
+        <ProjectSettingsTabs />
         <div className="flex w-full flex-col gap-8 overflow-x-auto">
           {children}
         </div>

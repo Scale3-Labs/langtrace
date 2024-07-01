@@ -45,7 +45,7 @@ const ProjectNavLinks = (id: string) => [
   },
   {
     name: "Settings",
-    href: `/project/${id}/settings`,
+    href: `/project/${id}/settings/general`,
   },
 ];
 
