@@ -1,14 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { RabbitIcon } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { FieldValues, useForm } from "react-hook-form";
-import { useQuery } from "react-query";
-import { toast } from "sonner";
-import { z } from "zod";
-
+import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +10,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Form,
   FormControl,
   FormField,
@@ -26,12 +28,22 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { RabbitIcon } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FieldValues, useForm } from "react-hook-form";
+import { useQuery, useQueryClient } from "react-query";
+import { toast } from "sonner";
+import { z } from "zod";
 
-export default function ProfileView() {
+export default function ProjectView() {
   const projectId = useParams()?.project_id as string;
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
   const NameFormSchema = z.object({
     name: z
@@ -67,6 +79,33 @@ export default function ProfileView() {
       toast.success("Project updated successfully");
     } catch (error) {
       toast.error("Error updating project");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const deleteProject = async () => {
+    try {
+      setBusy(true);
+      await fetch("/api/project", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: project.project.id,
+          teamId: project,
+        }),
+      });
+      await queryClient.invalidateQueries("fetch-projects-query");
+      toast("Project deleted!", {
+        description: "Your project has been deleted.",
+      });
+      router.push("/projects");
+    } catch (error: any) {
+      toast("Error deleting your project!", {
+        description: `There was an error deleting your project: ${error.message}`,
+      });
     } finally {
       setBusy(false);
     }
@@ -118,62 +157,114 @@ export default function ProfileView() {
     );
   } else {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Update your project details here</CardDescription>
-        </CardHeader>
-        <CardContent className="w-full">
-          <Form {...ProjectDetailsForm}>
-            <form className="flex w-full flex-col gap-4">
-              <FormField
-                control={ProjectDetailsForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="capitalize"
-                        placeholder="My Project"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={ProjectDetailsForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="capitalize"
-                        placeholder="Project Description"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                disabled={busy}
-                onClick={ProjectDetailsForm.handleSubmit(saveProjectDetails)}
-                className="w-fit"
-              >
-                Save
-              </Button>
-            </form>
-          </Form>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Note: Please contact support to change your email address
-          </p>
-        </CardContent>
-      </Card>
+      <div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>Update your project details here</CardDescription>
+          </CardHeader>
+          <CardContent className="w-full">
+            <Form {...ProjectDetailsForm}>
+              <form className="flex w-full flex-col gap-4">
+                <FormField
+                  control={ProjectDetailsForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="capitalize"
+                          placeholder="My Project"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={ProjectDetailsForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="capitalize"
+                          placeholder="Project Description"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  disabled={busy}
+                  onClick={ProjectDetailsForm.handleSubmit(saveProjectDetails)}
+                  className="w-fit"
+                >
+                  Save
+                </Button>
+              </form>
+            </Form>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Note: Please contact support to change your email address
+            </p>
+          </CardContent>
+        </Card>
+        <div className="py-2">
+          <Card className="border-red-200 dark:border-red-900">
+            <CardHeader>
+              <CardTitle>Delete Project</CardTitle>
+              <CardDescription>
+                This project will be permanently deleted, including all of its
+                traces, datasets, evaluations, etc. This action is irreversible
+                and can not be undone.
+              </CardDescription>
+            </CardHeader>
+            <div className="w-full bg-red-100 bg-opacity-50 rounded-lg dark:bg-red-900 dark:bg-opacity-50">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="m-4 w-fit" variant={"destructive"}>
+                    Delete
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[625px]">
+                  <DialogHeader>
+                    <DialogTitle>Delete Project</DialogTitle>
+                    <DialogDescription>
+                      This project will be permanently deleted, including all of
+                      its traces, datasets, evaluations, etc. This action is
+                      irreversible and can not be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <DialogClose disabled={busy}>
+                      <Button variant={"outline"}>Cancel</Button>
+                    </DialogClose>
+                    <Button
+                      disabled={busy}
+                      onClick={deleteProject}
+                      variant={"destructive"}
+                    >
+                      {busy ? (
+                        <>
+                          <p>Deleting... </p>
+                          <Spinner />
+                        </>
+                      ) : (
+                        "Delete"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </Card>
+        </div>
+      </div>
     );
   }
 }
