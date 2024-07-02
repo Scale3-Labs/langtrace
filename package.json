@@ -27,6 +27,7 @@
 		"@headlessui/react": "^1.7.18",
 		"@headlessui/tailwindcss": "^0.2.0",
 		"@hookform/resolvers": "^3.3.4",
+		"@langtrase/trace-attributes": "file:../langtrace-trace-attributes/src/typescript/langtrase-trace-attributes-6.0.0.tgz",
 		"@langtrase/typescript-sdk": "^3.3.2",
 		"@mui/icons-material": "^5.15.14",
 		"@mui/material": "^5.15.14",
