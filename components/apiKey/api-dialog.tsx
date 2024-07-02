@@ -68,12 +68,15 @@ export function ApiKeyDialog({
             onClick={async () => {
               try {
                 setBusy(true);
-                const response = await fetch(`/api/api-key?id=${project_id}`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                });
+                const response = await fetch(
+                  `/api/api-key?project_id=${project_id}`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
                 const result = await response.json();
                 setApiKey(result.data.apiKey);
                 toast("Copy your API Key!", {
