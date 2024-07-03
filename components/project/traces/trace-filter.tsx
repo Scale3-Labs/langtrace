@@ -22,8 +22,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import ClearIcon from "@mui/icons-material/Clear";
-
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -269,42 +269,42 @@ export function AttributesCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[250px] p-0 translate-x-[30px]">
+      <PopoverContent className="w-[250px] p-0 h-[250px] translate-x-[30px]">
         <Command>
           <CommandInput
             placeholder="Search attribute..."
             value={searchQuery}
             onValueChange={onInputChange}
           />
-          {/* <ScrollArea> */}
-          <CommandEmpty>No attribute found.</CommandEmpty>
-          <CommandGroup>
-            {filteredAttributes.map((attribute) => (
-              <CommandItem
-                key={attribute}
-                value={attribute}
-                onSelect={(currentValue) => {
-                  setSelectedAttributeState(
-                    currentValue === selectedAttribute ? "" : currentValue
-                  );
-                  setSelectedAttribute(
-                    currentValue === selectedAttribute ? "" : currentValue
-                  );
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={`mr-2 h-4 w-4 ${
-                    selectedAttribute === attribute
-                      ? "opacity-100"
-                      : "opacity-0"
-                  }`}
-                />
-                {attribute}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-          {/* </ScrollArea> */}
+          <ScrollArea>
+            <CommandEmpty>No attribute found.</CommandEmpty>
+            <CommandGroup>
+              {filteredAttributes.map((attribute) => (
+                <CommandItem
+                  key={attribute}
+                  value={attribute}
+                  onSelect={(currentValue) => {
+                    setSelectedAttributeState(
+                      currentValue === selectedAttribute ? "" : currentValue
+                    );
+                    setSelectedAttribute(
+                      currentValue === selectedAttribute ? "" : currentValue
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={`mr-2 h-4 w-4 ${
+                      selectedAttribute === attribute
+                        ? "opacity-100"
+                        : "opacity-0"
+                    }`}
+                  />
+                  {attribute}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </ScrollArea>
         </Command>
       </PopoverContent>
     </Popover>
