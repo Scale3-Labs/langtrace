@@ -22,8 +22,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import ClearIcon from "@mui/icons-material/Clear";
-
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -245,8 +245,8 @@ export function AttributesCombobox({
   const filteredAttributes = searchQuery
     ? SpanAttributes.filter((attribute) =>
         attribute.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 10)
-    : SpanAttributes.slice(0, 10);
+      )
+    : SpanAttributes;
 
   const onInputChange = (value: string) => {
     setSearchQuery(value);
@@ -257,52 +257,54 @@ export function AttributesCombobox({
   }, [initialAttribute]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-[250px] justify-between"
         >
           {selectedAttribute ? selectedAttribute : "Select attribute..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[250px] p-0 h-[250px] translate-x-[30px]">
         <Command>
           <CommandInput
             placeholder="Search attribute..."
             value={searchQuery}
             onValueChange={onInputChange}
           />
-          <CommandEmpty>No attribute found.</CommandEmpty>
-          <CommandGroup>
-            {filteredAttributes.map((attribute) => (
-              <CommandItem
-                key={attribute}
-                value={attribute}
-                onSelect={(currentValue) => {
-                  setSelectedAttributeState(
-                    currentValue === selectedAttribute ? "" : currentValue
-                  );
-                  setSelectedAttribute(
-                    currentValue === selectedAttribute ? "" : currentValue
-                  );
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={`mr-2 h-4 w-4 ${
-                    selectedAttribute === attribute
-                      ? "opacity-100"
-                      : "opacity-0"
-                  }`}
-                />
-                {attribute}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <ScrollArea>
+            <CommandEmpty>No attribute found.</CommandEmpty>
+            <CommandGroup>
+              {filteredAttributes.map((attribute) => (
+                <CommandItem
+                  key={attribute}
+                  value={attribute}
+                  onSelect={(currentValue) => {
+                    setSelectedAttributeState(
+                      currentValue === selectedAttribute ? "" : currentValue
+                    );
+                    setSelectedAttribute(
+                      currentValue === selectedAttribute ? "" : currentValue
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={`mr-2 h-4 w-4 ${
+                      selectedAttribute === attribute
+                        ? "opacity-100"
+                        : "opacity-0"
+                    }`}
+                  />
+                  {attribute}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </ScrollArea>
         </Command>
       </PopoverContent>
     </Popover>

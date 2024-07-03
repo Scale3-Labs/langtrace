@@ -100,7 +100,7 @@ export function UserCombobox({
             value={searchQuery}
             onValueChange={onInputChange}
           />
-          <CommandEmpty>No attribute found.</CommandEmpty>
+          <CommandEmpty>No users found.</CommandEmpty>
           <CommandGroup>
             {userIds.map((id: string) => (
               <CommandItem
