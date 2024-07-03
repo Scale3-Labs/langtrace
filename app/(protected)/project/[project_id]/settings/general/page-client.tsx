@@ -40,8 +40,6 @@ import { z } from "zod";
 export default function ProjectView() {
   const projectId = useParams()?.project_id as string;
   const [busy, setBusy] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -124,8 +122,6 @@ export default function ProjectView() {
         throw new Error(error?.message || "Failed to fetch project");
       }
       const result = await response.json();
-      setName(result.project.name);
-      setDescription(result.project.description);
       return result;
     },
     onError: (error) => {
@@ -157,7 +153,7 @@ export default function ProjectView() {
     );
   } else {
     return (
-      <div>
+      <div className="flex flex-col gap-8">
         <Card>
           <CardHeader>
             <CardTitle>Profile</CardTitle>
@@ -221,9 +217,6 @@ export default function ProjectView() {
                 </Button>
               </form>
             </Form>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Note: Please contact support to change your email address
-            </p>
           </CardContent>
         </Card>
         <div className="py-2">
