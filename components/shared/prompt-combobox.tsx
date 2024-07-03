@@ -21,58 +21,60 @@ import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
-export function UserCombobox({
-  setSelectedUser,
-  selectedUser,
+export function PromptCombobox({
+  setSelectedPrompt,
+  selectedPrompt,
 }: {
-  setSelectedUser: (user: string) => void;
-  selectedUser?: string;
+  setSelectedPrompt: (prompt: string) => void;
+  selectedPrompt?: string;
 }) {
   const project_id = useParams()?.project_id as string;
   const [open, setOpen] = useState(false);
-  const [selectedUserId, setSelectedUserIdState] = useState(selectedUser || "");
+  const [selectedPromptId, setSelectedPromptIdState] = useState(
+    selectedPrompt || ""
+  );
   const [searchQuery, setSearchQuery] = useState("");
-  const [userIds, setUserIds] = useState<string[]>([]);
+  const [promptIds, setPromptIds] = useState<string[]>([]);
   const [showLoader, setShowLoader] = useState(false);
-  const [internalSelectedUser, setInternalSelectedUser] =
-    useState(selectedUser);
+  const [internalSelectedPrompt, setInternalSelectedPrompt] =
+    useState(selectedPrompt);
 
-  const handleSelectUser = (currentValue: string) => {
-    const newUserId = currentValue === selectedUserId ? "" : currentValue;
-    setSelectedUserIdState(newUserId);
-    setSelectedUser(newUserId);
+  const handleSelectPrompt = (currentValue: string) => {
+    const newPromptId = currentValue === selectedPromptId ? "" : currentValue;
+    setSelectedPromptIdState(newPromptId);
+    setSelectedPrompt(newPromptId);
 
     setOpen(false);
   };
 
   useEffect(() => {
-    setSelectedUserIdState(selectedUser || "");
-    setInternalSelectedUser(selectedUser || "");
-  }, [selectedUser]);
+    setSelectedPromptIdState(selectedPrompt || "");
+    setInternalSelectedPrompt(selectedPrompt || "");
+  }, [selectedPrompt]);
 
-  const fetchUserIds = useQuery({
-    queryKey: ["fetch-user-ids-query", project_id],
+  const fetchPromptIds = useQuery({
+    queryKey: ["fetch-prompt-ids-query", project_id],
     queryFn: async () => {
-      const response = await fetch(`/api/user-ids?projectId=${project_id}`);
+      const response = await fetch(`/api/prompt-ids?projectId=${project_id}`);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch user ids");
+        throw new Error("Failed to fetch prompt ids");
       }
       const result = await response.json();
       return result;
     },
-    onSuccess: (data: { userIDs: any }) => {
-      setUserIds(data?.userIDs || []);
+    onSuccess: (data: { promptIDs: any }) => {
+      setPromptIds(data?.promptIDs || []);
     },
     onError: (error) => {
       setShowLoader(false);
-      toast.error("Failed to fetch user ids", {
+      toast.error("Failed to fetch prompt ids", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
   });
 
-  if (fetchUserIds.isLoading) {
+  if (fetchPromptIds.isLoading) {
     return <div>Loading...</div>;
   }
 
@@ -87,39 +89,39 @@ export function UserCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-[220px] justify-between"
         >
-          {selectedUserId ? selectedUserId : "Filter by user id..."}
+          {selectedPromptId ? selectedPromptId : "Filter by prompt id..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[220px] p-0">
         <Command>
           <CommandInput
-            placeholder="Search users..."
+            placeholder="Search prompts..."
             value={searchQuery}
             onValueChange={onInputChange}
           />
-          <CommandEmpty>No users found.</CommandEmpty>
+          <CommandEmpty>No attribute found.</CommandEmpty>
           <CommandGroup>
-            {userIds.map((id: string) => (
+            {promptIds.map((id: string) => (
               <CommandItem
                 key={id}
                 value={id}
                 onSelect={(currentValue) => {
-                  setSelectedUserIdState(
-                    currentValue === selectedUserId ? "" : currentValue
+                  setSelectedPromptIdState(
+                    currentValue === selectedPromptId ? "" : currentValue
                   );
-                  setSelectedUser(
-                    currentValue === selectedUserId ? "" : currentValue
+                  setSelectedPrompt(
+                    currentValue === selectedPromptId ? "" : currentValue
                   );
-                  handleSelectUser(currentValue);
+                  handleSelectPrompt(currentValue);
                   setOpen(false);
                 }}
               >
                 <Check
                   className={`mr-2 h-4 w-4 ${
-                    selectedUserId === id ? "opacity-100" : "opacity-0"
+                    selectedPromptId === id ? "opacity-100" : "opacity-0"
                   }`}
                 />
                 {id}

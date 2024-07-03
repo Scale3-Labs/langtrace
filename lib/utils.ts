@@ -320,7 +320,10 @@ export function parseQueryString(url: string): Record<string, any> {
   });
 }
 
-export async function authApiKey(api_key?: string): Promise<NextResponse> {
+export async function authApiKey(
+  api_key?: string,
+  team_auth?: boolean
+): Promise<NextResponse> {
   if (!api_key) {
     return NextResponse.json(
       {
@@ -330,6 +333,22 @@ export async function authApiKey(api_key?: string): Promise<NextResponse> {
     );
   }
 
+  if (team_auth) {
+    const team = await prisma.team.findFirst({
+      where: {
+        apiKeyHash: hashApiKey(api_key),
+      },
+    });
+
+    if (!team) {
+      return NextResponse.json(
+        { error: "Unauthorized. Invalid API key" },
+        { status: 401 }
+      );
+    } else {
+      return NextResponse.json({ data: { team: team } }, { status: 200 });
+    }
+  }
   const project = await prisma.project.findFirst({
     where: {
       apiKeyHash: hashApiKey(api_key),

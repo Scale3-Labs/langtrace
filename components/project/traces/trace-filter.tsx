@@ -22,11 +22,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import ClearIcon from "@mui/icons-material/Clear";
-
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { PromptCombobox } from "@/components/shared/prompt-combobox";
 import { UserCombobox } from "@/components/shared/user-combobox";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import VendorDropdown from "./vendor-dropdown";
@@ -43,6 +44,7 @@ export default function FilterDialog({
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedPromptId, setSelectedPromptId] = useState<string>("");
 
   useEffect(() => {
     if (!open) {
@@ -93,6 +95,15 @@ export default function FilterDialog({
         key: "user_id",
         operation: "EQUALS",
         value: selectedUserId,
+        type: "attribute",
+      });
+    }
+
+    if (selectedPromptId) {
+      convertedAdvancedFilters.push({
+        key: "prompt_id",
+        operation: "EQUALS",
+        value: selectedPromptId,
         type: "attribute",
       });
     }
@@ -181,19 +192,28 @@ export default function FilterDialog({
             setSelectedUser={setSelectedUserId}
           />
         </div>
+        <div>
+          <h4 className="mt-4">Prompt Id</h4>
+          <PromptCombobox
+            selectedPrompt={selectedPromptId}
+            setSelectedPrompt={setSelectedPromptId}
+          />
+        </div>
         <DialogFooter>
           <Button variant={"outline"} onClick={onClose}>
             Cancel
           </Button>
           {(selectedFilters.length > 0 ||
             advancedFilters.length > 0 ||
-            selectedUserId !== "") && (
+            selectedUserId !== "" ||
+            selectedPromptId !== "") && (
             <Button
               variant={"destructive"}
               onClick={() => {
                 setSelectedFilters([]);
                 setAdvancedFilters([]);
                 setSelectedUserId("");
+                setSelectedPromptId("");
               }}
             >
               <ClearIcon className="h-4 w-4" />
@@ -225,8 +245,8 @@ export function AttributesCombobox({
   const filteredAttributes = searchQuery
     ? SpanAttributes.filter((attribute) =>
         attribute.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 10)
-    : SpanAttributes.slice(0, 10);
+      )
+    : SpanAttributes;
 
   const onInputChange = (value: string) => {
     setSearchQuery(value);
@@ -237,52 +257,54 @@ export function AttributesCombobox({
   }, [initialAttribute]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-[250px] justify-between"
         >
           {selectedAttribute ? selectedAttribute : "Select attribute..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[250px] p-0 h-[250px] translate-x-[30px]">
         <Command>
           <CommandInput
             placeholder="Search attribute..."
             value={searchQuery}
             onValueChange={onInputChange}
           />
-          <CommandEmpty>No attribute found.</CommandEmpty>
-          <CommandGroup>
-            {filteredAttributes.map((attribute) => (
-              <CommandItem
-                key={attribute}
-                value={attribute}
-                onSelect={(currentValue) => {
-                  setSelectedAttributeState(
-                    currentValue === selectedAttribute ? "" : currentValue
-                  );
-                  setSelectedAttribute(
-                    currentValue === selectedAttribute ? "" : currentValue
-                  );
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={`mr-2 h-4 w-4 ${
-                    selectedAttribute === attribute
-                      ? "opacity-100"
-                      : "opacity-0"
-                  }`}
-                />
-                {attribute}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <ScrollArea>
+            <CommandEmpty>No attribute found.</CommandEmpty>
+            <CommandGroup>
+              {filteredAttributes.map((attribute) => (
+                <CommandItem
+                  key={attribute}
+                  value={attribute}
+                  onSelect={(currentValue) => {
+                    setSelectedAttributeState(
+                      currentValue === selectedAttribute ? "" : currentValue
+                    );
+                    setSelectedAttribute(
+                      currentValue === selectedAttribute ? "" : currentValue
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={`mr-2 h-4 w-4 ${
+                      selectedAttribute === attribute
+                        ? "opacity-100"
+                        : "opacity-0"
+                    }`}
+                  />
+                  {attribute}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </ScrollArea>
         </Command>
       </PopoverContent>
     </Popover>

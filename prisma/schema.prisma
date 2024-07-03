@@ -173,6 +173,7 @@ model Team {
   users      User[]
   status     String?      @default("active")
   TeamInvite TeamInvite[]
+  apiKeyHash String?      @unique
   projects   Project[]
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
