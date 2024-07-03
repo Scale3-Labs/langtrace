@@ -1,4 +1,5 @@
 # [Langtrace](https://www.langtrace.ai)
+Open Source Observability for LLM applications
 
 ## Open Source & Open Telemetry(OTEL) Observability for LLM applications
 
@@ -135,7 +136,7 @@ Langtrace automatically captures traces from the following vendors:
 | CrewAI       | Framework       | :x:                | :white_check_mark: |
 | Pinecone     | Vector Database | :white_check_mark: | :white_check_mark: |
 | ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark: |
-| QDrant       | Vector Database | :x:                | :white_check_mark: |
+| QDrant       | Vector Database | :white_check_mark: | :white_check_mark: |
 | Weaviate     | Vector Database | :white_check_mark: | :white_check_mark: |
 
 ---
