@@ -162,6 +162,18 @@ export default function ProjectView() {
           <CardContent className="w-full">
             <Form {...ProjectDetailsForm}>
               <form className="flex w-full flex-col gap-4">
+                <FormLabel>Project ID</FormLabel>
+                <div className="flex items-center bg-muted p-2 rounded-md justify-between">
+                  <p
+                    onClick={() => {
+                      navigator.clipboard.writeText(project.project.id);
+                      toast.success("Copied to clipboard");
+                    }}
+                    className="text-sm select-all dark:selection:bg-orange-600 selection:bg-orange-300"
+                  >
+                    {project.project.id}
+                  </p>
+                </div>
                 <FormField
                   control={ProjectDetailsForm.control}
                   name="name"
