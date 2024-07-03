@@ -37,7 +37,6 @@ export default function PageClient() {
         },
       });
       const result = await response.json();
-      console.log(result);
       setApiKey(result.data.apiKey);
       handleApiKeyGenerated(result.data.apiKey);
       toast("Copy your API Key!", {
