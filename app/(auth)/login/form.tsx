@@ -13,6 +13,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams?.get("next");
   const [clickedGoogle, setClickedGoogle] = useState(false);
+  const [clickedAzure, setClickedAzure] = useState(false);
 
   useEffect(() => {
     const error = searchParams?.get("error");
@@ -58,12 +59,12 @@ export default function LoginForm() {
         </Button>
         <Button
           onClick={() => {
-            setClickedGoogle(true);
+            setClickedAzure(true);
             signIn("azure-ad", {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
             });
           }}
-          disabled={clickedGoogle}
+          disabled={clickedAzure}
           className="flex items-center gap-2"
         >
           <Image
