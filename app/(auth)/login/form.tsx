@@ -21,7 +21,7 @@ export default function LoginForm() {
 
   return (
     <>
-      <div className="flex flex-col gap-0">
+      <div className="flex flex-col gap-2">
         {process.env.NEXT_PUBLIC_ENABLE_ADMIN_LOGIN === "true" && (
           <Button
             className="bg-muted-foreground hover:bg-primary mb-6"
@@ -55,6 +55,25 @@ export default function LoginForm() {
             className="rounded-full"
           />
           Continue with Google
+        </Button>
+        <Button
+          onClick={() => {
+            setClickedGoogle(true);
+            signIn("azure-ad", {
+              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            });
+          }}
+          disabled={clickedGoogle}
+          className="flex items-center gap-2"
+        >
+          <Image
+            src="/azure.svg"
+            alt="Azure logo"
+            width={24}
+            height={24}
+            className="rounded-full"
+          />
+          Continue with Azure AD
         </Button>
       </div>
       <p className="text-center text-sm text-muted-foreground">
