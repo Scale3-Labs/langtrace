@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import AzureADProvider from 'next-auth/providers/azure-ad';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -58,6 +59,12 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    AzureADProvider({
+      clientId: process.env.AZURE_AD_CLIENT_ID as string,
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET as string,
+      tenantId: process.env.AZURE_AD_TENANT_ID as string,
+      allowDangerousEmailAccountLinking: true,
+    })
   ],
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },

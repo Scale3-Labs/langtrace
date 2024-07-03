@@ -132,6 +132,7 @@ Langtrace automatically captures traces from the following vendors:
 | Langchain    | Framework       | :x:                | :white_check_mark: |
 | LlamaIndex   | Framework       | :white_check_mark: | :white_check_mark: |
 | DSPy         | Framework       | :x:                | :white_check_mark: |
+| CrewAI       | Framework       | :x:                | :white_check_mark: |
 | Pinecone     | Vector Database | :white_check_mark: | :white_check_mark: |
 | ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark: |
 | QDrant       | Vector Database | :x:                | :white_check_mark: |
