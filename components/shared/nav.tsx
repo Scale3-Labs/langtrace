@@ -43,6 +43,10 @@ const ProjectNavLinks = (id: string) => [
     name: "Prompts",
     href: `/project/${id}/prompts`,
   },
+  {
+    name: "Settings",
+    href: `/project/${id}/settings/general`,
+  },
 ];
 
 export default function Nav() {
