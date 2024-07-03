@@ -245,8 +245,8 @@ export function AttributesCombobox({
   const filteredAttributes = searchQuery
     ? SpanAttributes.filter((attribute) =>
         attribute.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 10)
-    : SpanAttributes.slice(0, 10);
+      )
+    : SpanAttributes;
 
   const onInputChange = (value: string) => {
     setSearchQuery(value);
@@ -257,7 +257,7 @@ export function AttributesCombobox({
   }, [initialAttribute]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -276,6 +276,7 @@ export function AttributesCombobox({
             value={searchQuery}
             onValueChange={onInputChange}
           />
+          {/* <ScrollArea> */}
           <CommandEmpty>No attribute found.</CommandEmpty>
           <CommandGroup>
             {filteredAttributes.map((attribute) => (
@@ -303,6 +304,7 @@ export function AttributesCombobox({
               </CommandItem>
             ))}
           </CommandGroup>
+          {/* </ScrollArea> */}
         </Command>
       </PopoverContent>
     </Popover>
