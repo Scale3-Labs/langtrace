@@ -13,7 +13,7 @@ export default function ProjectSettingsTabs() {
     },
     {
       name: "API Key",
-      value: "apiKey",
+      value: "api-key",
       href: `/project/${id}/settings/api-key`,
     },
   ];
