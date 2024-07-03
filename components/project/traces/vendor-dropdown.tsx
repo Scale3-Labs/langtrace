@@ -6,10 +6,9 @@ import {
 } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Events,
-  SupportedVendors,
-  TracedFunctionsByVendor,
-  Vendors,
+  EventsLocal,
+  TracedFunctionsByVendorsLocal,
+  VendorsLocal,
 } from "@/lib/ts_sdk_constants";
 
 export default function VendorDropdown({
@@ -24,7 +23,7 @@ export default function VendorDropdown({
       <AccordionItem value="events">
         <AccordionTrigger>events</AccordionTrigger>
         <AccordionContent>
-          {Events.map((event) => (
+          {EventsLocal.map((event) => (
             <div key={event} className="flex items-center">
               <Checkbox
                 checked={selectedFilters.includes(event)}
@@ -36,11 +35,11 @@ export default function VendorDropdown({
           ))}
         </AccordionContent>
       </AccordionItem>
-      {(Object.keys(Vendors) as Array<keyof typeof Vendors>).map((vendor) => (
+      {Object.values(VendorsLocal).map((vendor) => (
         <AccordionItem key={vendor} value={vendor}>
-          <AccordionTrigger>{Vendors[vendor]}</AccordionTrigger>
+          <AccordionTrigger>{vendor}</AccordionTrigger>
           <AccordionContent>
-            {TracedFunctionsByVendor[vendor as SupportedVendors].map(
+            {TracedFunctionsByVendorsLocal[vendor as VendorsLocal].map(
               (method: any) => (
                 <div key={method} className="flex items-center">
                   <Checkbox
