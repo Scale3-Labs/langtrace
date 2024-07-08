@@ -1,4 +1,5 @@
 # [Langtrace](https://www.langtrace.ai)
+
 Open Source Observability for LLM applications
 
 ## Open Source & Open Telemetry(OTEL) Observability for LLM applications
@@ -6,6 +7,7 @@ Open Source Observability for LLM applications
 ![Static Badge](https://img.shields.io/badge/License-AGPL--3.0-blue)
 [![NPM Typescript SDK](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat&logo=npm&label=%40langtrase%2Ftypescript-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-typescript-sdk)](https://github.com/Scale3-Labs/langtrace-typescript-sdk)
 [![PyPI Python SDK](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat&logo=python&label=langtrace-python-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-python-sdk)](https://github.com/Scale3-Labs/langtrace-python-sdk)
+[![Downloads](https://static.pepy.tech/badge/langtrace-python-sdk/month)](https://pepy.tech/project/langtrace-python-sdk)
 [![NPM Trace Attributes](https://img.shields.io/npm/v/%40langtrase%2Ftrace-attributes?style=flat&logo=npm&label=%40langtrase%2Ftrace-attributes&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-trace-attributes)](https://github.com/Scale3-Labs/langtrace-trace-attributes)
 [![PyPI Trace Attributes](https://img.shields.io/pypi/v/trace-attributes?style=flat&logo=python&label=trace-attributes&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-trace-attributes)](https://github.com/Scale3-Labs/langtrace-trace-attributes)
 ![Static Badge](https://img.shields.io/badge/Development_status-Active-green)
@@ -123,21 +125,25 @@ docker compose down -v
 
 Langtrace automatically captures traces from the following vendors:
 
-| Vendor       | Type            | Typescript SDK     | Python SDK         |
-| ------------ | --------------- | ------------------ | ------------------ |
-| OpenAI       | LLM             | :white_check_mark: | :white_check_mark: |
-| Anthropic    | LLM             | :white_check_mark: | :white_check_mark: |
-| Azure OpenAI | LLM             | :white_check_mark: | :white_check_mark: |
-| Cohere       | LLM             | :white_check_mark: | :white_check_mark: |
-| Groq         | LLM             | :x:                | :white_check_mark: |
-| Langchain    | Framework       | :x:                | :white_check_mark: |
-| LlamaIndex   | Framework       | :white_check_mark: | :white_check_mark: |
-| DSPy         | Framework       | :x:                | :white_check_mark: |
-| CrewAI       | Framework       | :x:                | :white_check_mark: |
-| Pinecone     | Vector Database | :white_check_mark: | :white_check_mark: |
-| ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark: |
-| QDrant       | Vector Database | :white_check_mark: | :white_check_mark: |
-| Weaviate     | Vector Database | :white_check_mark: | :white_check_mark: |
+| Vendor       | Type            | Typescript SDK     | Python SDK                      |
+| ------------ | --------------- | ------------------ | ------------------------------- |
+| OpenAI       | LLM             | :white_check_mark: | :white_check_mark:              |
+| Anthropic    | LLM             | :white_check_mark: | :white_check_mark:              |
+| Azure OpenAI | LLM             | :white_check_mark: | :white_check_mark:              |
+| Cohere       | LLM             | :white_check_mark: | :white_check_mark:              |
+| Groq         | LLM             | :x:                | :white_check_mark:              |
+| Perplexity   | LLM             | :white_check_mark: | :white_check_mark:              |
+| Langchain    | Framework       | :x:                | :white_check_mark:              |
+| LlamaIndex   | Framework       | :white_check_mark: | :white_check_mark:              |
+| Langgraph    | Framework       | :x:                | :white_check_mark:              |
+| DSPy         | Framework       | :x:                | :white_check_mark:              |
+| CrewAI       | Framework       | :x:                | :white_check_mark:              |
+| Ollama       | Framework       | :x:                | :white_check_mark:              |
+| Pinecone     | Vector Database | :white_check_mark: | :white_check_mark:              |
+| ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark:              |
+| QDrant       | Vector Database | :white_check_mark: | :white_check_mark:              |
+| Weaviate     | Vector Database | :white_check_mark: | :white_check_mark:              |
+| PGVector     | Vector Database | :white_check_mark: | :white_check_mark: (SQLAlchemy) |
 
 ---
 
