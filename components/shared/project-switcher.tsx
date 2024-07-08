@@ -18,6 +18,7 @@ import { usePathname } from "next/navigation";
 import React from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
+import { ScrollArea } from "../ui/scroll-area";
 
 export function ProjectSwitcher({ email }: { email: string }) {
   const [open, setOpen] = React.useState(false);
@@ -45,7 +46,7 @@ export function ProjectSwitcher({ email }: { email: string }) {
   });
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -54,47 +55,49 @@ export function ProjectSwitcher({ email }: { email: string }) {
           className="flex w-[200px] justify-between"
         >
           <p className="truncate">
-          {
-            projects?.projects.filter(
-              (project: any) => project.id === pathname.split("/")[2]
-            )[0]?.name
-          }
+            {
+              projects?.projects.filter(
+                (project: any) => project.id === pathname.split("/")[2]
+              )[0]?.name
+            }
           </p>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[200px] h-[400px] p-0">
         <Command>
           <CommandInput placeholder="Search Project..." className="h-9" />
-          <CommandEmpty>No project found.</CommandEmpty>
-          <CommandGroup>
-            {projects?.projects.map((project: any) => (
-              <Link
-                key={project.id}
-                href={`/project/${project.id}/${pathname.split("/")[3]}`}
-                legacyBehavior
-              >
-                <a>
-                  <CommandItem
-                    value={project.id}
-                    onSelect={() => setOpen(false)}
-                  >
-                    <div className="flex justify-between w-full cursor-pointer">
-                      <p className="truncate">{project.name}</p>
-                      <CheckIcon
-                        className={cn(
-                          "ml-auto h-4 w-4",
-                          pathname.split("/")[2] === project.id
-                            ? "opacity-100"
-                            : "opacity-0"
-                        )}
-                      />
-                    </div>
-                  </CommandItem>
-                </a>
-              </Link>
-            ))}
-          </CommandGroup>
+          <ScrollArea>
+            <CommandEmpty>No project found.</CommandEmpty>
+            <CommandGroup>
+              {projects?.projects.map((project: any) => (
+                <Link
+                  key={project.id}
+                  href={`/project/${project.id}/${pathname.split("/")[3]}`}
+                  legacyBehavior
+                >
+                  <a>
+                    <CommandItem
+                      value={project.id}
+                      onSelect={() => setOpen(false)}
+                    >
+                      <div className="flex justify-between w-full cursor-pointer">
+                        <p className="truncate">{project.name}</p>
+                        <CheckIcon
+                          className={cn(
+                            "ml-auto h-4 w-4",
+                            pathname.split("/")[2] === project.id
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                      </div>
+                    </CommandItem>
+                  </a>
+                </Link>
+              ))}
+            </CommandGroup>
+          </ScrollArea>
         </Command>
       </PopoverContent>
     </Popover>
