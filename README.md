@@ -125,25 +125,25 @@ docker compose down -v
 
 Langtrace automatically captures traces from the following vendors:
 
-| Vendor                | Type            | Typescript SDK     | Python SDK         |
-| --------------------- | --------------- | ------------------ | ------------------ |
-| OpenAI                | LLM             | :white_check_mark: | :white_check_mark: |
-| Anthropic             | LLM             | :white_check_mark: | :white_check_mark: |
-| Azure OpenAI          | LLM             | :white_check_mark: | :white_check_mark: |
-| Cohere                | LLM             | :white_check_mark: | :white_check_mark: |
-| Groq                  | LLM             | :x:                | :white_check_mark: |
-| Perplexity            | LLM             | :white_check_mark: | :white_check_mark: |
-| Langchain             | Framework       | :x:                | :white_check_mark: |
-| LlamaIndex            | Framework       | :white_check_mark: | :white_check_mark: |
-| Langgraph             | Framework       | :x:                | :white_check_mark: |
-| DSPy                  | Framework       | :x:                | :white_check_mark: |
-| CrewAI                | Framework       | :x:                | :white_check_mark: |
-| Ollama                | Framework       | :x:                | :white_check_mark: |
-| Pinecone              | Vector Database | :white_check_mark: | :white_check_mark: |
-| ChromaDB              | Vector Database | :white_check_mark: | :white_check_mark: |
-| QDrant                | Vector Database | :white_check_mark: | :white_check_mark: |
-| Weaviate              | Vector Database | :white_check_mark: | :white_check_mark: |
-| PGVector (SQLAlchemy) | Vector Database | :white_check_mark: | :white_check_mark: |
+| Vendor       | Type            | Typescript SDK     | Python SDK                      |
+| ------------ | --------------- | ------------------ | ------------------------------- |
+| OpenAI       | LLM             | :white_check_mark: | :white_check_mark:              |
+| Anthropic    | LLM             | :white_check_mark: | :white_check_mark:              |
+| Azure OpenAI | LLM             | :white_check_mark: | :white_check_mark:              |
+| Cohere       | LLM             | :white_check_mark: | :white_check_mark:              |
+| Groq         | LLM             | :x:                | :white_check_mark:              |
+| Perplexity   | LLM             | :white_check_mark: | :white_check_mark:              |
+| Langchain    | Framework       | :x:                | :white_check_mark:              |
+| LlamaIndex   | Framework       | :white_check_mark: | :white_check_mark:              |
+| Langgraph    | Framework       | :x:                | :white_check_mark:              |
+| DSPy         | Framework       | :x:                | :white_check_mark:              |
+| CrewAI       | Framework       | :x:                | :white_check_mark:              |
+| Ollama       | Framework       | :x:                | :white_check_mark:              |
+| Pinecone     | Vector Database | :white_check_mark: | :white_check_mark:              |
+| ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark:              |
+| QDrant       | Vector Database | :white_check_mark: | :white_check_mark:              |
+| Weaviate     | Vector Database | :white_check_mark: | :white_check_mark:              |
+| PGVector     | Vector Database | :white_check_mark: | :white_check_mark: (SQLAlchemy) |
 
 ---
 
