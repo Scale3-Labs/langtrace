@@ -28,11 +28,13 @@ import { z } from "zod";
 
 export function CreateData({
   datasetId,
+  projectId,
   disabled = false,
   variant = "default",
   className = "",
 }: {
   datasetId?: string;
+  projectId?: string;
   disabled?: boolean;
   variant?: any;
   className?: string;
@@ -88,6 +90,7 @@ export function CreateData({
                       },
                     ],
                     datasetId,
+                    projectId,
                   }),
                 });
                 await queryClient.invalidateQueries(datasetId);
