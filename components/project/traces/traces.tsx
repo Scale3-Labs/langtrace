@@ -29,8 +29,6 @@ export default function Traces({ email }: { email: string }) {
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
-  const [clearFilters, setClearFilters] = useState(false);
-  const [clearFiltersKey, setClearFiltersKey] = useState(0);
 
   useEffect(() => {
     setShowLoader(true);

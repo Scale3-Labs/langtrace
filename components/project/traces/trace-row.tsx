@@ -53,16 +53,46 @@ export const TraceRow = ({
         }
       }
       userId = attributes["user_id"];
-      if (attributes["llm.prompts"] && attributes["llm.responses"]) {
+      if (attributes["gen_ai.prompt"]) {
+        prompts.push(attributes["gen_ai.prompt"]);
+      } else if (attributes["llm.prompts"] && attributes["llm.responses"]) {
+        // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
         prompts.push(attributes["llm.prompts"]);
         responses.push(attributes["llm.responses"]);
       }
       promptId = attributes["prompt_id"];
       promptVersion = attributes["prompt_version"];
       if (!model) {
-        model = attributes["llm.model"] || "";
+        model =
+          attributes["gen_ai.request.model"] || attributes["llm.model"] || "";
       }
-      if (attributes["llm.token.counts"]) {
+      if (
+        attributes["gen_ai.usage.prompt_tokens"] &&
+        attributes["gen_ai.usage.completion_tokens"]
+      ) {
+        tokenCounts = {
+          input_tokens: tokenCounts.prompt_tokens
+            ? tokenCounts.prompt_tokens +
+              attributes["gen_ai.usage.prompt_tokens"]
+            : attributes["gen_ai.usage.prompt_tokens"],
+          output_tokens: tokenCounts.completion_tokens
+            ? tokenCounts.completion_tokens +
+              attributes["gen_ai.usage.completion_tokens"]
+            : attributes["gen_ai.usage.completion_tokens"],
+          total_tokens: tokenCounts.total_tokens
+            ? tokenCounts.total_tokens +
+              attributes["gen_ai.usage.prompt_tokens"] +
+              attributes["gen_ai.usage.completion_tokens"]
+            : attributes["gen_ai.usage.prompt_tokens"] +
+              attributes["gen_ai.usage.completion_tokens"],
+        };
+        const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
+        // add the cost of the current span to the total cost
+        cost.total += currentcost.total;
+        cost.input += currentcost.input;
+        cost.output += currentcost;
+      } else if (attributes["llm.token.counts"]) {
+        // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
         tokenCounts = {
           input_tokens: tokenCounts.input_tokens
@@ -90,6 +120,18 @@ export const TraceRow = ({
 
     if (span.events) {
       events = JSON.parse(span.events);
+
+      // find event with name 'response'
+      const responseEvent = events.find(
+        (event: any) => event.name === "response"
+      );
+      if (
+        responseEvent &&
+        responseEvent["attributes"] &&
+        responseEvent["attributes"]["gen_ai.completion"]
+      ) {
+        responses.push(responseEvent["attributes"]["gen_ai.completion"]);
+      }
     }
   }
 
