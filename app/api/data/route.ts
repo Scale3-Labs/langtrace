@@ -85,6 +85,9 @@ export async function POST(req: NextRequest) {
     if (!projectId) {
       projectId = data.projectId;
     }
+    console.log("hit");
+    console.log("data", data);
+    console.log("projectId", projectId);
 
     const payload = datas.map((data: Data) => {
       const d: any = {

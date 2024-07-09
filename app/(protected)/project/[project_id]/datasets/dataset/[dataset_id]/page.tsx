@@ -96,7 +96,7 @@ export default function Dataset() {
               <ChevronLeft className="mr-1" />
               Back
             </Button>
-            <CreateData datasetId={dataset_id} />
+            <CreateData projectId={projectId} datasetId={dataset_id} />
             <DownloadDataset
               projectId={projectId}
               datasetId={dataset_id}

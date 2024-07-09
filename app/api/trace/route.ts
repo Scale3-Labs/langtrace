@@ -7,6 +7,19 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
+    const otel = req.nextUrl.searchParams.get("otel") as string;
+    if (otel) {
+      console.log("otel", otel);
+      const data = await req.json();
+      console.log("clap");
+      console.log("data", data);
+      return NextResponse.json(
+        {
+          error: "Something went wrong while ingesting traces",
+        },
+        { status: 404 }
+      );
+    }
     const data = await req.json();
     const apiKey = req.headers.get("x-api-key");
 
