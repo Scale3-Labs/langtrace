@@ -62,7 +62,7 @@ export const TraceRow = ({
       promptVersion = attributes["prompt_version"];
       if (!model) {
         model =
-          attributes["gen_ai.request.model"] || attributes["llm.model"] || "";
+          attributes["gen_ai.response.model"] || attributes["llm.model"] || "";
       }
       if (
         attributes["gen_ai.usage.prompt_tokens"] &&

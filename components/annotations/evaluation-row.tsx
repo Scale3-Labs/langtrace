@@ -116,7 +116,7 @@ export default function EvaluationRow({
     responses = attributes["llm.responses"];
   }
   let model = "";
-  model = attributes["gen_ai.request.model"] || attributes["llm.model"] || "";
+  model = attributes["gen_ai.response.model"] || attributes["llm.model"] || "";
 
   // check for pii detections
   let piiDetected = false;

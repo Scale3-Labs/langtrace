@@ -155,7 +155,7 @@ export class TraceService implements ITraceService {
           IF(
             JSONExtractString(attributes, 'llm.model') != '',
             JSONExtractString(attributes, 'llm.model'),
-            JSONExtractString(attributes, 'gen_ai.request.model')
+            JSONExtractString(attributes, 'gen_ai.response.model')
           ) AS model`,
         ])
         .from(project_id);
@@ -735,7 +735,7 @@ export class TraceService implements ITraceService {
           sql.or(
             sql.eq("JSONExtractString(attributes, 'llm.model')", model),
             sql.eq(
-              "JSONExtractString(attributes, 'gen_ai.request.model')",
+              "JSONExtractString(attributes, 'gen_ai.response.model')",
               model
             )
           )
@@ -840,7 +840,7 @@ export class TraceService implements ITraceService {
           sql.or(
             sql.eq("JSONExtractString(attributes, 'llm.model')", model),
             sql.eq(
-              "JSONExtractString(attributes, 'gen_ai.request.model')",
+              "JSONExtractString(attributes, 'gen_ai.response.model')",
               model
             )
           )
@@ -853,7 +853,7 @@ export class TraceService implements ITraceService {
           `IF(
             JSONExtractString(attributes, 'llm.model') != '',
             JSONExtractString(attributes, 'llm.model'),
-            JSONExtractString(attributes, 'gen_ai.request.model')
+            JSONExtractString(attributes, 'gen_ai.response.model')
           ) AS model`,
           `JSONExtractString(attributes, 'langtrace.service.name') AS vendor`,
           `SUM(
