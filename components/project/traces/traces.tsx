@@ -56,8 +56,10 @@ export default function Traces({ email }: { email: string }) {
         page,
         pageSize: PAGE_SIZE,
         projectId: project_id,
-        filters: filters,
-        filterOperation: "AND",
+        filters: {
+          filters: filters,
+          operation: "AND",
+        },
       };
 
       const response = await fetch(apiEndpoint, {

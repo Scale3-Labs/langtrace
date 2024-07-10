@@ -53,14 +53,17 @@ export default function ImportTraceConversation({
         page,
         pageSize: PAGE_SIZE,
         projectId: project_id,
-        filters: [
-          {
-            key: "langtrace.service.type",
-            operation: "EQUALS",
-            value: "llm",
-            type: "attribute",
-          },
-        ],
+        filters: {
+          operation: "AND",
+          filters: [
+            {
+              key: "langtrace.service.type",
+              operation: "EQUALS",
+              value: "llm",
+              type: "attribute",
+            },
+          ],
+        },
       };
 
       const response = await fetch(apiEndpoint, {

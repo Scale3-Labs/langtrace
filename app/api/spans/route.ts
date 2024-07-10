@@ -12,15 +12,13 @@ export async function POST(req: NextRequest) {
       redirect("/login");
     }
 
-    const { page, pageSize, projectId, filters, filterOperation } =
-      await req.json();
+    const { page, pageSize, projectId, filters } = await req.json();
     const traceService = new TraceService();
     const spans = await traceService.GetSpansInProjectPaginated(
       projectId,
       page,
       pageSize,
-      filters,
-      filterOperation
+      filters
     );
 
     return NextResponse.json(

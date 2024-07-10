@@ -45,24 +45,34 @@ export const ConversationRow = ({
         vendor = attributes["langtrace.service.name"].toLowerCase();
       }
       userId = attributes["user_id"];
-      if (attributes["gen_ai.prompt"]) {
-        prompts.push(attributes["gen_ai.prompt"]);
-        if (span.events) {
-          const events: any[] = JSON.parse(span.events);
+      if (span.events) {
+        const events: any[] = JSON.parse(span.events);
 
-          // find event with name 'response'
-          const responseEvent = events.find(
-            (event: any) => event.name === "response"
-          );
-          if (
-            responseEvent &&
-            responseEvent["attributes"] &&
-            responseEvent["attributes"]["gen_ai.completion"]
-          ) {
-            responses.push(responseEvent["attributes"]["gen_ai.completion"]);
-          }
+        // find event with name 'gen_ai.content.prompt'
+        const promptEvent = events.find(
+          (event: any) => event.name === "gen_ai.content.prompt"
+        );
+        if (
+          promptEvent &&
+          promptEvent["attributes"] &&
+          promptEvent["attributes"]["gen_ai.prompt"]
+        ) {
+          prompts.push(promptEvent["attributes"]["gen_ai.prompt"]);
         }
-      } else if (attributes["llm.prompts"] && attributes["llm.responses"]) {
+
+        // find event with name 'gen_ai.content.completion'
+        const responseEvent = events.find(
+          (event: any) => event.name === "gen_ai.content.completion"
+        );
+        if (
+          responseEvent &&
+          responseEvent["attributes"] &&
+          responseEvent["attributes"]["gen_ai.completion"]
+        ) {
+          responses.push(responseEvent["attributes"]["gen_ai.completion"]);
+        }
+      }
+      if (attributes["llm.prompts"] && attributes["llm.responses"]) {
         // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
         prompts.push(attributes["llm.prompts"]);
         responses.push(attributes["llm.responses"]);
