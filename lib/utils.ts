@@ -166,17 +166,6 @@ export interface Normalized {
   links: [];
 }
 
-// function extractAttributes(trace: Trace): Array<{ [key: string]: any }> {
-//   return trace.attributes.map((attr) => {
-//     // Assuming each attribute is an object that might need to be parsed or directly returned
-//     if (typeof attr === "object" && attr !== null) {
-//       return attr;
-//     }
-//     // If the attribute is not an object, you can handle it here if necessary
-//     return {};
-//   });
-// }
-
 function convertDurationToMicroseconds(duration: [number, number]): number {
   const [seconds, nanoseconds] = duration;
   // Convert seconds to microseconds and add microseconds
