@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RabbitIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -143,7 +144,7 @@ export default function ProjectView() {
   }, [project, ProjectDetailsForm]);
 
   if (projectLoading) {
-    return <div>Loading...</div>;
+    return <PageSkeleton />;
   } else if (projectError) {
     return (
       <div className="py-12 px-12 flex flex-col items-center justify-center gap-4 mt-8 w-full">
@@ -272,4 +273,53 @@ export default function ProjectView() {
       </div>
     );
   }
+}
+
+function PageSkeleton() {
+  return (
+    <div className="flex flex-col gap-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile</CardTitle>
+          <CardDescription>Update your project details here</CardDescription>
+        </CardHeader>
+        <CardContent className="w-full">
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-6 w-32" />
+            <div className="flex items-center bg-muted p-2 rounded-md justify-between">
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-20 mt-4" />
+          </div>
+        </CardContent>
+      </Card>
+      <div className="py-2">
+        <Card className="border-red-200 dark:border-red-900">
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-60 mt-2" />
+          </CardHeader>
+          <div className="w-full bg-red-100 bg-opacity-50 rounded-lg dark:bg-red-900 dark:bg-opacity-50">
+            <Dialog>
+              <Skeleton className="h-10 w-24 m-4" />
+              <DialogContent className="sm:max-w-[625px]">
+                <DialogHeader>
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-4 w-60 mt-2" />
+                </DialogHeader>
+                <DialogFooter>
+                  <Skeleton className="h-10 w-20" />
+                  <Skeleton className="h-10 w-20" />
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
 }
