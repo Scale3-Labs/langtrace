@@ -3,15 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"build": "prisma generate && next build",
-		"create-tables": "npx prisma db push",
-		"seed-db": "npx prisma db seed",
-		"create-clickhouse-db": "npx tsx scripts/create-clickhouse-db.ts",
-		"predev": "npm run create-tables && npm run create-clickhouse-db",
 		"dev": "next dev",
-		"create-migration": "npx prisma migrate dev --create-only",
-		"migration": "npx prisma migrate dev",
-		"prestart": "npm run create-tables && npm run create-clickhouse-db",
 		"start": "next start",
 		"lint": "next lint"
 	},

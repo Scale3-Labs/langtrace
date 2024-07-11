@@ -1,6 +1,11 @@
 import { authOptions } from "@/lib/auth/options";
 import { TraceService } from "@/lib/services/trace_service";
-import { authApiKey, normalizeData, prepareForClickhouse } from "@/lib/utils";
+import {
+  authApiKey,
+  normalizeData,
+  normalizeOTELData,
+  prepareForClickhouse,
+} from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,7 +18,8 @@ export async function POST(req: NextRequest) {
   console.log("Parsed Data:", data); // Log the parsed data
   console.log("req", req);
   const spans = data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans;
-  console.log("Spans:", spans); // Log the spans portion
+  console.log("Spans:", JSON.stringify(spans.attributes)); // Log the spans portion
+  normalizeOTELData(spans);
 
   try {
     const data = await req.json();
