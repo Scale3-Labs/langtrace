@@ -11,15 +11,15 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const text = await req.text();
-  console.log("Request Body:", text); // Log the request body for inspection
+  // const text = await req.text();
+  // console.log("Request Body:", text); // Log the request body for inspection
 
-  const data = JSON.parse(text);
-  console.log("Parsed Data:", data); // Log the parsed data
-  console.log("req", req);
-  const spans = data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans;
-  console.log("Spans:", JSON.stringify(spans.attributes)); // Log the spans portion
-  normalizeOTELData(spans);
+  // const data = JSON.parse(text);
+  // console.log("Parsed Data:", data); // Log the parsed data
+  // console.log("req", req);
+  // const spans = data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans;
+  // console.log("Spans:", JSON.stringify(spans.attributes)); // Log the spans portion
+  // normalizeOTELData(spans);
 
   try {
     const data = await req.json();
@@ -34,7 +34,15 @@ export async function POST(req: NextRequest) {
     const projectData = await response.json();
 
     // Normalize and prepare data for Clickhouse
-    const normalized = prepareForClickhouse(normalizeData(data));
+    let normalized = [];
+    if (data.resourceSpans) {
+      // coming from an OTEL exporter
+      normalized = prepareForClickhouse(
+        normalizeOTELData(data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans)
+      );
+    } else {
+      normalized = prepareForClickhouse(normalizeData(data));
+    }
     const traceService = new TraceService();
 
     // Add traces to Clickhouse
