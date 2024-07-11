@@ -6,20 +6,16 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
+  const text = await req.text();
+  console.log("Request Body:", text); // Log the request body for inspection
+
+  const data = JSON.parse(text);
+  console.log("Parsed Data:", data); // Log the parsed data
+  console.log("req", req);
+  const spans = data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans;
+  console.log("Spans:", spans); // Log the spans portion
+
   try {
-    const otel = req.nextUrl.searchParams.get("otel") as string;
-    if (otel) {
-      console.log("otel", otel);
-      const data = await req.json();
-      console.log("clap");
-      console.log("data", data);
-      return NextResponse.json(
-        {
-          error: "Something went wrong while ingesting traces",
-        },
-        { status: 404 }
-      );
-    }
     const data = await req.json();
     const apiKey = req.headers.get("x-api-key");
 
