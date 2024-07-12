@@ -10,8 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const apiKey = req.headers.get("x-api-key");
-    const { page, pageSize, projectId, filters, filterOperation } =
-      await req.json();
+    const { page, pageSize, projectId, filters } = await req.json();
     if (!session || !session.user) {
       if (apiKey) {
         const project = await prisma.project.findFirst({
@@ -43,8 +42,7 @@ export async function POST(req: NextRequest) {
       projectId,
       page,
       pageSize,
-      filters,
-      filterOperation
+      filters
     );
 
     return NextResponse.json(

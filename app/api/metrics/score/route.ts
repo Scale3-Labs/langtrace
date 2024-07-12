@@ -12,8 +12,7 @@ export async function POST(req: NextRequest) {
       redirect("/login");
     }
 
-    const { projectId, testIds, lastNHours, filters, filterOperation } =
-      await req.json();
+    const { projectId, testIds, lastNHours, filters } = await req.json();
 
     if (!projectId) {
       return NextResponse.json(
@@ -61,8 +60,7 @@ export async function POST(req: NextRequest) {
     const spans = await traceService.GetSpansInProject(
       projectId,
       lastNHours,
-      filters,
-      filterOperation
+      filters
     );
 
     let evaluations = [];

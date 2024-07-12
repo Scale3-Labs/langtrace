@@ -6,8 +6,40 @@ export default function ConversationView({ span }: { span: any }) {
   const attributes = span?.attributes ? JSON.parse(span.attributes) : {};
   if (!attributes) return <p className="text-md">No data found</p>;
 
-  const prompts = attributes["llm.prompts"];
-  const responses = attributes["llm.responses"];
+  let prompts: string = "";
+  let responses: string = "";
+  if (span.events) {
+    const events: any[] = JSON.parse(span.events);
+
+    // find event with name 'gen_ai.content.prompt'
+    const promptEvent = events.find(
+      (event: any) => event.name === "gen_ai.content.prompt"
+    );
+    if (
+      promptEvent &&
+      promptEvent["attributes"] &&
+      promptEvent["attributes"]["gen_ai.prompt"]
+    ) {
+      prompts = promptEvent["attributes"]["gen_ai.prompt"];
+    }
+
+    // find event with name 'gen_ai.content.completion'
+    const responseEvent = events.find(
+      (event: any) => event.name === "gen_ai.content.completion"
+    );
+    if (
+      responseEvent &&
+      responseEvent["attributes"] &&
+      responseEvent["attributes"]["gen_ai.completion"]
+    ) {
+      responses = responseEvent["attributes"]["gen_ai.completion"];
+    }
+  }
+  if (attributes["llm.prompts"] && attributes["llm.responses"]) {
+    // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
+    prompts = attributes["llm.prompts"];
+    responses = attributes["llm.responses"];
+  }
 
   if (!prompts && !responses) return <p className="text-md">No data found</p>;
 
@@ -19,12 +51,12 @@ export default function ConversationView({ span }: { span: any }) {
           const content = prompt?.content
             ? safeStringify(prompt?.content)
             : prompt?.function_call
-            ? safeStringify(prompt?.function_call)
-            : prompt?.message?.content
-            ? safeStringify(prompt?.message?.content)
-            : prompt?.text
-            ? safeStringify(prompt?.text)
-            : "No input found";
+              ? safeStringify(prompt?.function_call)
+              : prompt?.message?.content
+                ? safeStringify(prompt?.message?.content)
+                : prompt?.text
+                  ? safeStringify(prompt?.text)
+                  : "No input found";
           const vendor = getVendorFromSpan(span);
           return (
             <div key={i} className="flex flex-col gap-2">
@@ -59,12 +91,12 @@ export default function ConversationView({ span }: { span: any }) {
           const content = response?.content
             ? safeStringify(response?.content)
             : response?.function_call
-            ? safeStringify(response?.function_call)
-            : response?.message?.content
-            ? safeStringify(response?.message?.content)
-            : response?.text
-            ? safeStringify(response?.text)
-            : "No output found";
+              ? safeStringify(response?.function_call)
+              : response?.message?.content
+                ? safeStringify(response?.message?.content)
+                : response?.text
+                  ? safeStringify(response?.text)
+                  : "No output found";
           const vendor = getVendorFromSpan(span);
           return (
             <div className="flex flex-col gap-2 whitespace-pre-wrap" key={i}>

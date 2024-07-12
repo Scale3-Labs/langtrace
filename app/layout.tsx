@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={redHatDisplay.className}>
         <ThemeProvider attribute="class" defaultTheme="system">
           <QueryProvider>{children}</QueryProvider>

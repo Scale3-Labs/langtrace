@@ -52,20 +52,34 @@ export default function EvaluationTable({
   const fetchLlmPromptSpans = useQuery({
     queryKey: ["fetch-llm-prompt-spans-query"],
     queryFn: async () => {
-      const filters = [
-        {
-          key: "llm.prompts",
-          operation: "NOT_EQUALS",
-          value: "",
-          type: "attribute",
-        },
-        {
-          key: "status_code",
-          operation: "EQUALS",
-          value: "OK",
-          type: "property",
-        },
-      ];
+      const filters = {
+        filters: [
+          {
+            operation: "OR",
+            filters: [
+              {
+                key: "llm.prompts",
+                operation: "NOT_EQUALS",
+                value: "",
+                type: "attribute",
+              },
+              {
+                key: "name",
+                operation: "EQUALS",
+                value: "gen_ai.content.prompt",
+                type: "event",
+              },
+            ],
+          },
+          {
+            key: "status_code",
+            operation: "EQUALS",
+            value: "OK",
+            type: "property",
+          },
+        ],
+        operation: "AND",
+      };
 
       // convert filterserviceType to a string
       const apiEndpoint = "/api/spans";
@@ -74,7 +88,6 @@ export default function EvaluationTable({
         pageSize: PAGE_SIZE,
         projectId: projectId,
         filters: filters,
-        filterOperation: "AND",
       };
 
       const response = await fetch(apiEndpoint, {
