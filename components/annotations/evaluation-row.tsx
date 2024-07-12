@@ -110,13 +110,19 @@ export default function EvaluationRow({
     ) {
       responses.push(responseEvent["attributes"]["gen_ai.completion"]);
     }
-  } else if ("llm.prompts" in attributes && "llm.responses" in attributes) {
+  }
+
+  if ("llm.prompts" in attributes && "llm.responses" in attributes) {
     // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
     prompts = attributes["llm.prompts"];
     responses = attributes["llm.responses"];
   }
   let model = "";
-  model = attributes["gen_ai.response.model"] || attributes["gen_ai.request.model"] || attributes["llm.model"] || "";
+  model =
+    attributes["gen_ai.response.model"] ||
+    attributes["gen_ai.request.model"] ||
+    attributes["llm.model"] ||
+    "";
 
   // check for pii detections
   let piiDetected = false;
