@@ -1,11 +1,11 @@
 "use client";
 
+import { ChartTabs } from "@/components/annotations/chart-tabs";
 import { CreateTest } from "@/components/annotations/create-test";
 import { EditTest } from "@/components/annotations/edit-test";
 import EvaluationTable, {
   EvaluationTableSkeleton,
 } from "@/components/annotations/evaluation-table";
-import { EvalChart } from "@/components/charts/eval-chart";
 import LargeChartSkeleton from "@/components/charts/large-chart-skeleton";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { Button } from "@/components/ui/button";
@@ -85,7 +85,7 @@ export default function PageClient({ email }: { email: string }) {
         <PageSkeleton />
       ) : tests?.tests?.length > 0 ? (
         <div className="flex flex-col gap-12 top-[16rem] w-full md:px-24 px-12 mb-24">
-          <EvalChart projectId={projectId} tests={tests.tests} />
+          <ChartTabs projectId={projectId} tests={tests.tests} />
           <div className="flex flex-col gap-2">
             <AddtoDataset
               projectId={projectId}
