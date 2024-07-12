@@ -3,8 +3,8 @@ import sql from "sql-bricks";
 import { ClickhouseBaseClient } from "../clients/scale3_clickhouse/client/client";
 import { calculatePriceFromUsage, getFormattedTime } from "../utils";
 import {
+  Filter,
   IQueryBuilderService,
-  PropertyFilter,
   QueryBuilderService,
 } from "./query_builder_service";
 
@@ -55,20 +55,18 @@ export interface ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters?: PropertyFilter[],
-    filterOperation?: string
+    filters?: Filter
   ) => Promise<PaginationResult<Span>>;
   GetSpansInProject: (
     project_id: string,
     lastNHours: number,
-    filters?: PropertyFilter[],
-    filterOperation?: string
+    filters?: Filter
   ) => Promise<Span[]>;
   GetTracesInProjectPaginated: (
     project_id: string,
     page: number,
     pageSize: number,
-    filters?: PropertyFilter[]
+    filters?: Filter
   ) => Promise<PaginationResult<Span[]>>;
   GetTokensUsedPerProject: (project_id: string) => Promise<any>;
   GetTokensUsedPerAccount: (project_ids: string[]) => Promise<number>;
@@ -153,7 +151,16 @@ export class TraceService implements ITraceService {
       }
       const query = sql
         .select([
-          `DISTINCT JSONExtractString(attributes, 'llm.model') AS model`,
+          `DISTINCT
+        IF(
+          JSONExtractString(attributes, 'llm.model') != '',
+          JSONExtractString(attributes, 'llm.model'),
+          IF(
+            JSONExtractString(attributes, 'gen_ai.response.model') != '',
+            JSONExtractString(attributes, 'gen_ai.response.model'),
+            JSONExtractString(attributes, 'gen_ai.request.model')
+          )
+        ) AS model`,
         ])
         .from(project_id);
       const result: any[] = await this.client.find(query);
@@ -457,8 +464,7 @@ export class TraceService implements ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters: PropertyFilter[] = [],
-    filterOperation: string = "OR"
+    filters: Filter = { operation: "AND", filters: [] }
   ): Promise<PaginationResult<Span>> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -473,8 +479,7 @@ export class TraceService implements ITraceService {
       const getTotalSpansPerProjectQuery = sql.select(
         this.queryBuilderService.CountFilteredSpanAttributesQuery(
           project_id,
-          filters,
-          filterOperation
+          filters
         )
       );
       const result = await this.client.find<any>(getTotalSpansPerProjectQuery);
@@ -495,8 +500,7 @@ export class TraceService implements ITraceService {
           project_id,
           filters,
           pageSize,
-          (page - 1) * pageSize,
-          filterOperation
+          (page - 1) * pageSize
         )
       );
       const spans: Span[] = await this.client.find<Span[]>(getSpansQuery);
@@ -511,8 +515,7 @@ export class TraceService implements ITraceService {
   async GetSpansInProject(
     project_id: string,
     lastNHours = 168,
-    filters: PropertyFilter[] = [],
-    filterOperation: string = "OR"
+    filters: Filter = { operation: "AND", filters: [] }
   ): Promise<Span[]> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -524,7 +527,6 @@ export class TraceService implements ITraceService {
         filters,
         1000,
         10,
-        filterOperation,
         lastNHours
       );
       const getSpansQuery = sql.select(query);
@@ -541,8 +543,7 @@ export class TraceService implements ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters: PropertyFilter[] = [],
-    filterOperation: string = "OR"
+    filters: Filter = { operation: "AND", filters: [] }
   ): Promise<PaginationResult<Span[]>> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -559,8 +560,7 @@ export class TraceService implements ITraceService {
       const getTotalTracesPerProjectQuery = sql.select(
         this.queryBuilderService.CountFilteredTraceAttributesQuery(
           project_id,
-          filters,
-          filterOperation
+          filters
         )
       );
       const result = await this.client.find<any>(getTotalTracesPerProjectQuery);
@@ -581,8 +581,7 @@ export class TraceService implements ITraceService {
           project_id,
           filters,
           pageSize,
-          (page - 1) * pageSize,
-          filterOperation
+          (page - 1) * pageSize
         )
       );
       const spans: Span[] = await this.client.find<Span[]>(getTraceIdsQuery);
@@ -594,8 +593,7 @@ export class TraceService implements ITraceService {
           this.queryBuilderService.GetFilteredTraceAttributesTraceById(
             project_id,
             span.trace_id,
-            filters,
-            filterOperation
+            filters
           )
         );
         const trace = await this.client.find<Span[]>(getTraceByIdQuery);
@@ -724,7 +722,10 @@ export class TraceService implements ITraceService {
 
       const nHoursAgo = getFormattedTime(lastNHours);
       const conditions = [
-        sql.like("attributes", "%total_tokens%"),
+        sql.or(
+          sql.like("attributes", "%total_tokens%"),
+          sql.like("attributes", "%gen_ai.usage.prompt_tokens%")
+        ),
         sql.gte("start_time", nHoursAgo),
       ];
       if (userId) {
@@ -735,7 +736,17 @@ export class TraceService implements ITraceService {
 
       if (model) {
         conditions.push(
-          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+          sql.or(
+            sql.eq("JSONExtractString(attributes, 'llm.model')", model),
+            sql.eq(
+              "JSONExtractString(attributes, 'gen_ai.response.model')",
+              model
+            ),
+            sql.eq(
+              "JSONExtractString(attributes, 'gen_ai.request.model')",
+              model
+            )
+          )
         );
       }
 
@@ -757,27 +768,37 @@ export class TraceService implements ITraceService {
         let outputTokens = 0;
         row.attributes_list.forEach((attributes: any) => {
           const parsedAttributes = JSON.parse(attributes);
-          const llmTokenCounts = parsedAttributes["llm.token.counts"]
-            ? JSON.parse(parsedAttributes["llm.token.counts"])
-            : {};
-          const token_count = llmTokenCounts.total_tokens || 0;
-          totalTokens += token_count;
+          if ("llm.token.counts" in parsedAttributes) {
+            const llmTokenCounts = JSON.parse(
+              parsedAttributes["llm.token.counts"]
+            );
+            const token_count = llmTokenCounts.total_tokens || 0;
+            totalTokens += token_count;
 
-          const input_token_count =
-            "input_tokens" in llmTokenCounts
-              ? llmTokenCounts.input_tokens
-              : "prompt_tokens" in llmTokenCounts
-              ? llmTokenCounts.prompt_tokens
-              : 0;
-          inputTokens += input_token_count;
+            const input_token_count =
+              "input_tokens" in llmTokenCounts
+                ? llmTokenCounts.input_tokens
+                : "prompt_tokens" in llmTokenCounts
+                  ? llmTokenCounts.prompt_tokens
+                  : 0;
+            inputTokens += input_token_count;
 
-          const output_token_count =
-            "output_tokens" in llmTokenCounts
-              ? llmTokenCounts.output_tokens
-              : "completion_tokens" in llmTokenCounts
-              ? llmTokenCounts.completion_tokens
-              : 0;
-          outputTokens += output_token_count;
+            const output_token_count =
+              "output_tokens" in llmTokenCounts
+                ? llmTokenCounts.output_tokens
+                : "completion_tokens" in llmTokenCounts
+                  ? llmTokenCounts.completion_tokens
+                  : 0;
+            outputTokens += output_token_count;
+          } else if ("gen_ai.usage.prompt_tokens" in parsedAttributes) {
+            const prompt_tokens =
+              parsedAttributes["gen_ai.usage.prompt_tokens"];
+            const completion_tokens =
+              parsedAttributes["gen_ai.usage.completion_tokens"];
+            inputTokens += prompt_tokens;
+            outputTokens += completion_tokens;
+            totalTokens += prompt_tokens + completion_tokens;
+          }
         });
         return {
           date: row.date,
@@ -810,7 +831,10 @@ export class TraceService implements ITraceService {
       const nHoursAgo = getFormattedTime(lastNHours);
 
       const conditions = [
-        sql.like("attributes", "%total_tokens%"),
+        sql.or(
+          sql.like("attributes", "%total_tokens%"),
+          sql.like("attributes", "%gen_ai.usage.prompt_tokens%")
+        ),
         sql.gte("start_time", nHoursAgo),
       ];
       if (userId) {
@@ -821,30 +845,54 @@ export class TraceService implements ITraceService {
 
       if (model) {
         conditions.push(
-          sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+          sql.or(
+            sql.eq("JSONExtractString(attributes, 'llm.model')", model),
+            sql.eq(
+              "JSONExtractString(attributes, 'gen_ai.response.model')",
+              model
+            ),
+            sql.eq(
+              "JSONExtractString(attributes, 'gen_ai.request.model')",
+              model
+            )
+          )
         );
       }
 
       const query = sql
         .select([
           `toDate(parseDateTimeBestEffort(start_time)) AS date`,
-          `JSONExtractString(attributes, 'llm.model') AS model`,
+          `IF(
+            JSONExtractString(attributes, 'llm.model') != '',
+            JSONExtractString(attributes, 'llm.model'),
+            IF(
+              JSONExtractString(attributes, 'gen_ai.response.model') != '',
+              JSONExtractString(attributes, 'gen_ai.response.model'),
+              JSONExtractString(attributes, 'gen_ai.request.model')
+            )
+          ) AS model`,
           `JSONExtractString(attributes, 'langtrace.service.name') AS vendor`,
           `SUM(
-            JSONExtractInt(
-              JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
-            )
-          ) AS total_tokens`,
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.total_tokens'), 0
+          )
+        ) AS total_tokens`,
           `SUM(
-            JSONExtractInt(
-              JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
-            )
-          ) AS input_tokens`,
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.prompt_tokens'), 0
+          )
+        ) AS input_tokens`,
           `SUM(
-            JSONExtractInt(
-              JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
-            )
-          ) AS output_tokens`,
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
+          )
+        ) AS output_tokens`,
         ])
         .from(project_id)
         .where(...conditions)

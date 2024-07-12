@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import detectPII from "@/lib/pii";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { calculatePriceFromUsage, cn, formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import { Evaluation, Test } from "@prisma/client";
 import {
   CheckCircledIcon,
@@ -82,23 +82,41 @@ export default function EvaluationRow({
   // extract the metrics
   const userScore = evaluations ? evaluations[0]?.userScore || "" : "";
   const userId = evaluations ? evaluations[0]?.userId || "" : "";
-  const startTimeMs = new Date(
-    correctTimestampFormat(span.start_time)
-  ).getTime();
-  const endTimeMs = new Date(correctTimestampFormat(span.end_time)).getTime();
-  const durationMs = endTimeMs - startTimeMs;
-  const prompts = attributes["llm.prompts"];
-  const responses = attributes["llm.responses"];
-  let model = "";
-  let vendor = "";
-  let tokenCounts: any = {};
-  let cost = { total: 0, input: 0, output: 0 };
-  model = attributes["llm.model"] || "";
-  if (attributes["llm.token.counts"]) {
-    vendor = attributes["langtrace.service.name"];
-    tokenCounts = JSON.parse(attributes["llm.token.counts"]);
-    cost = calculatePriceFromUsage(vendor.toLowerCase(), model, tokenCounts);
+  let prompts = [];
+  let responses = [];
+  if (span.events) {
+    const events: any[] = JSON.parse(span.events);
+
+    // find event with name 'gen_ai.content.prompt'
+    const promptEvent = events.find(
+      (event: any) => event.name === "gen_ai.content.prompt"
+    );
+    if (
+      promptEvent &&
+      promptEvent["attributes"] &&
+      promptEvent["attributes"]["gen_ai.prompt"]
+    ) {
+      prompts.push(promptEvent["attributes"]["gen_ai.prompt"]);
+    }
+
+    // find event with name 'gen_ai.content.completion'
+    const responseEvent = events.find(
+      (event: any) => event.name === "gen_ai.content.completion"
+    );
+    if (
+      responseEvent &&
+      responseEvent["attributes"] &&
+      responseEvent["attributes"]["gen_ai.completion"]
+    ) {
+      responses.push(responseEvent["attributes"]["gen_ai.completion"]);
+    }
+  } else if ("llm.prompts" in attributes && "llm.responses" in attributes) {
+    // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
+    prompts = attributes["llm.prompts"];
+    responses = attributes["llm.responses"];
   }
+  let model = "";
+  model = attributes["gen_ai.response.model"] || attributes["gen_ai.request.model"] || attributes["llm.model"] || "";
 
   // check for pii detections
   let piiDetected = false;
