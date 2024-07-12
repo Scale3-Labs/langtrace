@@ -180,7 +180,7 @@ export default function Evaluation() {
                       Input
                     </th>
                     <th className="p-2 rounded-md text-sm font-medium">
-                      Target
+                      Target(Expected Output)
                     </th>
                     <th className="p-2 rounded-md text-sm font-medium">{`Output - (${experiment.eval.model})`}</th>
                     <th className="p-2 rounded-md text-sm font-medium">
