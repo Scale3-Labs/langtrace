@@ -30,6 +30,7 @@ export const TraceRow = ({
   const startTime = trace[0].start_time;
   const [collapsed, setCollapsed] = useState(true);
   const [selectedTab, setSelectedTab] = useState("trace");
+  const [selectedEvent, setSelectedEvent] = useState(0);
 
   // capture the token counts from the trace
   let tokenCounts: any = {};
@@ -40,7 +41,7 @@ export const TraceRow = ({
   let promptVersion: string = "";
   let prompts: any[] = [];
   let responses: any[] = [];
-  let events: any[] = [];
+  let allEvents: any[] = [];
   let cost = { total: 0, input: 0, output: 0 };
   let langgraph = false;
   for (const span of trace) {
@@ -62,7 +63,10 @@ export const TraceRow = ({
       promptVersion = attributes["prompt_version"];
       if (!model) {
         model =
-          attributes["gen_ai.response.model"] || attributes["llm.model"] || "";
+          attributes["gen_ai.response.model"] ||
+          attributes["llm.model"] ||
+          attributes["gen_ai.request.model"] ||
+          "";
       }
       if (
         attributes["gen_ai.usage.prompt_tokens"] &&
@@ -116,8 +120,11 @@ export const TraceRow = ({
       }
     }
 
-    if (span.events) {
-      events = JSON.parse(span.events);
+    if (span.events && span.events !== "[]") {
+      const events = JSON.parse(span.events);
+      const inputs = [];
+      const outputs = [];
+      allEvents.push(events);
 
       // find event with name 'gen_ai.content.prompt'
       const promptEvent = events.find(
@@ -128,7 +135,7 @@ export const TraceRow = ({
         promptEvent["attributes"] &&
         promptEvent["attributes"]["gen_ai.prompt"]
       ) {
-        prompts.push(promptEvent["attributes"]["gen_ai.prompt"]);
+        inputs.push(promptEvent["attributes"]["gen_ai.prompt"]);
       }
 
       // find event with name 'gen_ai.content.completion'
@@ -140,7 +147,18 @@ export const TraceRow = ({
         responseEvent["attributes"] &&
         responseEvent["attributes"]["gen_ai.completion"]
       ) {
-        responses.push(responseEvent["attributes"]["gen_ai.completion"]);
+        outputs.push(responseEvent["attributes"]["gen_ai.completion"]);
+      }
+
+      if (inputs.length > 0) {
+        prompts.push(...inputs);
+      } else {
+        prompts.push('[{}]');
+      }
+      if (outputs.length > 0) {
+        responses.push(...outputs);
+      } else {
+        responses.push('[{}]');
       }
     }
   }
@@ -256,7 +274,7 @@ export const TraceRow = ({
               )}
             </Button>
             <Button
-              disabled={prompts.length === 0 || responses.length === 0}
+              disabled={prompts.length === 0 && responses.length === 0}
               onClick={() => setSelectedTab("llm")}
               variant={"ghost"}
               className="flex flex-col justify-between pb-0"
@@ -293,7 +311,7 @@ export const TraceRow = ({
               )}
             </Button>
             <Button
-              disabled={events.length === 0}
+              disabled={allEvents.length === 0}
               onClick={() => setSelectedTab("events")}
               variant={"ghost"}
               className="flex flex-col justify-between pb-0"
@@ -349,17 +367,33 @@ export const TraceRow = ({
             </div>
           )}
           {selectedTab === "events" && (
-            <div className="flex flex-col px-4 mt-2">
-              {events.map((event: any, i: number) => {
-                return (
-                  <JsonView
+            <div className="flex flex-col gap-2 px-4 mt-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {allEvents.map((event: any, i: number) => (
+                  <Button
                     key={i}
-                    data={event}
-                    shouldExpandNode={allExpanded}
-                    style={defaultStyles}
-                  />
-                );
-              })}
+                    size={"sm"}
+                    variant={selectedEvent === i ? "secondary" : "outline"}
+                    onClick={() => setSelectedEvent(i)}
+                  >
+                    Request {i + 1}
+                  </Button>
+                ))}
+              </div>
+              {allEvents[selectedEvent].length > 0 ? (
+                allEvents[selectedEvent].map((event: any, i: number) => {
+                  return (
+                    <JsonView
+                      key={i}
+                      data={event}
+                      shouldExpandNode={allExpanded}
+                      style={defaultStyles}
+                    />
+                  );
+                })
+              ) : (
+                <p className="text-xs text-muted-foreground">No events found</p>
+              )}
             </div>
           )}
           {selectedTab === "llm" && (
