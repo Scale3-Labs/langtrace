@@ -29,8 +29,6 @@ export default function Traces({ email }: { email: string }) {
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
-  const [clearFilters, setClearFilters] = useState(false);
-  const [clearFiltersKey, setClearFiltersKey] = useState(0);
 
   useEffect(() => {
     setShowLoader(true);
@@ -58,8 +56,10 @@ export default function Traces({ email }: { email: string }) {
         page,
         pageSize: PAGE_SIZE,
         projectId: project_id,
-        filters: filters,
-        filterOperation: "AND",
+        filters: {
+          filters: filters,
+          operation: "AND",
+        },
       };
 
       const response = await fetch(apiEndpoint, {

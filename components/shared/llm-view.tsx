@@ -70,7 +70,7 @@ export const LLMView = ({
           </Button>
         )}
       </div>
-      {prompts?.length > 0 &&
+      {prompts?.length > 0 && typeof JSON.parse(prompts[selectedTab]) === "object" &&
         JSON.parse(prompts[selectedTab]).map((prompt: any, i: number) => {
           let role;
           let content;
@@ -116,7 +116,7 @@ export const LLMView = ({
             </div>
           );
         })}
-      {responses?.length > 0 &&
+      {responses?.length > 0 && responses[selectedTab] && typeof JSON.parse(responses[selectedTab]) === "object" &&
         JSON.parse(responses[selectedTab]).map((response: any, i: number) => {
           const role =
             response?.role?.toLowerCase() ||
@@ -131,7 +131,7 @@ export const LLMView = ({
           const url = response?.content?.url;
           const b64Json = response?.content?.b64_json;
           const revisedPrompt = response?.content?.revised_prompt;
-          const isPicture = url || b64Json;
+          // const isPicture = url || b64Json;
 
           return (
             <div
