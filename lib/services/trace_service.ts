@@ -152,11 +152,15 @@ export class TraceService implements ITraceService {
       const query = sql
         .select([
           `DISTINCT
+        IF(
+          JSONExtractString(attributes, 'llm.model') != '',
+          JSONExtractString(attributes, 'llm.model'),
           IF(
-            JSONExtractString(attributes, 'llm.model') != '',
-            JSONExtractString(attributes, 'llm.model'),
-            JSONExtractString(attributes, 'gen_ai.response.model')
-          ) AS model`,
+            JSONExtractString(attributes, 'gen_ai.response.model') != '',
+            JSONExtractString(attributes, 'gen_ai.response.model'),
+            JSONExtractString(attributes, 'gen_ai.request.model')
+          )
+        ) AS model`,
         ])
         .from(project_id);
       const result: any[] = await this.client.find(query);
@@ -737,6 +741,10 @@ export class TraceService implements ITraceService {
             sql.eq(
               "JSONExtractString(attributes, 'gen_ai.response.model')",
               model
+            ),
+            sql.eq(
+              "JSONExtractString(attributes, 'gen_ai.request.model')",
+              model
             )
           )
         );
@@ -842,6 +850,10 @@ export class TraceService implements ITraceService {
             sql.eq(
               "JSONExtractString(attributes, 'gen_ai.response.model')",
               model
+            ),
+            sql.eq(
+              "JSONExtractString(attributes, 'gen_ai.request.model')",
+              model
             )
           )
         );
@@ -853,7 +865,11 @@ export class TraceService implements ITraceService {
           `IF(
             JSONExtractString(attributes, 'llm.model') != '',
             JSONExtractString(attributes, 'llm.model'),
-            JSONExtractString(attributes, 'gen_ai.response.model')
+            IF(
+              JSONExtractString(attributes, 'gen_ai.response.model') != '',
+              JSONExtractString(attributes, 'gen_ai.response.model'),
+              JSONExtractString(attributes, 'gen_ai.request.model')
+            )
           ) AS model`,
           `JSONExtractString(attributes, 'langtrace.service.name') AS vendor`,
           `SUM(
