@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Form, FormDescription, FormLabel } from "@/components/ui/form";
+import { Skeleton } from "@/components/ui/skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CodeIcon, RabbitIcon, RefreshCwIcon } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -88,7 +89,7 @@ export default function PageClient() {
   });
 
   if (projectLoading) {
-    return <div>Loading...</div>;
+    return <PageSkeleton />;
   } else if (projectError) {
     return (
       <div className="py-12 px-12 flex flex-col items-center justify-center gap-4 mt-8 w-full">
@@ -157,4 +158,22 @@ export default function PageClient() {
       </Card>
     );
   }
+}
+
+function PageSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>API Key</CardTitle>
+        <CardDescription>Generate your project API Key here</CardDescription>
+      </CardHeader>
+      <CardContent className="w-full">
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-4 w-60 mt-2" />
+          <Skeleton className="h-10 w-40 mt-4" />
+        </div>
+      </CardContent>
+    </Card>
+  );
 }

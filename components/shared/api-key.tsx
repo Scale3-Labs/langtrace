@@ -26,7 +26,7 @@ export default function GenerateApiKey({
 
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button size={"sm"}>Generate API Key</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[620px]">

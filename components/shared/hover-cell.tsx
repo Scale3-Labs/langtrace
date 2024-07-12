@@ -12,6 +12,9 @@ export function HoverCell({
   values: any[];
   className?: string;
 }) {
+  if (!values || !Array.isArray(values)) {
+    return null;
+  }
   const contents = values.map((value, i) => {
     const role = value?.role
       ? value?.role?.toLowerCase()

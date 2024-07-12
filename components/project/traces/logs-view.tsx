@@ -85,7 +85,8 @@ export const LogsView = ({
               servTypeColor
             )}
           >
-            {JSON.parse(span.attributes)["llm.model"]}
+            {JSON.parse(span.attributes)["llm.model"] ||
+              JSON.parse(span.attributes)["gen_ai.response.model"] || JSON.parse(span.attributes)["gen_ai.request.model"]}
           </p>
         )}
       </div>
