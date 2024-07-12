@@ -117,6 +117,7 @@ export default function EvaluationRow({
     prompts = attributes["llm.prompts"];
     responses = attributes["llm.responses"];
   }
+
   let model = "";
   model =
     attributes["gen_ai.response.model"] ||
