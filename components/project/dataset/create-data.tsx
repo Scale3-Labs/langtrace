@@ -28,11 +28,13 @@ import { z } from "zod";
 
 export function CreateData({
   datasetId,
+  projectId,
   disabled = false,
   variant = "default",
   className = "",
 }: {
   datasetId?: string;
+  projectId?: string;
   disabled?: boolean;
   variant?: any;
   className?: string;
@@ -88,6 +90,7 @@ export function CreateData({
                       },
                     ],
                     datasetId,
+                    projectId,
                   }),
                 });
                 await queryClient.invalidateQueries(datasetId);
@@ -133,9 +136,9 @@ export function CreateData({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Output
+                    Expected Output
                     <Info
-                      information="Response to the input data by the LLM."
+                      information="Expected response to the input data by the LLM."
                       className="inline-block ml-2"
                     />
                   </FormLabel>

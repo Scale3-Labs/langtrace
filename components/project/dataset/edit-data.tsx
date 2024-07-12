@@ -190,9 +190,9 @@ export function EditData({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Output
+                      Expected Output
                       <Info
-                        information="Response to the input data by the LLM."
+                        information="Expected response to the input data by the LLM."
                         className="inline-block ml-2"
                       />
                     </FormLabel>

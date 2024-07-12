@@ -96,7 +96,7 @@ export default function Dataset() {
               <ChevronLeft className="mr-1" />
               Back
             </Button>
-            <CreateData datasetId={dataset_id} />
+            <CreateData projectId={projectId} datasetId={dataset_id} />
             <DownloadDataset
               projectId={projectId}
               datasetId={dataset_id}
@@ -120,7 +120,7 @@ export default function Dataset() {
           <div className="grid grid-cols-5 items-center justify-stretch gap-3 py-3 px-4 bg-muted">
             <p className="text-xs font-medium">Created at</p>
             <p className="text-xs font-medium">Input</p>
-            <p className="text-xs font-medium">Output</p>
+            <p className="text-xs font-medium">Expected Output</p>
             <p className="text-xs font-medium text-end">Note</p>
           </div>
           {fetchDataset.isLoading && currentData?.length === 0 && (
