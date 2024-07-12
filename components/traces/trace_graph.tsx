@@ -73,6 +73,14 @@ const SpanItem: React.FC<SpanItemProps> = ({
     color = "bg-red-500";
   else if (span.name.includes("crewai") || serviceName.includes("crewai"))
     color = "bg-red-500";
+  else if (span.name.includes("weaviate") || serviceName.includes("weaviate"))
+    color = "bg-green-500";
+  else if (span.name.includes("pg") || serviceName.includes("pg"))
+    color = "bg-blue-500";
+  else if (span.name.includes("gemini") || serviceName.includes("gemini"))
+    color = "bg-blue-500";
+  else if (span.name.includes("vertex") || serviceName.includes("vertex"))
+    color = "bg-blue-500";
   else if (
     span.name.includes("llamaindex") ||
     serviceName.includes("llamaindex")

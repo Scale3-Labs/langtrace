@@ -127,6 +127,14 @@ export function vendorColor(vendor: string) {
     return "bg-blue-200";
   }
 
+  if (vendor.includes("vertex")) {
+    return "bg-blue-200";
+  }
+
+  if (vendor.includes("gemini")) {
+    return "bg-blue-200";
+  }
+
   return "bg-gray-800";
 }
 
@@ -364,6 +372,38 @@ export function VendorLogo({
         src="/pg.png"
         width={50}
         height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("vertex")) {
+    const color = vendorColor("vertex");
+    return (
+      <Image
+        alt="Vertex AI Logo"
+        src="/vertextai.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("gemini")) {
+    const color = vendorColor("gemini");
+    return (
+      <Image
+        alt="Gemini Logo"
+        src="/gemini.jpeg"
+        width={30}
+        height={30}
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"

@@ -10,37 +10,6 @@ import DayFilter, { timeRanges } from "../shared/day-filter";
 import { Info } from "../shared/info";
 import LargeChartLoading from "./large-chart-skeleton";
 
-const data = [
-  {
-    testId: "clx2ua1ag002xpctlwyupmoaz",
-    overall: 100,
-    perday: [
-      {
-        date: "2024-05-22",
-        score: 100,
-      },
-      {
-        date: "2024-05-21",
-        score: 100,
-      },
-    ],
-  },
-  {
-    testId: "clx2ua1ag112xpctlwyupmoaz",
-    overall: 50,
-    perday: [
-      {
-        date: "2024-05-22",
-        score: 50,
-      },
-      {
-        date: "2024-05-18",
-        score: 50,
-      },
-    ],
-  },
-];
-
 export function EvalChart({
   projectId,
   tests,
@@ -114,7 +83,7 @@ export function EvalChart({
           </div>
           <AreaChart
             className="mt-2 h-72"
-            data={chartData}
+            data={chartData.metrics}
             index="date"
             categories={tests.map((test) => `${test.id}-${test.name}`)}
             colors={["purple", "blue", "red", "green", "orange", "black"]}
