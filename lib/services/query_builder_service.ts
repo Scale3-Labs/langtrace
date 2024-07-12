@@ -70,10 +70,10 @@ export class QueryBuilderService implements IQueryBuilderService {
           throw new Error(`Unsupported filter operation: ${filter.operation}`);
       }
     } else if (filter.type === "event") {
-      const eventName = `JSONExtractString(arrayJoin(JSONExtractArrayRaw(events)), '${filter.key}')`;
+      const eventName = `arrayExists(x -> JSONExtractString(x, '${filter.key}')`;
       switch (filter.operation) {
         case "EQUALS":
-          condition = `${eventName} = '${filter.value}'`;
+          condition = `${eventName} = '${filter.value}', JSONExtractArrayRaw(events))`;
           break;
         case "CONTAINS":
           condition = `${eventName} LIKE '%${filter.value}%'`;
