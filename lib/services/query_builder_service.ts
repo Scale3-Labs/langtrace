@@ -267,7 +267,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     });
 
     if (whereConditions.length > 0) {
-      baseQuery += ` WHERE (${whereConditions.join(` ${filters.operation} `)})`;
+      baseQuery += ` AND (${whereConditions.join(` ${filters.operation} `)})`;
     }
 
     return baseQuery;
@@ -299,7 +299,7 @@ export class QueryBuilderService implements IQueryBuilderService {
     });
 
     if (whereConditions.length > 0) {
-      baseQuery += ` WHERE (${whereConditions.join(` ${filters.operation} `)})`;
+      baseQuery += ` AND (${whereConditions.join(` ${filters.operation} `)})`;
     }
 
     return baseQuery;
