@@ -65,7 +65,7 @@ export default function VendorDropdown({
         )}
         onClick={() => setShowFunctionFilters(!showFunctionFilters)}
       >
-        <p className="mt-6 text-sm font-semibold hover:underline">
+        <p className="mt-4 text-sm font-semibold hover:underline">
           Filter by Vendor Function
         </p>
         {!showFunctionFilters && (
@@ -111,7 +111,7 @@ export default function VendorDropdown({
           </AccordionItem>
         ))}
       <Separator />
-      <AccordionItem className="mt-3" value="events">
+      <AccordionItem value="events">
         <AccordionTrigger>Filter by Events</AccordionTrigger>
         <AccordionContent>
           <div className="flex flex-row flex-wrap gap-4">
