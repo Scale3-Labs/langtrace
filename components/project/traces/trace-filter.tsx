@@ -1,3 +1,4 @@
+import { Info } from "@/components/shared/info";
 import { PromptCombobox } from "@/components/shared/prompt-combobox";
 import { UserCombobox } from "@/components/shared/user-combobox";
 import { Button } from "@/components/ui/button";
@@ -24,10 +25,12 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { HOW_TO_PROMPT_FETCHING, HOW_TO_USER_ID } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import ClearIcon from "@mui/icons-material/Clear";
 import { Check, ChevronsUpDown, MinusCircle, PlusCircle } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import VendorDropdown from "./vendor-dropdown";
 
@@ -203,18 +206,40 @@ export default function FilterDialog({
             Add Filter
           </Button>
         </div>
-        <div>
-          <p className="mt-6 text-sm font-semibold hover:underline">
-            Filter by User ID
-          </p>
-          <Separator className="mt-4 mb-4" />
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-1 items-center mt-6">
+            <p className="text-sm font-semibold hover:underline">
+              Filter by User ID
+            </p>
+            <Info information="You can set up tracing to capture user IDs in your application. This filter will only show traces that have the specified user ID. To learn more about setting up tracing, check out our documentation." />
+            <Link
+              className="text-blue-600 text-xs underline"
+              href={HOW_TO_USER_ID}
+              target="_blank"
+              rel="noreferrer, noopener"
+            >
+              Learn more
+            </Link>
+          </div>
+          <Separator />
           <UserCombobox selectedUser={userId} setSelectedUser={setUserId} />
         </div>
-        <div>
-          <p className="mt-6 text-sm font-semibold hover:underline">
-            Filter by Prompt ID
-          </p>
-          <Separator className="mt-4 mb-4" />
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-1 items-center mt-6">
+            <p className="text-sm font-semibold hover:underline">
+              Filter by Prompt ID
+            </p>
+            <Info information="You can store, version and fetch prompts using Langtrace. This is helpful to keep track of all the prompts used and also to tie traces to prompts using the prompt ID for better debugging. To learn more about setting this up, check out our documentation." />
+            <Link
+              className="text-blue-600 text-xs underline"
+              href={HOW_TO_PROMPT_FETCHING}
+              target="_blank"
+              rel="noreferrer, noopener"
+            >
+              Learn more
+            </Link>
+          </div>
+          <Separator />
           <PromptCombobox
             selectedPrompt={promptId}
             setSelectedPrompt={setPromptId}

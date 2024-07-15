@@ -7,7 +7,10 @@ import { Test } from "@prisma/client";
 import { TiktokenEncoding } from "js-tiktoken";
 export const EVALUATIONS_DOCS_URL =
   "https://docs.langtrace.ai/features/evaluations";
-
+export const HOW_TO_USER_ID =
+  "https://docs.langtrace.ai/features/attach_user_id";
+export const HOW_TO_PROMPT_FETCHING =
+  "https://docs.langtrace.ai/features/attach_prompt_id";
 export const SCHEDULE_CALL_LINK =
   "https://calendar.app.google/Go5gXNPcqZjAY4i47";
 
