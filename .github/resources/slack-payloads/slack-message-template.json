@@ -1,0 +1,22 @@
+{
+	"attachments": [
+		{
+			"pretext": "{{ env.PRE_TEXT_MESSAGE }}",
+			"fallback": "{{ env.FALLBACK_MESSAGE }}",
+			"color": "{{ env.COLOR }}",
+			"author_name": "{{ github.workflow }}",
+			"author_link": "{{ env.GITHUB_SERVER_URL }}/{{ env.GITHUB_REPOSITORY }}/actions/runs/{{ env.GITHUB_RUN_ID }}",
+			"title": "{{ env.GITHUB_REPOSITORY }}",
+			"title_link": "{{ env.GITHUB_SERVER_URL }}/{{ env.GITHUB_REPOSITORY }}",
+			"fields": [
+				{
+					"title": "Release Tag",
+					"short": true,
+					"value": "{{ env.RELEASETAG }}"
+				}
+			],
+			"footer": "deployed by: {{ github.actor }}",
+			"footer_icon": "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+		}
+	]
+}

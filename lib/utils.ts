@@ -602,6 +602,10 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "dspy";
   } else if (span.name.includes("crewai") || serviceName.includes("crewai")) {
     vendor = "crewai";
+  } else if (span.name.includes("vertex") || serviceName.includes("vertex")) {
+    vendor = "vertex";
+  } else if (span.name.includes("gemini") || serviceName.includes("gemini")) {
+    vendor = "gemini";
   }
   return vendor;
 }
