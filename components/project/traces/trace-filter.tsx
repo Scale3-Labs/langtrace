@@ -141,7 +141,6 @@ export default function FilterDialog({
           <p className="text-sm font-semibold hover:underline">
             Filter by Attributes
           </p>
-          <Separator className="mt-4" />
           {advancedFilters.map((filter, index) => {
             if (filter.type !== "attribute") return null;
             return (
@@ -208,9 +207,10 @@ export default function FilterDialog({
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Filter
           </Button>
+          <Separator className="mt-4" />
         </div>
         <div className="flex flex-col gap-4">
-          <div className="flex gap-1 items-center mt-6">
+          <div className="flex gap-1 items-center">
             <p className="text-sm font-semibold hover:underline">
               Filter by User ID
             </p>
@@ -224,11 +224,11 @@ export default function FilterDialog({
               Learn more
             </Link>
           </div>
-          <Separator />
           <UserCombobox selectedUser={userId} setSelectedUser={setUserId} />
+          <Separator />
         </div>
         <div className="flex flex-col gap-4">
-          <div className="flex gap-1 items-center mt-6">
+          <div className="flex gap-1 items-center">
             <p className="text-sm font-semibold hover:underline">
               Filter by Prompt ID
             </p>
@@ -242,11 +242,11 @@ export default function FilterDialog({
               Learn more
             </Link>
           </div>
-          <Separator />
           <PromptCombobox
             selectedPrompt={promptId}
             setSelectedPrompt={setPromptId}
           />
+          <Separator />
         </div>
         <DialogFooter className="sticky bottom-0 bg-primary-background py-4">
           <Button variant={"outline"} onClick={onClose}>

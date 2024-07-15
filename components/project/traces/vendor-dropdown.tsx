@@ -28,7 +28,7 @@ export default function VendorDropdown({
   return (
     <Accordion type="single" collapsible>
       <AccordionItem value="vendors">
-        <AccordionTrigger>Filter by Trace Vendor</AccordionTrigger>
+        <AccordionTrigger>Filter by Vendor</AccordionTrigger>
         <AccordionContent>
           <div className="flex flex-row flex-wrap gap-4">
             {Object.keys(SUPPORTED_VENDORS).map((vendor) => (
