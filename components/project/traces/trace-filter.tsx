@@ -1,3 +1,5 @@
+import { PromptCombobox } from "@/components/shared/prompt-combobox";
+import { UserCombobox } from "@/components/shared/user-combobox";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -14,21 +16,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PropertyFilter } from "@/lib/services/query_builder_service";
+import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import ClearIcon from "@mui/icons-material/Clear";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useState } from "react";
-
-import { PromptCombobox } from "@/components/shared/prompt-combobox";
-import { UserCombobox } from "@/components/shared/user-combobox";
-import { PropertyFilter } from "@/lib/services/query_builder_service";
-import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import VendorDropdown from "./vendor-dropdown";
 
 export default function FilterDialog({
