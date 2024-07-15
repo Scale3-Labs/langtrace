@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -16,10 +14,11 @@ import {
 
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useQuery } from "react-query";
 import { toast } from "sonner";
+import { Skeleton } from "../ui/skeleton";
 
 export function PromptCombobox({
   setSelectedPrompt,
@@ -33,11 +32,7 @@ export function PromptCombobox({
   const [selectedPromptId, setSelectedPromptIdState] = useState(
     selectedPrompt || ""
   );
-  const [searchQuery, setSearchQuery] = useState("");
   const [promptIds, setPromptIds] = useState<string[]>([]);
-  const [showLoader, setShowLoader] = useState(false);
-  const [internalSelectedPrompt, setInternalSelectedPrompt] =
-    useState(selectedPrompt);
 
   const handleSelectPrompt = (currentValue: string) => {
     const newPromptId = currentValue === selectedPromptId ? "" : currentValue;
@@ -46,11 +41,6 @@ export function PromptCombobox({
 
     setOpen(false);
   };
-
-  useEffect(() => {
-    setSelectedPromptIdState(selectedPrompt || "");
-    setInternalSelectedPrompt(selectedPrompt || "");
-  }, [selectedPrompt]);
 
   const fetchPromptIds = useQuery({
     queryKey: ["fetch-prompt-ids-query", project_id],
@@ -67,7 +57,6 @@ export function PromptCombobox({
       setPromptIds(data?.promptIDs || []);
     },
     onError: (error) => {
-      setShowLoader(false);
       toast.error("Failed to fetch prompt ids", {
         description: error instanceof Error ? error.message : String(error),
       });
@@ -75,12 +64,8 @@ export function PromptCombobox({
   });
 
   if (fetchPromptIds.isLoading) {
-    return <div>Loading...</div>;
+    return <Skeleton className="h-8 w-44 rounded-md" />;
   }
-
-  const onInputChange = (value: string) => {
-    setSearchQuery(value);
-  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -91,42 +76,44 @@ export function PromptCombobox({
           aria-expanded={open}
           className="w-[220px] justify-between"
         >
-          {selectedPromptId ? selectedPromptId : "Filter by prompt id..."}
+          {selectedPromptId ? selectedPromptId : "select prompt id..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[220px] p-0">
         <Command>
-          <CommandInput
-            placeholder="Search prompts..."
-            value={searchQuery}
-            onValueChange={onInputChange}
-          />
-          <CommandEmpty>No attribute found.</CommandEmpty>
+          <CommandInput placeholder="Search prompts..." />
+          <CommandEmpty>No prompt IDs found.</CommandEmpty>
           <CommandGroup>
-            {promptIds.map((id: string) => (
-              <CommandItem
-                key={id}
-                value={id}
-                onSelect={(currentValue) => {
-                  setSelectedPromptIdState(
-                    currentValue === selectedPromptId ? "" : currentValue
-                  );
-                  setSelectedPrompt(
-                    currentValue === selectedPromptId ? "" : currentValue
-                  );
-                  handleSelectPrompt(currentValue);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={`mr-2 h-4 w-4 ${
-                    selectedPromptId === id ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-                {id}
+            {promptIds.length > 0 ? (
+              promptIds.map((id: string) => (
+                <CommandItem
+                  key={id}
+                  value={id}
+                  onSelect={(currentValue) => {
+                    setSelectedPromptIdState(
+                      currentValue === selectedPromptId ? "" : currentValue
+                    );
+                    setSelectedPrompt(
+                      currentValue === selectedPromptId ? "" : currentValue
+                    );
+                    handleSelectPrompt(currentValue);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={`mr-2 h-4 w-4 ${
+                      selectedPromptId === id ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                  {id}
+                </CommandItem>
+              ))
+            ) : (
+              <CommandItem className="p-2 text-xs flex items-center justify-center">
+                No Prompt IDs found.
               </CommandItem>
-            ))}
+            )}
           </CommandGroup>
         </Command>
       </PopoverContent>
