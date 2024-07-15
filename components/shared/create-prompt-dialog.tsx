@@ -129,7 +129,7 @@ export default function CreatePromptDialog({
             </Button>
           )}
         </AlertDialogTrigger>
-        <AlertDialogContent className="min-w-[1200px] min-h-[300px]">
+        <AlertDialogContent className="min-w-[1200px] h-[90vh] overflow-y-scroll">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {!confirmAndSaveView ? "Review and Save" : "Create new prompt"}
