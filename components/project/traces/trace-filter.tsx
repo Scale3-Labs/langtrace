@@ -138,7 +138,10 @@ export default function FilterDialog({
           handleFilterChange={handleFilterChange}
         />
         <div>
-          <h4 className="mt-4">Attributes</h4>
+          <p className="text-sm font-semibold hover:underline">
+            Filter by Attributes
+          </p>
+          <Separator className="mt-4" />
           {advancedFilters.map((filter, index) => {
             if (filter.type !== "attribute") return null;
             return (
