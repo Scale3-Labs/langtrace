@@ -76,10 +76,10 @@ export class QueryBuilderService implements IQueryBuilderService {
           condition = `${eventName} = '${filter.value}', JSONExtractArrayRaw(events))`;
           break;
         case "CONTAINS":
-          condition = `${eventName} LIKE '%${filter.value}%'`;
+          condition = `${eventName} LIKE '%${filter.value}%', JSONExtractArrayRaw(events))`;
           break;
         case "NOT_EQUALS":
-          condition = `${eventName} != '${filter.value}'`;
+          condition = `${eventName} != '${filter.value}', JSONExtractArrayRaw(events))`;
           break;
         default:
           throw new Error(`Unsupported filter operation: ${filter.operation}`);

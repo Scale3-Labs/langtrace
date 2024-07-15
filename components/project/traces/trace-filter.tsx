@@ -27,6 +27,7 @@ import { useEffect, useState } from "react";
 
 import { PromptCombobox } from "@/components/shared/prompt-combobox";
 import { UserCombobox } from "@/components/shared/user-combobox";
+import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import VendorDropdown from "./vendor-dropdown";
 
@@ -37,12 +38,11 @@ export default function FilterDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onApplyFilters: (filters: any) => void;
+  onApplyFilters: (filters: PropertyFilter[]) => void;
 }) {
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [selectedPromptId, setSelectedPromptId] = useState<string>("");
+  const [advancedFilters, setAdvancedFilters] = useState<PropertyFilter[]>([]);
+  const [userId, setUserId] = useState<string>("");
+  const [promptId, setPromptId] = useState<string>("");
 
   useEffect(() => {
     if (!open) {
@@ -57,77 +57,45 @@ export default function FilterDialog({
     }
   }, [open]);
 
-  const handleFilterChange = (value: any) => {
-    setSelectedFilters((prev) => {
-      if (prev.includes(value)) {
-        return prev.filter((e) => e !== value);
+  const handleFilterChange = (filter: PropertyFilter) => {
+    setAdvancedFilters((prev) => {
+      const index = prev.findIndex(
+        (prevFilter) =>
+          prevFilter.key === filter.key && prevFilter.value === filter.value
+      );
+      if (index !== -1) {
+        return prev.filter(
+          (prevFilter) =>
+            prevFilter.key !== filter.key || prevFilter.value !== filter.value
+        );
       }
-      return [...prev, value];
+      return [...prev, filter];
     });
   };
 
   const applyFilters = () => {
-    const validAdvancedFilters = advancedFilters.filter(
-      (filter) =>
-        filter.value !== null &&
-        filter.value !== undefined &&
-        filter.value !== ""
-    );
+    const filters = [...advancedFilters];
 
-    const convertedFilters = selectedFilters.map((filter) => ({
-      key: "name",
-      operation: "EQUALS",
-      value: filter,
-      type: "property",
-    }));
-
-    const convertedAdvancedFilters = validAdvancedFilters.map((filter) => ({
-      key: filter.attribute,
-      operation: filter.operator.toUpperCase().replace(" ", "_"),
-      value: filter.value,
-      type: "attribute",
-    }));
-
-    if (selectedUserId) {
-      convertedAdvancedFilters.push({
+    if (userId) {
+      filters.push({
         key: "user_id",
         operation: "EQUALS",
-        value: selectedUserId,
+        value: userId,
         type: "attribute",
       });
     }
 
-    if (selectedPromptId) {
-      convertedAdvancedFilters.push({
+    if (promptId) {
+      filters.push({
         key: "prompt_id",
         operation: "EQUALS",
-        value: selectedPromptId,
+        value: promptId,
         type: "attribute",
       });
     }
 
-    onApplyFilters({
-      filters: [...convertedFilters, ...convertedAdvancedFilters],
-    });
+    onApplyFilters(filters);
     onClose();
-  };
-
-  const addAdvancedFilter = () => {
-    setAdvancedFilters([
-      ...advancedFilters,
-      { attribute: "", operator: "EQUALS", value: "" },
-    ]);
-  };
-
-  const removeAdvancedFilter = (index: number) => {
-    setAdvancedFilters(advancedFilters.filter((_, i) => i !== index));
-  };
-
-  const updateAdvancedFilter = (index: number, key: string, value: any) => {
-    const updatedFilters = advancedFilters.map((filter, i) =>
-      i === index ? { ...filter, [key]: value } : filter
-    );
-    setAdvancedFilters(updatedFilters);
   };
 
   return (
@@ -140,12 +108,12 @@ export default function FilterDialog({
           </DialogDescription>
         </DialogHeader>
         <VendorDropdown
-          selectedFilters={selectedFilters}
+          selectedFilters={advancedFilters}
           handleFilterChange={handleFilterChange}
         />
         <div>
           <h4 className="mt-4">Attributes</h4>
-          {advancedFilters.map((filter, index) => (
+          {/* {advancedFilters.map((filter, index) => (
             <div key={index} className="flex items-center mt-2 space-x-2">
               <AttributesCombobox
                 initialAttribute={filter.attribute}
@@ -174,44 +142,37 @@ export default function FilterDialog({
                 Remove
               </Button>
             </div>
-          ))}
-          <Button
+          ))} */}
+          {/* <Button
             variant={"secondary"}
             onClick={addAdvancedFilter}
             className="mt-2"
           >
             Add Attribute
-          </Button>
+          </Button> */}
         </div>
         <div>
           <h4 className="mt-4">User Id</h4>
-          <UserCombobox
-            selectedUser={selectedUserId}
-            setSelectedUser={setSelectedUserId}
-          />
+          <UserCombobox selectedUser={userId} setSelectedUser={setUserId} />
         </div>
         <div>
           <h4 className="mt-4">Prompt Id</h4>
           <PromptCombobox
-            selectedPrompt={selectedPromptId}
-            setSelectedPrompt={setSelectedPromptId}
+            selectedPrompt={promptId}
+            setSelectedPrompt={setPromptId}
           />
         </div>
         <DialogFooter className="sticky bottom-0 bg-primary-background py-4">
           <Button variant={"outline"} onClick={onClose}>
             Cancel
           </Button>
-          {(selectedFilters.length > 0 ||
-            advancedFilters.length > 0 ||
-            selectedUserId !== "" ||
-            selectedPromptId !== "") && (
+          {(advancedFilters.length > 0 || userId !== "" || promptId !== "") && (
             <Button
               variant={"destructive"}
               onClick={() => {
-                setSelectedFilters([]);
                 setAdvancedFilters([]);
-                setSelectedUserId("");
-                setSelectedPromptId("");
+                setUserId("");
+                setPromptId("");
               }}
             >
               <ClearIcon className="h-4 w-4" />

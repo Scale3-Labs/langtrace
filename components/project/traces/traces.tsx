@@ -58,7 +58,7 @@ export default function Traces({ email }: { email: string }) {
         projectId: project_id,
         filters: {
           filters: filters,
-          operation: "AND",
+          operation: "OR",
         },
       };
 
@@ -133,12 +133,8 @@ export default function Traces({ email }: { email: string }) {
     },
   ];
 
-  const handleFilterDialogClose = () => {
-    setIsFilterDialogOpen(false);
-  };
-
-  const handleApplyFilters = (newFilters: any) => {
-    setFilters(newFilters.filters);
+  const handleApplyFilters = (newFilters: PropertyFilter[]) => {
+    setFilters(newFilters);
     setIsFilterDialogOpen(false);
   };
 
@@ -248,7 +244,7 @@ export default function Traces({ email }: { email: string }) {
       )}
       <FilterDialog
         open={isFilterDialogOpen}
-        onClose={handleFilterDialogClose}
+        onClose={() => setIsFilterDialogOpen(false)}
         onApplyFilters={handleApplyFilters}
       />
     </div>

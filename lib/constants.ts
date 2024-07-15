@@ -240,3 +240,26 @@ export const LLM_VENDORS = [
     label: "Perplexity",
   },
 ];
+
+export const SUPPORTED_VENDORS: Record<string, string> = {
+  ANTHROPIC: "Anthropic",
+  AZURE: "Azure",
+  CHROMA: "Chroma",
+  CREWAI: "CrewAI",
+  DSPY: "DSPy",
+  GROQ: "Groq",
+  LANGCHAIN: "Langchain",
+  LANGCHAIN_COMMUNITY: "Langchain Community",
+  LANGCHAIN_CORE: "Langchain Core",
+  LANGGRAPH: "Langgraph",
+  LLAMAINDEX: "LlamaIndex",
+  OPENAI: "OpenAI",
+  PINECONE: "Pinecone",
+  COHERE: "Cohere",
+  PPLX: "Perplexity",
+  QDRANT: "Qdrant",
+  WEAVIATE: "Weaviate",
+  OLLAMA: "Ollama",
+  VERTEXAI: "VertexAI",
+  GEMINI: "Gemini",
+};
