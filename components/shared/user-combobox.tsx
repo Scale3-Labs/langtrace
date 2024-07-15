@@ -60,7 +60,7 @@ export function UserCombobox({
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {selectedUser ? selectedUser : "Filter by user id..."}
+          {selectedUser ? selectedUser : "select user id..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

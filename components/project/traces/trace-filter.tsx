@@ -23,6 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -203,11 +204,17 @@ export default function FilterDialog({
           </Button>
         </div>
         <div>
-          <h4 className="mt-4">User Id</h4>
+          <p className="mt-6 text-sm font-semibold hover:underline">
+            Filter by User ID
+          </p>
+          <Separator className="mt-4 mb-4" />
           <UserCombobox selectedUser={userId} setSelectedUser={setUserId} />
         </div>
         <div>
-          <h4 className="mt-4">Prompt Id</h4>
+          <p className="mt-6 text-sm font-semibold hover:underline">
+            Filter by Prompt ID
+          </p>
+          <Separator className="mt-4 mb-4" />
           <PromptCombobox
             selectedPrompt={promptId}
             setSelectedPrompt={setPromptId}
