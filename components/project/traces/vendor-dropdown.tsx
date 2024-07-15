@@ -36,7 +36,9 @@ export default function VendorDropdown({
                 <Checkbox
                   id={vendor}
                   checked={selectedFilters.some(
-                    (filter) => filter.value === SUPPORTED_VENDORS[vendor]
+                    (filter) =>
+                      filter.value === SUPPORTED_VENDORS[vendor] &&
+                      filter.key === "langtrace.service.name"
                   )}
                   value={SUPPORTED_VENDORS[vendor]}
                   onClick={() =>
@@ -85,7 +87,8 @@ export default function VendorDropdown({
                       <Checkbox
                         id={method}
                         checked={selectedFilters.some(
-                          (filter) => filter.value === method
+                          (filter) =>
+                            filter.value === method && filter.key === "name"
                         )}
                         value={method}
                         onClick={() => {
@@ -117,7 +120,7 @@ export default function VendorDropdown({
                 <Checkbox
                   id={event}
                   checked={selectedFilters.some(
-                    (filter) => filter.value === event
+                    (filter) => filter.value === event && filter.key === "name"
                   )}
                   value={event}
                   onClick={() => {
