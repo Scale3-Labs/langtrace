@@ -1,5 +1,5 @@
 # Debian based node 21.6 image
-FROM node:21.6-bookworm as development
+FROM node:21.6-bookworm AS development
 
 LABEL maintainer="Langtrace AI <contact@langtrace.ai>"
 LABEL version="1.0"
@@ -20,14 +20,14 @@ CMD [ "/bin/sh", "-c", "npm run dev" ]
 
 
 # Intermediate image for building the application
-FROM development as builder
+FROM development AS builder
 
 WORKDIR /app
 
 RUN NEXT_PUBLIC_ENABLE_ADMIN_LOGIN=true npm run build
 
 # Final release image
-FROM node:21.6-bookworm as production
+FROM node:21.6-bookworm AS production
 
 WORKDIR /app
 
