@@ -64,3 +64,40 @@ jobs:
           tag: ${{ needs.generate-version.outputs.new_version }}
           generateReleaseNotes: true
           draft: false
+
+  post-release:
+    name: Post Release Actions
+
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs:
+      - generate-version
+      - build-docker
+      - publish
+
+    steps:
+      - name: Slack - Success Message
+        uses: DSdatsme/slack-github-action@env_support
+        if: ${{ success() && needs.build-docker.result == 'success' && needs.publish.result == 'success' }}
+        with:
+          channel-id: ${{ vars.SLACK_CHANNEL_ID }}
+          payload-file-path: ./.github/resources/slack-payloads/slack-message-template.json
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          RELEASETAG: ${{ needs.generate-version.outputs.new_version }}
+          PRE_TEXT_MESSAGE: "Workflow Passed! :successkid:"
+          FALLBACK_MESSAGE: "Workflow Passed!"
+          COLOR: "good"
+
+      - name: Slack - Failure Message
+        uses: DSdatsme/slack-github-action@env_support
+        if: ${{ failure() || needs.build-docker.result != 'success' || needs.publish.result != 'success' }}
+        with:
+          channel-id: ${{ vars.SLACK_CHANNEL_ID }}
+          payload-file-path: ./.github/resources/slack-payloads/slack-message-template.json
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          RELEASETAG: ${{ needs.generate-version.outputs.new_version }}
+          PRE_TEXT_MESSAGE: "<!channel> Workflow Failed! :x:"
+          FALLBACK_MESSAGE: "Workflow Failed!"
+          COLOR: "danger"
