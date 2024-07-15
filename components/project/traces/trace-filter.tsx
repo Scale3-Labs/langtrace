@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -134,98 +132,96 @@ export default function FilterDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl h-[90vh] overflow-y-scroll flex flex-col">
-        <div className="flex-grow overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Filter Traces</DialogTitle>
-            <DialogDescription>
-              Select filters to apply to the traces.
-            </DialogDescription>
-          </DialogHeader>
-          <VendorDropdown
-            selectedFilters={selectedFilters}
-            handleFilterChange={handleFilterChange}
-          />
-          <div>
-            <h4 className="mt-4">Attributes</h4>
-            {advancedFilters.map((filter, index) => (
-              <div key={index} className="flex items-center mt-2 space-x-2">
-                <AttributesCombobox
-                  initialAttribute={filter.attribute}
-                  setSelectedAttribute={(attribute) =>
-                    updateAdvancedFilter(index, "attribute", attribute)
-                  }
-                />
-                <OperatorCombox
-                  initialOperator={filter.operator}
-                  setSelectedOperator={(operator) =>
-                    updateAdvancedFilter(index, "operator", operator)
-                  }
-                />
-                <Input
-                  placeholder="Value"
-                  value={filter.value}
-                  onChange={(e) =>
-                    updateAdvancedFilter(index, "value", e.target.value)
-                  }
-                  className="mr-2"
-                />
-                <Button
-                  variant={"destructive"}
-                  onClick={() => removeAdvancedFilter(index)}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button
-              variant={"secondary"}
-              onClick={addAdvancedFilter}
-              className="mt-2"
-            >
-              Add Attribute
-            </Button>
-          </div>
-          <div>
-            <h4 className="mt-4">User Id</h4>
-            <UserCombobox
-              selectedUser={selectedUserId}
-              setSelectedUser={setSelectedUserId}
-            />
-          </div>
-          <div>
-            <h4 className="mt-4">Prompt Id</h4>
-            <PromptCombobox
-              selectedPrompt={selectedPromptId}
-              setSelectedPrompt={setSelectedPromptId}
-            />
-          </div>
-          <DialogFooter className="sticky bottom-0 bg-white py-4">
-            <Button variant={"outline"} onClick={onClose}>
-              Cancel
-            </Button>
-            {(selectedFilters.length > 0 ||
-              advancedFilters.length > 0 ||
-              selectedUserId !== "" ||
-              selectedPromptId !== "") && (
+      <DialogContent className="max-w-3xl h-[90vh] overflow-y-scroll flex flex-col py-4">
+        <DialogHeader>
+          <DialogTitle>Filter Traces</DialogTitle>
+          <DialogDescription>
+            Filter traces by various attributes
+          </DialogDescription>
+        </DialogHeader>
+        <VendorDropdown
+          selectedFilters={selectedFilters}
+          handleFilterChange={handleFilterChange}
+        />
+        <div>
+          <h4 className="mt-4">Attributes</h4>
+          {advancedFilters.map((filter, index) => (
+            <div key={index} className="flex items-center mt-2 space-x-2">
+              <AttributesCombobox
+                initialAttribute={filter.attribute}
+                setSelectedAttribute={(attribute) =>
+                  updateAdvancedFilter(index, "attribute", attribute)
+                }
+              />
+              <OperatorCombox
+                initialOperator={filter.operator}
+                setSelectedOperator={(operator) =>
+                  updateAdvancedFilter(index, "operator", operator)
+                }
+              />
+              <Input
+                placeholder="Value"
+                value={filter.value}
+                onChange={(e) =>
+                  updateAdvancedFilter(index, "value", e.target.value)
+                }
+                className="mr-2"
+              />
               <Button
                 variant={"destructive"}
-                onClick={() => {
-                  setSelectedFilters([]);
-                  setAdvancedFilters([]);
-                  setSelectedUserId("");
-                  setSelectedPromptId("");
-                }}
+                onClick={() => removeAdvancedFilter(index)}
               >
-                <ClearIcon className="h-4 w-4" />
-                Clear Filters
+                Remove
               </Button>
-            )}
-            <Button variant={"default"} onClick={applyFilters} color="primary">
-              Apply Filters
-            </Button>
-          </DialogFooter>
+            </div>
+          ))}
+          <Button
+            variant={"secondary"}
+            onClick={addAdvancedFilter}
+            className="mt-2"
+          >
+            Add Attribute
+          </Button>
         </div>
+        <div>
+          <h4 className="mt-4">User Id</h4>
+          <UserCombobox
+            selectedUser={selectedUserId}
+            setSelectedUser={setSelectedUserId}
+          />
+        </div>
+        <div>
+          <h4 className="mt-4">Prompt Id</h4>
+          <PromptCombobox
+            selectedPrompt={selectedPromptId}
+            setSelectedPrompt={setSelectedPromptId}
+          />
+        </div>
+        <DialogFooter className="sticky bottom-0 bg-primary-background py-4">
+          <Button variant={"outline"} onClick={onClose}>
+            Cancel
+          </Button>
+          {(selectedFilters.length > 0 ||
+            advancedFilters.length > 0 ||
+            selectedUserId !== "" ||
+            selectedPromptId !== "") && (
+            <Button
+              variant={"destructive"}
+              onClick={() => {
+                setSelectedFilters([]);
+                setAdvancedFilters([]);
+                setSelectedUserId("");
+                setSelectedPromptId("");
+              }}
+            >
+              <ClearIcon className="h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
+          <Button variant={"default"} onClick={applyFilters} color="primary">
+            Apply Filters
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
