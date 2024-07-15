@@ -25,7 +25,11 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { HOW_TO_PROMPT_FETCHING, HOW_TO_USER_ID } from "@/lib/constants";
+import {
+  HOW_TO_PROMPT_FETCHING,
+  HOW_TO_USER_ID,
+  OTEL_GENAI_ATTRIBUTES,
+} from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -141,6 +145,24 @@ export default function FilterDialog({
           <p className="text-sm font-semibold hover:underline">
             Filter by Attributes
           </p>
+          <div className="text-xs text-muted-foreground mt-3 mb-2">
+            Attributes are key-value pairs that are attached to spans.
+            Attributes capture useful information about the operation like the
+            model API settings in the case of LLM API calls. You can filter
+            traces based on these attributes. To learn more about attributes,
+            check out the{" "}
+            <span>
+              <a
+                href={OTEL_GENAI_ATTRIBUTES}
+                target="_blank"
+                rel="noreferrer, noopener"
+                className="text-blue-600 underline"
+              >
+                OpenTelemetry specification here
+              </a>
+            </span>
+            .
+          </div>
           {advancedFilters.map((filter, index) => {
             if (filter.type !== "attribute") return null;
             return (
