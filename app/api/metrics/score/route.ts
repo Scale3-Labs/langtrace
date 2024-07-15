@@ -88,31 +88,56 @@ export async function POST(req: NextRequest) {
         }
 
         if (!dateScoreMap[date][`${testId}-${evaluation.Test?.name}`]) {
-          dateScoreMap[date][`${testId}-${evaluation.Test?.name}`] = 0;
+          dateScoreMap[date][`${testId}-${evaluation.Test?.name}`] = [0, 0];
         }
 
-        dateScoreMap[date][`${testId}-${evaluation.Test?.name}`] +=
-          evaluation.ltUserScore || 0;
+        const total =
+          dateScoreMap[date][`${testId}-${evaluation.Test?.name}`][0] +
+            evaluation.ltUserScore || 0;
+        dateScoreMap[date][`${testId}-${evaluation.Test?.name}`][0] = total;
+        dateScoreMap[date][`${testId}-${evaluation.Test?.name}`][1] += 1;
       });
     }
 
-    const chartData = Object.entries(dateScoreMap).map(
+    const metricsChartData = Object.entries(dateScoreMap).map(
       ([date, scoresByTestId]) => {
         const entry: any = { date };
-        Object.entries(scoresByTestId as any).forEach(([testId, score]) => {
-          entry[testId] = score;
-        });
+        Object.entries(scoresByTestId as any).forEach(
+          ([testId, scores]: any) => {
+            entry[testId] = scores[0];
+          }
+        );
         return entry;
       }
     );
 
-    chartData.sort(
+    // calculate score % test wise and not date wise
+    // const scoresChartData: any = {
+    //   "test-1": 10,
+    // };
+    const scoresChartData: any = {};
+    Object.entries(dateScoreMap).map(([date, scoresByTestId]) => {
+      Object.entries(scoresByTestId as any).forEach(([testId, scores]: any) => {
+        if (!scoresChartData[testId]) {
+          scoresChartData[testId] = 0;
+        }
+        if (scores[1] === 0) {
+          scoresChartData[testId] = 0;
+        }
+        scoresChartData[testId] = scores[0] / scores[1];
+      });
+    });
+
+    metricsChartData.sort(
       (a, b) =>
         new Date(a.date as string).getTime() -
         new Date(b.date as string).getTime()
     );
 
-    return NextResponse.json(chartData);
+    return NextResponse.json({
+      metrics: metricsChartData,
+      scores: scoresChartData,
+    });
   } catch (error) {
     return NextResponse.json(
       {

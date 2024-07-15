@@ -21,6 +21,7 @@ export default function Page() {
   const router = useRouter();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt>();
+  const [prettyJson, setPrettyJson] = useState<boolean>(false);
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   const [live, setLive] = useState<boolean>(false);
   const queryClient = useQueryClient();
@@ -49,6 +50,15 @@ export default function Page() {
       });
     },
   });
+
+  function isJsonString(str: string) {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   if (promptsLoading) return <PageLoading />;
 
@@ -217,10 +227,25 @@ export default function Page() {
             </div>
             <div className="flex flex-col gap-2">
               <Label>Prompt</Label>
-              <p className="p-2 rounded-md border-2 border-muted">
-                {selectedPrompt.value}
-              </p>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={prettyJson}
+                  onCheckedChange={setPrettyJson}
+                  disabled={!isJsonString(selectedPrompt.value)}
+                />
+                <Label>JSON</Label>
+              </div>
+              <div className="p-2 rounded-md border-2 border-muted">
+                {prettyJson && isJsonString(selectedPrompt.value) ? (
+                  <pre>
+                    {JSON.stringify(JSON.parse(selectedPrompt.value), null, 2)}
+                  </pre>
+                ) : (
+                  selectedPrompt.value
+                )}
+              </div>
             </div>
+
             <div className="flex flex-col gap-2">
               <Label>Variables</Label>
               <div className="flex flex-wrap gap-2 p-4 border-2 border-muted rounded-md">

@@ -7,9 +7,17 @@ import { Test } from "@prisma/client";
 import { TiktokenEncoding } from "js-tiktoken";
 export const EVALUATIONS_DOCS_URL =
   "https://docs.langtrace.ai/features/evaluations";
-
+export const HOW_TO_USER_ID =
+  "https://docs.langtrace.ai/features/attach_user_id";
+export const HOW_TO_PROMPT_FETCHING =
+  "https://docs.langtrace.ai/features/attach_prompt_id";
 export const SCHEDULE_CALL_LINK =
   "https://calendar.app.google/Go5gXNPcqZjAY4i47";
+export const OTEL_GENAI = "https://opentelemetry.io/docs/specs/semconv/gen-ai/";
+export const OTEL_GENAI_EVENTS =
+  "https://opentelemetry.io/docs/specs/semconv/gen-ai/llm-spans/#events";
+export const OTEL_GENAI_ATTRIBUTES =
+  "https://opentelemetry.io/docs/specs/semconv/gen-ai/llm-spans/#llm-request-attributes";
 
 // TODO: Add more models
 // https://github.com/dqbd/tiktoken/blob/74c147e19584a3a1acea0c8e0da4d39415cd33e0/wasm/src/lib.rs#L328
@@ -240,3 +248,26 @@ export const LLM_VENDORS = [
     label: "Perplexity",
   },
 ];
+
+export const SUPPORTED_VENDORS: Record<string, string> = {
+  ANTHROPIC: "Anthropic",
+  AZURE: "Azure",
+  CHROMA: "Chroma",
+  CREWAI: "CrewAI",
+  DSPY: "DSPy",
+  GROQ: "Groq",
+  LANGCHAIN: "Langchain",
+  LANGCHAIN_COMMUNITY: "Langchain Community",
+  LANGCHAIN_CORE: "Langchain Core",
+  LANGGRAPH: "Langgraph",
+  LLAMAINDEX: "LlamaIndex",
+  OPENAI: "OpenAI",
+  PINECONE: "Pinecone",
+  COHERE: "Cohere",
+  PPLX: "Perplexity",
+  QDRANT: "Qdrant",
+  WEAVIATE: "Weaviate",
+  OLLAMA: "Ollama",
+  VERTEXAI: "VertexAI",
+  GEMINI: "Gemini",
+};

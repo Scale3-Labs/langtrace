@@ -1,5 +1,6 @@
-"use client";
-
+import { Info } from "@/components/shared/info";
+import { PromptCombobox } from "@/components/shared/prompt-combobox";
+import { UserCombobox } from "@/components/shared/user-combobox";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -23,13 +24,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import ClearIcon from "@mui/icons-material/Clear";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { useEffect, useState } from "react";
-
-import { PromptCombobox } from "@/components/shared/prompt-combobox";
-import { UserCombobox } from "@/components/shared/user-combobox";
+import { Separator } from "@/components/ui/separator";
+import {
+  HOW_TO_PROMPT_FETCHING,
+  HOW_TO_USER_ID,
+  OTEL_GENAI_ATTRIBUTES,
+} from "@/lib/constants";
+import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { SpanAttributes } from "@/lib/ts_sdk_constants";
+import ClearIcon from "@mui/icons-material/Clear";
+import { Check, ChevronsUpDown, MinusCircle, PlusCircle } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import VendorDropdown from "./vendor-dropdown";
 
 export default function FilterDialog({
@@ -39,12 +45,11 @@ export default function FilterDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onApplyFilters: (filters: any) => void;
+  onApplyFilters: (filters: PropertyFilter[]) => void;
 }) {
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [advancedFilters, setAdvancedFilters] = useState<any[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [selectedPromptId, setSelectedPromptId] = useState<string>("");
+  const [advancedFilters, setAdvancedFilters] = useState<PropertyFilter[]>([]);
+  const [userId, setUserId] = useState<string>("");
+  const [promptId, setPromptId] = useState<string>("");
 
   useEffect(() => {
     if (!open) {
@@ -59,173 +64,233 @@ export default function FilterDialog({
     }
   }, [open]);
 
-  const handleFilterChange = (value: any) => {
-    setSelectedFilters((prev) => {
-      if (prev.includes(value)) {
-        return prev.filter((e) => e !== value);
+  const handleFilterChange = (
+    filter: PropertyFilter,
+    filterIndex: number = -1,
+    remove: boolean = true
+  ) => {
+    setAdvancedFilters((prev) => {
+      // remove the filter
+      if (filterIndex !== -1) {
+        if (remove) {
+          return prev.filter((_, index) => index !== filterIndex);
+        }
+
+        prev[filterIndex] = filter;
+        return [...prev];
       }
-      return [...prev, value];
+
+      // check if the filter already exists
+      const index = prev.findIndex(
+        (prevFilter) =>
+          prevFilter.key === filter.key && prevFilter.value === filter.value
+      );
+
+      if (index !== -1) {
+        // remove the filter
+        if (remove) {
+          return prev.filter(
+            (prevFilter) =>
+              prevFilter.key !== filter.key || prevFilter.value !== filter.value
+          );
+        }
+
+        // replace the filter
+        prev[index] = filter;
+        return [...prev];
+      }
+      return [...prev, filter];
     });
   };
 
   const applyFilters = () => {
-    const validAdvancedFilters = advancedFilters.filter(
-      (filter) =>
-        filter.value !== null &&
-        filter.value !== undefined &&
-        filter.value !== ""
-    );
+    const filters = [...advancedFilters];
 
-    const convertedFilters = selectedFilters.map((filter) => ({
-      key: "name",
-      operation: "EQUALS",
-      value: filter,
-      type: "property",
-    }));
-
-    const convertedAdvancedFilters = validAdvancedFilters.map((filter) => ({
-      key: filter.attribute,
-      operation: filter.operator.toUpperCase().replace(" ", "_"),
-      value: filter.value,
-      type: "attribute",
-    }));
-
-    if (selectedUserId) {
-      convertedAdvancedFilters.push({
+    if (userId) {
+      filters.push({
         key: "user_id",
         operation: "EQUALS",
-        value: selectedUserId,
+        value: userId,
         type: "attribute",
       });
     }
 
-    if (selectedPromptId) {
-      convertedAdvancedFilters.push({
+    if (promptId) {
+      filters.push({
         key: "prompt_id",
         operation: "EQUALS",
-        value: selectedPromptId,
+        value: promptId,
         type: "attribute",
       });
     }
 
-    onApplyFilters({
-      filters: [...convertedFilters, ...convertedAdvancedFilters],
-    });
+    onApplyFilters(filters);
     onClose();
-  };
-
-  const addAdvancedFilter = () => {
-    setAdvancedFilters([
-      ...advancedFilters,
-      { attribute: "", operator: "EQUALS", value: "" },
-    ]);
-  };
-
-  const removeAdvancedFilter = (index: number) => {
-    setAdvancedFilters(advancedFilters.filter((_, i) => i !== index));
-  };
-
-  const updateAdvancedFilter = (index: number, key: string, value: any) => {
-    const updatedFilters = advancedFilters.map((filter, i) =>
-      i === index ? { ...filter, [key]: value } : filter
-    );
-    setAdvancedFilters(updatedFilters);
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl h-[90vh] overflow-y-scroll flex flex-col">
-        <div className="flex-grow overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Filter Traces</DialogTitle>
-            <DialogDescription>
-              Select filters to apply to the traces.
-            </DialogDescription>
-          </DialogHeader>
-          <VendorDropdown
-            selectedFilters={selectedFilters}
-            handleFilterChange={handleFilterChange}
-          />
-          <div>
-            <h4 className="mt-4">Attributes</h4>
-            {advancedFilters.map((filter, index) => (
-              <div key={index} className="flex items-center mt-2 space-x-2">
+      <DialogContent className="max-w-3xl h-[90vh] overflow-y-scroll flex flex-col py-4">
+        <DialogHeader>
+          <DialogTitle>Filter Traces</DialogTitle>
+          <DialogDescription>
+            Filter traces by various attributes
+          </DialogDescription>
+        </DialogHeader>
+        <VendorDropdown
+          selectedFilters={advancedFilters}
+          handleFilterChange={handleFilterChange}
+        />
+        <div>
+          <p className="text-sm font-semibold hover:underline">
+            Filter by Attributes
+          </p>
+          <div className="text-xs text-muted-foreground mt-3 mb-2">
+            Attributes are key-value pairs that are attached to spans.
+            Attributes capture useful information about the operation like the
+            model API settings in the case of LLM API calls. You can filter
+            traces based on these attributes. To learn more about attributes,
+            check out the{" "}
+            <span>
+              <a
+                href={OTEL_GENAI_ATTRIBUTES}
+                target="_blank"
+                rel="noreferrer, noopener"
+                className="text-blue-600 underline"
+              >
+                OpenTelemetry specification here
+              </a>
+            </span>
+            .
+          </div>
+          {advancedFilters.map((filter, index) => {
+            if (filter.type !== "attribute") return null;
+            return (
+              <div key={index} className="flex items-center mt-2 gap-2">
                 <AttributesCombobox
-                  initialAttribute={filter.attribute}
-                  setSelectedAttribute={(attribute) =>
-                    updateAdvancedFilter(index, "attribute", attribute)
-                  }
+                  initialAttribute={filter.key}
+                  setSelectedAttribute={(attribute) => {
+                    handleFilterChange(
+                      { ...filter, key: attribute },
+                      index,
+                      false
+                    );
+                  }}
                 />
-                <OperatorCombox
-                  initialOperator={filter.operator}
-                  setSelectedOperator={(operator) =>
-                    updateAdvancedFilter(index, "operator", operator)
-                  }
+                <OperatorCombobox
+                  initialOperator={filter.operation}
+                  setSelectedOperator={(operator) => {
+                    handleFilterChange(
+                      { ...filter, operation: operator },
+                      index,
+                      false
+                    );
+                  }}
                 />
                 <Input
                   placeholder="Value"
                   value={filter.value}
-                  onChange={(e) =>
-                    updateAdvancedFilter(index, "value", e.target.value)
-                  }
-                  className="mr-2"
+                  onChange={(e) => {
+                    handleFilterChange(
+                      { ...filter, value: e.target.value },
+                      index,
+                      false
+                    );
+                  }}
+                  className="mr-2 w-48"
                 />
                 <Button
+                  size="icon"
                   variant={"destructive"}
-                  onClick={() => removeAdvancedFilter(index)}
+                  onClick={() => {
+                    handleFilterChange(filter, index, true);
+                  }}
                 >
-                  Remove
+                  <MinusCircle className="h-4 w-4" />
                 </Button>
               </div>
-            ))}
-            <Button
-              variant={"secondary"}
-              onClick={addAdvancedFilter}
-              className="mt-2"
-            >
-              Add Attribute
-            </Button>
-          </div>
-          <div>
-            <h4 className="mt-4">User Id</h4>
-            <UserCombobox
-              selectedUser={selectedUserId}
-              setSelectedUser={setSelectedUserId}
-            />
-          </div>
-          <div>
-            <h4 className="mt-4">Prompt Id</h4>
-            <PromptCombobox
-              selectedPrompt={selectedPromptId}
-              setSelectedPrompt={setSelectedPromptId}
-            />
-          </div>
-          <DialogFooter className="sticky bottom-0 bg-white py-4">
-            <Button variant={"outline"} onClick={onClose}>
-              Cancel
-            </Button>
-            {(selectedFilters.length > 0 ||
-              advancedFilters.length > 0 ||
-              selectedUserId !== "" ||
-              selectedPromptId !== "") && (
-              <Button
-                variant={"destructive"}
-                onClick={() => {
-                  setSelectedFilters([]);
-                  setAdvancedFilters([]);
-                  setSelectedUserId("");
-                  setSelectedPromptId("");
-                }}
-              >
-                <ClearIcon className="h-4 w-4" />
-                Clear Filters
-              </Button>
-            )}
-            <Button variant={"default"} onClick={applyFilters} color="primary">
-              Apply Filters
-            </Button>
-          </DialogFooter>
+            );
+          })}
+          <Button
+            variant={"default"}
+            onClick={() => {
+              setAdvancedFilters((prev) => [
+                ...prev,
+                {
+                  key: "",
+                  operation: "EQUALS",
+                  value: "",
+                  type: "attribute",
+                },
+              ]);
+            }}
+            className="mt-3"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Filter
+          </Button>
+          <Separator className="mt-4" />
         </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-1 items-center">
+            <p className="text-sm font-semibold hover:underline">
+              Filter by User ID
+            </p>
+            <Info information="You can set up tracing to capture user IDs in your application. This filter will only show traces that have the specified user ID. To learn more about setting up tracing, check out our documentation." />
+            <Link
+              className="text-blue-600 text-xs underline"
+              href={HOW_TO_USER_ID}
+              target="_blank"
+              rel="noreferrer, noopener"
+            >
+              Learn more
+            </Link>
+          </div>
+          <UserCombobox selectedUser={userId} setSelectedUser={setUserId} />
+          <Separator />
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-1 items-center">
+            <p className="text-sm font-semibold hover:underline">
+              Filter by Prompt ID
+            </p>
+            <Info information="You can store, version and fetch prompts using Langtrace. This is helpful to keep track of all the prompts used and also to tie traces to prompts using the prompt ID for better debugging. To learn more about setting this up, check out our documentation." />
+            <Link
+              className="text-blue-600 text-xs underline"
+              href={HOW_TO_PROMPT_FETCHING}
+              target="_blank"
+              rel="noreferrer, noopener"
+            >
+              Learn more
+            </Link>
+          </div>
+          <PromptCombobox
+            selectedPrompt={promptId}
+            setSelectedPrompt={setPromptId}
+          />
+          <Separator />
+        </div>
+        <DialogFooter className="sticky bottom-0 bg-primary-background py-4">
+          <Button variant={"outline"} onClick={onClose}>
+            Cancel
+          </Button>
+          {(advancedFilters.length > 0 || userId !== "" || promptId !== "") && (
+            <Button
+              variant={"destructive"}
+              onClick={() => {
+                setAdvancedFilters([]);
+                setUserId("");
+                setPromptId("");
+              }}
+            >
+              <ClearIcon className="h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
+          <Button variant={"default"} onClick={applyFilters} color="primary">
+            Apply Filters
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -239,24 +304,7 @@ export function AttributesCombobox({
   initialAttribute: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [selectedAttribute, setSelectedAttributeState] = useState(
-    initialAttribute || ""
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredAttributes = searchQuery
-    ? SpanAttributes.filter((attribute) =>
-        attribute.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : SpanAttributes;
-
-  const onInputChange = (value: string) => {
-    setSearchQuery(value);
-  };
-
-  useEffect(() => {
-    setSelectedAttributeState(initialAttribute);
-  }, [initialAttribute]);
+  const [value, setValue] = useState(initialAttribute || "");
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
@@ -267,39 +315,31 @@ export function AttributesCombobox({
           aria-expanded={open}
           className="w-[250px] justify-between"
         >
-          {selectedAttribute ? selectedAttribute : "Select attribute..."}
+          {value
+            ? SpanAttributes.find((attr) => attr === value)
+            : "Select attribute..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[250px] p-0 h-[250px] translate-x-[30px]">
+      <PopoverContent className="w-[250px] p-0 h-[250px]">
         <Command>
-          <CommandInput
-            placeholder="Search attribute..."
-            value={searchQuery}
-            onValueChange={onInputChange}
-          />
+          <CommandInput placeholder="Search attribute..." />
           <ScrollArea>
             <CommandEmpty>No attribute found.</CommandEmpty>
             <CommandGroup>
-              {filteredAttributes.map((attribute) => (
+              {SpanAttributes.map((attribute) => (
                 <CommandItem
                   key={attribute}
                   value={attribute}
                   onSelect={(currentValue) => {
-                    setSelectedAttributeState(
-                      currentValue === selectedAttribute ? "" : currentValue
-                    );
-                    setSelectedAttribute(
-                      currentValue === selectedAttribute ? "" : currentValue
-                    );
+                    setValue(currentValue);
+                    setSelectedAttribute(currentValue);
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={`mr-2 h-4 w-4 ${
-                      selectedAttribute === attribute
-                        ? "opacity-100"
-                        : "opacity-0"
+                      value === attribute ? "opacity-100" : "opacity-0"
                     }`}
                   />
                   {attribute}
@@ -313,19 +353,21 @@ export function AttributesCombobox({
   );
 }
 
-export function OperatorCombox({
+export function OperatorCombobox({
   setSelectedOperator,
   initialOperator,
 }: {
-  setSelectedOperator: (attribute: string) => void;
-  initialOperator: string;
+  setSelectedOperator: (
+    attribute: "EQUALS" | "CONTAINS" | "NOT_EQUALS"
+  ) => void;
+  initialOperator: "EQUALS" | "CONTAINS" | "NOT_EQUALS";
 }) {
   const [open, setOpen] = useState(false);
-  const [selectedOperator, setSelectedOperatorState] = useState(
-    initialOperator.toLowerCase() || ""
+  const [value, setValue] = useState<string>(
+    initialOperator.toUpperCase() || "EQUALS"
   );
 
-  const comparisonOperators = ["equals", "contains", "not equals"];
+  const comparisonOperators = ["EQUALS", "CONTAINS", "NOT_EQUALS"];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -334,13 +376,15 @@ export function OperatorCombox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-[150px] justify-between"
         >
-          {selectedOperator ? selectedOperator : "Select operator..."}
+          {value
+            ? comparisonOperators.find((op) => op === value)
+            : "Select operator..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[150px] p-0">
         <Command>
           <CommandGroup>
             {comparisonOperators.map((operator) => (
@@ -348,21 +392,22 @@ export function OperatorCombox({
                 key={operator}
                 value={operator}
                 onSelect={(currentValue) => {
-                  setSelectedOperatorState(
-                    currentValue === selectedOperator ? "" : currentValue
-                  );
+                  setValue(currentValue.toUpperCase());
                   setSelectedOperator(
-                    currentValue === selectedOperator ? "" : currentValue
+                    currentValue.toUpperCase() as
+                      | "EQUALS"
+                      | "CONTAINS"
+                      | "NOT_EQUALS"
                   );
                   setOpen(false);
                 }}
               >
                 <Check
                   className={`mr-2 h-4 w-4 ${
-                    selectedOperator === operator ? "opacity-100" : "opacity-0"
+                    value === operator ? "opacity-100" : "opacity-0"
                   }`}
                 />
-                {operator.toLowerCase()}
+                {operator}
               </CommandItem>
             ))}
           </CommandGroup>

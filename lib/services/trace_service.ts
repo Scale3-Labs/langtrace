@@ -546,6 +546,7 @@ export class TraceService implements ITraceService {
     filters: Filter = { operation: "AND", filters: [] }
   ): Promise<PaginationResult<Span[]>> {
     try {
+      // check if the table exists
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
         return {

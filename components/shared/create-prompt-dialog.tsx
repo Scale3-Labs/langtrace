@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
@@ -99,6 +100,12 @@ export default function CreatePromptDialog({
     return vars;
   };
 
+  const handleRemoveVariable = (variableToRemove: string) => {
+    setVariables((prevVariables) =>
+      prevVariables.filter((variable) => variable !== variableToRemove)
+    );
+  };
+
   useEffect(() => {
     if (passedPrompt) {
       setPrompt(passedPrompt);
@@ -129,7 +136,7 @@ export default function CreatePromptDialog({
             </Button>
           )}
         </AlertDialogTrigger>
-        <AlertDialogContent className="min-w-[1200px] min-h-[300px]">
+        <AlertDialogContent className="min-w-[1200px] h-[90vh] overflow-y-scroll">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {!confirmAndSaveView ? "Review and Save" : "Create new prompt"}
@@ -214,12 +221,17 @@ export default function CreatePromptDialog({
                         <Label>Detected Variables</Label>
                         <div className="flex flex-wrap items-center gap-2 p-2 border-2 border-muted rounded-md h-12">
                           {variables.map((variable) => (
-                            <span
+                            <div
                               key={variable}
-                              className="bg-primary text-primary-foreground px-2 py-1 rounded-md"
+                              className="flex items-center bg-primary text-primary-foreground px-2 py-1 rounded-md"
                             >
-                              {variable}
-                            </span>
+                              <span>{variable}</span>
+                              <X
+                                className="ml-2 cursor-pointer"
+                                size={16}
+                                onClick={() => handleRemoveVariable(variable)}
+                              />
+                            </div>
                           ))}
                         </div>
                       </div>
