@@ -3,10 +3,11 @@
 import { TraceRow } from "@/components/project/traces/trace-row";
 import { Info } from "@/components/shared/info";
 import { Button } from "@/components/ui/button";
-import { PAGE_SIZE } from "@/lib/constants";
+import { HOW_TO_GROUP_RELATED_OPERATIONS, PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { XIcon } from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -15,7 +16,6 @@ import { toast } from "sonner";
 import { SetupInstructions } from "../../shared/setup-instructions";
 import { Spinner } from "../../shared/spinner";
 import { Checkbox } from "../../ui/checkbox";
-import { Label } from "../../ui/label";
 import { Separator } from "../../ui/separator";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
@@ -27,29 +27,11 @@ export default function Traces({ email }: { email: string }) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
   const [showLoader, setShowLoader] = useState(false);
-  const [filters, setFilters] = useState<PropertyFilter[]>([
-    {
-      key: "langtrace.service.type",
-      operation: "EQUALS",
-      value: "llm",
-      type: "attribute",
-    },
-    {
-      key: "langtrace.service.type",
-      operation: "EQUALS",
-      value: "vectordb",
-      type: "attribute",
-    },
-    {
-      key: "langtrace.service.type",
-      operation: "EQUALS",
-      value: "framework",
-      type: "attribute",
-    },
-  ]);
+  const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
   const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
+  const [groupSpans, setGroupSpans] = useState(true);
 
   useEffect(() => {
     setShowLoader(true);
@@ -62,6 +44,9 @@ export default function Traces({ email }: { email: string }) {
     if (typeof window !== "undefined") {
       const utc = window.localStorage.getItem("preferences.timestamp.utc");
       setUtcTime(utc === "true");
+
+      const group = window.localStorage.getItem("preferences.group");
+      setGroupSpans(group === "true");
     }
   }, [filters]);
 
@@ -79,6 +64,30 @@ export default function Traces({ email }: { email: string }) {
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
       const apiEndpoint = "/api/traces";
+      if (filters.length > 0) {
+        // check if parent_id filter is present
+        const parentFilter = filters.find(
+          (filter) => filter.key === "parent_id"
+        );
+        if (!parentFilter && groupSpans) {
+          filters.push({
+            key: "parent_id",
+            operation: "EQUALS",
+            value: "",
+            type: "property",
+          });
+        }
+      }
+
+      // if parent_id is the only filter, remove it
+      if (
+        filters.length === 1 &&
+        filters[0].key === "parent_id" &&
+        groupSpans
+      ) {
+        filters.pop();
+      }
+
       const body = {
         page,
         pageSize: PAGE_SIZE,
@@ -225,25 +234,65 @@ export default function Traces({ email }: { email: string }) {
             </Button>
           )}
         </div>
-        <div className="flex gap-2 items-center">
-          <Label>Local time</Label>
-          <Switch
-            id="timestamp"
-            checked={utcTime}
-            onCheckedChange={(check) => {
-              setUtcTime(check);
+        <div className="flex flex-col gap-2">
+          <p className="text-xs text-muted-foreground font-semibold">
+            Preferences
+          </p>
+          <div className="flex gap-2 items-center w-full">
+            <p className="text-xs font-semibold">Local time</p>
+            <Switch
+              className="text-start"
+              id="timestamp"
+              checked={utcTime}
+              onCheckedChange={(check) => {
+                setUtcTime(check);
 
-              // Save the preference in local storage
-              if (typeof window !== "undefined") {
-                window.localStorage.setItem(
-                  "preferences.timestamp.utc",
-                  check ? "true" : "false"
-                );
-                toast.success("Timezone preference saved successfully.");
-              }
-            }}
-          />
-          <Label>UTC</Label>
+                // Save the preference in local storage
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(
+                    "preferences.timestamp.utc",
+                    check ? "true" : "false"
+                  );
+                  toast.success("Timezone preference saved successfully.");
+                }
+              }}
+            />
+            <div className="flex items-center gap-1">
+              <p className="text-xs font-semibold">UTC</p>
+              <Info information="By default all the spans are recorded in UTC timezone for the sake of standardization. By toggling this setting, you can visualize the spans in your local timezone." />
+            </div>
+          </div>
+          <div className="flex gap-2 items-center w-full">
+            <p className="text-xs font-semibold">Don&apos;t Group</p>
+            <Switch
+              className="text-start"
+              id="group"
+              checked={groupSpans}
+              onCheckedChange={(check) => {
+                setGroupSpans(check);
+
+                // Save the preference in local storage
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(
+                    "preferences.group",
+                    check ? "true" : "false"
+                  );
+                  toast.success("Group spans preference saved successfully.");
+                }
+              }}
+            />
+            <div className="flex items-center gap-1">
+              <p className="text-xs font-semibold">Group Spans by Trace ID</p>
+              <Info information="Group spans by trace id. This will group spans with the same trace id together. To learn more about how you can group spans, refer to our documentation on this." />
+              <Link
+                href={HOW_TO_GROUP_RELATED_OPERATIONS}
+                target="_blank"
+                className="text-xs hover:underline text-blue-600"
+              >
+                Learn More
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-13 items-center gap-6 p-3 bg-muted">
