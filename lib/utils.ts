@@ -609,3 +609,12 @@ export function getVendorFromSpan(span: Span): string {
   }
   return vendor;
 }
+
+export function isJsonString(str: string) {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}

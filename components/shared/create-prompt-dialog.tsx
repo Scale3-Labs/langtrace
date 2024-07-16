@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input, InputLarge } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isJsonString } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
@@ -198,11 +199,22 @@ export default function CreatePromptDialog({
                               </span>
                             </FormLabel>
                             <FormControl>
-                              <InputLarge
+                              <CodeEditor
                                 defaultValue={
-                                  passedPrompt || currentPrompt?.value || ""
+                                  isJsonString(
+                                    passedPrompt || currentPrompt?.value || ""
+                                  )
+                                    ? JSON.stringify(
+                                        JSON.parse(
+                                          passedPrompt ||
+                                            currentPrompt?.value ||
+                                            ""
+                                        ),
+                                        null,
+                                        2
+                                      )
+                                    : passedPrompt || currentPrompt?.value || ""
                                 }
-                                className="h-32 text-primary"
                                 value={field.value}
                                 onChange={(e) => {
                                   setPrompt(e.target.value);
@@ -211,6 +223,13 @@ export default function CreatePromptDialog({
                                   field.onChange(e);
                                 }}
                                 placeholder="You are a sales assisstant and your name is {name}. You are well versed in {topic}."
+                                language="json"
+                                padding={15}
+                                className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                                style={{
+                                  fontFamily:
+                                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
