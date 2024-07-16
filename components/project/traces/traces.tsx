@@ -283,7 +283,7 @@ export default function Traces({ email }: { email: string }) {
             />
             <div className="flex items-center gap-1">
               <p className="text-xs font-semibold">Group Spans by Trace ID</p>
-              <Info information="Group spans by trace id. This will group spans with the same trace id together. To learn more about how you can group spans, refer to our documentation on this." />
+              <Info information="This will group spans with the same parent trace id together. Grouping spans will help organize related operations together. To learn more about how you can group spans, refer to our documentation on this." />
               <Link
                 href={HOW_TO_GROUP_RELATED_OPERATIONS}
                 target="_blank"
