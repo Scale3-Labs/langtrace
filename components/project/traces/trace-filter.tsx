@@ -1,4 +1,5 @@
 import { Info } from "@/components/shared/info";
+import { ModelCombobox } from "@/components/shared/model-combobox";
 import { PromptCombobox } from "@/components/shared/prompt-combobox";
 import { UserCombobox } from "@/components/shared/user-combobox";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export default function FilterDialog({
   const [advancedFilters, setAdvancedFilters] = useState<PropertyFilter[]>([]);
   const [userId, setUserId] = useState<string>("");
   const [promptId, setPromptId] = useState<string>("");
+  const [model, setModel] = useState<string>("");
 
   useEffect(() => {
     if (!open) {
@@ -120,6 +122,15 @@ export default function FilterDialog({
         key: "prompt_id",
         operation: "EQUALS",
         value: promptId,
+        type: "attribute",
+      });
+    }
+
+    if (model) {
+      filters.push({
+        key: "gen_ai.response.model",
+        operation: "EQUALS",
+        value: model,
         type: "attribute",
       });
     }
@@ -246,7 +257,18 @@ export default function FilterDialog({
               Learn more
             </Link>
           </div>
-          <UserCombobox selectedUser={userId} setSelectedUser={setUserId} />
+          <UserCombobox
+            selectedUser={userId}
+            setSelectedUser={(uid) => {
+              if (uid === userId) {
+                setUserId("");
+                advancedFilters.filter(
+                  (filter) => filter.key !== "user_id" && filter.value !== uid
+                );
+              }
+              setUserId(uid);
+            }}
+          />
           <Separator />
         </div>
         <div className="flex flex-col gap-4">
@@ -266,21 +288,56 @@ export default function FilterDialog({
           </div>
           <PromptCombobox
             selectedPrompt={promptId}
-            setSelectedPrompt={setPromptId}
+            setSelectedPrompt={(pro) => {
+              if (pro === promptId) {
+                setPromptId("");
+                advancedFilters.filter(
+                  (filter) => filter.key !== "prompt_id" && filter.value !== pro
+                );
+              }
+              setPromptId(pro);
+            }}
           />
           <Separator />
         </div>
-        <DialogFooter className="sticky bottom-0 bg-primary-background py-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-1 items-center">
+            <p className="text-sm font-semibold hover:underline">
+              Filter by Model
+            </p>
+            <Info information="Langtrace automatically detects the models you are using in your application. When you use multiple models for your application, you can use this to filter spans and traces by models." />
+          </div>
+          <ModelCombobox
+            selectedModel={model || ""}
+            setSelectedModel={(mod) => {
+              if (mod === model) {
+                setModel("");
+                advancedFilters.filter(
+                  (filter) =>
+                    filter.key !== "gen_ai.response.model" &&
+                    filter.value !== mod
+                );
+              }
+              setModel(mod);
+            }}
+          />
+          <Separator />
+        </div>
+        <DialogFooter className="sticky bottom-0 bg-primary-background py-2">
           <Button variant={"outline"} onClick={onClose}>
             Cancel
           </Button>
-          {(advancedFilters.length > 0 || userId !== "" || promptId !== "") && (
+          {(advancedFilters.length > 0 ||
+            userId !== "" ||
+            promptId !== "" ||
+            model !== "") && (
             <Button
               variant={"destructive"}
               onClick={() => {
                 setAdvancedFilters([]);
                 setUserId("");
                 setPromptId("");
+                setModel("");
               }}
             >
               <ClearIcon className="h-4 w-4" />
