@@ -42,25 +42,30 @@ import VendorDropdown from "./vendor-dropdown";
 export default function TraceFilter({
   open,
   onClose,
-  onApplyFilters,
-  initFilters,
+  filters,
+  setFilters,
+  userId,
+  setUserId,
+  promptId,
+  setPromptId,
+  model,
+  setModel,
 }: {
   open: boolean;
   onClose: () => void;
-  onApplyFilters: (filters: PropertyFilter[]) => void;
-  initFilters?: PropertyFilter[];
+  filters: PropertyFilter[];
+  setFilters: (filters: any) => void;
+  userId: string;
+  setUserId: (userId: string) => void;
+  promptId: string;
+  setPromptId: (promptId: string) => void;
+  model: string;
+  setModel: (model: string) => void;
 }) {
-  const [advancedFilters, setAdvancedFilters] = useState<PropertyFilter[]>(
-    initFilters || []
-  );
-  const [userId, setUserId] = useState<string>("");
-  const [promptId, setPromptId] = useState<string>("");
-  const [model, setModel] = useState<string>("");
-
   useEffect(() => {
     if (!open) {
-      setAdvancedFilters((filters) =>
-        filters.filter(
+      setFilters((prev: PropertyFilter[]) =>
+        prev.filter(
           (filter) =>
             filter.value !== null &&
             filter.value !== undefined &&
@@ -68,18 +73,18 @@ export default function TraceFilter({
         )
       );
     }
-  }, [open]);
+  }, [open, setFilters]);
 
   const handleFilterChange = (
     filter: PropertyFilter,
     filterIndex: number = -1,
     remove: boolean = true
   ) => {
-    setAdvancedFilters((prev) => {
+    setFilters((prev: any[]) => {
       // remove the filter
       if (filterIndex !== -1) {
         if (remove) {
-          return prev.filter((_, index) => index !== filterIndex);
+          return prev.filter((_: any, index: number) => index !== filterIndex);
         }
 
         prev[filterIndex] = filter;
@@ -88,7 +93,7 @@ export default function TraceFilter({
 
       // check if the filter already exists
       const index = prev.findIndex(
-        (prevFilter) =>
+        (prevFilter: { key: string; value: string }) =>
           prevFilter.key === filter.key && prevFilter.value === filter.value
       );
 
@@ -96,7 +101,7 @@ export default function TraceFilter({
         // remove the filter
         if (remove) {
           return prev.filter(
-            (prevFilter) =>
+            (prevFilter: { key: string; value: string }) =>
               prevFilter.key !== filter.key || prevFilter.value !== filter.value
           );
         }
@@ -110,10 +115,10 @@ export default function TraceFilter({
   };
 
   const applyFilters = () => {
-    const filters = [...advancedFilters];
+    const f = [...filters];
 
     if (userId) {
-      filters.push({
+      f.push({
         key: "user_id",
         operation: "EQUALS",
         value: userId,
@@ -122,7 +127,7 @@ export default function TraceFilter({
     }
 
     if (promptId) {
-      filters.push({
+      f.push({
         key: "prompt_id",
         operation: "EQUALS",
         value: promptId,
@@ -131,7 +136,7 @@ export default function TraceFilter({
     }
 
     if (model) {
-      filters.push({
+      f.push({
         key: "gen_ai.response.model",
         operation: "EQUALS",
         value: model,
@@ -139,7 +144,7 @@ export default function TraceFilter({
       });
     }
 
-    onApplyFilters(filters);
+    setFilters(f);
     onClose();
   };
 
@@ -153,7 +158,7 @@ export default function TraceFilter({
           </DialogDescription>
         </DialogHeader>
         <VendorDropdown
-          selectedFilters={advancedFilters}
+          selectedFilters={filters}
           handleFilterChange={handleFilterChange}
         />
         <div className="flex flex-col gap-4">
@@ -168,7 +173,7 @@ export default function TraceFilter({
             setSelectedModel={(mod) => {
               if (mod === model) {
                 setModel("");
-                advancedFilters.filter(
+                filters.filter(
                   (filter) =>
                     filter.key !== "gen_ai.response.model" &&
                     filter.value !== mod
@@ -199,7 +204,7 @@ export default function TraceFilter({
             setSelectedUser={(uid) => {
               if (uid === userId) {
                 setUserId("");
-                advancedFilters.filter(
+                filters.filter(
                   (filter) => filter.key !== "user_id" && filter.value !== uid
                 );
               }
@@ -228,7 +233,7 @@ export default function TraceFilter({
             setSelectedPrompt={(pro) => {
               if (pro === promptId) {
                 setPromptId("");
-                advancedFilters.filter(
+                filters.filter(
                   (filter) => filter.key !== "prompt_id" && filter.value !== pro
                 );
               }
@@ -259,7 +264,7 @@ export default function TraceFilter({
             </span>
             .
           </div>
-          {advancedFilters.map((filter, index) => {
+          {filters.map((filter, index) => {
             if (filter.type !== "attribute") return null;
             return (
               <div key={index} className="flex items-center mt-2 gap-2">
@@ -310,7 +315,7 @@ export default function TraceFilter({
           <Button
             variant={"default"}
             onClick={() => {
-              setAdvancedFilters((prev) => [
+              setFilters((prev: PropertyFilter[]) => [
                 ...prev,
                 {
                   key: "",
@@ -331,14 +336,14 @@ export default function TraceFilter({
           <Button variant={"outline"} onClick={onClose}>
             Cancel
           </Button>
-          {(advancedFilters.length > 0 ||
+          {(filters.length > 0 ||
             userId !== "" ||
             promptId !== "" ||
             model !== "") && (
             <Button
               variant={"destructive"}
               onClick={() => {
-                setAdvancedFilters([]);
+                setFilters([]);
                 setUserId("");
                 setPromptId("");
                 setModel("");
