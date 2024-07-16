@@ -16,7 +16,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Label } from "../../ui/label";
 import { Separator } from "../../ui/separator";
 import { Switch } from "../../ui/switch";
-import FilterDialog from "./trace-filter";
+import TraceFilter from "./trace-filter";
 import TraceRowSkeleton from "./trace-row-skeleton";
 
 export default function Traces({ email }: { email: string }) {
@@ -28,7 +28,7 @@ export default function Traces({ email }: { email: string }) {
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
-  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
 
   useEffect(() => {
     setShowLoader(true);
@@ -135,7 +135,7 @@ export default function Traces({ email }: { email: string }) {
 
   const handleApplyFilters = (newFilters: PropertyFilter[]) => {
     setFilters(newFilters);
-    setIsFilterDialogOpen(false);
+    setIsTraceFilterOpen(false);
   };
 
   return (
@@ -175,7 +175,7 @@ export default function Traces({ email }: { email: string }) {
             <Button
               variant={"outline"}
               size={"icon"}
-              onClick={() => setIsFilterDialogOpen(true)}
+              onClick={() => setIsTraceFilterOpen(true)}
             >
               <FilterListIcon className="cursor-pointer" />
             </Button>
@@ -242,9 +242,9 @@ export default function Traces({ email }: { email: string }) {
             )}
         </div>
       )}
-      <FilterDialog
-        open={isFilterDialogOpen}
-        onClose={() => setIsFilterDialogOpen(false)}
+      <TraceFilter
+        open={isTraceFilterOpen}
+        onClose={() => setIsTraceFilterOpen(false)}
         onApplyFilters={handleApplyFilters}
       />
     </div>

@@ -39,7 +39,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import VendorDropdown from "./vendor-dropdown";
 
-export default function FilterDialog({
+export default function TraceFilter({
   open,
   onClose,
   onApplyFilters,
