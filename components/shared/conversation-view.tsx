@@ -44,7 +44,7 @@ export default function ConversationView({ span }: { span: any }) {
   if (!prompts && !responses) return <p className="text-md">No data found</p>;
 
   return (
-    <div className="flex flex-col gap-8 overflow-y-scroll pr-6">
+    <div className="flex flex-col gap-8 overflow-y-scroll pr-6 max-h-screen">
       {prompts?.length > 0 &&
         JSON.parse(prompts).map((prompt: any, i: number) => {
           const role = prompt?.role ? prompt?.role?.toLowerCase() : "User";
