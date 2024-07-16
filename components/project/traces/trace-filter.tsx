@@ -43,12 +43,16 @@ export default function TraceFilter({
   open,
   onClose,
   onApplyFilters,
+  initFilters,
 }: {
   open: boolean;
   onClose: () => void;
   onApplyFilters: (filters: PropertyFilter[]) => void;
+  initFilters?: PropertyFilter[];
 }) {
-  const [advancedFilters, setAdvancedFilters] = useState<PropertyFilter[]>([]);
+  const [advancedFilters, setAdvancedFilters] = useState<PropertyFilter[]>(
+    initFilters || []
+  );
   const [userId, setUserId] = useState<string>("");
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");

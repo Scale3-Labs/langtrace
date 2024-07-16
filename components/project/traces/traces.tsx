@@ -1,10 +1,12 @@
 "use client";
 
 import { TraceRow } from "@/components/project/traces/trace-row";
+import { Info } from "@/components/shared/info";
 import { Button } from "@/components/ui/button";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { XIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -25,7 +27,26 @@ export default function Traces({ email }: { email: string }) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
   const [showLoader, setShowLoader] = useState(false);
-  const [filters, setFilters] = useState<PropertyFilter[]>([]);
+  const [filters, setFilters] = useState<PropertyFilter[]>([
+    {
+      key: "langtrace.service.type",
+      operation: "EQUALS",
+      value: "llm",
+      type: "attribute",
+    },
+    {
+      key: "langtrace.service.type",
+      operation: "EQUALS",
+      value: "vectordb",
+      type: "attribute",
+    },
+    {
+      key: "langtrace.service.type",
+      operation: "EQUALS",
+      value: "framework",
+      type: "attribute",
+    },
+  ]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(true);
   const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
@@ -36,6 +57,12 @@ export default function Traces({ email }: { email: string }) {
     setPage(1);
     setTotalPages(1);
     setEnableFetch(true);
+
+    // fetch preferences from local storage
+    if (typeof window !== "undefined") {
+      const utc = window.localStorage.getItem("preferences.timestamp.utc");
+      setUtcTime(utc === "true");
+    }
   }, [filters]);
 
   const scrollableDivRef = useBottomScrollListener(() => {
@@ -118,18 +145,21 @@ export default function Traces({ email }: { email: string }) {
     enabled: enableFetch,
   });
 
-  const FILTERS = [
+  const FILTERS: { key: string; value: string; info: string }[] = [
     {
       key: "llm",
       value: "LLM Requests",
+      info: "Requests made to a LLM. This includes requests like text embedding, text generation, text completion, etc.",
     },
     {
       key: "vectordb",
       value: "VectorDB Requests",
+      info: "Requests made to a VectorDB. This includes requests like vector search, vector similarity, etc.",
     },
     {
       key: "framework",
       value: "Framework Requests",
+      info: "This includes traces from Framework calls like langchain, CrewAI, DSPy etc.",
     },
   ];
 
@@ -169,6 +199,7 @@ export default function Traces({ email }: { email: string }) {
               <label htmlFor={item.key} className="text-xs font-semibold">
                 {item.value}
               </label>
+              <Info information={item.info} />
             </div>
           ))}
           <div className="flex items-center gap-1">
@@ -181,13 +212,36 @@ export default function Traces({ email }: { email: string }) {
             </Button>
             <p className="text-xs font-semibold">Advanced Filters</p>
           </div>
+          {filters.length > 0 && (
+            <Button
+              size={"sm"}
+              variant={"destructive"}
+              onClick={() => {
+                setFilters([]);
+              }}
+            >
+              <XIcon className="w-4 h-4 mr-1" />
+              Clear All
+            </Button>
+          )}
         </div>
         <div className="flex gap-2 items-center">
           <Label>Local time</Label>
           <Switch
             id="timestamp"
             checked={utcTime}
-            onCheckedChange={(check) => setUtcTime(check)}
+            onCheckedChange={(check) => {
+              setUtcTime(check);
+
+              // Save the preference in local storage
+              if (typeof window !== "undefined") {
+                window.localStorage.setItem(
+                  "preferences.timestamp.utc",
+                  check ? "true" : "false"
+                );
+                toast.success("Timezone preference saved successfully.");
+              }
+            }}
           />
           <Label>UTC</Label>
         </div>
@@ -246,6 +300,7 @@ export default function Traces({ email }: { email: string }) {
         open={isTraceFilterOpen}
         onClose={() => setIsTraceFilterOpen(false)}
         onApplyFilters={handleApplyFilters}
+        initFilters={filters}
       />
     </div>
   );
