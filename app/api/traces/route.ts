@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const apiKey = req.headers.get("x-api-key");
-    const { page, pageSize, projectId, filters } = await req.json();
+    const { page, pageSize, projectId, filters, group } = await req.json();
 
     // check if user is logged in or has an api key
     if (!session || !session.user) {
@@ -78,7 +78,8 @@ export async function POST(req: NextRequest) {
       projectId,
       page,
       pageSize,
-      filters
+      filters,
+      group
     );
 
     return NextResponse.json(

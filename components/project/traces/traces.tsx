@@ -67,29 +67,6 @@ export default function Traces({ email }: { email: string }) {
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
       const apiEndpoint = "/api/traces";
-      if (filters.length > 0) {
-        // check if parent_id filter is present
-        const parentFilter = filters.find(
-          (filter) => filter.key === "parent_id"
-        );
-        if (!parentFilter && groupSpans) {
-          filters.push({
-            key: "parent_id",
-            operation: "EQUALS",
-            value: "",
-            type: "property",
-          });
-        }
-      }
-
-      // if parent_id is the only filter, remove it
-      if (
-        filters.length === 1 &&
-        filters[0].key === "parent_id" &&
-        groupSpans
-      ) {
-        filters.pop();
-      }
 
       const body = {
         page,
@@ -99,6 +76,7 @@ export default function Traces({ email }: { email: string }) {
           filters: filters,
           operation: "OR",
         },
+        group: groupSpans,
       };
 
       const response = await fetch(apiEndpoint, {

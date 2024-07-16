@@ -66,7 +66,8 @@ export interface ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters?: Filter
+    filters?: Filter,
+    group?: boolean
   ) => Promise<PaginationResult<Span[]>>;
   GetTokensUsedPerProject: (project_id: string) => Promise<any>;
   GetTokensUsedPerAccount: (project_ids: string[]) => Promise<number>;
@@ -543,7 +544,8 @@ export class TraceService implements ITraceService {
     project_id: string,
     page: number,
     pageSize: number,
-    filters: Filter = { operation: "AND", filters: [] }
+    filters: Filter = { operation: "AND", filters: [] },
+    group: boolean = true
   ): Promise<PaginationResult<Span[]>> {
     try {
       // check if the table exists
@@ -590,6 +592,15 @@ export class TraceService implements ITraceService {
       // get all traces
       const traces: Span[][] = [];
       for (const span of spans) {
+        if (group && filters.filters.length > 0) {
+          filters.filters.push({
+            key: "parent_id",
+            operation: "EQUALS",
+            value: "",
+            type: "property",
+          } as any);
+        }
+
         const getTraceByIdQuery = sql.select(
           this.queryBuilderService.GetFilteredTraceAttributesTraceById(
             project_id,
@@ -597,8 +608,20 @@ export class TraceService implements ITraceService {
             filters
           )
         );
-        const trace = await this.client.find<Span[]>(getTraceByIdQuery);
-        traces.push(trace);
+        let trace = await this.client.find<Span[]>(getTraceByIdQuery);
+        // if group is false, remove the span with span_id equal to the parent_id of all the other spans
+        if (!group) {
+          // find the parent_id from one of the spans where the parent_id is not ""
+          const parent_id = trace.find((s) => s.parent_id !== "")?.parent_id;
+
+          // remove the span with span_id equal to the parent_id
+          if (parent_id !== undefined) {
+            trace = trace.filter((s) => s.span_id !== parent_id);
+          }
+        }
+        if (trace.length > 0) {
+          traces.push(trace);
+        }
       }
       return { result: traces, metadata: md };
     } catch (error) {
