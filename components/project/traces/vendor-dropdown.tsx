@@ -47,14 +47,20 @@ export default function VendorDropdown({
                       filter.key === "langtrace.service.name"
                   )}
                   value={SUPPORTED_VENDORS[vendor]}
-                  onClick={() =>
+                  onClick={() => {
                     handleFilterChange({
                       key: "langtrace.service.name",
                       operation: "EQUALS",
                       value: SUPPORTED_VENDORS[vendor],
                       type: "attribute",
-                    })
-                  }
+                    });
+                    handleFilterChange({
+                      key: "langtrace.service.name",
+                      operation: "EQUALS",
+                      value: SUPPORTED_VENDORS[vendor].toLowerCase(),
+                      type: "attribute",
+                    });
+                  }}
                 />
                 <label htmlFor={vendor} className="ml-1 cursor-pointer">
                   {SUPPORTED_VENDORS[vendor]}

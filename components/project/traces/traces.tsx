@@ -32,6 +32,9 @@ export default function Traces({ email }: { email: string }) {
   const [utcTime, setUtcTime] = useState(true);
   const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
   const [groupSpans, setGroupSpans] = useState(true);
+  const [userId, setUserId] = useState<string>("");
+  const [promptId, setPromptId] = useState<string>("");
+  const [model, setModel] = useState<string>("");
 
   useEffect(() => {
     setShowLoader(true);
@@ -172,11 +175,6 @@ export default function Traces({ email }: { email: string }) {
     },
   ];
 
-  const handleApplyFilters = (newFilters: PropertyFilter[]) => {
-    setFilters(newFilters);
-    setIsTraceFilterOpen(false);
-  };
-
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
       <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
@@ -227,6 +225,9 @@ export default function Traces({ email }: { email: string }) {
               variant={"destructive"}
               onClick={() => {
                 setFilters([]);
+                setUserId("");
+                setPromptId("");
+                setModel("");
               }}
             >
               <XIcon className="w-4 h-4 mr-1" />
@@ -348,8 +349,14 @@ export default function Traces({ email }: { email: string }) {
       <TraceFilter
         open={isTraceFilterOpen}
         onClose={() => setIsTraceFilterOpen(false)}
-        onApplyFilters={handleApplyFilters}
-        initFilters={filters}
+        filters={filters}
+        setFilters={setFilters}
+        userId={userId}
+        setUserId={setUserId}
+        promptId={promptId}
+        setPromptId={setPromptId}
+        model={model}
+        setModel={setModel}
       />
     </div>
   );
