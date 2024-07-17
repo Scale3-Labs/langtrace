@@ -111,7 +111,10 @@ export function InviteMember({ user }: { user: any }) {
         <DialogHeader>
           <DialogTitle>Invite Members</DialogTitle>
           <DialogDescription>
-            Invite a new member to your team
+            Invite a new member to your team. The invited user will be
+            auto-added to the account if they sign up using the invited email
+            sent when this form is submitted. If they already have an account,
+            they need to reach out to us to move to the invited account.
           </DialogDescription>
         </DialogHeader>
         <Form {...MemberDetailsForm}>
@@ -157,7 +160,7 @@ export function InviteMember({ user }: { user: any }) {
                 onClick={MemberDetailsForm.handleSubmit(sendMemberInvitation)}
                 className="w-fit"
               >
-                Submit
+                Invite
               </Button>
             </DialogFooter>
           </form>
