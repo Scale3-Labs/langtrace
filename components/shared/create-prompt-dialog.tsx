@@ -1,5 +1,3 @@
-"use client";
-
 import DiffView from "@/components/shared/diff-view";
 import {
   AlertDialog,
@@ -33,6 +31,8 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
 import { toast } from "sonner";
 import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { Badge } from "../ui/badge";
 
 export default function CreatePromptDialog({
   promptsetId,
@@ -85,6 +85,12 @@ export default function CreatePromptDialog({
   );
   const [confirmAndSaveView, setConfirmAndSaveView] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
+  const [isZod, setIsZod] = useState<boolean>(false);
+
+  const isZodSchema = (str: string) => {
+    // Basic check to see if the string contains a Zod schema pattern
+    return /z\./.test(str) && /z\.(object|string|number|array|discriminatedUnion)/.test(str);
+  };
 
   const extractVariables = (prompt: string) => {
     const regex = /\$\{([^}]*)\}/g;
@@ -149,8 +155,19 @@ export default function CreatePromptDialog({
                   onSubmit={CreatePromptForm.handleSubmit(async (data) => {
                     try {
                       setBusy(true);
+
+                      // if the prompt is a zod schema, we serialize it as a string
+                      let serializedPrompt;
+                      if (isZod) {
+                        const createSchema = new Function('z', `return ${data.prompt}`);
+                        const schema = createSchema(z);
+                        serializedPrompt = JSON.stringify(zodToJsonSchema(schema));
+                      } else {
+                        serializedPrompt = data.prompt;
+                      }
+
                       const payload = {
-                        value: data.prompt,
+                        value: serializedPrompt,
                         variables: variables,
                         model: data.model || "",
                         modelSettings: data.modelSettings
@@ -177,9 +194,11 @@ export default function CreatePromptDialog({
                       setBusy(false);
                       setOpen(false);
                       setOpenDialog && setOpenDialog(false);
-                    } catch (error) {
+                    } catch (error: any) {
                       setBusy(false);
-                      toast.error("Failed to create prompt");
+                      toast.error("Failed to create prompt. Please check your prompt!", {
+                        description: error?.message || "An error occurred",
+                      });
                     }
                   })}
                 >
@@ -197,6 +216,7 @@ export default function CreatePromptDialog({
                                   "(Variables should be enclosed in curly braces - Ex: ${variable})"
                                 }
                               </span>
+                              {isZod && (<Badge className="ml-2" variant="default">Zod Schema</Badge>)}
                             </FormLabel>
                             <FormControl>
                               <CodeEditor
@@ -218,8 +238,14 @@ export default function CreatePromptDialog({
                                 value={field.value}
                                 onChange={(e) => {
                                   setPrompt(e.target.value);
-                                  const vars = extractVariables(e.target.value);
-                                  setVariables(vars);
+                                  // If the prompt is not a zod schema, extract variables
+                                  if (!isZodSchema(e.target.value)) {
+                                    setIsZod(false);
+                                    const vars = extractVariables(e.target.value);
+                                    setVariables(vars);
+                                  } else {
+                                    setIsZod(true);
+                                  }
                                   field.onChange(e);
                                 }}
                                 placeholder="You are a sales assisstant and your name is ${name}. You are well versed in ${topic}."
