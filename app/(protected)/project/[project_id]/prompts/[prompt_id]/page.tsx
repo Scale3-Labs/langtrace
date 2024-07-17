@@ -37,7 +37,7 @@ export default function Page() {
       }
       const result = await response.json();
       setPrompts(result?.promptsets?.prompts || []);
-      if (result?.promptsets?.prompts.length > 0 && !selectedPrompt) {
+      if (result?.promptsets?.prompts.length > 0) {
         setSelectedPrompt(result?.promptsets?.prompts[0]);
         setLive(result?.promptsets?.prompts[0].live);
       }
@@ -96,7 +96,7 @@ export default function Page() {
           </Button>
           {prompts.length > 0 ? (
             <CreatePromptDialog
-              currentPrompt={selectedPrompt}
+              currentPrompt={prompts[0]}
               promptsetId={promptsetId}
               version={prompts.length + 1}
               open={createDialogOpen}
