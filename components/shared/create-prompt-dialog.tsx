@@ -194,7 +194,7 @@ export default function CreatePromptDialog({
                               Prompt{" "}
                               <span className="text-xs font-normal">
                                 {
-                                  "(Variables should be enclosed in curly braces - Ex: {variable})"
+                                  "(Variables should be enclosed in curly braces - Ex: ${variable})"
                                 }
                               </span>
                             </FormLabel>
@@ -222,7 +222,7 @@ export default function CreatePromptDialog({
                                   setVariables(vars);
                                   field.onChange(e);
                                 }}
-                                placeholder="You are a sales assisstant and your name is {name}. You are well versed in {topic}."
+                                placeholder="You are a sales assisstant and your name is ${name}. You are well versed in ${topic}."
                                 language="json"
                                 padding={15}
                                 className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
