@@ -34,11 +34,11 @@ export const TraceRow = ({
 
   // capture the token counts from the trace
   let tokenCounts: any = {};
-  let model: string = "";
-  let vendor: string = "";
-  let userId: string = "";
-  let promptId: string = "";
-  let promptVersion: string = "";
+  let models: string[] = [];
+  let vendors: string[] = [];
+  let userIds: string[] = [];
+  let promptIds: string[] = [];
+  let promptVersions: string[] = [];
   let prompts: any[] = [];
   let responses: any[] = [];
   let allEvents: any[] = [];
@@ -46,28 +46,48 @@ export const TraceRow = ({
   let langgraph = false;
   for (const span of trace) {
     if (span.attributes) {
+      // parse the attributes of the span
       const attributes = JSON.parse(span.attributes);
+      let vendor = "";
+
+      // get the service name from the attributes
       if (attributes["langtrace.service.name"]) {
         vendor = attributes["langtrace.service.name"].toLowerCase();
         if (vendor === "langgraph") {
           langgraph = true;
         }
+        vendors.push(vendor);
       }
-      userId = attributes["user_id"];
+
+      // get the user_id, prompt_id, prompt_version, and model from the attributes
+      if (attributes["user_id"]) {
+        userIds.push(attributes["user_id"]);
+      }
+      if (attributes["prompt_id"]) {
+        promptIds.push(attributes["prompt_id"]);
+      }
+      if (attributes["prompt_version"]) {
+        promptVersions.push(attributes["prompt_version"]);
+      }
+
+      let model = "";
+      if (
+        attributes["gen_ai.response.model"] ||
+        attributes["llm.model"] ||
+        attributes["gen_ai.request.model"]
+      ) {
+        model =
+          attributes["gen_ai.response.model"] ||
+          attributes["llm.model"] ||
+          attributes["gen_ai.request.model"];
+        models.push(model);
+      }
       // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
       if (attributes["llm.prompts"] && attributes["llm.responses"]) {
         prompts.push(attributes["llm.prompts"]);
         responses.push(attributes["llm.responses"]);
       }
-      promptId = attributes["prompt_id"];
-      promptVersion = attributes["prompt_version"];
-      if (!model) {
-        model =
-          attributes["gen_ai.response.model"] ||
-          attributes["llm.model"] ||
-          attributes["gen_ai.request.model"] ||
-          "";
-      }
+
       if (
         attributes["gen_ai.usage.prompt_tokens"] &&
         attributes["gen_ai.usage.completion_tokens"]
@@ -88,7 +108,10 @@ export const TraceRow = ({
             : attributes["gen_ai.usage.prompt_tokens"] +
               attributes["gen_ai.usage.completion_tokens"],
         };
+
+        // calculate the cost of the current span
         const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
+
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
@@ -108,6 +131,7 @@ export const TraceRow = ({
             : currentcounts.total_tokens,
         };
 
+        // calculate the cost of the current span
         const currentcost = calculatePriceFromUsage(
           vendor,
           model,
@@ -153,12 +177,12 @@ export const TraceRow = ({
       if (inputs.length > 0) {
         prompts.push(...inputs);
       } else {
-        prompts.push('[{}]');
+        prompts.push("[{}]");
       }
       if (outputs.length > 0) {
         responses.push(...outputs);
       } else {
-        responses.push('[{}]');
+        responses.push("[{}]");
       }
     }
   }
@@ -214,7 +238,9 @@ export const TraceRow = ({
             {traceHierarchy[0].name}
           </p>
         </div>
-        <p className="text-xs font-semibold">{model}</p>
+        <p className="text-xs font-semibold">
+          {models.length > 0 ? models[0] : ""}
+        </p>
         {prompts?.length > 0 ? (
           <HoverCell
             values={JSON.parse(prompts[0])}
@@ -231,9 +257,15 @@ export const TraceRow = ({
         ) : (
           <p className="text-xs font-semibold col-span-2"></p>
         )}
-        <p className="text-xs font-semibold">{userId}</p>
-        <p className="text-xs font-semibold">{promptId}</p>
-        <p className="text-xs font-semibold">{promptVersion}</p>
+        <p className="text-xs font-semibold">
+          {userIds.length > 0 ? userIds[0] : ""}
+        </p>
+        <p className="text-xs font-semibold">
+          {promptIds.length > 0 ? promptIds[0] : ""}
+        </p>
+        <p className="text-xs font-semibold">
+          {promptVersions.length > 0 ? promptVersions[0] : ""}
+        </p>
         <p className="text-xs">
           {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens}
           {tokenCounts?.input_tokens || tokenCounts?.prompt_tokens ? "/" : ""}
