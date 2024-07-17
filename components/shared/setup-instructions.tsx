@@ -7,8 +7,8 @@ import {
 	AccordionTrigger,
 } from "../ui/accordion";
 import { Button } from "../ui/button";
-import GenerateApiKey from "./api-key";
 import { Separator } from "../ui/separator";
+import GenerateApiKey from "./api-key";
 
 type SdkType = "python" | "typescript";
 
@@ -239,14 +239,22 @@ export function PromptInstructions({ id }: { id: string }) {
                 `
 import * as Langtrace from "@langtrase/typescript-sdk";
 
-const prompt = Langtrace.getPromptFromRegistry('${id}')
+const response = await Langtrace.getPromptFromRegistry('${id}')
+// for json prompts (ex: tool calling)
+// const prompt = JSON.parse(response.value)
+const prompt = response.value
+console.log(prompt)
 `
               );
             }}
           >
             {`import * as Langtrace from "@langtrase/typescript-sdk";
 
-const prompt = Langtrace.getPromptFromRegistry('${id}')
+const response = await Langtrace.getPromptFromRegistry('${id}')
+// for json prompts (ex: tool calling)
+// const prompt = JSON.parse(response.value)
+const prompt = response.value
+console.log(prompt)
 `}
           </pre>
         )}
@@ -255,18 +263,28 @@ const prompt = Langtrace.getPromptFromRegistry('${id}')
             className="text-xs p-2 rounded-md bg-muted select-all selection:bg-orange-400 dark:selection:bg-orange-600"
             onClick={() => {
               copyToClipboard(
-                `
-                from langtrace_python_sdk import get_prompt_from_registry
+                `import json
+from langtrace_python_sdk import get_prompt_from_registry
 
-                prompt = get_prompt_from_registry('${id}')
+response = get_prompt_from_registry('${id}')
+
+# for json prompts (ex: tool calling)
+# prompt = json.loads(prompt)
+prompt = response['value']
+print(prompt)
 `
               );
             }}
           >
-            {`// Must precede any llm module imports
+            {`import json
 from langtrace_python_sdk import get_prompt_from_registry
 
-prompt = get_prompt_from_registry('${id}')
+response = get_prompt_from_registry('${id}')
+
+# for json prompts (ex: tool calling)
+# prompt = json.loads(prompt)
+prompt = response['value']
+print(prompt)
 `}
           </pre>
         )}

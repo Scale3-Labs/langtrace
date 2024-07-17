@@ -297,7 +297,7 @@ export function fillPromptStringTemplate(
   template: string,
   variables: { [key: string]: string }
 ): string {
-  return template.replace(/\{(\w+)\}/g, (match, key) => {
+  return template.replace(/\$?\{(\w+)\}/g, (match, key) => {
     return variables[key] || match;
   });
 }
@@ -608,4 +608,13 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "gemini";
   }
   return vendor;
+}
+
+export function isJsonString(str: string) {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }

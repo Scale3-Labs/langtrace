@@ -1,5 +1,3 @@
-"use client";
-
 import DiffView from "@/components/shared/diff-view";
 import {
   AlertDialog,
@@ -23,6 +21,7 @@ import {
 } from "@/components/ui/form";
 import { Input, InputLarge } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isJsonString } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
@@ -32,6 +31,8 @@ import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
 import { toast } from "sonner";
 import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { Badge } from "../ui/badge";
 
 export default function CreatePromptDialog({
   promptsetId,
@@ -84,12 +85,18 @@ export default function CreatePromptDialog({
   );
   const [confirmAndSaveView, setConfirmAndSaveView] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
+  const [isZod, setIsZod] = useState<boolean>(false);
+
+  const isZodSchema = (str: string) => {
+    // Basic check to see if the string contains a Zod schema pattern
+    return /z\./.test(str) && /z\.(object|string|number|array|discriminatedUnion)/.test(str);
+  };
 
   const extractVariables = (prompt: string) => {
-    const regex = /{([^}]*)}/g;
+    const regex = /\$\{([^}]*)\}/g;
     const matches = prompt.match(regex);
     let vars =
-      matches?.map((match) => match.replace("{", "").replace("}", "")) || [];
+      matches?.map((match) => match.replace("${", "").replace("}", "")) || [];
     // remove duplicates
     vars = vars.filter((value, index, self) => self.indexOf(value) === index);
     // remove empty strings
@@ -148,8 +155,19 @@ export default function CreatePromptDialog({
                   onSubmit={CreatePromptForm.handleSubmit(async (data) => {
                     try {
                       setBusy(true);
+
+                      // if the prompt is a zod schema, we serialize it as a string
+                      let serializedPrompt;
+                      if (isZod) {
+                        const createSchema = new Function('z', `return ${data.prompt}`);
+                        const schema = createSchema(z);
+                        serializedPrompt = JSON.stringify(zodToJsonSchema(schema));
+                      } else {
+                        serializedPrompt = data.prompt;
+                      }
+
                       const payload = {
-                        value: data.prompt,
+                        value: serializedPrompt,
                         variables: variables,
                         model: data.model || "",
                         modelSettings: data.modelSettings
@@ -176,9 +194,11 @@ export default function CreatePromptDialog({
                       setBusy(false);
                       setOpen(false);
                       setOpenDialog && setOpenDialog(false);
-                    } catch (error) {
+                    } catch (error: any) {
                       setBusy(false);
-                      toast.error("Failed to create prompt");
+                      toast.error("Failed to create prompt. Please check your prompt!", {
+                        description: error?.message || "An error occurred",
+                      });
                     }
                   })}
                 >
@@ -193,24 +213,49 @@ export default function CreatePromptDialog({
                               Prompt{" "}
                               <span className="text-xs font-normal">
                                 {
-                                  "(Variables should be enclosed in curly braces - Ex: {variable})"
+                                  "(Variables should be enclosed in curly braces - Ex: ${variable})"
                                 }
                               </span>
+                              {isZod && (<Badge className="ml-2" variant="default">Zod Schema</Badge>)}
                             </FormLabel>
                             <FormControl>
-                              <InputLarge
+                              <CodeEditor
                                 defaultValue={
-                                  passedPrompt || currentPrompt?.value || ""
+                                  isJsonString(
+                                    passedPrompt || currentPrompt?.value || ""
+                                  )
+                                    ? JSON.stringify(
+                                        JSON.parse(
+                                          passedPrompt ||
+                                            currentPrompt?.value ||
+                                            ""
+                                        ),
+                                        null,
+                                        2
+                                      )
+                                    : passedPrompt || currentPrompt?.value || ""
                                 }
-                                className="h-32 text-primary"
                                 value={field.value}
                                 onChange={(e) => {
                                   setPrompt(e.target.value);
-                                  const vars = extractVariables(e.target.value);
-                                  setVariables(vars);
+                                  // If the prompt is not a zod schema, extract variables
+                                  if (!isZodSchema(e.target.value)) {
+                                    setIsZod(false);
+                                    const vars = extractVariables(e.target.value);
+                                    setVariables(vars);
+                                  } else {
+                                    setIsZod(true);
+                                  }
                                   field.onChange(e);
                                 }}
-                                placeholder="You are a sales assisstant and your name is {name}. You are well versed in {topic}."
+                                placeholder="You are a sales assisstant and your name is ${name}. You are well versed in ${topic}."
+                                language="json"
+                                padding={15}
+                                className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                                style={{
+                                  fontFamily:
+                                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                                }}
                               />
                             </FormControl>
                             <FormMessage />

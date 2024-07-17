@@ -142,6 +142,13 @@ export default function TraceFilter({
         value: model,
         type: "attribute",
       });
+
+      f.push({
+        key: "gen_ai.request.model",
+        operation: "EQUALS",
+        value: model,
+        type: "attribute",
+      });
     }
 
     setFilters(f);
