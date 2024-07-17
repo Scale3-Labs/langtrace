@@ -88,7 +88,9 @@ export function InviteMember({ user }: { user: any }) {
       //   email: data.email.toLowerCase(),
       // });
       queryClient.invalidateQueries({ queryKey: ["getUsers"] });
-      toast.success("Team member invited successfully");
+      toast.success("Team member invited successfully", {
+        description: `Please have the invited person sign up with their ${data.email} email`,
+      });
       setOpen(false);
     } catch (error) {
       toast.error(
