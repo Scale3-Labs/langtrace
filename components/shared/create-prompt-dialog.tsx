@@ -87,10 +87,10 @@ export default function CreatePromptDialog({
   const [busy, setBusy] = useState<boolean>(false);
 
   const extractVariables = (prompt: string) => {
-    const regex = /{([^}]*)}/g;
+    const regex = /\$\{([^}]*)\}/g;
     const matches = prompt.match(regex);
     let vars =
-      matches?.map((match) => match.replace("{", "").replace("}", "")) || [];
+      matches?.map((match) => match.replace("${", "").replace("}", "")) || [];
     // remove duplicates
     vars = vars.filter((value, index, self) => self.indexOf(value) === index);
     // remove empty strings
