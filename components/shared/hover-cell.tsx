@@ -19,17 +19,17 @@ export function HoverCell({
     const role = value?.role
       ? value?.role?.toLowerCase()
       : value?.message?.role
-      ? value?.message?.role
-      : "User";
+        ? value?.message?.role
+        : "User";
     const content = value?.content
       ? safeStringify(value?.content)
       : value?.function_call
-      ? safeStringify(value?.function_call)
-      : value?.message?.content
-      ? safeStringify(value?.message?.content)
-      : value?.text
-      ? safeStringify(value?.text)
-      : "";
+        ? safeStringify(value?.function_call)
+        : value?.message?.content
+          ? safeStringify(value?.message?.content)
+          : value?.text
+            ? safeStringify(value?.text)
+            : "";
     return { role, content };
   });
 

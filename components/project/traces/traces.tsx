@@ -1,11 +1,16 @@
 "use client";
 
-import { TraceRow } from "@/components/project/traces/trace-row";
+import { HoverCell } from "@/components/shared/hover-cell";
 import { Info } from "@/components/shared/info";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HOW_TO_GROUP_RELATED_OPERATIONS, PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
+import { processTrace, Trace } from "@/lib/trace_util";
+import { correctTimestampFormat } from "@/lib/trace_utils";
+import { formatDateTime } from "@/lib/utils";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -16,10 +21,10 @@ import { toast } from "sonner";
 import { SetupInstructions } from "../../shared/setup-instructions";
 import { Spinner } from "../../shared/spinner";
 import { Checkbox } from "../../ui/checkbox";
-import { Separator } from "../../ui/separator";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
 import TraceRowSkeleton from "./trace-row-skeleton";
+import { DataTable } from "./traces-table";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -29,7 +34,7 @@ export default function Traces({ email }: { email: string }) {
   const [showLoader, setShowLoader] = useState(false);
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
-  const [utcTime, setUtcTime] = useState(true);
+  const [utcTime, setUtcTime] = useState(false);
   const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
   const [groupSpans, setGroupSpans] = useState(true);
   const [userId, setUserId] = useState<string>("");
@@ -52,6 +57,260 @@ export default function Traces({ email }: { email: string }) {
       setGroupSpans(group === "true");
     }
   }, [filters]);
+
+  const columns: ColumnDef<Trace>[] = [
+    {
+      accessorKey: "starttime",
+      enableResizing: true,
+      header: "Start Time",
+      cell: ({ row }) => {
+        const starttime = row.getValue("starttime") as string;
+        return (
+          <div className="text-left text-muted-foreground text-xs font-semibold">
+            {formatDateTime(correctTimestampFormat(starttime), !utcTime)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <div className="text-left flex gap-2 items-center">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                status === "ERROR" ? "bg-red-500" : "bg-teal-400"
+              }`}
+            ></span>
+            <p className="text-muted-foreground text-xs font-semibold capitalize">
+              {status}
+            </p>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "namespace",
+      header: "Namespace",
+    },
+    {
+      accessorKey: "user_ids",
+      header: "User IDs",
+      cell: ({ row }) => {
+        const userids = row.getValue("user_ids") as string[];
+        // Remove duplicates
+        const uniqueUserids = Array.from(
+          new Set(
+            userids
+              .map((userid) => userid.toLowerCase())
+              .filter((userid) => userid !== "")
+          )
+        );
+        return (
+          <div className="flex gap-1 flex-wrap">
+            {uniqueUserids.map((userid, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {userid}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "prompt_ids",
+      header: "Prompt IDs",
+      cell: ({ row }) => {
+        const promptids = row.getValue("prompt_ids") as string[];
+        // Remove duplicates
+        const uniquePromptids = Array.from(
+          new Set(
+            promptids
+              .map((promptid) => promptid.toLowerCase())
+              .filter((promptid) => promptid !== "")
+          )
+        );
+        return (
+          <div className="flex gap-1 flex-wrap">
+            {uniquePromptids.map((promptid, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {promptid}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "models",
+      header: "Models",
+      cell: ({ row }) => {
+        const models = row.getValue("models") as string[];
+        // Remove duplicates
+        const uniqueModels = Array.from(
+          new Set(
+            models
+              .map((model) => model.toLowerCase())
+              .filter((model) => model !== "")
+          )
+        );
+        return (
+          <div className="flex gap-1 flex-wrap">
+            {uniqueModels.map((model, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {model}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "vendors",
+      header: "Vendors",
+      cell: ({ row }) => {
+        const vendors = row.getValue("vendors") as string[];
+        // remove duplicates
+        const uniqueVendors = Array.from(
+          new Set(
+            vendors
+              .map((vendor) => vendor.toLowerCase())
+              .filter((vendor) => vendor !== "")
+          )
+        );
+
+        return (
+          <div className="flex gap-1 flex-wrap">
+            {uniqueVendors.map((vendor, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {vendor}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "inputs",
+      header: "Inputs",
+      cell: ({ row }) => {
+        const messages = row.getValue("inputs") as Record<string, string[]>[];
+        if (!messages || messages.length === 0) {
+          return null;
+        }
+        return (
+          <div className="flex gap-2 flex-wrap">
+            {messages.map((message, i) =>
+              message.prompts.length > 0
+                ? message.prompts.map((prompt, j) => (
+                    <HoverCell
+                      key={j}
+                      values={JSON.parse(prompt)}
+                      className="text-sm max-h-10 overflow-y-scroll bg-muted p-[6px] rounded-md"
+                    />
+                  ))
+                : null
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "outputs",
+      header: "Outputs",
+      cell: ({ row }) => {
+        const messages = row.getValue("outputs") as Record<string, string[]>[];
+        if (!messages || messages.length === 0) {
+          return null;
+        }
+        return (
+          <div className="flex gap-2 flex-wrap">
+            {messages.map((message, i) =>
+              message.responses.length > 0
+                ? message.responses.map((response, j) => (
+                    <HoverCell
+                      key={j}
+                      values={JSON.parse(response)}
+                      className="text-sm max-h-10 overflow-y-scroll bg-muted p-[6px] rounded-md"
+                    />
+                  ))
+                : null
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "input_tokens",
+      header: "Input Tokens",
+      cell: ({ row }) => {
+        const count = row.getValue("input_tokens") as number;
+        return <p className="text-xs font-semibold">{count}</p>;
+      },
+    },
+    {
+      accessorKey: "output_tokens",
+      header: "Output Tokens",
+      cell: ({ row }) => {
+        const count = row.getValue("output_tokens") as number;
+        return <p className="text-xs font-semibold">{count}</p>;
+      },
+    },
+    {
+      accessorKey: "total_tokens",
+      header: "Total Tokens",
+      cell: ({ row }) => {
+        const count = row.getValue("total_tokens") as number;
+        return <p className="text-xs font-semibold">{count}</p>;
+      },
+    },
+    {
+      accessorKey: "input_cost",
+      header: "Input Cost",
+      cell: ({ row }) => {
+        const cost = row.getValue("input_cost") as number;
+        return (
+          <p className="text-xs font-semibold">
+            {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
+          </p>
+        );
+      },
+    },
+    {
+      accessorKey: "output_cost",
+      header: "Output Cost",
+      cell: ({ row }) => {
+        const cost = row.getValue("output_cost") as number;
+        return (
+          <p className="text-xs font-semibold">
+            {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
+          </p>
+        );
+      },
+    },
+    {
+      accessorKey: "total_cost",
+      header: "Total Cost",
+      cell: ({ row }) => {
+        const cost = row.getValue("total_cost") as number;
+        return (
+          <p className="text-xs font-semibold">
+            {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
+          </p>
+        );
+      },
+    },
+    {
+      accessorKey: "total_duration",
+      header: "Total Duration",
+      cell: ({ row }) => {
+        const duration = row.getValue("total_duration") as number;
+        return <p className="text-xs font-semibold">{duration}ms</p>;
+      },
+    },
+  ];
 
   const scrollableDivRef = useBottomScrollListener(() => {
     if (fetchTraces.isRefetching) {
@@ -104,21 +363,17 @@ export default function Traces({ email }: { email: string }) {
         setPage(parseInt(metadata?.page) + 1);
       }
 
+      // transform the data
+      const transformedNewData = newData.map((trace: any) =>
+        processTrace(trace)
+      );
+
       // Merge the new data with the existing data
       if (currentData.length > 0) {
-        const updatedData = [...currentData, ...newData];
-
-        // TODO(Karthik): The results are an array of span arrays, so
-        // we need to figure out how to merge them correctly.
-        // Remove duplicates
-        // const uniqueData = updatedData.filter(
-        //   (v: any, i: number, a: any) =>
-        //     a.findIndex((t: any) => t.span_id === v.span_id) === i
-        // );
-
+        const updatedData = [...currentData, ...transformedNewData];
         setCurrentData(updatedData);
       } else {
-        setCurrentData(newData);
+        setCurrentData(transformedNewData);
       }
 
       setEnableFetch(false);
@@ -274,37 +529,18 @@ export default function Traces({ email }: { email: string }) {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-13 items-center gap-6 p-3 bg-muted">
-        <p className="ml-10 text-xs font-medium">
-          Time <span>&#8595;</span> ({utcTime ? "UTC" : "Local"})
-        </p>
-        <p className="text-xs font-medium">Namespace</p>
-        <p className="text-xs font-medium">Model</p>
-        <p className="text-xs font-medium col-span-2">Input</p>
-        <p className="text-xs font-medium col-span-2">Output</p>
-        <p className="text-xs font-medium">User ID</p>
-        <p className="text-xs font-medium">Prompt ID</p>
-        <p className="text-xs font-medium">Prompt Version</p>
-        <p className="text-xs font-medium">Input / Output / Total Tokens</p>
-        <p className="text-xs font-medium">Token Cost</p>
-        <p className="text-xs font-medium">Duration(ms)</p>
-      </div>
       {fetchTraces.isLoading || !fetchTraces?.data || !currentData ? (
         <PageSkeleton />
       ) : (
         <div
-          className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll"
+          className="flex flex-col gap-3 rounded-md max-h-screen overflow-y-scroll"
           ref={scrollableDivRef as any}
         >
-          {!fetchTraces.isLoading &&
-            fetchTraces?.data &&
-            currentData?.map((trace: any, i: number) => {
-              return (
-                <div key={i} className="flex flex-col gap-3 px-3">
-                  <TraceRow trace={trace} utcTime={utcTime} /> <Separator />
-                </div>
-              );
-            })}
+          {!fetchTraces.isLoading && fetchTraces?.data && (
+            <div className="flex flex-col gap-2">
+              <DataTable columns={columns} data={currentData} />
+            </div>
+          )}
           {showLoader && (
             <div className="flex justify-center py-8">
               <Spinner className="h-8 w-8 text-center" />
