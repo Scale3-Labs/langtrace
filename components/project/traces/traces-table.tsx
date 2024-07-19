@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ResetIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
   flexRender,
@@ -40,15 +41,17 @@ export function DataTable<TData, TValue>({
     initialState?.columnVisibility || {}
   );
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [tableState, setTableState] = useState(initialState);
 
   const table = useReactTable({
     data,
     columns,
-    initialState,
     getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onStateChange: setTableState,
     state: {
       columnVisibility,
+      ...tableState,
     },
     enableColumnResizing: true,
     columnResizeMode: "onChange",
@@ -109,6 +112,16 @@ export function DataTable<TData, TValue>({
         >
           <SaveIcon size={16} className="mr-2" />
           Save View
+        </Button>
+        <Button
+          variant={"destructive"}
+          onClick={() => {
+            setTableState({});
+            setColumnVisibility({});
+          }}
+        >
+          <ResetIcon className="w-4 h-4 mr-2" />
+          Reset View
         </Button>
       </div>
 
