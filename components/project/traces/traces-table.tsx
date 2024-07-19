@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Trace } from "@/lib/trace_util";
 import { ResetIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
@@ -24,6 +25,7 @@ import {
 import { ChevronDown, SaveIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { TraceSheet } from "./trace-sheet";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -42,6 +44,8 @@ export function DataTable<TData, TValue>({
   );
   const [openDropdown, setOpenDropdown] = useState(false);
   const [tableState, setTableState] = useState(initialState);
+  const [openSheet, setOpenSheet] = useState(false);
+  const [dataIndex, setDataIndex] = useState<number | null>(null);
 
   const table = useReactTable({
     data,
@@ -161,6 +165,10 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
+                onClick={() => {
+                  setDataIndex(row.index);
+                  setOpenSheet(true);
+                }}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
@@ -176,6 +184,13 @@ export function DataTable<TData, TValue>({
             ))}
           </TableBody>
         </Table>
+        {dataIndex !== null && (
+          <TraceSheet
+            trace={data[dataIndex] as Trace}
+            open={openSheet}
+            setOpen={setOpenSheet}
+          />
+        )}
       </div>
     </>
   );

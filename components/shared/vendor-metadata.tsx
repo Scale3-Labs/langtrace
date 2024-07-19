@@ -62,7 +62,6 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-red-500";
   }
 
-
   return "bg-gray-500";
 }
 
@@ -413,7 +412,7 @@ export function VendorLogo({
   }
 
   return (
-    <div className="flex items-center bg-muted p-2 rounded-sm">
+    <div className="flex items-center p-1 rounded-sm">
       <StackIcon
         className={cn(
           "w-4 h-4 text-primary",

@@ -90,10 +90,10 @@ const SpanItem: React.FC<SpanItemProps> = ({
   const vendor = getVendorFromSpan(span as any);
 
   return (
-    <div className="flex flex-col gap-3 w-full mt-2">
+    <div className="flex flex-col gap-1 w-full mt-2">
       <div className="flex items-center">
         <div
-          className="flex gap-2 items-center"
+          className="flex gap-2 items-center sticky left-4 z-50 bg-primary-foreground rounded-md"
           style={{ marginLeft: `${level * 10}px` }}
         >
           {span.children && span.children.length > 0 && (
@@ -110,13 +110,13 @@ const SpanItem: React.FC<SpanItemProps> = ({
               <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
             ))}
           <VendorLogo vendor={vendor} />
-          <span className="text-xs">{span.name}</span>
+          <span className="text-xs max-w-72">{span.name}</span>
         </div>
         <div
-          className={`h-4 rounded-sm ${color} absolute ml-[508px] flex items-center justify-center`}
+          className={`h-4 rounded-sm ${color} absolute ml-[500px] flex items-center justify-center`}
           style={{ left: `${startX}px`, width: `${spanLength}px` }}
         >
-          <span className="text-xs text-white font-semibold">
+          <span className="text-xs text-primary-foreground font-semibold">
             {/* duration */}
             {(
               new Date(correctTimestampFormat(span.end_time)).getTime() -
@@ -150,15 +150,16 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
   // Divide the totalTime into 6 parts
   const step = totalTime / 5;
 
-  const spanBars = spans.map((span) => (
-    <SpanItem
-      key={span.name}
-      span={span}
-      level={0}
-      totalTime={totalTime}
-      startTime={startTime}
-    />
-  ));
+  const SpanBars = () =>
+    spans.map((span) => (
+      <SpanItem
+        key={span.name}
+        span={span}
+        level={0}
+        totalTime={totalTime}
+        startTime={startTime}
+      />
+    ));
 
   return (
     <div className="relative flex flex-col">
@@ -168,7 +169,7 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
         </p>
         <p className="text-xs text-muted-foreground">{totalSpans} span(s)</p>
       </div>
-      <div className="mt-3 grid grid-cols-6 gap-[166px] h-[95%] absolute ml-[500px] -z-10">
+      <div className="mt-3 grid grid-cols-6 gap-[166px] h-[100%] absolute ml-[500px] -z-10">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="flex flex-col gap-1 items-center">
             <p className="text-muted-foreground text-xs">
@@ -178,7 +179,9 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
           </div>
         ))}
       </div>
-      <div className="flex flex-col gap-3 mt-12">{spanBars}</div>
+      <div className="flex flex-col gap-3 mt-12 h-[300px]">
+        <SpanBars />
+      </div>
     </div>
   );
 };
@@ -189,7 +192,7 @@ function calculateSpanStartAndEnd(
   totalTraceTime: number,
   spanStartTime: string
 ) {
-  const scaleWidth = 920; // This is the total width of the scale in pixels (5 steps * 166px/step) + 15*6px for the separators
+  const scaleWidth = 166 * 5; // This is the total width of the scale in pixels (5 steps * 166px/step) + 15*6px for the separators
 
   // Function to convert time to pixels
   const timeToPixels = (time: number) => (time / totalTraceTime) * scaleWidth;

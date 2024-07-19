@@ -2,7 +2,6 @@ import { calculateTotalTime, convertTracesToHierarchy } from "./trace_utils";
 import { calculatePriceFromUsage } from "./utils";
 
 export interface Trace {
-  starttime: string;
   status: string;
   namespace: string;
   user_ids: string[];
@@ -210,7 +209,6 @@ export function processTrace(trace: any): Trace {
   // construct the response object
   const result: Trace = {
     status: status,
-    starttime: traceHierarchy[0].start_time,
     namespace: traceHierarchy[0].name,
     user_ids: userIds,
     prompt_ids: promptIds,

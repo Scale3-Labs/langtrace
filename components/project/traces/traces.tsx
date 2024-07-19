@@ -68,11 +68,11 @@ export default function Traces({ email }: { email: string }) {
 
   const columns: ColumnDef<Trace>[] = [
     {
-      accessorKey: "starttime",
+      accessorKey: "start_time",
       enableResizing: true,
       header: "Start Time",
       cell: ({ row }) => {
-        const starttime = row.getValue("starttime") as string;
+        const starttime = row.getValue("start_time") as string;
         return (
           <div className="text-left text-muted-foreground text-xs font-semibold">
             {formatDateTime(correctTimestampFormat(starttime), !utcTime)}
