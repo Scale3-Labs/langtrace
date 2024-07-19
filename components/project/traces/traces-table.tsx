@@ -20,24 +20,31 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, SaveIcon } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  initState?: any;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  initState,
 }: DataTableProps<TData, TValue>) {
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const initialState = JSON.parse(initState || "{}");
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    initialState?.columnVisibility || {}
+  );
   const [openDropdown, setOpenDropdown] = useState(false);
 
   const table = useReactTable({
     data,
     columns,
+    initialState,
     getCoreRowModel: getCoreRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     state: {
@@ -60,32 +67,50 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
-      <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="ml-auto">
-            Columns
-            <ChevronDown size={16} className="ml-2" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="h-72 overflow-y-visible">
-          {table
-            .getAllColumns()
-            .filter((column) => column.getCanHide())
-            .map((column) => {
-              return (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onSelect={() => setOpenDropdown(true)}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.columnDef.header?.toString()}
-                </DropdownMenuCheckboxItem>
-              );
-            })}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2">
+        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto">
+              Columns
+              <ChevronDown size={16} className="ml-2" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="h-72 overflow-y-visible">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onSelect={() => setOpenDropdown(true)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.columnDef.header?.toString()}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button
+          variant={"outline"}
+          onClick={() => {
+            const view = table.getState();
+            localStorage.setItem(
+              "preferences.traces.table-view",
+              JSON.stringify(view)
+            );
+            toast.success("Preferences updated.");
+          }}
+        >
+          <SaveIcon size={16} className="mr-2" />
+          Save View
+        </Button>
+      </div>
 
       <div className="rounded-md border overflow-auto">
         <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>

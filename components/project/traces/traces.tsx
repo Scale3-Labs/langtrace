@@ -41,6 +41,7 @@ export default function Traces({ email }: { email: string }) {
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");
   const [expandedView, setExpandedView] = useState(false);
+  const [initView, setInitView] = useState<any>();
 
   useEffect(() => {
     setShowLoader(true);
@@ -59,6 +60,9 @@ export default function Traces({ email }: { email: string }) {
 
       const expanded = window.localStorage.getItem("preferences.expanded");
       setExpandedView(expanded === "true");
+
+      const view = window.localStorage.getItem("preferences.traces.table-view");
+      setInitView(view);
     }
   }, [filters]);
 
@@ -160,17 +164,9 @@ export default function Traces({ email }: { email: string }) {
       header: "Models",
       cell: ({ row }) => {
         const models = row.getValue("models") as string[];
-        // Remove duplicates
-        const uniqueModels = Array.from(
-          new Set(
-            models
-              .map((model) => model.toLowerCase())
-              .filter((model) => model !== "")
-          )
-        );
         return (
-          <div className="flex gap-1 flex-wrap">
-            {uniqueModels.map((model, i) => (
+          <div className="flex flex-col gap-3">
+            {models.map((model, i) => (
               <Badge key={i} variant="secondary" className="lowercase">
                 {model}
               </Badge>
@@ -184,18 +180,9 @@ export default function Traces({ email }: { email: string }) {
       header: "Vendors",
       cell: ({ row }) => {
         const vendors = row.getValue("vendors") as string[];
-        // remove duplicates
-        const uniqueVendors = Array.from(
-          new Set(
-            vendors
-              .map((vendor) => vendor.toLowerCase())
-              .filter((vendor) => vendor !== "")
-          )
-        );
-
         return (
-          <div className="flex gap-1 flex-wrap">
-            {uniqueVendors.map((vendor, i) => (
+          <div className="flex flex-col gap-3 flex-wrap">
+            {vendors.map((vendor, i) => (
               <Badge key={i} variant="secondary" className="lowercase">
                 {vendor}
               </Badge>
@@ -213,7 +200,7 @@ export default function Traces({ email }: { email: string }) {
           return null;
         }
         return (
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex flex-col gap-3 flex-wrap">
             {messages.map((message, i) =>
               message.prompts.length > 0
                 ? message.prompts.map((prompt, j) => (
@@ -241,7 +228,7 @@ export default function Traces({ email }: { email: string }) {
           return null;
         }
         return (
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex flex-col gap-3 flex-wrap">
             {messages.map((message, i) =>
               message.responses.length > 0
                 ? message.responses.map((response, j) => (
@@ -505,7 +492,7 @@ export default function Traces({ email }: { email: string }) {
                     "preferences.timestamp.utc",
                     check ? "true" : "false"
                   );
-                  toast.success("Timezone preference saved successfully.");
+                  toast.success("Preferences updated.");
                 }
               }}
             />
@@ -529,7 +516,7 @@ export default function Traces({ email }: { email: string }) {
                     "preferences.group",
                     check ? "true" : "false"
                   );
-                  toast.success("Group spans preference saved successfully.");
+                  toast.success("Preferences updated.");
                 }
               }}
             />
@@ -560,7 +547,7 @@ export default function Traces({ email }: { email: string }) {
                     "preferences.expanded",
                     check ? "true" : "false"
                   );
-                  toast.success("Expanded view preference saved successfully.");
+                  toast.success("Preferences updated.");
                 }
               }}
             />
@@ -580,7 +567,11 @@ export default function Traces({ email }: { email: string }) {
         >
           {!fetchTraces.isLoading && fetchTraces?.data && (
             <div className="flex flex-col gap-2">
-              <DataTable columns={columns} data={currentData} />
+              <DataTable
+                columns={columns}
+                data={currentData}
+                initState={initView}
+              />
             </div>
           )}
           {showLoader && (
