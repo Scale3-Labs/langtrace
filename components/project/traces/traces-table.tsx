@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -69,7 +67,7 @@ export function DataTable<TData, TValue>({
             <ChevronDown size={16} className="ml-2" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="h-72 overflow-y-visible">
+        <DropdownMenuContent className="h-72 overflow-y-visible">
           {table
             .getAllColumns()
             .filter((column) => column.getCanHide())

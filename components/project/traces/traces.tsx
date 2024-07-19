@@ -8,7 +8,7 @@ import { HOW_TO_GROUP_RELATED_OPERATIONS, PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
@@ -40,6 +40,7 @@ export default function Traces({ email }: { email: string }) {
   const [userId, setUserId] = useState<string>("");
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");
+  const [expandedView, setExpandedView] = useState(false);
 
   useEffect(() => {
     setShowLoader(true);
@@ -55,6 +56,9 @@ export default function Traces({ email }: { email: string }) {
 
       const group = window.localStorage.getItem("preferences.group");
       setGroupSpans(group === "true");
+
+      const expanded = window.localStorage.getItem("preferences.expanded");
+      setExpandedView(expanded === "true");
     }
   }, [filters]);
 
@@ -201,14 +205,17 @@ export default function Traces({ email }: { email: string }) {
           return null;
         }
         return (
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             {messages.map((message, i) =>
               message.prompts.length > 0
                 ? message.prompts.map((prompt, j) => (
                     <HoverCell
                       key={j}
                       values={JSON.parse(prompt)}
-                      className="text-sm max-h-10 overflow-y-scroll bg-muted p-[6px] rounded-md"
+                      className={cn(
+                        "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
+                        expandedView ? "" : "max-h-10"
+                      )}
                     />
                   ))
                 : null
@@ -226,14 +233,17 @@ export default function Traces({ email }: { email: string }) {
           return null;
         }
         return (
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             {messages.map((message, i) =>
               message.responses.length > 0
                 ? message.responses.map((response, j) => (
                     <HoverCell
                       key={j}
                       values={JSON.parse(response)}
-                      className="text-sm max-h-10 overflow-y-scroll bg-muted p-[6px] rounded-md"
+                      className={cn(
+                        "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
+                        expandedView ? "" : "max-h-10"
+                      )}
                     />
                   ))
                 : null
@@ -525,6 +535,30 @@ export default function Traces({ email }: { email: string }) {
               >
                 Learn More
               </Link>
+            </div>
+          </div>
+          <div className="flex gap-2 items-center w-full">
+            <p className="text-xs font-semibold">Compress</p>
+            <Switch
+              className="text-start"
+              id="expanded"
+              checked={expandedView}
+              onCheckedChange={(check) => {
+                setExpandedView(check);
+
+                // Save the preference in local storage
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(
+                    "preferences.expanded",
+                    check ? "true" : "false"
+                  );
+                  toast.success("Expanded view preference saved successfully.");
+                }
+              }}
+            />
+            <div className="flex items-center gap-1">
+              <p className="text-xs font-semibold">Expand</p>
+              <Info information="By default, the input and output messages are compressed to fit the table. By toggling this setting, you can expand the input and output messages to view the complete content." />
             </div>
           </div>
         </div>
