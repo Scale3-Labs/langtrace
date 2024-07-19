@@ -100,7 +100,7 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
         <Button
-          variant={"outline"}
+          size={"icon"}
           onClick={() => {
             const view = table.getState();
             localStorage.setItem(
@@ -110,18 +110,17 @@ export function DataTable<TData, TValue>({
             toast.success("Preferences updated.");
           }}
         >
-          <SaveIcon size={16} className="mr-2" />
-          Save View
+          <SaveIcon size={16} />
         </Button>
         <Button
+          size={"icon"}
           variant={"destructive"}
           onClick={() => {
             setTableState({});
             setColumnVisibility({});
           }}
         >
-          <ResetIcon className="w-4 h-4 mr-2" />
-          Reset View
+          <ResetIcon className="w-4 h-4" />
         </Button>
       </div>
 
