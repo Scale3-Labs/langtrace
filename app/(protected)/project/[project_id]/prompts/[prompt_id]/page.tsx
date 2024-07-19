@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { cn, isJsonString } from "@/lib/utils";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { ChevronLeft, ClipboardIcon } from "lucide-react";
@@ -37,7 +37,7 @@ export default function Page() {
       }
       const result = await response.json();
       setPrompts(result?.promptsets?.prompts || []);
-      if (result?.promptsets?.prompts.length > 0 && !selectedPrompt) {
+      if (result?.promptsets?.prompts.length > 0) {
         setSelectedPrompt(result?.promptsets?.prompts[0]);
         setLive(result?.promptsets?.prompts[0].live);
       }
@@ -96,7 +96,7 @@ export default function Page() {
           </Button>
           {prompts.length > 0 ? (
             <CreatePromptDialog
-              currentPrompt={selectedPrompt}
+              currentPrompt={prompts[0]}
               promptsetId={promptsetId}
               version={prompts.length + 1}
               open={createDialogOpen}
@@ -151,7 +151,7 @@ export default function Page() {
               </div>
             ))}
           </div>
-          <div className="flex flex-col gap-8 w-full">
+          <div className="flex flex-col gap-4 w-full">
             <div className="flex flex-col gap-2">
               <Label>Go Live</Label>
               <div className="flex items-center gap-2 w-fit">
@@ -217,10 +217,23 @@ export default function Page() {
             </div>
             <div className="flex flex-col gap-2">
               <Label>Prompt</Label>
-              <p className="p-2 rounded-md border-2 border-muted">
-                {selectedPrompt.value}
-              </p>
+              <CodeEditor
+                readOnly
+                value={
+                  isJsonString(selectedPrompt.value)
+                    ? JSON.stringify(JSON.parse(selectedPrompt.value), null, 2)
+                    : selectedPrompt.value
+                }
+                language="json"
+                padding={15}
+                className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                style={{
+                  fontFamily:
+                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                }}
+              />
             </div>
+
             <div className="flex flex-col gap-2">
               <Label>Variables</Label>
               <div className="flex flex-wrap gap-2 p-4 border-2 border-muted rounded-md">

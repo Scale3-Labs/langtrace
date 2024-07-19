@@ -380,7 +380,7 @@ export function fillPromptStringTemplate(
   template: string,
   variables: { [key: string]: string }
 ): string {
-  return template.replace(/\{(\w+)\}/g, (match, key) => {
+  return template.replace(/\$?\{(\w+)\}/g, (match, key) => {
     return variables[key] || match;
   });
 }
@@ -685,6 +685,19 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "dspy";
   } else if (span.name.includes("crewai") || serviceName.includes("crewai")) {
     vendor = "crewai";
+  } else if (span.name.includes("vertex") || serviceName.includes("vertex")) {
+    vendor = "vertex";
+  } else if (span.name.includes("gemini") || serviceName.includes("gemini")) {
+    vendor = "gemini";
   }
   return vendor;
+}
+
+export function isJsonString(str: string) {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }

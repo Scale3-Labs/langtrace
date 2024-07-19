@@ -19,17 +19,13 @@ export default function Metrics({ email }: { email: string }) {
   return (
     <div className="w-full flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <div className="flex flex-row items-center">
-          <p className="text-lg font-semibold pr-2">Usage</p>
-          <DayFilter lastNHours={lastNHours} setLastNHours={setLastNHours} />
-          <div className="px-2">
-            <UserCombobox setSelectedUser={setUserId} selectedUser={userId} />
-          </div>
-          <div className="px-2">
-            <ModelCombobox selectedModel={model} setSelectedModel={setModel} />
-          </div>
-        </div>
+        <p className="text-lg font-semibold pr-2">Usage</p>
         <Separator />
+        <div className="flex flex-row gap-2 items-center">
+          <DayFilter lastNHours={lastNHours} setLastNHours={setLastNHours} />
+          <UserCombobox setSelectedUser={setUserId} selectedUser={userId} />
+          <ModelCombobox selectedModel={model} setSelectedModel={setModel} />
+        </div>
         <div className="flex flex-row items-center gap-5">
           <TokenChart
             userId={userId}

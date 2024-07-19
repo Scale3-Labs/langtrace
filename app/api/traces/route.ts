@@ -10,8 +10,9 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const apiKey = req.headers.get("x-api-key");
-    const { page, pageSize, projectId, filters, filterOperation } =
-      await req.json();
+    const { page, pageSize, projectId, filters, group } = await req.json();
+
+    // check if user is logged in or has an api key
     if (!session || !session.user) {
       if (apiKey) {
         const project = await prisma.project.findFirst({
@@ -38,13 +39,47 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // check if user has access to the project
+    const email = session?.user?.email as string;
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          message: "user not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        teamId: user.teamId,
+      },
+    });
+
+    if (!project) {
+      return NextResponse.json(
+        {
+          message: "User does not have access to this project",
+        },
+        { status: 403 }
+      );
+    }
+
+    // get traces
     const traceService = new TraceService();
     const traces = await traceService.GetTracesInProjectPaginated(
       projectId,
       page,
       pageSize,
       filters,
-      filterOperation
+      group
     );
 
     return NextResponse.json(
