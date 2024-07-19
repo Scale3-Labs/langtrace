@@ -89,7 +89,7 @@ export default function Traces({ email }: { email: string }) {
           <div className="text-left flex gap-2 items-center">
             <span
               className={`w-2 h-2 rounded-full ${
-                status === "ERROR" ? "bg-red-500" : "bg-teal-400"
+                status === "error" ? "bg-red-500" : "bg-teal-400"
               }`}
             ></span>
             <p className="text-muted-foreground text-xs font-semibold capitalize">

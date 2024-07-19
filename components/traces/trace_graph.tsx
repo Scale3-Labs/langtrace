@@ -1,9 +1,18 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { jsontheme } from "@/lib/constants";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import { getVendorFromSpan } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useTheme } from "next-themes";
 import React, { useState } from "react";
+import { JSONTree } from "react-json-tree";
 import { VendorLogo } from "../shared/vendor-metadata";
 import { Button } from "../ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../ui/hover-card";
 import { Separator } from "../ui/separator";
 
 interface Span {
@@ -11,6 +20,8 @@ interface Span {
   start_time: string;
   end_time: string;
   attributes: any;
+  events: any;
+  status_code: string;
   children?: Span[];
 }
 
@@ -34,6 +45,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
   totalTime,
   startTime,
 }) => {
+  const { theme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   const { startX, endX } = calculateSpanStartAndEnd(
@@ -45,6 +57,8 @@ const SpanItem: React.FC<SpanItemProps> = ({
   const spanLength = endX - startX === 0 ? 10 : endX - startX;
 
   const attributes = span.attributes ? JSON.parse(span.attributes) : {};
+  const events =
+    span.events && span.events !== "[]" ? JSON.parse(span.events) : [];
   let serviceName = "";
   if (attributes["langtrace.service.name"]) {
     serviceName = attributes["langtrace.service.name"].toLowerCase();
@@ -93,7 +107,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
     <div className="flex flex-col gap-1 w-full mt-2">
       <div className="flex items-center">
         <div
-          className="flex gap-2 items-center sticky left-4 z-50 bg-primary-foreground rounded-md"
+          className="flex gap-2 items-center sticky left-4 z-50 bg-primary-foreground rounded-md pr-2"
           style={{ marginLeft: `${level * 10}px` }}
         >
           {span.children && span.children.length > 0 && (
@@ -111,20 +125,79 @@ const SpanItem: React.FC<SpanItemProps> = ({
             ))}
           <VendorLogo vendor={vendor} />
           <span className="text-xs max-w-72">{span.name}</span>
+          <span
+            className={`w-2 h-2 rounded-full ${
+              span.status_code === "ERROR" ? "bg-red-500" : "bg-teal-400"
+            }`}
+          ></span>
         </div>
-        <div
-          className={`h-4 rounded-sm ${color} absolute ml-[500px] flex items-center justify-center`}
-          style={{ left: `${startX}px`, width: `${spanLength}px` }}
-        >
-          <span className="text-xs text-primary-foreground font-semibold">
-            {/* duration */}
-            {(
-              new Date(correctTimestampFormat(span.end_time)).getTime() -
-              new Date(correctTimestampFormat(span.start_time)).getTime()
-            ).toFixed(2)}
-            ms
-          </span>
-        </div>
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <div
+              className={`h-4 rounded-sm ${color} absolute ml-[500px] flex items-center justify-center`}
+              style={{ left: `${startX}px`, width: `${spanLength}px` }}
+            >
+              <span className="text-xs text-primary-foreground font-semibold">
+                {/* duration */}
+                {(
+                  new Date(correctTimestampFormat(span.end_time)).getTime() -
+                  new Date(correctTimestampFormat(span.start_time)).getTime()
+                ).toFixed(2)}
+                ms
+              </span>
+            </div>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-[30rem] max-h-[40rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm">
+            <Tabs defaultValue="attributes">
+              <TabsList className="grid w-full grid-cols-2 sticky top-0 z-50">
+                <TabsTrigger value="attributes">Attributes</TabsTrigger>
+                <TabsTrigger value="events">
+                  {span.status_code === "ERROR" ? "Errors" : "Events"}
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="attributes">
+                {Object.keys(attributes).length > 0 ? (
+                  Object.keys(attributes).map((key) => (
+                    <div key={key} className="flex flex-col">
+                      <div className="grid grid-cols-2 mt-2 items-center">
+                        <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
+                          {key}
+                        </p>
+                        <div className="break-all text-xs">
+                          {attributes[key].toString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No attributes found.
+                  </p>
+                )}
+              </TabsContent>
+              <TabsContent value="events">
+                {events.length > 0 ? (
+                  events.map((event: any, key: number) => (
+                    <JSONTree
+                      key={key}
+                      data={event}
+                      theme={jsontheme}
+                      invertTheme={theme === "light"}
+                      labelRenderer={([key]) => <strong>{key}</strong>}
+                      valueRenderer={(raw: any) => (
+                        <span className="overflow-x-hidden">{raw}</span>
+                      )}
+                    />
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No events found.
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
+          </HoverCardContent>
+        </HoverCard>
       </div>
       {!isCollapsed &&
         span.children &&

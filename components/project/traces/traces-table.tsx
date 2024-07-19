@@ -43,7 +43,7 @@ export function DataTable<TData, TValue>({
     initialState?.columnVisibility || {}
   );
   const [openDropdown, setOpenDropdown] = useState(false);
-  const [tableState, setTableState] = useState(initialState);
+  const [tableState, setTableState] = useState(JSON.parse(initState || "{}"));
   const [openSheet, setOpenSheet] = useState(false);
   const [dataIndex, setDataIndex] = useState<number | null>(null);
 
