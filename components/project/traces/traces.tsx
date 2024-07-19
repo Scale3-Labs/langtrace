@@ -98,6 +98,14 @@ export default function Traces({ email }: { email: string }) {
     {
       accessorKey: "namespace",
       header: "Namespace",
+      cell: ({ row }) => {
+        const namespace = row.getValue("namespace") as string;
+        return (
+          <div className="text-left">
+            <p className="text-xs font-semibold">{namespace}</p>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "user_ids",
