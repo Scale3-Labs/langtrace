@@ -18,8 +18,6 @@ import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { SetupInstructions } from "../../shared/setup-instructions";
-import { Spinner } from "../../shared/spinner";
 import { Checkbox } from "../../ui/checkbox";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
@@ -160,6 +158,29 @@ export default function Traces({ email }: { email: string }) {
       },
     },
     {
+      accessorKey: "vendors",
+      header: "Vendors",
+      cell: ({ row }) => {
+        const vendors = row.getValue("vendors") as string[];
+        const uniqueVendors = Array.from(
+          new Set(
+            vendors
+              .map((vendor) => vendor.toLowerCase())
+              .filter((vendor) => vendor !== "")
+          )
+        );
+        return (
+          <div className="flex flex-col gap-3 flex-wrap">
+            {uniqueVendors.map((vendor, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {vendor}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "models",
       header: "Models",
       cell: ({ row }) => {
@@ -169,22 +190,6 @@ export default function Traces({ email }: { email: string }) {
             {models.map((model, i) => (
               <Badge key={i} variant="secondary" className="lowercase">
                 {model}
-              </Badge>
-            ))}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "vendors",
-      header: "Vendors",
-      cell: ({ row }) => {
-        const vendors = row.getValue("vendors") as string[];
-        return (
-          <div className="flex flex-col gap-3 flex-wrap">
-            {vendors.map((vendor, i) => (
-              <Badge key={i} variant="secondary" className="lowercase">
-                {vendor}
               </Badge>
             ))}
           </div>
@@ -561,37 +566,15 @@ export default function Traces({ email }: { email: string }) {
       {fetchTraces.isLoading || !fetchTraces?.data || !currentData ? (
         <PageSkeleton />
       ) : (
-        <div
-          className="flex flex-col gap-3 rounded-md max-h-screen overflow-y-scroll"
-          ref={scrollableDivRef as any}
-        >
-          {!fetchTraces.isLoading && fetchTraces?.data && (
-            <div className="flex flex-col gap-2">
-              <DataTable
-                columns={columns}
-                data={currentData}
-                initState={initView}
-              />
-            </div>
-          )}
-          {showLoader && (
-            <div className="flex justify-center py-8">
-              <Spinner className="h-8 w-8 text-center" />
-            </div>
-          )}
-          {!fetchTraces.isLoading &&
-            fetchTraces?.data &&
-            currentData?.length === 0 &&
-            !showLoader && (
-              <div className="flex flex-col gap-3 items-center justify-center p-4">
-                <p className="text-muted-foreground text-sm mb-3">
-                  No traces available. Get started by setting up Langtrace in
-                  your application.
-                </p>
-                <SetupInstructions project_id={project_id} />
-              </div>
-            )}
-        </div>
+        <DataTable
+          project_id={project_id}
+          columns={columns}
+          data={currentData}
+          initState={initView}
+          loading={fetchTraces.isLoading}
+          paginationLoading={showLoader}
+          scrollableDivRef={scrollableDivRef}
+        />
       )}
       <TraceFilter
         open={isTraceFilterOpen}
@@ -612,7 +595,7 @@ export default function Traces({ email }: { email: string }) {
 function PageSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-      {Array.from({ length: 3 }).map((_, index) => (
+      {Array.from({ length: 10 }).map((_, index) => (
         <TraceRowSkeleton key={index} />
       ))}
     </div>

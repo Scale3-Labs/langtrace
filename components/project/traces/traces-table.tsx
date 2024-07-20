@@ -1,3 +1,5 @@
+import { SetupInstructions } from "@/components/shared/setup-instructions";
+import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -28,34 +30,41 @@ import { toast } from "sonner";
 import { TraceSheet } from "./trace-sheet";
 
 interface DataTableProps<TData, TValue> {
+  project_id: string;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   initState?: any;
+  loading?: boolean;
+  paginationLoading?: boolean;
+  scrollableDivRef?: React.RefObject<HTMLElement>;
 }
 
 export function DataTable<TData, TValue>({
+  project_id,
   columns,
   data,
   initState,
+  loading,
+  paginationLoading,
+  scrollableDivRef,
 }: DataTableProps<TData, TValue>) {
   const initialState = JSON.parse(initState || "{}");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialState?.columnVisibility || {}
   );
   const [openDropdown, setOpenDropdown] = useState(false);
-  const [tableState, setTableState] = useState(JSON.parse(initState || "{}"));
   const [openSheet, setOpenSheet] = useState(false);
   const [dataIndex, setDataIndex] = useState<number | null>(null);
+  const [tableState, setTableState] = useState(initialState);
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    initialState: initialState,
     onColumnVisibilityChange: setColumnVisibility,
-    onStateChange: setTableState,
     state: {
       columnVisibility,
-      ...tableState,
     },
     enableColumnResizing: true,
     columnResizeMode: "onChange",
@@ -106,15 +115,18 @@ export function DataTable<TData, TValue>({
         <Button
           size={"icon"}
           onClick={() => {
-            const view = table.getState();
+            const currentState = table.getState();
+            if (!currentState) return;
+            if (JSON.stringify(currentState) === initState) return;
             localStorage.setItem(
               "preferences.traces.table-view",
-              JSON.stringify(view)
+              JSON.stringify(currentState)
             );
+            setTableState(currentState);
             toast.success("Preferences updated.");
           }}
         >
-          <SaveIcon size={16} />
+          <SaveIcon className="w-4 h-4" />
         </Button>
         <Button
           size={"icon"}
@@ -122,74 +134,98 @@ export function DataTable<TData, TValue>({
           onClick={() => {
             setTableState({});
             setColumnVisibility({});
+            localStorage.removeItem("preferences.traces.table-view");
           }}
         >
           <ResetIcon className="w-4 h-4" />
         </Button>
       </div>
 
-      <div className="rounded-md border overflow-auto">
-        <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    style={{
-                      width: `calc(var(--header-${header.id}-size) * 1px)`,
-                      position: "relative",
-                    }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    <div
-                      onDoubleClick={() => header.column.resetSize()}
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      className={`bg-muted-foreground resizer ${
-                        header.column.getIsResizing() ? "isResizing" : ""
-                      }`}
-                    />
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-                onClick={() => {
-                  setDataIndex(row.index);
-                  setOpenSheet(true);
-                }}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    style={{
-                      width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
-                    }}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        {dataIndex !== null && (
+      <div
+        className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
+        ref={scrollableDivRef as any}
+      >
+        {loading && <p>Loading...</p>}
+        {!loading && (!data || data.length === 0) && (
+          <div className="flex flex-col gap-3 items-center justify-center p-4">
+            <p className="text-muted-foreground text-sm mb-3">
+              No traces available. Get started by setting up Langtrace in your
+              application.
+            </p>
+            <SetupInstructions project_id={project_id} />
+          </div>
+        )}
+        {!loading && data && (
+          <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
+            <TableHeader className="sticky top-0 bg-secondary">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width: `calc(var(--header-${header.id}-size) * 1px)`,
+                        position: "relative",
+                      }}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      <div
+                        onDoubleClick={() => header.column.resetSize()}
+                        onMouseDown={header.getResizeHandler()}
+                        onTouchStart={header.getResizeHandler()}
+                        className={`bg-muted-foreground resizer ${
+                          header.column.getIsResizing() ? "isResizing" : ""
+                        }`}
+                      />
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  onClick={() => {
+                    setDataIndex(row.index);
+                    setOpenSheet(true);
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      style={{
+                        width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                      }}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+        {dataIndex !== null && (data[dataIndex] as Trace) && (
           <TraceSheet
             trace={data[dataIndex] as Trace}
             open={openSheet}
             setOpen={setOpenSheet}
           />
+        )}
+        {paginationLoading && (
+          <div className="flex justify-center py-8">
+            <Spinner className="h-8 w-8 text-center" />
+          </div>
         )}
       </div>
     </>
