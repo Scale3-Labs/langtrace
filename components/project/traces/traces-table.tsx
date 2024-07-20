@@ -85,7 +85,6 @@ export function TracesTable<TData, TValue>({
       );
     },
     onColumnVisibilityChange: (newVisibility) => {
-      console.log(newVisibility);
       setColumnVisibility(newVisibility);
       const currState = table.getState();
       localStorage.setItem(
