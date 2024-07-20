@@ -29,7 +29,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { TraceSheet } from "./trace-sheet";
 
-interface DataTableProps<TData, TValue> {
+interface TracesTableProps<TData, TValue> {
   project_id: string;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -39,7 +39,7 @@ interface DataTableProps<TData, TValue> {
   scrollableDivRef?: React.RefObject<HTMLElement>;
 }
 
-export function DataTable<TData, TValue>({
+export function TracesTable<TData, TValue>({
   project_id,
   columns,
   data,
@@ -47,7 +47,7 @@ export function DataTable<TData, TValue>({
   loading,
   paginationLoading,
   scrollableDivRef,
-}: DataTableProps<TData, TValue>) {
+}: TracesTableProps<TData, TValue>) {
   const initialState = JSON.parse(initState || "{}");
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialState?.columnVisibility || {}
@@ -83,64 +83,65 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
-      <div className="flex items-center gap-2">
-        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns
-              <ChevronDown size={16} className="ml-2" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="h-72 overflow-y-visible">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onSelect={() => setOpenDropdown(true)}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.columnDef.header?.toString()}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button
-          size={"icon"}
-          onClick={() => {
-            const currentState = table.getState();
-            if (!currentState) return;
-            if (JSON.stringify(currentState) === initState) return;
-            localStorage.setItem(
-              "preferences.traces.table-view",
-              JSON.stringify(currentState)
-            );
-            setTableState(currentState);
-            toast.success("Preferences updated.");
-          }}
-        >
-          <SaveIcon className="w-4 h-4" />
-        </Button>
-        <Button
-          size={"icon"}
-          variant={"destructive"}
-          onClick={() => {
-            setTableState({});
-            setColumnVisibility({});
-            localStorage.removeItem("preferences.traces.table-view");
-          }}
-        >
-          <ResetIcon className="w-4 h-4" />
-        </Button>
-      </div>
-
+      {!loading && data && data.length > 0 && (
+        <div className="flex items-center gap-2">
+          <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                Columns
+                <ChevronDown size={16} className="ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="h-72 overflow-y-visible">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onSelect={() => setOpenDropdown(true)}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.columnDef.header?.toString()}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            size={"icon"}
+            onClick={() => {
+              const currentState = table.getState();
+              if (!currentState) return;
+              if (JSON.stringify(currentState) === initState) return;
+              localStorage.setItem(
+                "preferences.traces.table-view",
+                JSON.stringify(currentState)
+              );
+              setTableState(currentState);
+              toast.success("Preferences updated.");
+            }}
+          >
+            <SaveIcon className="w-4 h-4" />
+          </Button>
+          <Button
+            size={"icon"}
+            variant={"destructive"}
+            onClick={() => {
+              setTableState({});
+              setColumnVisibility({});
+              localStorage.removeItem("preferences.traces.table-view");
+            }}
+          >
+            <ResetIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
       <div
         className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
         ref={scrollableDivRef as any}
@@ -155,7 +156,7 @@ export function DataTable<TData, TValue>({
             <SetupInstructions project_id={project_id} />
           </div>
         )}
-        {!loading && data && (
+        {!loading && data && data.length > 0 && (
           <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
             <TableHeader className="sticky top-0 bg-secondary">
               {table.getHeaderGroups().map((headerGroup) => (

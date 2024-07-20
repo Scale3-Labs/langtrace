@@ -22,7 +22,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
 import TraceRowSkeleton from "./trace-row-skeleton";
-import { DataTable } from "./traces-table";
+import { TracesTable } from "./traces-table";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -566,7 +566,7 @@ export default function Traces({ email }: { email: string }) {
       {fetchTraces.isLoading || !fetchTraces?.data || !currentData ? (
         <PageSkeleton />
       ) : (
-        <DataTable
+        <TracesTable
           project_id={project_id}
           columns={columns}
           data={currentData}
