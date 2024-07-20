@@ -25,7 +25,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import { ChevronDown, SaveIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { TraceSheet } from "./trace-sheet";
 
@@ -33,7 +33,6 @@ interface TracesTableProps<TData, TValue> {
   project_id: string;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  initState?: any;
   loading?: boolean;
   paginationLoading?: boolean;
   scrollableDivRef?: React.RefObject<HTMLElement>;
@@ -43,29 +42,38 @@ export function TracesTable<TData, TValue>({
   project_id,
   columns,
   data,
-  initState,
   loading,
   paginationLoading,
   scrollableDivRef,
 }: TracesTableProps<TData, TValue>) {
-  const initialState = JSON.parse(initState || "{}");
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    initialState?.columnVisibility || {}
-  );
+  const [tableState, setTableState] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [dataIndex, setDataIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    // fetch preferences from local storage
+    if (typeof window !== "undefined") {
+      const initState = window.localStorage.getItem(
+        "preferences.traces.table-view"
+      );
+      const parsedInitState = JSON.parse(initState || "{}");
+      setTableState(parsedInitState);
+      if (parsedInitState?.columnVisibility) {
+        setColumnVisibility(parsedInitState.columnVisibility);
+      }
+    }
+  }, []);
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    initialState:
-      Object.keys(initialState).length > 0 ? initialState : undefined,
     onColumnVisibilityChange: setColumnVisibility,
     state: {
       columnVisibility,
-      ...initialState,
+      ...tableState,
     },
     enableColumnResizing: true,
     columnResizeMode: "onChange",
@@ -122,6 +130,7 @@ export function TracesTable<TData, TValue>({
                 "preferences.traces.table-view",
                 JSON.stringify(currentState)
               );
+              setTableState(currentState);
               toast.success("Preferences updated.");
             }}
           >
@@ -132,6 +141,7 @@ export function TracesTable<TData, TValue>({
             variant={"destructive"}
             onClick={() => {
               setColumnVisibility({});
+              setTableState({});
               localStorage.removeItem("preferences.traces.table-view");
             }}
           >

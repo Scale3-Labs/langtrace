@@ -39,7 +39,6 @@ export default function Traces({ email }: { email: string }) {
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");
   const [expandedView, setExpandedView] = useState(false);
-  const [initView, setInitView] = useState<any>();
 
   useEffect(() => {
     setShowLoader(true);
@@ -58,9 +57,6 @@ export default function Traces({ email }: { email: string }) {
 
       const expanded = window.localStorage.getItem("preferences.expanded");
       setExpandedView(expanded === "true");
-
-      const view = window.localStorage.getItem("preferences.traces.table-view");
-      setInitView(view);
     }
   }, [filters]);
 
@@ -570,7 +566,6 @@ export default function Traces({ email }: { email: string }) {
           project_id={project_id}
           columns={columns}
           data={currentData}
-          initState={initView}
           loading={fetchTraces.isLoading}
           paginationLoading={showLoader}
           scrollableDivRef={scrollableDivRef}
