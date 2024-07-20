@@ -148,7 +148,11 @@ const SpanItem: React.FC<SpanItemProps> = ({
             </div>
           </HoverCardTrigger>
           <HoverCardContent className="w-[30rem] max-h-[40rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm">
-            <Tabs defaultValue="attributes">
+            <Tabs
+              defaultValue={
+                span.status_code === "ERROR" ? "events" : "attributes"
+              }
+            >
               <TabsList className="grid w-full grid-cols-2 sticky top-0 z-50">
                 <TabsTrigger value="attributes">Attributes</TabsTrigger>
                 <TabsTrigger value="events">
@@ -158,15 +162,19 @@ const SpanItem: React.FC<SpanItemProps> = ({
               <TabsContent value="attributes">
                 {Object.keys(attributes).length > 0 ? (
                   Object.keys(attributes).map((key) => (
-                    <div key={key} className="flex flex-col">
-                      <div className="grid grid-cols-2 mt-2 items-center">
+                    <div key={key} className="flex flex-col gap-2">
+                      <div className="grid grid-cols-2 mt-2 items-start">
                         <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
                           {key}
                         </p>
-                        <div className="break-all text-xs">
-                          {attributes[key].toString()}
-                        </div>
+                        <div
+                          className="text-xs"
+                          dangerouslySetInnerHTML={{
+                            __html: attributes[key].toString(),
+                          }}
+                        />
                       </div>
+                      <Separator />
                     </div>
                   ))
                 ) : (
@@ -179,6 +187,9 @@ const SpanItem: React.FC<SpanItemProps> = ({
                 {events.length > 0 ? (
                   events.map((event: any, key: number) => (
                     <JSONTree
+                      shouldExpandNodeInitially={() =>
+                        span.status_code === "ERROR"
+                      }
                       key={key}
                       data={event}
                       theme={jsontheme}

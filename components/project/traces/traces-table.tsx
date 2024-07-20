@@ -24,9 +24,8 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, SaveIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { TraceSheet } from "./trace-sheet";
 
 interface TracesTableProps<TData, TValue> {
@@ -60,9 +59,8 @@ export function TracesTable<TData, TValue>({
       );
       const parsedInitState = JSON.parse(initState || "{}");
       setTableState(parsedInitState);
-      if (parsedInitState?.columnVisibility) {
+      if (parsedInitState.columnVisibility)
         setColumnVisibility(parsedInitState.columnVisibility);
-      }
     }
   }, []);
 
@@ -70,10 +68,30 @@ export function TracesTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    state: {
-      columnVisibility,
+    initialState: {
       ...tableState,
+      columnVisibility,
+    },
+    state: {
+      ...tableState,
+      columnVisibility,
+    },
+    onStateChange: (newState) => {
+      setTableState(newState);
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.traces.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    onColumnVisibilityChange: (newVisibility) => {
+      console.log(newVisibility);
+      setColumnVisibility(newVisibility);
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.traces.table-view",
+        JSON.stringify(currState)
+      );
     },
     enableColumnResizing: true,
     columnResizeMode: "onChange",
@@ -122,20 +140,6 @@ export function TracesTable<TData, TValue>({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            size={"icon"}
-            onClick={() => {
-              const currentState = table.getState();
-              localStorage.setItem(
-                "preferences.traces.table-view",
-                JSON.stringify(currentState)
-              );
-              setTableState(currentState);
-              toast.success("Preferences updated.");
-            }}
-          >
-            <SaveIcon className="w-4 h-4" />
-          </Button>
           <Button
             size={"icon"}
             variant={"destructive"}
