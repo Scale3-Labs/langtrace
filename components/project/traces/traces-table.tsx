@@ -55,7 +55,6 @@ export function TracesTable<TData, TValue>({
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [dataIndex, setDataIndex] = useState<number | null>(null);
-  const [tableState, setTableState] = useState(initialState);
 
   const table = useReactTable({
     data,
@@ -123,7 +122,6 @@ export function TracesTable<TData, TValue>({
                 "preferences.traces.table-view",
                 JSON.stringify(currentState)
               );
-              setTableState(currentState);
               toast.success("Preferences updated.");
             }}
           >
@@ -133,7 +131,6 @@ export function TracesTable<TData, TValue>({
             size={"icon"}
             variant={"destructive"}
             onClick={() => {
-              setTableState({});
               setColumnVisibility({});
               localStorage.removeItem("preferences.traces.table-view");
             }}
@@ -146,7 +143,6 @@ export function TracesTable<TData, TValue>({
         className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
         ref={scrollableDivRef as any}
       >
-        {loading && <p>Loading...</p>}
         {!loading && (!data || data.length === 0) && (
           <div className="flex flex-col gap-3 items-center justify-center p-4">
             <p className="text-muted-foreground text-sm mb-3">
