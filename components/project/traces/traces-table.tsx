@@ -60,10 +60,12 @@ export function TracesTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    initialState: initialState,
+    initialState:
+      Object.keys(initialState).length > 0 ? initialState : undefined,
     onColumnVisibilityChange: setColumnVisibility,
     state: {
       columnVisibility,
+      ...initialState,
     },
     enableColumnResizing: true,
     columnResizeMode: "onChange",
@@ -116,8 +118,6 @@ export function TracesTable<TData, TValue>({
             size={"icon"}
             onClick={() => {
               const currentState = table.getState();
-              if (!currentState) return;
-              if (JSON.stringify(currentState) === initState) return;
               localStorage.setItem(
                 "preferences.traces.table-view",
                 JSON.stringify(currentState)
