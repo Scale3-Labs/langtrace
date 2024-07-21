@@ -57,7 +57,7 @@ export function processTrace(trace: any): Trace {
       // get the service name from the attributes
       if (attributes["langtrace.service.name"]) {
         vendor = attributes["langtrace.service.name"].toLowerCase();
-        vendors.push(vendor);
+        if (!vendors.includes(vendor)) vendors.push(vendor);
       }
 
       // get the user_id, prompt_id, prompt_version, and model from the attributes

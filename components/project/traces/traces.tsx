@@ -158,16 +158,9 @@ export default function Traces({ email }: { email: string }) {
       header: "Vendors",
       cell: ({ row }) => {
         const vendors = row.getValue("vendors") as string[];
-        const uniqueVendors = Array.from(
-          new Set(
-            vendors
-              .map((vendor) => vendor.toLowerCase())
-              .filter((vendor) => vendor !== "")
-          )
-        );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
-            {uniqueVendors.map((vendor, i) => (
+            {vendors.map((vendor, i) => (
               <Badge key={i} variant="secondary" className="lowercase">
                 {vendor}
               </Badge>
