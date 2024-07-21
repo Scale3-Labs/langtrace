@@ -31,6 +31,10 @@ interface TraceGraphProps {
   totalTime: number;
   startTime: string;
   totalSpans: number;
+  setSpansView: (spansView: boolean) => void;
+  setSpan: (span: any) => void;
+  setAttributes: (attributes: any) => void;
+  setEvents: (events: any) => void;
 }
 
 interface SpanItemProps {
@@ -38,6 +42,10 @@ interface SpanItemProps {
   level: number;
   totalTime: number;
   startTime: string;
+  setSpansView: (spansView: boolean) => void;
+  setSpan: (span: any) => void;
+  setAttributes: (attributes: any) => void;
+  setEvents: (events: any) => void;
 }
 
 const SpanItem: React.FC<SpanItemProps> = ({
@@ -45,6 +53,10 @@ const SpanItem: React.FC<SpanItemProps> = ({
   level,
   totalTime,
   startTime,
+  setSpansView,
+  setSpan,
+  setAttributes,
+  setEvents,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
@@ -149,14 +161,19 @@ const SpanItem: React.FC<SpanItemProps> = ({
         <HoverCard>
           <HoverCardTrigger asChild>
             <div
+              onClick={() => {
+                setSpansView(false);
+                setSpan(span);
+                setAttributes(attributes);
+                setEvents(events);
+              }}
               className={cn(
-                "h-4 rounded-sm absolute ml-[500px] flex items-center justify-center z-0",
+                "h-4 rounded-sm absolute ml-[500px] flex items-center justify-center z-0 cursor-pointer",
                 span.status_code === "ERROR" ? "bg-destructive" : color
               )}
               style={{ left: `${startX}px`, width: `${spanLength}px` }}
             >
-              <span className="text-xs text-primary-foreground font-semibold">
-                {/* duration */}
+              <span className="text-xs text-primary font-semibold">
                 {(
                   new Date(correctTimestampFormat(span.end_time)).getTime() -
                   new Date(correctTimestampFormat(span.start_time)).getTime()
@@ -181,6 +198,10 @@ const SpanItem: React.FC<SpanItemProps> = ({
             level={level + 1}
             totalTime={totalTime}
             startTime={startTime}
+            setSpansView={setSpansView}
+            setSpan={setSpan}
+            setAttributes={setAttributes}
+            setEvents={setEvents}
           />
         ))}
     </div>
@@ -192,6 +213,10 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
   totalTime,
   startTime,
   totalSpans,
+  setSpansView,
+  setSpan,
+  setAttributes,
+  setEvents,
 }) => {
   // Divide the totalTime into 6 parts
   const step = totalTime / 5;
@@ -204,6 +229,10 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
         level={0}
         totalTime={totalTime}
         startTime={startTime}
+        setSpansView={setSpansView}
+        setSpan={setSpan}
+        setAttributes={setAttributes}
+        setEvents={setEvents}
       />
     ));
 
@@ -273,24 +302,45 @@ function SpanHoverContent({
   attributes: any;
   events: any;
 }) {
-  const { theme } = useTheme();
   return (
     <HoverCardContent className="w-[30rem] h-[30rem] max-h-[30rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm z-50">
-      <Tabs
-        defaultValue={span.status_code === "ERROR" ? "events" : "attributes"}
-      >
-        <TabsList className="grid w-full grid-cols-2 sticky top-0 z-50">
-          <TabsTrigger value="attributes">Attributes</TabsTrigger>
-          <TabsTrigger value="events">
-            {span.status_code === "ERROR" ? "Errors" : "Events"}
-          </TabsTrigger>
-        </TabsList>
-        <p className="text-xs font-semibold my-3 text-blue-500">
-          Tip: Click any content to copy to clipboard
-        </p>
-        <TabsContent value="attributes">
-          {Object.keys(attributes).length > 0 ? (
-            Object.keys(attributes).map((key, i) => (
+      <AttributesTabs span={span} attributes={attributes} events={events} />
+    </HoverCardContent>
+  );
+}
+
+export function AttributesTabs({
+  span,
+  attributes,
+  events,
+}: {
+  span: any;
+  attributes: any;
+  events: any;
+}) {
+  const { theme } = useTheme();
+  return (
+    <Tabs defaultValue={span.status_code === "ERROR" ? "events" : "attributes"}>
+      <TabsList className="grid w-full grid-cols-2 sticky top-0 z-50">
+        <TabsTrigger value="attributes">Attributes</TabsTrigger>
+        <TabsTrigger value="events">
+          {span.status_code === "ERROR" ? "Errors" : "Events"}
+        </TabsTrigger>
+      </TabsList>
+      <p className="text-xs font-semibold my-3 text-blue-500">
+        Tip: Click any content to copy to clipboard
+      </p>
+      <TabsContent value="attributes">
+        {Object.keys(attributes).length > 0 ? (
+          Object.keys(attributes).map((key, i) => {
+            const value = attributes[key].toString();
+            let jsonValue = value;
+            try {
+              jsonValue = JSON.parse(value);
+            } catch (e) {
+              jsonValue = value;
+            }
+            return (
               <div key={i} className="flex flex-col gap-2">
                 <div className="grid grid-cols-2 mt-2 items-start">
                   <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
@@ -298,62 +348,52 @@ function SpanHoverContent({
                   </p>
                   <div
                     onClick={() => {
-                      navigator.clipboard.writeText(attributes[key].toString());
+                      navigator.clipboard.writeText(value);
                       toast.success("Copied to clipboard");
                     }}
                     className="text-xs select-all"
                     dangerouslySetInnerHTML={{
-                      __html: attributes[key].toString(),
+                      __html: JSON.stringify(jsonValue, null, 2),
                     }}
                   />
                 </div>
                 <Separator />
               </div>
-            ))
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              No attributes found.
-            </p>
-          )}
-        </TabsContent>
-        <TabsContent
-          value="events"
-          onClick={() => {
-            if (events && events.length > 0) {
-              navigator.clipboard.writeText(JSON.stringify(events));
-              toast.success("Copied to clipboard");
-            }
-          }}
-        >
-          {events.length > 0 ? (
-            events.map((event: any, key: number) => (
-              <JSONTree
-                shouldExpandNodeInitially={() => true}
-                key={key}
-                data={event}
-                theme={jsontheme}
-                invertTheme={theme === "light"}
-                labelRenderer={([key]) => <strong>{key}</strong>}
-                valueRenderer={(raw: any) => (
-                  <span className="overflow-x-hidden">{raw}</span>
-                )}
-                postprocessValue={(raw: any) => {
-                  if (typeof raw === "string") {
-                    try {
-                      return JSON.parse(raw);
-                    } catch (e) {
-                      return raw;
-                    }
+            );
+          })
+        ) : (
+          <p className="text-xs text-muted-foreground">No attributes found.</p>
+        )}
+      </TabsContent>
+      <TabsContent value="events">
+        {events.length > 0 ? (
+          events.map((event: any, key: number) => (
+            <JSONTree
+              shouldExpandNodeInitially={() => true}
+              key={key}
+              data={event}
+              theme={jsontheme}
+              invertTheme={theme === "light"}
+              labelRenderer={([key]) => <strong>{key}</strong>}
+              valueRenderer={(raw: any) => (
+                <span className="overflow-x-hidden">{raw}</span>
+              )}
+              postprocessValue={(raw: any) => {
+                if (typeof raw === "string") {
+                  try {
+                    return JSON.parse(raw);
+                  } catch (e) {
+                    return raw;
                   }
-                  return raw;
-                }}
-              />
-            ))
-          ) : (
-            <p className="text-xs text-muted-foreground">No events found.</p>
-          )}
-        </TabsContent>
-      </Tabs>
-    </HoverCardContent>
+                }
+                return raw;
+              }}
+            />
+          ))
+        ) : (
+          <p className="text-xs text-muted-foreground">No events found.</p>
+        )}
+      </TabsContent>
+    </Tabs>
   );
 }

@@ -200,6 +200,7 @@ export function TracesTable<TData, TValue>({
             <TableBody>
               {table.getRowModel().rows.map((row) => (
                 <TableRow
+                  className="cursor-pointer"
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() => {
