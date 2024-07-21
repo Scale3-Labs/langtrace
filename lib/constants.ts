@@ -30,6 +30,8 @@ export const TIKTOKEN_MODEL_MAPPING: Record<string, TiktokenEncoding> = {
   "gpt-4": "cl100k_base",
   "gpt-4o": "o200k_base",
   "gpt-4o-2024-05-13": "o200k_base",
+  "gpt-4o-mini": "o200k_base",
+  "gpt-4o-mini-2024-07-18": "o200k_base",
 };
 
 export type LangTraceAttributes = LLMSpanAttributes &
@@ -49,6 +51,14 @@ export interface CostTableEntry {
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
+  "gpt-4o-mini": {
+    input: 0.00015,
+    output: 0.0006,
+  },
+  "gpt-4o-mini-2024-07-18": {
+    input: 0.00015,
+    output: 0.0006,
+  },
   "gpt-4o": {
     input: 0.005,
     output: 0.015,
