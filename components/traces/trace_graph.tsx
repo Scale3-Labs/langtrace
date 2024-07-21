@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { jsontheme } from "@/lib/constants";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { getVendorFromSpan } from "@/lib/utils";
+import { cn, getVendorFromSpan } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTheme } from "next-themes";
 import React, { useState } from "react";
 import { JSONTree } from "react-json-tree";
+import { toast } from "sonner";
 import { VendorLogo } from "../shared/vendor-metadata";
 import { Button } from "../ui/button";
 import {
@@ -127,14 +128,19 @@ const SpanItem: React.FC<SpanItemProps> = ({
           <span className="text-xs max-w-72">{span.name}</span>
           <span
             className={`w-2 h-2 rounded-full ${
-              span.status_code === "ERROR" ? "bg-red-500" : "bg-teal-400"
+              span.status_code === "ERROR"
+                ? "bg-destructive animate-pulse"
+                : "bg-teal-400"
             }`}
           ></span>
         </div>
         <HoverCard>
           <HoverCardTrigger asChild>
             <div
-              className={`h-4 rounded-sm ${color} absolute ml-[500px] flex items-center justify-center`}
+              className={cn(
+                "h-4 rounded-sm absolute ml-[500px] flex items-center justify-center",
+                span.status_code === "ERROR" ? "bg-destructive" : color
+              )}
               style={{ left: `${startX}px`, width: `${spanLength}px` }}
             >
               <span className="text-xs text-primary-foreground font-semibold">
@@ -147,7 +153,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
               </span>
             </div>
           </HoverCardTrigger>
-          <HoverCardContent className="w-[30rem] max-h-[40rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm">
+          <HoverCardContent className="w-[30rem] h-[30rem] max-h-[30rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm">
             <Tabs
               defaultValue={
                 span.status_code === "ERROR" ? "events" : "attributes"
@@ -168,7 +174,13 @@ const SpanItem: React.FC<SpanItemProps> = ({
                           {key}
                         </p>
                         <div
-                          className="text-xs"
+                          onClick={() => {
+                            navigator.clipboard.writeText(
+                              attributes[key].toString()
+                            );
+                            toast.success("Copied to clipboard");
+                          }}
+                          className="text-xs select-all"
                           dangerouslySetInnerHTML={{
                             __html: attributes[key].toString(),
                           }}
@@ -187,9 +199,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
                 {events.length > 0 ? (
                   events.map((event: any, key: number) => (
                     <JSONTree
-                      shouldExpandNodeInitially={() =>
-                        span.status_code === "ERROR"
-                      }
+                      shouldExpandNodeInitially={() => true}
                       key={key}
                       data={event}
                       theme={jsontheme}
@@ -198,6 +208,16 @@ const SpanItem: React.FC<SpanItemProps> = ({
                       valueRenderer={(raw: any) => (
                         <span className="overflow-x-hidden">{raw}</span>
                       )}
+                      postprocessValue={(raw: any) => {
+                        if (typeof raw === "string") {
+                          try {
+                            return JSON.parse(raw);
+                          } catch (e) {
+                            return raw;
+                          }
+                        }
+                        return raw;
+                      }}
                     />
                   ))
                 ) : (
@@ -263,7 +283,7 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
           </div>
         ))}
       </div>
-      <div className="flex flex-col gap-3 mt-12 h-[300px]">
+      <div className="flex flex-col gap-3 mt-12">
         <SpanBars />
       </div>
     </div>

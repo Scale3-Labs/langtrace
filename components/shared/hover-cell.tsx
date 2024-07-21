@@ -44,6 +44,8 @@ export function HoverCell({
           className={className}
           dangerouslySetInnerHTML={{
             __html:
+              !contents ||
+              contents.length === 0 ||
               contents[contents.length - 1].content === ""
                 ? "No data available"
                 : contents[contents.length - 1].content,

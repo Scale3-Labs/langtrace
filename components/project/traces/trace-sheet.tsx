@@ -22,15 +22,13 @@ export function TraceSheet({
       <SheetContent className="w-3/4">
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
-          <div className="flex flex-col gap-4">
-            <div className=" overflow-x-scroll">
-              <TraceGraph
-                totalSpans={trace.sorted_trace.length}
-                spans={trace.trace_hierarchy}
-                totalTime={calculateTotalTime(trace.sorted_trace)}
-                startTime={trace.start_time.toString()}
-              />
-            </div>
+          <div className="overflow-x-scroll">
+            <TraceGraph
+              totalSpans={trace.sorted_trace.length}
+              spans={trace.trace_hierarchy}
+              totalTime={calculateTotalTime(trace.sorted_trace)}
+              startTime={trace.start_time.toString()}
+            />
           </div>
         </SheetHeader>
       </SheetContent>
