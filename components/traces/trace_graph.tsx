@@ -31,7 +31,7 @@ interface TraceGraphProps {
   totalTime: number;
   startTime: string;
   totalSpans: number;
-  setSpansView: (spansView: boolean) => void;
+  setSpansView: (spansView: "SPANS" | "ATTRIBUTES" | "CONVERSATION") => void;
   setSpan: (span: any) => void;
   setAttributes: (attributes: any) => void;
   setEvents: (events: any) => void;
@@ -42,7 +42,7 @@ interface SpanItemProps {
   level: number;
   totalTime: number;
   startTime: string;
-  setSpansView: (spansView: boolean) => void;
+  setSpansView: (spansView: "SPANS" | "ATTRIBUTES" | "CONVERSATION") => void;
   setSpan: (span: any) => void;
   setAttributes: (attributes: any) => void;
   setEvents: (events: any) => void;
@@ -162,7 +162,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
           <HoverCardTrigger asChild>
             <div
               onClick={() => {
-                setSpansView(false);
+                setSpansView("ATTRIBUTES");
                 setSpan(span);
                 setAttributes(attributes);
                 setEvents(events);
@@ -391,7 +391,7 @@ export function AttributesTabs({
             />
           ))
         ) : (
-          <p className="text-xs text-muted-foreground">No events found.</p>
+          <p className="text-sm text-muted-foreground">No events found.</p>
         )}
       </TabsContent>
     </Tabs>

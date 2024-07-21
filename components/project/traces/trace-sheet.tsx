@@ -1,3 +1,4 @@
+import ConversationView from "@/components/shared/conversation-view";
 import TraceGraph, { AttributesTabs } from "@/components/traces/trace_graph";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,7 +14,7 @@ import {
   convertTracesToHierarchy,
 } from "@/lib/trace_utils";
 import { getVendorFromSpan } from "@/lib/utils";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, CodeIcon, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function TraceSheet({
@@ -31,7 +32,9 @@ export function TraceSheet({
   const [selectedVendors, setSelectedVendors] = useState<string[]>(
     trace.vendors
   );
-  const [spansView, setSpansView] = useState(true);
+  const [spansView, setSpansView] = useState<
+    "SPANS" | "ATTRIBUTES" | "CONVERSATION"
+  >("SPANS");
   const [span, setSpan] = useState<any | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
@@ -39,7 +42,7 @@ export function TraceSheet({
   useEffect(() => {
     setSelectedTrace(trace.trace_hierarchy);
     setSelectedVendors(trace.vendors);
-    if (!open) setSpansView(true);
+    if (!open) setSpansView("SPANS");
   }, [trace, open]);
 
   return (
@@ -47,7 +50,7 @@ export function TraceSheet({
       <SheetContent className="w-3/4">
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
-          {spansView ? (
+          {spansView === "SPANS" && (
             <SpansView
               trace={trace}
               selectedTrace={selectedTrace}
@@ -59,31 +62,56 @@ export function TraceSheet({
               setAttributes={setAttributes}
               setEvents={setEvents}
             />
-          ) : (
+          )}
+          {(spansView === "ATTRIBUTES" || spansView === "CONVERSATION") &&
             span &&
             attributes &&
             events && (
               <div className="flex flex-col gap-3">
-                <div className="flex justify-start w-full">
+                <div className="flex gap-2 items-center justify-between w-full">
                   <Button
                     className="w-fit"
                     variant={"secondary"}
-                    onClick={() => setSpansView(true)}
+                    onClick={() => setSpansView("SPANS")}
                   >
                     <ChevronLeft size={16} className="mr-2" />
                     Back
                   </Button>
+                  <div className="flex gap-2 items-center">
+                    <Button
+                      className="w-fit"
+                      variant={"secondary"}
+                      disabled={spansView === "ATTRIBUTES"}
+                      onClick={() => setSpansView("ATTRIBUTES")}
+                    >
+                      <CodeIcon size={16} className="mr-2" />
+                      Attributes
+                    </Button>
+                    <Button
+                      className="w-fit"
+                      variant={"secondary"}
+                      disabled={spansView === "CONVERSATION"}
+                      onClick={() => setSpansView("CONVERSATION")}
+                    >
+                      <MessageCircle size={16} className="mr-2" />
+                      LLM Conversations
+                    </Button>
+                  </div>
                 </div>
                 <div className="overflow-y-scroll h-[85vh]">
-                  <AttributesTabs
-                    span={span}
-                    attributes={attributes}
-                    events={events}
-                  />
+                  {spansView === "ATTRIBUTES" && (
+                    <AttributesTabs
+                      span={span}
+                      attributes={attributes}
+                      events={events}
+                    />
+                  )}
+                  {spansView === "CONVERSATION" && span && (
+                    <ConversationView span={span} />
+                  )}
                 </div>
               </div>
-            )
-          )}
+            )}
         </SheetHeader>
       </SheetContent>
     </Sheet>
@@ -106,7 +134,7 @@ function SpansView({
   setSelectedTrace: (trace: any[]) => void;
   selectedVendors: string[];
   setSelectedVendors: (vendors: string[]) => void;
-  setSpansView: (spansView: boolean) => void;
+  setSpansView: (spansView: "SPANS" | "ATTRIBUTES" | "CONVERSATION") => void;
   setSpan: (span: any) => void;
   setAttributes: (attributes: any) => void;
   setEvents: (events: any) => void;
