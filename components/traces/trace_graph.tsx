@@ -165,6 +165,9 @@ const SpanItem: React.FC<SpanItemProps> = ({
                   {span.status_code === "ERROR" ? "Errors" : "Events"}
                 </TabsTrigger>
               </TabsList>
+              <p className="text-xs font-semibold my-3 text-blue-500">
+                Tip: Click any content to copy to clipboard
+              </p>
               <TabsContent value="attributes">
                 {Object.keys(attributes).length > 0 ? (
                   Object.keys(attributes).map((key) => (
@@ -195,7 +198,15 @@ const SpanItem: React.FC<SpanItemProps> = ({
                   </p>
                 )}
               </TabsContent>
-              <TabsContent value="events">
+              <TabsContent
+                value="events"
+                onClick={() => {
+                  if (events && events.length > 0) {
+                    navigator.clipboard.writeText(JSON.stringify(events));
+                    toast.success("Copied to clipboard");
+                  }
+                }}
+              >
                 {events.length > 0 ? (
                   events.map((event: any, key: number) => (
                     <JSONTree
