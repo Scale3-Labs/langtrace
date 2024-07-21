@@ -41,7 +41,7 @@ export default function Traces({ email }: { email: string }) {
   const [expandedView, setExpandedView] = useState(false);
 
   useEffect(() => {
-    setShowLoader(true);
+    // setShowLoader(true);
     setCurrentData([]);
     setPage(1);
     setTotalPages(1);
@@ -552,18 +552,16 @@ export default function Traces({ email }: { email: string }) {
           </div>
         </div>
       </div>
-      {fetchTraces.isLoading || !fetchTraces?.data || !currentData ? (
-        <PageSkeleton />
-      ) : (
-        <TracesTable
-          project_id={project_id}
-          columns={columns}
-          data={currentData}
-          loading={fetchTraces.isLoading}
-          paginationLoading={showLoader}
-          scrollableDivRef={scrollableDivRef}
-        />
-      )}
+      <TracesTable
+        project_id={project_id}
+        columns={columns}
+        data={currentData}
+        loading={
+          (fetchTraces.isLoading || fetchTraces.isFetching) && !showLoader
+        }
+        paginationLoading={showLoader}
+        scrollableDivRef={scrollableDivRef}
+      />
       <TraceFilter
         open={isTraceFilterOpen}
         onClose={() => setIsTraceFilterOpen(false)}
@@ -580,10 +578,10 @@ export default function Traces({ email }: { email: string }) {
   );
 }
 
-function PageSkeleton() {
+export function TracesPageSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-      {Array.from({ length: 10 }).map((_, index) => (
+      {Array.from({ length: 20 }).map((_, index) => (
         <TraceRowSkeleton key={index} />
       ))}
     </div>

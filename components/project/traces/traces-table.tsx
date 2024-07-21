@@ -27,6 +27,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { TraceSheet } from "./trace-sheet";
+import { TracesPageSkeleton } from "./traces";
 
 interface TracesTableProps<TData, TValue> {
   project_id: string;
@@ -156,6 +157,7 @@ export function TracesTable<TData, TValue>({
         className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
         ref={scrollableDivRef as any}
       >
+        {loading && <TracesPageSkeleton />}
         {!loading && (!data || data.length === 0) && (
           <div className="flex flex-col gap-3 items-center justify-center p-4">
             <p className="text-muted-foreground text-sm mb-3">
