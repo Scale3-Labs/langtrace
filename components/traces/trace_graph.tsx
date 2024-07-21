@@ -109,7 +109,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
         <HoverCard>
           <HoverCardTrigger asChild>
             <div
-              className="z-0 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2"
+              className="z-10 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2"
               style={{ marginLeft: `${level * 10}px` }}
             >
               {span.children && span.children.length > 0 && (
@@ -150,7 +150,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
           <HoverCardTrigger asChild>
             <div
               className={cn(
-                "h-4 rounded-sm absolute ml-[500px] flex items-center justify-center",
+                "h-4 rounded-sm absolute ml-[500px] flex items-center justify-center z-0",
                 span.status_code === "ERROR" ? "bg-destructive" : color
               )}
               style={{ left: `${startX}px`, width: `${spanLength}px` }}
