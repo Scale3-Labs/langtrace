@@ -49,7 +49,7 @@ export function TracesTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
-  const [dataIndex, setDataIndex] = useState<number | null>(null);
+  const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
 
   useEffect(() => {
     // fetch preferences from local storage
@@ -203,7 +203,7 @@ export function TracesTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() => {
-                    setDataIndex(row.index);
+                    setSelectedTrace(data[row.index] as Trace);
                     setOpenSheet(true);
                   }}
                 >
@@ -225,9 +225,9 @@ export function TracesTable<TData, TValue>({
             </TableBody>
           </Table>
         )}
-        {dataIndex !== null && (data[dataIndex] as Trace) && (
+        {selectedTrace !== null && (
           <TraceSheet
-            trace={data[dataIndex] as Trace}
+            trace={selectedTrace}
             open={openSheet}
             setOpen={setOpenSheet}
           />

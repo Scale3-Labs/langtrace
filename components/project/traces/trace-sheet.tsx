@@ -11,7 +11,8 @@ import {
   calculateTotalTime,
   convertTracesToHierarchy,
 } from "@/lib/trace_utils";
-import { useState } from "react";
+import { getVendorFromSpan } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 export function TraceSheet({
   trace,
@@ -22,7 +23,18 @@ export function TraceSheet({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
-  const [filteredSpans, setFilteredSpans] = useState(trace.sorted_trace);
+  const [selectedTrace, setSelectedTrace] = useState<any[]>(
+    trace.trace_hierarchy
+  );
+  const [selectedVendors, setSelectedVendors] = useState<string[]>(
+    trace.vendors
+  );
+
+  useEffect(() => {
+    setSelectedTrace(trace.trace_hierarchy);
+    setSelectedVendors(trace.vendors);
+  }, [trace, open]);
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent className="w-3/4">
@@ -45,31 +57,41 @@ export function TraceSheet({
                 <div className="flex items-center space-x-2" key={i}>
                   <Checkbox
                     id={vendor}
+                    checked={selectedVendors.includes(vendor)}
                     onCheckedChange={(checked) => {
-                      try {
-                        if (checked) {
-                          setFilteredSpans(
-                            trace.sorted_trace.filter((span) => {
-                              if (!span.attributes) return false;
-                              const attributes = JSON.parse(span.attributes);
-                              if (
-                                Object.keys(attributes).length > 0 &&
-                                "langtrace.service.name" in attributes
-                              ) {
-                                return (
-                                  attributes[
-                                    "langtrace.service.name"
-                                  ].toLowerCase() === vendor
-                                );
-                              }
-                            })
-                          );
-                        } else {
-                          setFilteredSpans(trace.sorted_trace);
-                        }
-                      } catch (e) {
-                        console.error(e);
+                      if (checked) {
+                        if (!selectedVendors.includes(vendor))
+                          setSelectedVendors([...selectedVendors, vendor]);
+                      } else {
+                        setSelectedVendors(
+                          selectedVendors.filter((v) => v !== vendor)
+                        );
                       }
+                      const traces = [];
+                      const currVendors = [...selectedVendors];
+                      if (checked) currVendors.push(vendor);
+                      else currVendors.splice(currVendors.indexOf(vendor), 1);
+
+                      // if currVendors and trace.vendors are the same, no need to filter
+                      if (currVendors.length === trace.vendors.length) {
+                        setSelectedTrace(trace.trace_hierarchy);
+                        return;
+                      }
+
+                      if (currVendors.length === 0) {
+                        setSelectedTrace([]);
+                        return;
+                      }
+
+                      for (let i = 0; i < trace.sorted_trace.length; i++) {
+                        if (
+                          currVendors.includes(
+                            getVendorFromSpan(trace.sorted_trace[i])
+                          )
+                        )
+                          traces.push({ ...trace.sorted_trace[i] });
+                      }
+                      setSelectedTrace(convertTracesToHierarchy(traces));
                     }}
                   />
                   <label
@@ -84,8 +106,8 @@ export function TraceSheet({
           </div>
           <div className="overflow-x-scroll">
             <TraceGraph
+              spans={selectedTrace}
               totalSpans={trace.sorted_trace.length}
-              spans={convertTracesToHierarchy(filteredSpans)}
               totalTime={calculateTotalTime(trace.sorted_trace)}
               startTime={trace.start_time.toString()}
             />

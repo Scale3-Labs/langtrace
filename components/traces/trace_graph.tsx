@@ -170,8 +170,8 @@ const SpanItem: React.FC<SpanItemProps> = ({
               </p>
               <TabsContent value="attributes">
                 {Object.keys(attributes).length > 0 ? (
-                  Object.keys(attributes).map((key) => (
-                    <div key={key} className="flex flex-col gap-2">
+                  Object.keys(attributes).map((key, i) => (
+                    <div key={i} className="flex flex-col gap-2">
                       <div className="grid grid-cols-2 mt-2 items-start">
                         <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
                           {key}
@@ -243,9 +243,9 @@ const SpanItem: React.FC<SpanItemProps> = ({
       </div>
       {!isCollapsed &&
         span.children &&
-        span.children.map((childSpan) => (
+        span.children.map((childSpan, i) => (
           <SpanItem
-            key={childSpan.name}
+            key={i}
             span={childSpan}
             level={level + 1}
             totalTime={totalTime}
