@@ -46,7 +46,6 @@ const SpanItem: React.FC<SpanItemProps> = ({
   totalTime,
   startTime,
 }) => {
-  const { theme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   const { startX, endX } = calculateSpanStartAndEnd(
@@ -107,33 +106,46 @@ const SpanItem: React.FC<SpanItemProps> = ({
   return (
     <div className="flex flex-col gap-1 w-full mt-2">
       <div className="flex items-center">
-        <div
-          className="flex gap-2 items-center sticky left-4 z-50 bg-primary-foreground rounded-md pr-2"
-          style={{ marginLeft: `${level * 10}px` }}
-        >
-          {span.children && span.children.length > 0 && (
-            <Button onClick={toggleCollapse} variant={"ghost"} size={"icon"}>
-              {isCollapsed ? (
-                <ChevronRight className="h-5 w-5" />
-              ) : (
-                <ChevronDown className="h-5 w-5" />
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <div
+              className="z-0 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2"
+              style={{ marginLeft: `${level * 10}px` }}
+            >
+              {span.children && span.children.length > 0 && (
+                <Button
+                  onClick={toggleCollapse}
+                  variant={"ghost"}
+                  size={"icon"}
+                >
+                  {isCollapsed ? (
+                    <ChevronRight className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </Button>
               )}
-            </Button>
-          )}
-          {!span.children ||
-            (span.children.length === 0 && (
-              <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
-            ))}
-          <VendorLogo vendor={vendor} />
-          <span className="text-xs max-w-72">{span.name}</span>
-          <span
-            className={`w-2 h-2 rounded-full ${
-              span.status_code === "ERROR"
-                ? "bg-destructive animate-pulse"
-                : "bg-teal-400"
-            }`}
-          ></span>
-        </div>
+              {!span.children ||
+                (span.children.length === 0 && (
+                  <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
+                ))}
+              <VendorLogo vendor={vendor} />
+              <span className="text-xs max-w-72">{span.name}</span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  span.status_code === "ERROR"
+                    ? "bg-destructive animate-pulse"
+                    : "bg-teal-400"
+                }`}
+              ></span>
+            </div>
+          </HoverCardTrigger>
+          <SpanHoverContent
+            span={span}
+            attributes={attributes}
+            events={events}
+          />
+        </HoverCard>
         <HoverCard>
           <HoverCardTrigger asChild>
             <div
@@ -153,92 +165,11 @@ const SpanItem: React.FC<SpanItemProps> = ({
               </span>
             </div>
           </HoverCardTrigger>
-          <HoverCardContent className="w-[30rem] h-[30rem] max-h-[30rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm">
-            <Tabs
-              defaultValue={
-                span.status_code === "ERROR" ? "events" : "attributes"
-              }
-            >
-              <TabsList className="grid w-full grid-cols-2 sticky top-0 z-50">
-                <TabsTrigger value="attributes">Attributes</TabsTrigger>
-                <TabsTrigger value="events">
-                  {span.status_code === "ERROR" ? "Errors" : "Events"}
-                </TabsTrigger>
-              </TabsList>
-              <p className="text-xs font-semibold my-3 text-blue-500">
-                Tip: Click any content to copy to clipboard
-              </p>
-              <TabsContent value="attributes">
-                {Object.keys(attributes).length > 0 ? (
-                  Object.keys(attributes).map((key, i) => (
-                    <div key={i} className="flex flex-col gap-2">
-                      <div className="grid grid-cols-2 mt-2 items-start">
-                        <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
-                          {key}
-                        </p>
-                        <div
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              attributes[key].toString()
-                            );
-                            toast.success("Copied to clipboard");
-                          }}
-                          className="text-xs select-all"
-                          dangerouslySetInnerHTML={{
-                            __html: attributes[key].toString(),
-                          }}
-                        />
-                      </div>
-                      <Separator />
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    No attributes found.
-                  </p>
-                )}
-              </TabsContent>
-              <TabsContent
-                value="events"
-                onClick={() => {
-                  if (events && events.length > 0) {
-                    navigator.clipboard.writeText(JSON.stringify(events));
-                    toast.success("Copied to clipboard");
-                  }
-                }}
-              >
-                {events.length > 0 ? (
-                  events.map((event: any, key: number) => (
-                    <JSONTree
-                      shouldExpandNodeInitially={() => true}
-                      key={key}
-                      data={event}
-                      theme={jsontheme}
-                      invertTheme={theme === "light"}
-                      labelRenderer={([key]) => <strong>{key}</strong>}
-                      valueRenderer={(raw: any) => (
-                        <span className="overflow-x-hidden">{raw}</span>
-                      )}
-                      postprocessValue={(raw: any) => {
-                        if (typeof raw === "string") {
-                          try {
-                            return JSON.parse(raw);
-                          } catch (e) {
-                            return raw;
-                          }
-                        }
-                        return raw;
-                      }}
-                    />
-                  ))
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    No events found.
-                  </p>
-                )}
-              </TabsContent>
-            </Tabs>
-          </HoverCardContent>
+          <SpanHoverContent
+            span={span}
+            attributes={attributes}
+            events={events}
+          />
         </HoverCard>
       </div>
       {!isCollapsed &&
@@ -277,7 +208,7 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
     ));
 
   return (
-    <div className="relative flex flex-col">
+    <div className="relative flex flex-col h-screen overflow-y-scroll">
       <div className="absolute top-3 left-3 flex flex-col">
         <p className="text-sm font-semibold text-muted-foreground">
           Span Graph
@@ -332,3 +263,97 @@ function calculateSpanStartAndEnd(
 }
 
 export default TraceGraph;
+
+function SpanHoverContent({
+  span,
+  attributes,
+  events,
+}: {
+  span: any;
+  attributes: any;
+  events: any;
+}) {
+  const { theme } = useTheme();
+  return (
+    <HoverCardContent className="w-[30rem] h-[30rem] max-h-[30rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm z-50">
+      <Tabs
+        defaultValue={span.status_code === "ERROR" ? "events" : "attributes"}
+      >
+        <TabsList className="grid w-full grid-cols-2 sticky top-0 z-50">
+          <TabsTrigger value="attributes">Attributes</TabsTrigger>
+          <TabsTrigger value="events">
+            {span.status_code === "ERROR" ? "Errors" : "Events"}
+          </TabsTrigger>
+        </TabsList>
+        <p className="text-xs font-semibold my-3 text-blue-500">
+          Tip: Click any content to copy to clipboard
+        </p>
+        <TabsContent value="attributes">
+          {Object.keys(attributes).length > 0 ? (
+            Object.keys(attributes).map((key, i) => (
+              <div key={i} className="flex flex-col gap-2">
+                <div className="grid grid-cols-2 mt-2 items-start">
+                  <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
+                    {key}
+                  </p>
+                  <div
+                    onClick={() => {
+                      navigator.clipboard.writeText(attributes[key].toString());
+                      toast.success("Copied to clipboard");
+                    }}
+                    className="text-xs select-all"
+                    dangerouslySetInnerHTML={{
+                      __html: attributes[key].toString(),
+                    }}
+                  />
+                </div>
+                <Separator />
+              </div>
+            ))
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              No attributes found.
+            </p>
+          )}
+        </TabsContent>
+        <TabsContent
+          value="events"
+          onClick={() => {
+            if (events && events.length > 0) {
+              navigator.clipboard.writeText(JSON.stringify(events));
+              toast.success("Copied to clipboard");
+            }
+          }}
+        >
+          {events.length > 0 ? (
+            events.map((event: any, key: number) => (
+              <JSONTree
+                shouldExpandNodeInitially={() => true}
+                key={key}
+                data={event}
+                theme={jsontheme}
+                invertTheme={theme === "light"}
+                labelRenderer={([key]) => <strong>{key}</strong>}
+                valueRenderer={(raw: any) => (
+                  <span className="overflow-x-hidden">{raw}</span>
+                )}
+                postprocessValue={(raw: any) => {
+                  if (typeof raw === "string") {
+                    try {
+                      return JSON.parse(raw);
+                    } catch (e) {
+                      return raw;
+                    }
+                  }
+                  return raw;
+                }}
+              />
+            ))
+          ) : (
+            <p className="text-xs text-muted-foreground">No events found.</p>
+          )}
+        </TabsContent>
+      </Tabs>
+    </HoverCardContent>
+  );
+}
