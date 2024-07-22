@@ -148,6 +148,24 @@ export function processTrace(trace: any): Trace {
       }
     }
 
+    // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
+    const message: Record<string, string[]> = {
+      prompts: [],
+      responses: [],
+    };
+
+    if (attributes["llm.prompts"]) {
+      message.prompts.push(attributes["llm.prompts"]);
+    }
+
+    if (attributes["llm.responses"]) {
+      message.responses.push(attributes["llm.responses"]);
+    }
+
+    if (message.prompts.length > 0 || message.responses.length > 0) {
+      messages.push(message);
+    }
+
     if (span.events && span.events !== "[]") {
       const events = JSON.parse(span.events);
       const inputs = [];
@@ -184,13 +202,9 @@ export function processTrace(trace: any): Trace {
       };
       if (inputs.length > 0) {
         message.prompts.push(...inputs);
-      } else {
-        message.prompts.push("[{}]");
       }
       if (outputs.length > 0) {
         message.responses.push(...outputs);
-      } else {
-        message.responses.push("[{}]");
       }
       if (message.prompts.length > 0 || message.responses.length > 0) {
         messages.push(message);
