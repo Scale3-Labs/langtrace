@@ -196,7 +196,7 @@ export default function Traces({ email }: { email: string }) {
         return (
           <div className="flex flex-col gap-3 flex-wrap">
             {messages.map((message, i) =>
-              message.prompts.length > 0
+              message.prompts && message.prompts.length > 0
                 ? message.prompts.map((prompt, j) => (
                     <HoverCell
                       key={j}
@@ -224,7 +224,7 @@ export default function Traces({ email }: { email: string }) {
         return (
           <div className="flex flex-col gap-3 flex-wrap">
             {messages.map((message, i) =>
-              message.responses.length > 0
+              message.responses && message.responses.length > 0
                 ? message.responses.map((response, j) => (
                     <HoverCell
                       key={j}
