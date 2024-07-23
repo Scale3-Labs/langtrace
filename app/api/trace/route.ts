@@ -1,6 +1,11 @@
 import { authOptions } from "@/lib/auth/options";
 import { TraceService } from "@/lib/services/trace_service";
-import { authApiKey, normalizeData, prepareForClickhouse } from "@/lib/utils";
+import {
+  authApiKey,
+  normalizeData,
+  normalizeOTELData,
+  prepareForClickhouse,
+} from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
@@ -19,7 +24,15 @@ export async function POST(req: NextRequest) {
     const projectData = await response.json();
 
     // Normalize and prepare data for Clickhouse
-    const normalized = prepareForClickhouse(normalizeData(data));
+    let normalized = [];
+    if (data.resourceSpans) {
+      // coming from an OTEL exporter
+      normalized = prepareForClickhouse(
+        normalizeOTELData(data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans)
+      );
+    } else {
+      normalized = prepareForClickhouse(normalizeData(data));
+    }
     const traceService = new TraceService();
 
     // Add traces to Clickhouse

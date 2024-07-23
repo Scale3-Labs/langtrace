@@ -201,6 +201,18 @@ export function convertToDateTime64(dateTime: [number, number]): string {
 }
 
 function determineStatusCode(inputData: any): SpanStatusCode {
+  // Check if inputData is a number
+  if (typeof inputData === "number") {
+    const code = inputData;
+
+    if (code === 0) return "UNSET";
+    if (code === 1) return "OK";
+    if (code === 2) return "ERROR";
+
+    return "UNSET";
+  }
+
+  // Existing logic if inputData is not a number
   const code = inputData.status?.code;
   const statusCode = inputData.status?.status_code;
   if (statusCode) return statusCode;
@@ -234,6 +246,77 @@ function getDurationInMicroseconds(startTime: string, endTime: string): number {
     durationMilliseconds * 1000 + (endMicrosecondsPart - startMicrosecondsPart);
 
   return durationMicroseconds;
+}
+
+function nanosecondsToDateTimeString(nanosecondsStr: string): string {
+  // Convert the string to a bigint
+  const nanoseconds = BigInt(nanosecondsStr);
+
+  // Convert nanoseconds to milliseconds
+  const milliseconds = Number(nanoseconds / BigInt(1e6));
+
+  // Create a Date object from milliseconds
+  const date = new Date(milliseconds);
+
+  // Format the date to ISO 8601 string
+  const dateTimeString = date.toISOString();
+
+  return dateTimeString;
+}
+
+function durationBetweenDateTimeStrings(
+  startTimeStr: string,
+  endTimeStr: string
+): number {
+  // Convert DateTime strings to Date objects
+  const startTime = new Date(startTimeStr);
+  const endTime = new Date(endTimeStr);
+
+  // Calculate the difference in milliseconds
+  const durationInMilliseconds = endTime.getTime() - startTime.getTime();
+
+  return durationInMilliseconds;
+}
+
+export function normalizeOTELData(inputData: any[]): Normalized[] {
+  return inputData.map((inputData) => {
+    try {
+      const start = nanosecondsToDateTimeString(inputData.startTimeUnixNano);
+      const end = nanosecondsToDateTimeString(inputData.endTimeUnixNano);
+      const attributesObject: { [key: string]: any } = {};
+
+      inputData.attributes.forEach(
+        (attr: {
+          value: { stringValue: undefined; intValue: undefined };
+          key: string | number;
+        }) => {
+          if (attr.value.stringValue !== undefined) {
+            attributesObject[attr.key] = attr.value.stringValue;
+          } else if (attr.value.intValue !== undefined) {
+            attributesObject[attr.key] = attr.value.intValue;
+          }
+        }
+      );
+      const attributes = JSON.stringify(attributesObject, null);
+      return {
+        name: inputData.name,
+        trace_id: inputData.traceId,
+        span_id: inputData.spanId,
+        trace_state: "",
+        kind: inputData.kind as string,
+        parent_id: "",
+        start_time: start,
+        end_time: end,
+        duration: durationBetweenDateTimeStrings(start, end),
+        attributes: JSON.parse(attributes as any),
+        status_code: determineStatusCode(inputData.status.code),
+        events: inputData.events,
+        links: inputData.links,
+      };
+    } catch (err) {
+      throw new Error(`An error occurred while normalizing OTEL data: ${err}`);
+    }
+  });
 }
 
 export function normalizeData(inputDataArray: any[]): Normalized[] {
