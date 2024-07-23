@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 PRISMA_MIGRATIONS_TABLE="_prisma_migrations"
 
 # Extract DB_HOST and DB_PORT from POSTGRES_HOST
