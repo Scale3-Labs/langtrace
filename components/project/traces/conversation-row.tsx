@@ -105,7 +105,7 @@ export const ConversationRow = ({
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
-        cost.output += currentcost;
+        cost.output += currentcost.output;
       } else if (
         attributes["gen_ai.usage.input_tokens"] &&
         attributes["gen_ai.usage.output_tokens"]
@@ -130,7 +130,7 @@ export const ConversationRow = ({
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
-        cost.output += currentcost;
+        cost.output += currentcost.output;
       } else if (attributes["llm.token.counts"]) {
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
         tokenCounts = {

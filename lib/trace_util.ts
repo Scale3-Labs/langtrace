@@ -144,7 +144,7 @@ export function processTrace(trace: any): Trace {
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
-        cost.output += currentcost;
+        cost.output += currentcost.output;
       } else if (attributes["llm.token.counts"]) {
         // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
