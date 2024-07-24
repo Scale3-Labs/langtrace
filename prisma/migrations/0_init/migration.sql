@@ -38,8 +38,6 @@ CREATE TABLE "User" (
     "emailVerified" TIMESTAMP(3),
     "image" TEXT,
     "teamId" TEXT,
-    "ds1" BOOLEAN DEFAULT false,
-    "ds2" BOOLEAN DEFAULT false,
     "status" TEXT DEFAULT 'active',
     "role" "Role" DEFAULT 'owner',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
