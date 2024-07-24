@@ -822,6 +822,14 @@ export class TraceService implements ITraceService {
             inputTokens += prompt_tokens;
             outputTokens += completion_tokens;
             totalTokens += prompt_tokens + completion_tokens;
+          }  else if ("gen_ai.usage.input_tokens" in parsedAttributes) {
+            const prompt_tokens =
+              parsedAttributes["gen_ai.usage.input_tokens"];
+            const completion_tokens =
+              parsedAttributes["gen_ai.usage.output_tokens"];
+            inputTokens += prompt_tokens;
+            outputTokens += completion_tokens;
+            totalTokens += prompt_tokens + completion_tokens;
           }
         });
         return {

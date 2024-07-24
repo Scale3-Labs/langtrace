@@ -298,6 +298,31 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
         }
       );
       const attributes = JSON.stringify(attributesObject, null);
+
+      // process event attributes and convert the attributes list to an object
+      const events = inputData.events.map((event: any) => {
+        const eventAttributesObject: { [key: string]: any } = {};
+
+        event.attributes.forEach(
+          (attr: {
+            value: { stringValue: undefined; intValue: undefined };
+            key: string | number;
+          }) => {
+            if (attr.value.stringValue !== undefined) {
+              eventAttributesObject[attr.key] = attr.value.stringValue;
+            } else if (attr.value.intValue !== undefined) {
+              eventAttributesObject[attr.key] = attr.value.intValue;
+            }
+          }
+        );
+
+        return {
+          name: event.name,
+          time: nanosecondsToDateTimeString(event.timeUnixNano),
+          attributes: eventAttributesObject,
+        };
+      });
+
       return {
         name: inputData.name,
         trace_id: inputData.traceId,
@@ -310,7 +335,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
         duration: durationBetweenDateTimeStrings(start, end),
         attributes: JSON.parse(attributes as any),
         status_code: determineStatusCode(inputData.status.code),
-        events: inputData.events,
+        events: events,
         links: inputData.links,
       };
     } catch (err) {
