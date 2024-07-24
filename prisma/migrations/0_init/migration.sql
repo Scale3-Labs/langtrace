@@ -91,8 +91,6 @@ CREATE TABLE "Run" (
     "log" JSONB,
     "datasetId" TEXT,
     "projectId" TEXT NOT NULL,
-    "random" BOOLEAN NOT NULL DEFAULT false,
-    "isTest" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
