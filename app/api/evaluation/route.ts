@@ -1,5 +1,6 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
+import { TraceService } from "@/lib/services/trace_service";
 import { authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,7 +16,24 @@ export async function POST(req: NextRequest) {
       const projectData = await response.json();
       const projectId = projectData.data.project.id;
       const data = await req.json();
-      const { traceId, spanId, userScore, userId, reason, dataId } = data;
+      let { traceId, spanId, userScore, userId, reason, dataId } = data;
+
+      const traceService = await new TraceService();
+
+      // just gets the first span in the trace that has this type
+      // can expand by having the SDK send an additional data point in the request specifying the llm type
+      const correctSpan = await traceService.GetSpansWithAttribute(
+        "langtrace.service.type",
+        projectId,
+        1,
+        1,
+        traceId
+      );
+
+      if (correctSpan.result.length > 0) {
+        spanId = correctSpan.result[0].span_id;
+      }
+
       // check if an evaluation already exists for the spanId
       const existingEvaluation = await prisma.evaluation.findFirst({
         where: {
@@ -220,16 +238,17 @@ export async function GET(req: NextRequest) {
           },
         });
       } else {
+        const traceService = await new TraceService();
+        const tempSpanId = await traceService.GetSpanById(spanId, projectId);
         evaluations = await prisma.evaluation.findMany({
           where: {
-            spanId,
+            traceId: tempSpanId.trace_id,
           },
           include: {
             Test: includeTest,
           },
         });
       }
-
       if (!evaluations) {
         return NextResponse.json({
           evaluations: [],
@@ -308,10 +327,26 @@ export async function PUT(req: NextRequest) {
           { status: 400 }
         );
       }
+
+      const traceService = await new TraceService();
+      const tempSpanId = await traceService.GetSpanById(spanId, projectId);
+      const correctSpan = await traceService.GetSpansWithAttribute(
+        "langtrace.service.type",
+        projectId,
+        1,
+        1,
+        tempSpanId.trace_id
+      );
+
+      if (correctSpan.result.length > 0) {
+        spanId = correctSpan.result[0].span_id;
+      }
+
       const evaluation = await prisma.evaluation.findFirst({
         where: {
           projectId,
           spanId,
+          testId: null,
         },
       });
       if (!evaluation) {
@@ -384,7 +419,6 @@ export async function PUT(req: NextRequest) {
           { status: 404 }
         );
       }
-
       return NextResponse.json({
         data: evaluation,
       });
