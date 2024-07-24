@@ -1,9 +1,19 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { jsontheme } from "@/lib/constants";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { getVendorFromSpan } from "@/lib/utils";
+import { cn, getVendorFromSpan } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useTheme } from "next-themes";
 import React, { useState } from "react";
+import { JSONTree } from "react-json-tree";
+import { toast } from "sonner";
 import { VendorLogo } from "../shared/vendor-metadata";
 import { Button } from "../ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../ui/hover-card";
 import { Separator } from "../ui/separator";
 
 interface Span {
@@ -11,6 +21,8 @@ interface Span {
   start_time: string;
   end_time: string;
   attributes: any;
+  events: any;
+  status_code: string;
   children?: Span[];
 }
 
@@ -19,6 +31,10 @@ interface TraceGraphProps {
   totalTime: number;
   startTime: string;
   totalSpans: number;
+  setSpansView: (spansView: "SPANS" | "ATTRIBUTES" | "CONVERSATION") => void;
+  setSpan: (span: any) => void;
+  setAttributes: (attributes: any) => void;
+  setEvents: (events: any) => void;
 }
 
 interface SpanItemProps {
@@ -26,6 +42,10 @@ interface SpanItemProps {
   level: number;
   totalTime: number;
   startTime: string;
+  setSpansView: (spansView: "SPANS" | "ATTRIBUTES" | "CONVERSATION") => void;
+  setSpan: (span: any) => void;
+  setAttributes: (attributes: any) => void;
+  setEvents: (events: any) => void;
 }
 
 const SpanItem: React.FC<SpanItemProps> = ({
@@ -33,6 +53,10 @@ const SpanItem: React.FC<SpanItemProps> = ({
   level,
   totalTime,
   startTime,
+  setSpansView,
+  setSpan,
+  setAttributes,
+  setEvents,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
@@ -45,6 +69,8 @@ const SpanItem: React.FC<SpanItemProps> = ({
   const spanLength = endX - startX === 0 ? 10 : endX - startX;
 
   const attributes = span.attributes ? JSON.parse(span.attributes) : {};
+  const events =
+    span.events && span.events !== "[]" ? JSON.parse(span.events) : [];
   let serviceName = "";
   if (attributes["langtrace.service.name"]) {
     serviceName = attributes["langtrace.service.name"].toLowerCase();
@@ -90,51 +116,92 @@ const SpanItem: React.FC<SpanItemProps> = ({
   const vendor = getVendorFromSpan(span as any);
 
   return (
-    <div className="flex flex-col gap-3 w-full mt-2">
+    <div className="flex flex-col gap-1 w-full mt-2">
       <div className="flex items-center">
-        <div
-          className="flex gap-2 items-center"
-          style={{ marginLeft: `${level * 10}px` }}
-        >
-          {span.children && span.children.length > 0 && (
-            <Button onClick={toggleCollapse} variant={"ghost"} size={"icon"}>
-              {isCollapsed ? (
-                <ChevronRight className="h-5 w-5" />
-              ) : (
-                <ChevronDown className="h-5 w-5" />
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <div
+              className="z-10 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2"
+              style={{ marginLeft: `${level * 10}px` }}
+            >
+              {span.children && span.children.length > 0 && (
+                <Button
+                  onClick={toggleCollapse}
+                  variant={"ghost"}
+                  size={"icon"}
+                >
+                  {isCollapsed ? (
+                    <ChevronRight className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </Button>
               )}
-            </Button>
-          )}
-          {!span.children ||
-            (span.children.length === 0 && (
-              <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
-            ))}
-          <VendorLogo vendor={vendor} />
-          <span className="text-xs">{span.name}</span>
-        </div>
-        <div
-          className={`h-4 rounded-sm ${color} absolute ml-[508px] flex items-center justify-center`}
-          style={{ left: `${startX}px`, width: `${spanLength}px` }}
-        >
-          <span className="text-xs text-white font-semibold">
-            {/* duration */}
-            {(
-              new Date(correctTimestampFormat(span.end_time)).getTime() -
-              new Date(correctTimestampFormat(span.start_time)).getTime()
-            ).toFixed(2)}
-            ms
-          </span>
-        </div>
+              {!span.children ||
+                (span.children.length === 0 && (
+                  <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
+                ))}
+              <VendorLogo vendor={vendor} />
+              <span className="text-xs max-w-72">{span.name}</span>
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  span.status_code === "ERROR"
+                    ? "bg-destructive animate-pulse"
+                    : "bg-teal-400"
+                }`}
+              ></span>
+            </div>
+          </HoverCardTrigger>
+          <SpanHoverContent
+            span={span}
+            attributes={attributes}
+            events={events}
+          />
+        </HoverCard>
+        <HoverCard>
+          <HoverCardTrigger asChild>
+            <div
+              onClick={() => {
+                setSpansView("ATTRIBUTES");
+                setSpan(span);
+                setAttributes(attributes);
+                setEvents(events);
+              }}
+              className={cn(
+                "h-4 rounded-sm absolute ml-[500px] flex items-center justify-center z-0 cursor-pointer",
+                span.status_code === "ERROR" ? "bg-destructive" : color
+              )}
+              style={{ left: `${startX}px`, width: `${spanLength}px` }}
+            >
+              <span className="text-xs text-primary font-semibold">
+                {(
+                  new Date(correctTimestampFormat(span.end_time)).getTime() -
+                  new Date(correctTimestampFormat(span.start_time)).getTime()
+                ).toFixed(2)}
+                ms
+              </span>
+            </div>
+          </HoverCardTrigger>
+          <SpanHoverContent
+            span={span}
+            attributes={attributes}
+            events={events}
+          />
+        </HoverCard>
       </div>
       {!isCollapsed &&
         span.children &&
-        span.children.map((childSpan) => (
+        span.children.map((childSpan, i) => (
           <SpanItem
-            key={childSpan.name}
+            key={i}
             span={childSpan}
             level={level + 1}
             totalTime={totalTime}
             startTime={startTime}
+            setSpansView={setSpansView}
+            setSpan={setSpan}
+            setAttributes={setAttributes}
+            setEvents={setEvents}
           />
         ))}
     </div>
@@ -146,29 +213,38 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
   totalTime,
   startTime,
   totalSpans,
+  setSpansView,
+  setSpan,
+  setAttributes,
+  setEvents,
 }) => {
   // Divide the totalTime into 6 parts
   const step = totalTime / 5;
 
-  const spanBars = spans.map((span) => (
-    <SpanItem
-      key={span.name}
-      span={span}
-      level={0}
-      totalTime={totalTime}
-      startTime={startTime}
-    />
-  ));
+  const SpanBars = () =>
+    spans.map((span) => (
+      <SpanItem
+        key={span.name}
+        span={span}
+        level={0}
+        totalTime={totalTime}
+        startTime={startTime}
+        setSpansView={setSpansView}
+        setSpan={setSpan}
+        setAttributes={setAttributes}
+        setEvents={setEvents}
+      />
+    ));
 
   return (
-    <div className="relative flex flex-col">
+    <div className="relative flex flex-col h-screen overflow-y-scroll">
       <div className="absolute top-3 left-3 flex flex-col">
         <p className="text-sm font-semibold text-muted-foreground">
           Span Graph
         </p>
         <p className="text-xs text-muted-foreground">{totalSpans} span(s)</p>
       </div>
-      <div className="mt-3 grid grid-cols-6 gap-[166px] h-[95%] absolute ml-[500px] -z-10">
+      <div className="mt-3 grid grid-cols-6 gap-[166px] h-[100%] absolute ml-[500px] -z-10">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="flex flex-col gap-1 items-center">
             <p className="text-muted-foreground text-xs">
@@ -178,7 +254,9 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
           </div>
         ))}
       </div>
-      <div className="flex flex-col gap-3 mt-12">{spanBars}</div>
+      <div className="flex flex-col gap-3 mt-12">
+        <SpanBars />
+      </div>
     </div>
   );
 };
@@ -189,7 +267,7 @@ function calculateSpanStartAndEnd(
   totalTraceTime: number,
   spanStartTime: string
 ) {
-  const scaleWidth = 920; // This is the total width of the scale in pixels (5 steps * 166px/step) + 15*6px for the separators
+  const scaleWidth = 166 * 5; // This is the total width of the scale in pixels (5 steps * 166px/step) + 15*6px for the separators
 
   // Function to convert time to pixels
   const timeToPixels = (time: number) => (time / totalTraceTime) * scaleWidth;
@@ -214,3 +292,108 @@ function calculateSpanStartAndEnd(
 }
 
 export default TraceGraph;
+
+function SpanHoverContent({
+  span,
+  attributes,
+  events,
+}: {
+  span: any;
+  attributes: any;
+  events: any;
+}) {
+  return (
+    <HoverCardContent className="w-[30rem] h-[30rem] max-h-[30rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm z-50">
+      <AttributesTabs span={span} attributes={attributes} events={events} />
+    </HoverCardContent>
+  );
+}
+
+export function AttributesTabs({
+  span,
+  attributes,
+  events,
+}: {
+  span: any;
+  attributes: any;
+  events: any;
+}) {
+  const { theme } = useTheme();
+  return (
+    <Tabs defaultValue={span.status_code === "ERROR" ? "events" : "attributes"}>
+      <TabsList className="grid w-full grid-cols-2 sticky top-0 z-50">
+        <TabsTrigger value="attributes">Attributes</TabsTrigger>
+        <TabsTrigger value="events">
+          {span.status_code === "ERROR" ? "Errors" : "Events"}
+        </TabsTrigger>
+      </TabsList>
+      <p className="text-xs font-semibold my-3 text-blue-500">
+        Tip: Click any content to copy to clipboard
+      </p>
+      <TabsContent value="attributes">
+        {Object.keys(attributes).length > 0 ? (
+          Object.keys(attributes).map((key, i) => {
+            const value = attributes[key].toString();
+            let jsonValue = value;
+            try {
+              jsonValue = JSON.parse(value);
+            } catch (e) {
+              jsonValue = value;
+            }
+            return (
+              <div key={i} className="flex flex-col gap-2">
+                <div className="grid grid-cols-2 mt-2 items-start">
+                  <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
+                    {key}
+                  </p>
+                  <div
+                    onClick={() => {
+                      navigator.clipboard.writeText(value);
+                      toast.success("Copied to clipboard");
+                    }}
+                    className="text-xs select-all"
+                    dangerouslySetInnerHTML={{
+                      __html: JSON.stringify(jsonValue, null, 2),
+                    }}
+                  />
+                </div>
+                <Separator />
+              </div>
+            );
+          })
+        ) : (
+          <p className="text-xs text-muted-foreground">No attributes found.</p>
+        )}
+      </TabsContent>
+      <TabsContent value="events">
+        {events.length > 0 ? (
+          events.map((event: any, key: number) => (
+            <JSONTree
+              shouldExpandNodeInitially={() => true}
+              key={key}
+              data={event}
+              theme={jsontheme}
+              invertTheme={theme === "light"}
+              labelRenderer={([key]) => <strong>{key}</strong>}
+              valueRenderer={(raw: any) => (
+                <span className="overflow-x-hidden">{raw}</span>
+              )}
+              postprocessValue={(raw: any) => {
+                if (typeof raw === "string") {
+                  try {
+                    return JSON.parse(raw);
+                  } catch (e) {
+                    return raw;
+                  }
+                }
+                return raw;
+              }}
+            />
+          ))
+        ) : (
+          <p className="text-sm text-muted-foreground">No events found.</p>
+        )}
+      </TabsContent>
+    </Tabs>
+  );
+}

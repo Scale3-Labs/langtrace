@@ -30,6 +30,8 @@ export const TIKTOKEN_MODEL_MAPPING: Record<string, TiktokenEncoding> = {
   "gpt-4": "cl100k_base",
   "gpt-4o": "o200k_base",
   "gpt-4o-2024-05-13": "o200k_base",
+  "gpt-4o-mini": "o200k_base",
+  "gpt-4o-mini-2024-07-18": "o200k_base",
 };
 
 export type LangTraceAttributes = LLMSpanAttributes &
@@ -49,6 +51,14 @@ export interface CostTableEntry {
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
+  "gpt-4o-mini": {
+    input: 0.00015,
+    output: 0.0006,
+  },
+  "gpt-4o-mini-2024-07-18": {
+    input: 0.00015,
+    output: 0.0006,
+  },
   "gpt-4o": {
     input: 0.005,
     output: 0.015,
@@ -272,4 +282,25 @@ export const SUPPORTED_VENDORS: Record<string, string> = {
   OLLAMA: "Ollama",
   VERTEXAI: "VertexAI",
   GEMINI: "Gemini",
+};
+
+export const jsontheme = {
+  scheme: "monokai",
+  author: "wimer hazenberg (http://www.monokai.nl)",
+  base00: "#272822",
+  base01: "#383830",
+  base02: "#49483e",
+  base03: "#75715e",
+  base04: "#a59f85",
+  base05: "#f8f8f2",
+  base06: "#f5f4f1",
+  base07: "#f9f8f5",
+  base08: "#f92672",
+  base09: "#fd971f",
+  base0A: "#f4bf75",
+  base0B: "#a6e22e",
+  base0C: "#a1efe4",
+  base0D: "#66d9ef",
+  base0E: "#ae81ff",
+  base0F: "#cc6633",
 };
