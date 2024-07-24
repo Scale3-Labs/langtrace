@@ -64,7 +64,7 @@ export function ProjectSwitcher({ email }: { email: string }) {
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] h-[400px] p-0">
+      <PopoverContent className="w-[200px] h-[300px] p-0">
         <Command>
           <CommandInput placeholder="Search Project..." className="h-9" />
           <ScrollArea>
@@ -78,7 +78,7 @@ export function ProjectSwitcher({ email }: { email: string }) {
                 >
                   <a>
                     <CommandItem
-                      value={project.id}
+                      value={`${project.name}${project.id}`}
                       onSelect={() => setOpen(false)}
                     >
                       <div className="flex justify-between w-full cursor-pointer">
