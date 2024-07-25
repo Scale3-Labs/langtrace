@@ -105,7 +105,32 @@ export const ConversationRow = ({
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
-        cost.output += currentcost;
+        cost.output += currentcost.output;
+      } else if (
+        attributes["gen_ai.usage.input_tokens"] &&
+        attributes["gen_ai.usage.output_tokens"]
+      ) {
+        tokenCounts = {
+          input_tokens: tokenCounts.prompt_tokens
+            ? tokenCounts.prompt_tokens +
+              attributes["gen_ai.usage.input_tokens"]
+            : attributes["gen_ai.usage.input_tokens"],
+          output_tokens: tokenCounts.completion_tokens
+            ? tokenCounts.completion_tokens +
+              attributes["gen_ai.usage.output_tokens"]
+            : attributes["gen_ai.usage.output_tokens"],
+          total_tokens: tokenCounts.total_tokens
+            ? tokenCounts.total_tokens +
+              attributes["gen_ai.usage.input_tokens"] +
+              attributes["gen_ai.usage.output_tokens"]
+            : attributes["gen_ai.usage.input_tokens"] +
+              attributes["gen_ai.usage.output_tokens"],
+        };
+        const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
+        // add the cost of the current span to the total cost
+        cost.total += currentcost.total;
+        cost.input += currentcost.input;
+        cost.output += currentcost.output;
       } else if (attributes["llm.token.counts"]) {
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
         tokenCounts = {

@@ -1,11 +1,16 @@
 "use client";
 
-import { TraceRow } from "@/components/project/traces/trace-row";
+import { HoverCell } from "@/components/shared/hover-cell";
 import { Info } from "@/components/shared/info";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HOW_TO_GROUP_RELATED_OPERATIONS, PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
+import { processTrace, Trace } from "@/lib/trace_util";
+import { correctTimestampFormat } from "@/lib/trace_utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -13,13 +18,11 @@ import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { SetupInstructions } from "../../shared/setup-instructions";
-import { Spinner } from "../../shared/spinner";
 import { Checkbox } from "../../ui/checkbox";
-import { Separator } from "../../ui/separator";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
 import TraceRowSkeleton from "./trace-row-skeleton";
+import { TracesTable } from "./traces-table";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -29,12 +32,16 @@ export default function Traces({ email }: { email: string }) {
   const [showLoader, setShowLoader] = useState(false);
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
-  const [utcTime, setUtcTime] = useState(true);
+  const [utcTime, setUtcTime] = useState(false);
   const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
   const [groupSpans, setGroupSpans] = useState(true);
+  const [userId, setUserId] = useState<string>("");
+  const [promptId, setPromptId] = useState<string>("");
+  const [model, setModel] = useState<string>("");
+  const [expandedView, setExpandedView] = useState(false);
 
   useEffect(() => {
-    setShowLoader(true);
+    // setShowLoader(true);
     setCurrentData([]);
     setPage(1);
     setTotalPages(1);
@@ -47,8 +54,262 @@ export default function Traces({ email }: { email: string }) {
 
       const group = window.localStorage.getItem("preferences.group");
       setGroupSpans(group === "true");
+
+      const expanded = window.localStorage.getItem("preferences.expanded");
+      setExpandedView(expanded === "true");
     }
   }, [filters]);
+
+  const columns: ColumnDef<Trace>[] = [
+    {
+      accessorKey: "start_time",
+      enableResizing: true,
+      header: "Start Time",
+      cell: ({ row }) => {
+        const starttime = row.getValue("start_time") as string;
+        return (
+          <div className="text-left text-muted-foreground text-xs font-semibold">
+            {formatDateTime(correctTimestampFormat(starttime), !utcTime)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <div className="text-left flex gap-2 items-center">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                status === "error" ? "bg-red-500" : "bg-teal-400"
+              }`}
+            ></span>
+            <p className="text-muted-foreground text-xs font-semibold capitalize">
+              {status}
+            </p>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "namespace",
+      header: "Namespace",
+      cell: ({ row }) => {
+        const namespace = row.getValue("namespace") as string;
+        return (
+          <div className="text-left">
+            <p className="text-xs font-semibold">{namespace}</p>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "user_ids",
+      header: "User IDs",
+      cell: ({ row }) => {
+        const userids = row.getValue("user_ids") as string[];
+        // Remove duplicates
+        const uniqueUserids = Array.from(
+          new Set(
+            userids
+              .map((userid) => userid.toLowerCase())
+              .filter((userid) => userid !== "")
+          )
+        );
+        return (
+          <div className="flex gap-1 flex-wrap">
+            {uniqueUserids.map((userid, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {userid}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "prompt_ids",
+      header: "Prompt IDs",
+      cell: ({ row }) => {
+        const promptids = row.getValue("prompt_ids") as string[];
+        // Remove duplicates
+        const uniquePromptids = Array.from(
+          new Set(
+            promptids
+              .map((promptid) => promptid.toLowerCase())
+              .filter((promptid) => promptid !== "")
+          )
+        );
+        return (
+          <div className="flex gap-1 flex-wrap">
+            {uniquePromptids.map((promptid, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {promptid}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "vendors",
+      header: "Vendors",
+      cell: ({ row }) => {
+        const vendors = row.getValue("vendors") as string[];
+        return (
+          <div className="flex flex-col gap-3 flex-wrap">
+            {vendors.map((vendor, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {vendor}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "models",
+      header: "Models",
+      cell: ({ row }) => {
+        const models = row.getValue("models") as string[];
+        return (
+          <div className="flex flex-col gap-3">
+            {models.map((model, i) => (
+              <Badge key={i} variant="secondary" className="lowercase">
+                {model}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "inputs",
+      header: "Inputs",
+      cell: ({ row }) => {
+        const messages = row.getValue("inputs") as Record<string, string[]>[];
+        if (!messages || messages.length === 0) {
+          return null;
+        }
+        return (
+          <div className="flex flex-col gap-3 flex-wrap">
+            {messages.map((message, i) =>
+              message.prompts && message.prompts.length > 0
+                ? message.prompts.map((prompt, j) => (
+                    <HoverCell
+                      key={j}
+                      values={JSON.parse(prompt)}
+                      className={cn(
+                        "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
+                        expandedView ? "" : "max-h-10"
+                      )}
+                    />
+                  ))
+                : null
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "outputs",
+      header: "Outputs",
+      cell: ({ row }) => {
+        const messages = row.getValue("outputs") as Record<string, string[]>[];
+        if (!messages || messages.length === 0) {
+          return null;
+        }
+        return (
+          <div className="flex flex-col gap-3 flex-wrap">
+            {messages.map((message, i) =>
+              message.responses && message.responses.length > 0
+                ? message.responses.map((response, j) => (
+                    <HoverCell
+                      key={j}
+                      values={JSON.parse(response)}
+                      className={cn(
+                        "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
+                        expandedView ? "" : "max-h-10"
+                      )}
+                    />
+                  ))
+                : null
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "input_tokens",
+      header: "Input Tokens",
+      cell: ({ row }) => {
+        const count = row.getValue("input_tokens") as number;
+        return <p className="text-xs font-semibold">{count}</p>;
+      },
+    },
+    {
+      accessorKey: "output_tokens",
+      header: "Output Tokens",
+      cell: ({ row }) => {
+        const count = row.getValue("output_tokens") as number;
+        return <p className="text-xs font-semibold">{count}</p>;
+      },
+    },
+    {
+      accessorKey: "total_tokens",
+      header: "Total Tokens",
+      cell: ({ row }) => {
+        const count = row.getValue("total_tokens") as number;
+        return <p className="text-xs font-semibold">{count}</p>;
+      },
+    },
+    {
+      accessorKey: "input_cost",
+      header: "Input Cost",
+      cell: ({ row }) => {
+        const cost = row.getValue("input_cost") as number;
+        return (
+          <p className="text-xs font-semibold">
+            {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
+          </p>
+        );
+      },
+    },
+    {
+      accessorKey: "output_cost",
+      header: "Output Cost",
+      cell: ({ row }) => {
+        const cost = row.getValue("output_cost") as number;
+        return (
+          <p className="text-xs font-semibold">
+            {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
+          </p>
+        );
+      },
+    },
+    {
+      accessorKey: "total_cost",
+      header: "Total Cost",
+      cell: ({ row }) => {
+        const cost = row.getValue("total_cost") as number;
+        return (
+          <p className="text-xs font-semibold">
+            {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
+          </p>
+        );
+      },
+    },
+    {
+      accessorKey: "total_duration",
+      header: "Total Duration",
+      cell: ({ row }) => {
+        const duration = row.getValue("total_duration") as number;
+        return <p className="text-xs font-semibold">{duration}ms</p>;
+      },
+    },
+  ];
 
   const scrollableDivRef = useBottomScrollListener(() => {
     if (fetchTraces.isRefetching) {
@@ -64,29 +325,6 @@ export default function Traces({ email }: { email: string }) {
     queryKey: ["fetch-traces-query"],
     queryFn: async () => {
       const apiEndpoint = "/api/traces";
-      if (filters.length > 0) {
-        // check if parent_id filter is present
-        const parentFilter = filters.find(
-          (filter) => filter.key === "parent_id"
-        );
-        if (!parentFilter && groupSpans) {
-          filters.push({
-            key: "parent_id",
-            operation: "EQUALS",
-            value: "",
-            type: "property",
-          });
-        }
-      }
-
-      // if parent_id is the only filter, remove it
-      if (
-        filters.length === 1 &&
-        filters[0].key === "parent_id" &&
-        groupSpans
-      ) {
-        filters.pop();
-      }
 
       const body = {
         page,
@@ -96,6 +334,7 @@ export default function Traces({ email }: { email: string }) {
           filters: filters,
           operation: "OR",
         },
+        group: groupSpans,
       };
 
       const response = await fetch(apiEndpoint, {
@@ -123,21 +362,17 @@ export default function Traces({ email }: { email: string }) {
         setPage(parseInt(metadata?.page) + 1);
       }
 
+      // transform the data
+      const transformedNewData = newData.map((trace: any) =>
+        processTrace(trace)
+      );
+
       // Merge the new data with the existing data
       if (currentData.length > 0) {
-        const updatedData = [...currentData, ...newData];
-
-        // TODO(Karthik): The results are an array of span arrays, so
-        // we need to figure out how to merge them correctly.
-        // Remove duplicates
-        // const uniqueData = updatedData.filter(
-        //   (v: any, i: number, a: any) =>
-        //     a.findIndex((t: any) => t.span_id === v.span_id) === i
-        // );
-
+        const updatedData = [...currentData, ...transformedNewData];
         setCurrentData(updatedData);
       } else {
-        setCurrentData(newData);
+        setCurrentData(transformedNewData);
       }
 
       setEnableFetch(false);
@@ -171,11 +406,6 @@ export default function Traces({ email }: { email: string }) {
       info: "This includes traces from Framework calls like langchain, CrewAI, DSPy etc.",
     },
   ];
-
-  const handleApplyFilters = (newFilters: PropertyFilter[]) => {
-    setFilters(newFilters);
-    setIsTraceFilterOpen(false);
-  };
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
@@ -227,6 +457,9 @@ export default function Traces({ email }: { email: string }) {
               variant={"destructive"}
               onClick={() => {
                 setFilters([]);
+                setUserId("");
+                setPromptId("");
+                setModel("");
               }}
             >
               <XIcon className="w-4 h-4 mr-1" />
@@ -253,7 +486,7 @@ export default function Traces({ email }: { email: string }) {
                     "preferences.timestamp.utc",
                     check ? "true" : "false"
                   );
-                  toast.success("Timezone preference saved successfully.");
+                  toast.success("Preferences updated.");
                 }
               }}
             />
@@ -277,7 +510,7 @@ export default function Traces({ email }: { email: string }) {
                     "preferences.group",
                     check ? "true" : "false"
                   );
-                  toast.success("Group spans preference saved successfully.");
+                  toast.success("Preferences updated.");
                 }
               }}
             />
@@ -293,72 +526,62 @@ export default function Traces({ email }: { email: string }) {
               </Link>
             </div>
           </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-13 items-center gap-6 p-3 bg-muted">
-        <p className="ml-10 text-xs font-medium">
-          Time <span>&#8595;</span> ({utcTime ? "UTC" : "Local"})
-        </p>
-        <p className="text-xs font-medium">Namespace</p>
-        <p className="text-xs font-medium">Model</p>
-        <p className="text-xs font-medium col-span-2">Input</p>
-        <p className="text-xs font-medium col-span-2">Output</p>
-        <p className="text-xs font-medium">User ID</p>
-        <p className="text-xs font-medium">Prompt ID</p>
-        <p className="text-xs font-medium">Prompt Version</p>
-        <p className="text-xs font-medium">Input / Output / Total Tokens</p>
-        <p className="text-xs font-medium">Token Cost</p>
-        <p className="text-xs font-medium">Duration(ms)</p>
-      </div>
-      {fetchTraces.isLoading || !fetchTraces?.data || !currentData ? (
-        <PageSkeleton />
-      ) : (
-        <div
-          className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll"
-          ref={scrollableDivRef as any}
-        >
-          {!fetchTraces.isLoading &&
-            fetchTraces?.data &&
-            currentData?.map((trace: any, i: number) => {
-              return (
-                <div key={i} className="flex flex-col gap-3 px-3">
-                  <TraceRow trace={trace} utcTime={utcTime} /> <Separator />
-                </div>
-              );
-            })}
-          {showLoader && (
-            <div className="flex justify-center py-8">
-              <Spinner className="h-8 w-8 text-center" />
+          <div className="flex gap-2 items-center w-full">
+            <p className="text-xs font-semibold">Compress</p>
+            <Switch
+              className="text-start"
+              id="expanded"
+              checked={expandedView}
+              onCheckedChange={(check) => {
+                setExpandedView(check);
+
+                // Save the preference in local storage
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(
+                    "preferences.expanded",
+                    check ? "true" : "false"
+                  );
+                  toast.success("Preferences updated.");
+                }
+              }}
+            />
+            <div className="flex items-center gap-1">
+              <p className="text-xs font-semibold">Expand</p>
+              <Info information="By default, the input and output messages are compressed to fit the table. By toggling this setting, you can expand the input and output messages to view the complete content." />
             </div>
-          )}
-          {!fetchTraces.isLoading &&
-            fetchTraces?.data &&
-            currentData?.length === 0 &&
-            !showLoader && (
-              <div className="flex flex-col gap-3 items-center justify-center p-4">
-                <p className="text-muted-foreground text-sm mb-3">
-                  No traces available. Get started by setting up Langtrace in
-                  your application.
-                </p>
-                <SetupInstructions project_id={project_id} />
-              </div>
-            )}
+          </div>
         </div>
-      )}
+      </div>
+      <TracesTable
+        project_id={project_id}
+        columns={columns}
+        data={currentData}
+        loading={
+          (fetchTraces.isLoading || fetchTraces.isFetching) && !showLoader
+        }
+        paginationLoading={showLoader}
+        scrollableDivRef={scrollableDivRef}
+      />
       <TraceFilter
         open={isTraceFilterOpen}
         onClose={() => setIsTraceFilterOpen(false)}
-        onApplyFilters={handleApplyFilters}
-        initFilters={filters}
+        filters={filters}
+        setFilters={setFilters}
+        userId={userId}
+        setUserId={setUserId}
+        promptId={promptId}
+        setPromptId={setPromptId}
+        model={model}
+        setModel={setModel}
       />
     </div>
   );
 }
 
-function PageSkeleton() {
+export function TracesPageSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-      {Array.from({ length: 3 }).map((_, index) => (
+      {Array.from({ length: 20 }).map((_, index) => (
         <TraceRowSkeleton key={index} />
       ))}
     </div>

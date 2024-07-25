@@ -19,17 +19,17 @@ export function HoverCell({
     const role = value?.role
       ? value?.role?.toLowerCase()
       : value?.message?.role
-      ? value?.message?.role
-      : "User";
+        ? value?.message?.role
+        : "User";
     const content = value?.content
       ? safeStringify(value?.content)
       : value?.function_call
-      ? safeStringify(value?.function_call)
-      : value?.message?.content
-      ? safeStringify(value?.message?.content)
-      : value?.text
-      ? safeStringify(value?.text)
-      : "";
+        ? safeStringify(value?.function_call)
+        : value?.message?.content
+          ? safeStringify(value?.message?.content)
+          : value?.text
+            ? safeStringify(value?.text)
+            : "";
     return { role, content };
   });
 
@@ -43,7 +43,12 @@ export function HoverCell({
         <div
           className={className}
           dangerouslySetInnerHTML={{
-            __html: contents[contents.length - 1].content,
+            __html:
+              !contents ||
+              contents.length === 0 ||
+              contents[contents.length - 1].content === ""
+                ? "No data available"
+                : contents[contents.length - 1].content,
           }}
         />
       </HoverCardTrigger>
@@ -52,11 +57,14 @@ export function HoverCell({
           {contents.map((item, i) => (
             <div key={i} className="flex flex-col gap-1">
               <p className="font-semibold capitalize text-xs rounded-md p-1 bg-muted w-fit">
-                {item.role}
+                {item.role === "" ? "No role" : item.role}
               </p>
               <div
                 className="break-all text-xs"
-                dangerouslySetInnerHTML={{ __html: item.content }}
+                dangerouslySetInnerHTML={{
+                  __html:
+                    item.content === "" ? "No data available" : item.content,
+                }}
               />
             </div>
           ))}
