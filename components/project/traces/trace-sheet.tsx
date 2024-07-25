@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -47,6 +48,7 @@ export function TraceSheet({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
+      <SheetDescription>Trace Debugger</SheetDescription>
       <SheetContent className="w-3/4">
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
