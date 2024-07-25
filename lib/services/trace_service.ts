@@ -77,7 +77,8 @@ export interface ITraceService {
     attribute: string,
     project_id: string,
     page: number,
-    pageSize: number
+    pageSize: number,
+    trace_id?: string
   ) => Promise<PaginationResult<Span>>;
   GetFailedSpans: (project_id: string) => Promise<Span[]>;
   GetSpanLatencyPerProject: (project_id: string) => Promise<number>;
@@ -375,7 +376,8 @@ export class TraceService implements ITraceService {
     attribute: string,
     project_id: string,
     page: number,
-    pageSize: number
+    pageSize: number,
+    trace_id?: string
   ): Promise<PaginationResult<Span>> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -399,13 +401,15 @@ export class TraceService implements ITraceService {
       if (page! > totalPages) {
         page = totalPages;
       }
-      const query = sql.select(
-        `* FROM ${project_id} WHERE attributes LIKE '%${attribute}%' ORDER BY 'start_time' DESC LIMIT ${pageSize} OFFSET ${
-          (page - 1) * pageSize
-        };`
-      );
-      let spans: Span[] = await this.client.find<Span[]>(query);
-      // filter and remove empty attributes
+
+      let query = `* FROM ${project_id} WHERE attributes LIKE '%${attribute}%'`;
+      if (trace_id) {
+        query += ` AND trace_id = '${trace_id}'`;
+      }
+      query += ` ORDER BY 'start_time' DESC LIMIT ${pageSize} OFFSET ${
+        (page - 1) * pageSize
+      };`;
+      let spans: Span[] = await this.client.find<Span[]>(sql.select(query));
       spans = spans.filter(
         (span) => JSON.parse(span.attributes)[attribute]?.length > 0
       );
