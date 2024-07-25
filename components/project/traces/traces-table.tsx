@@ -59,6 +59,11 @@ export function TracesTable<TData, TValue>({
         "preferences.traces.table-view"
       );
       const parsedInitState = JSON.parse(initState || "{}");
+      const pagination = {
+        pageIndex: 0, //initial page index
+        pageSize: 100, //default page size
+      };
+      parsedInitState.pagination = pagination;
       setTableState(parsedInitState);
       if (parsedInitState.columnVisibility)
         setColumnVisibility(parsedInitState.columnVisibility);

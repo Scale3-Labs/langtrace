@@ -48,7 +48,7 @@ export function TraceSheet({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetDescription>Trace Debugger</SheetDescription>
+      <SheetDescription hidden>Trace Debugger</SheetDescription>
       <SheetContent className="w-3/4">
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
