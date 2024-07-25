@@ -46,7 +46,7 @@ if [ "$TABLE_EXISTS" == " " ]; then
 else
     echo "The $PRISMA_MIGRATIONS_TABLE table exists. Proceeding to apply migrations."
     # Check if the 0_init migration exists
-    INIT_MIGRATION=$(psql -U $POSTGRES_USER -h $DB_HOST -d $POSTGRES_DATABASE -p $DB_PORT -t -c "SELECT migration_name FROM $PRISMA_MIGRATIONS_TABLE WHERE migration_name = '0_init';")
+    INIT_MIGRATION=$(psql -U $POSTGRES_USER -h $DB_HOST -d $POSTGRES_DATABASE -p $DB_PORT -t -c "SELECT migration_name FROM $PRISMA_MIGRATIONS_TABLE WHERE migration_name = '0_init' AND logs NOT like '%failed%';")
     if [ -z "$INIT_MIGRATION" ]; then
         echo "The 0_init migration was not found. Truncating the _prisma_migrations table and applying migrations."
         rename_migrations_table
@@ -55,7 +55,12 @@ else
         echo "The 0_init migration was found. Proceeding to apply migrations."
         apply_migrations
     fi
+    echo "Migration process completed."
 fi
 
-echo "Migration reset process completed."
-npm run dev
+# if NEXT_PUBLIC_ENVIRONMENT is set to production, run the production build
+if [ "$NEXT_PUBLIC_ENVIRONMENT" == "production" ]; then
+    npm start
+else
+    npm run dev
+fi
