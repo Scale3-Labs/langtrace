@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
     const apiKey = req.headers.get("x-api-key");
+    const userAgent = req.headers.get("user-agent");
 
     const response = await authApiKey(apiKey!);
     if (response.status !== 200) {
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     // Normalize and prepare data for Clickhouse
     let normalized = [];
-    if (data.resourceSpans) {
+    if (userAgent?.toLowerCase().includes("otel-otlp")) {
       // coming from an OTEL exporter
       normalized = prepareForClickhouse(
         normalizeOTELData(data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans)
