@@ -36,7 +36,7 @@ import { SpanAttributes } from "@/lib/ts_sdk_constants";
 import ClearIcon from "@mui/icons-material/Clear";
 import { Check, ChevronsUpDown, MinusCircle, PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import VendorDropdown from "./vendor-dropdown";
 
 export default function TraceFilter({
@@ -62,18 +62,19 @@ export default function TraceFilter({
   model: string;
   setModel: (model: string) => void;
 }) {
-  useEffect(() => {
-    if (!open) {
-      setFilters((prev: PropertyFilter[]) =>
-        prev.filter(
-          (filter) =>
-            filter.value !== null &&
-            filter.value !== undefined &&
-            filter.value !== ""
-        )
-      );
-    }
-  }, [open, setFilters]);
+  // TODO(Karthik): Commenting for now. Unsure if this is needed.
+  // useEffect(() => {
+  //   if (!open) {
+  //     setFilters((prev: PropertyFilter[]) =>
+  //       prev.filter(
+  //         (filter) =>
+  //           filter.value !== null &&
+  //           filter.value !== undefined &&
+  //           filter.value !== ""
+  //       )
+  //     );
+  //   }
+  // }, [open, setFilters]);
 
   const handleFilterChange = (
     filter: PropertyFilter,
