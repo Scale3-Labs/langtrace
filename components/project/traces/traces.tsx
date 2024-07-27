@@ -4,7 +4,7 @@ import { HoverCell } from "@/components/shared/hover-cell";
 import { Info } from "@/components/shared/info";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { HOW_TO_GROUP_RELATED_OPERATIONS, PAGE_SIZE } from "@/lib/constants";
+import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
@@ -12,9 +12,8 @@ import { cn, formatDateTime } from "@/lib/utils";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -29,22 +28,22 @@ export default function Traces({ email }: { email: string }) {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
-  const [showLoader, setShowLoader] = useState(false);
+  const [showBottomLoader, setShowBottomLoader] = useState(false);
+  const [showFreshLoading, setShowFreshLoading] = useState(false);
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(false);
   const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
-  const [groupSpans, setGroupSpans] = useState(true);
   const [userId, setUserId] = useState<string>("");
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");
   const [expandedView, setExpandedView] = useState(false);
 
   useEffect(() => {
-    // setShowLoader(true);
     setCurrentData([]);
     setPage(1);
     setTotalPages(1);
+    setShowFreshLoading(true);
     setEnableFetch(true);
 
     // fetch preferences from local storage
@@ -52,13 +51,23 @@ export default function Traces({ email }: { email: string }) {
       const utc = window.localStorage.getItem("preferences.timestamp.utc");
       setUtcTime(utc === "true");
 
-      const group = window.localStorage.getItem("preferences.group");
-      setGroupSpans(group === "true");
-
       const expanded = window.localStorage.getItem("preferences.expanded");
       setExpandedView(expanded === "true");
     }
   }, [filters]);
+
+  useEffect(() => {
+    const handleFocusChange = () => {
+      setPage(1);
+      setEnableFetch(true);
+    };
+
+    window.addEventListener("focus", handleFocusChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocusChange);
+    };
+  }, []);
 
   const columns: ColumnDef<Trace>[] = [
     {
@@ -316,25 +325,24 @@ export default function Traces({ email }: { email: string }) {
       return;
     }
     if (page <= totalPages) {
-      setShowLoader(true);
+      setShowBottomLoader(true);
       fetchTraces.refetch();
     }
   });
 
-  const fetchTraces = useQuery({
-    queryKey: ["fetch-traces-query"],
-    queryFn: async () => {
+  const fetchTracesCall = useCallback(
+    async (pageNum: number) => {
       const apiEndpoint = "/api/traces";
 
       const body = {
-        page,
+        page: pageNum,
         pageSize: PAGE_SIZE,
         projectId: project_id,
         filters: {
           filters: filters,
           operation: "OR",
         },
-        group: groupSpans,
+        group: true,
       };
 
       const response = await fetch(apiEndpoint, {
@@ -348,39 +356,41 @@ export default function Traces({ email }: { email: string }) {
         const error = await response.json();
         throw new Error(error?.message || "Failed to fetch traces");
       }
-      const result = await response.json();
-      return result;
+      return await response.json();
     },
+    [project_id, filters]
+  );
+
+  const fetchTraces = useQuery({
+    queryKey: ["fetch-traces-query", page],
+    queryFn: () => fetchTracesCall(page),
     onSuccess: (data) => {
-      // Get the newly fetched data and metadata
       const newData = data?.traces?.result || [];
       const metadata = data?.traces?.metadata || {};
 
-      // Update the total pages and current page number
       setTotalPages(parseInt(metadata?.total_pages) || 1);
       if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
         setPage(parseInt(metadata?.page) + 1);
       }
 
-      // transform the data
       const transformedNewData = newData.map((trace: any) =>
         processTrace(trace)
       );
 
-      // Merge the new data with the existing data
-      if (currentData.length > 0) {
-        const updatedData = [...currentData, ...transformedNewData];
-        setCurrentData(updatedData);
-      } else {
+      if (page === 1) {
         setCurrentData(transformedNewData);
+      } else {
+        setCurrentData((prevData: any) => [...prevData, ...transformedNewData]);
       }
 
       setEnableFetch(false);
-      setShowLoader(false);
+      setShowFreshLoading(false);
+      setShowBottomLoader(false);
     },
     onError: (error) => {
       setEnableFetch(false);
-      setShowLoader(false);
+      setShowFreshLoading(false);
+      setShowBottomLoader(false);
       toast.error("Failed to fetch traces", {
         description: error instanceof Error ? error.message : String(error),
       });
@@ -414,7 +424,7 @@ export default function Traces({ email }: { email: string }) {
           {FILTERS.map((item, i) => (
             <div key={i} className="flex items-center space-x-2">
               <Checkbox
-                disabled={showLoader}
+                disabled={showBottomLoader}
                 id={item.key}
                 checked={filters.some((filter) => filter.value === item.key)}
                 onCheckedChange={(checked) => {
@@ -496,37 +506,6 @@ export default function Traces({ email }: { email: string }) {
             </div>
           </div>
           <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Don&apos;t Group</p>
-            <Switch
-              className="text-start"
-              id="group"
-              checked={groupSpans}
-              onCheckedChange={(check) => {
-                setGroupSpans(check);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.group",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">Group Spans by Trace ID</p>
-              <Info information="This will group spans with the same parent trace id together. Grouping spans will help organize related operations together. To learn more about how you can group spans, refer to our documentation on this." />
-              <Link
-                href={HOW_TO_GROUP_RELATED_OPERATIONS}
-                target="_blank"
-                className="text-xs hover:underline text-blue-600"
-              >
-                Learn More
-              </Link>
-            </div>
-          </div>
-          <div className="flex gap-2 items-center w-full">
             <p className="text-xs font-semibold">Compress</p>
             <Switch
               className="text-start"
@@ -557,9 +536,10 @@ export default function Traces({ email }: { email: string }) {
         columns={columns}
         data={currentData}
         loading={
-          (fetchTraces.isLoading || fetchTraces.isFetching) && !showLoader
+          (fetchTraces.isLoading || showFreshLoading) && !showBottomLoader
         }
-        paginationLoading={showLoader}
+        fetching={fetchTraces.isFetching}
+        paginationLoading={showBottomLoader}
         scrollableDivRef={scrollableDivRef}
       />
       <TraceFilter
