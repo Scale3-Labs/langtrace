@@ -1,5 +1,4 @@
 import { SetupInstructions } from "@/components/shared/setup-instructions";
-import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,6 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -15,7 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { HOW_TO_GROUP_RELATED_OPERATIONS } from "@/lib/constants";
 import { Trace } from "@/lib/trace_util";
+import { cn } from "@/lib/utils";
 import { ResetIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
@@ -25,7 +27,9 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import TraceRowSkeleton from "./trace-row-skeleton";
 import { TraceSheet } from "./trace-sheet";
 import { TracesPageSkeleton } from "./traces";
 
@@ -34,6 +38,7 @@ interface TracesTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading?: boolean;
+  fetching?: boolean;
   paginationLoading?: boolean;
   scrollableDivRef?: React.RefObject<HTMLElement>;
 }
@@ -43,30 +48,44 @@ export function TracesTable<TData, TValue>({
   columns,
   data,
   loading,
+  fetching,
   paginationLoading,
   scrollableDivRef,
 }: TracesTableProps<TData, TValue>) {
-  const [tableState, setTableState] = useState({});
+  const [tableState, setTableState] = useState<any>({
+    pagination: {
+      pageIndex: 0,
+      pageSize: 100,
+    },
+  });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
 
   useEffect(() => {
-    // fetch preferences from local storage
     if (typeof window !== "undefined") {
-      const initState = window.localStorage.getItem(
-        "preferences.traces.table-view"
-      );
-      const parsedInitState = JSON.parse(initState || "{}");
-      const pagination = {
-        pageIndex: 0, //initial page index
-        pageSize: 100, //default page size
-      };
-      parsedInitState.pagination = pagination;
-      setTableState(parsedInitState);
-      if (parsedInitState.columnVisibility)
-        setColumnVisibility(parsedInitState.columnVisibility);
+      try {
+        const storedState = window.localStorage.getItem(
+          "preferences.traces.table-view"
+        );
+        if (storedState) {
+          const parsedState = JSON.parse(storedState);
+          setTableState((prevState: any) => ({
+            ...prevState,
+            ...parsedState,
+            pagination: {
+              ...prevState.pagination,
+              ...parsedState.pagination,
+            },
+          }));
+          if (parsedState.columnVisibility) {
+            setColumnVisibility(parsedState.columnVisibility);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing stored table state:", error);
+      }
     }
   }, []);
 
@@ -76,14 +95,19 @@ export function TracesTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     initialState: {
       ...tableState,
+      pagination: tableState.pagination,
       columnVisibility,
     },
     state: {
       ...tableState,
+      pagination: tableState.pagination,
       columnVisibility,
     },
-    onStateChange: (newState) => {
-      setTableState(newState);
+    onStateChange: (newState: any) => {
+      setTableState((prevState: any) => ({
+        ...newState,
+        pagination: newState.pagination || prevState.pagination,
+      }));
       const currState = table.getState();
       localStorage.setItem(
         "preferences.traces.table-view",
@@ -100,6 +124,7 @@ export function TracesTable<TData, TValue>({
     },
     enableColumnResizing: true,
     columnResizeMode: "onChange",
+    manualPagination: true, // Add this if you're handling pagination yourself
   });
 
   const columnSizeVars = useMemo(() => {
@@ -116,46 +141,70 @@ export function TracesTable<TData, TValue>({
   return (
     <>
       {!loading && data && data.length > 0 && (
-        <div className="flex items-center gap-2">
-          <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns
-                <ChevronDown size={16} className="ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="h-72 overflow-y-visible">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onSelect={() => setOpenDropdown(true)}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.columnDef.header?.toString()}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            size={"icon"}
-            variant={"destructive"}
-            onClick={() => {
-              setColumnVisibility({});
-              setTableState({});
-              localStorage.removeItem("preferences.traces.table-view");
-            }}
-          >
-            <ResetIcon className="w-4 h-4" />
-          </Button>
+        <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-2">
+            <p
+              className={cn(
+                "text-xs font-semibold",
+                fetching ? "text-orange-500" : "text-muted-foreground"
+              )}
+            >
+              {fetching
+                ? "Fetching traces..."
+                : `Fetched the last ${data.length} traces`}
+            </p>
+            <div className="text-xs text-muted-foreground">
+              Seeing related spans as separate rows?{" "}
+              <Link
+                className="text-blue-500 underline"
+                href={HOW_TO_GROUP_RELATED_OPERATIONS}
+                target="_blank"
+              >
+                Learn how to group spans
+              </Link>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns
+                  <ChevronDown size={16} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="h-72 overflow-y-visible">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onSelect={() => setOpenDropdown(true)}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.columnDef.header?.toString()}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size={"icon"}
+              variant={"destructive"}
+              onClick={() => {
+                setColumnVisibility({});
+                setTableState({});
+                localStorage.removeItem("preferences.traces.table-view");
+              }}
+            >
+              <ResetIcon className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       )}
       <div
@@ -241,8 +290,11 @@ export function TracesTable<TData, TValue>({
           />
         )}
         {paginationLoading && (
-          <div className="flex justify-center py-8">
-            <Spinner className="h-8 w-8 text-center" />
+          <div className="flex flex-col gap-3">
+            <Separator />
+            {Array.from({ length: 2 }).map((_, index) => (
+              <TraceRowSkeleton key={index} />
+            ))}
           </div>
         )}
       </div>
