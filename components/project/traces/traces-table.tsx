@@ -1,5 +1,4 @@
 import { SetupInstructions } from "@/components/shared/setup-instructions";
-import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,6 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -29,6 +29,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import TraceRowSkeleton from "./trace-row-skeleton";
 import { TraceSheet } from "./trace-sheet";
 import { TracesPageSkeleton } from "./traces";
 
@@ -270,8 +271,11 @@ export function TracesTable<TData, TValue>({
           />
         )}
         {paginationLoading && (
-          <div className="flex justify-center py-8">
-            <Spinner className="h-8 w-8 text-center" />
+          <div className="flex flex-col gap-3">
+            <Separator />
+            {Array.from({ length: 2 }).map((_, index) => (
+              <TraceRowSkeleton key={index} />
+            ))}
           </div>
         )}
       </div>

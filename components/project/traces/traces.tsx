@@ -28,7 +28,8 @@ export default function Traces({ email }: { email: string }) {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
-  const [showLoader, setShowLoader] = useState(false);
+  const [showBottomLoader, setShowBottomLoader] = useState(false);
+  const [showFreshLoading, setShowFreshLoading] = useState(false);
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(false);
@@ -42,6 +43,7 @@ export default function Traces({ email }: { email: string }) {
     setCurrentData([]);
     setPage(1);
     setTotalPages(1);
+    setShowFreshLoading(true);
     setEnableFetch(true);
 
     // fetch preferences from local storage
@@ -323,7 +325,7 @@ export default function Traces({ email }: { email: string }) {
       return;
     }
     if (page <= totalPages) {
-      setShowLoader(true);
+      setShowBottomLoader(true);
       fetchTraces.refetch();
     }
   });
@@ -382,11 +384,13 @@ export default function Traces({ email }: { email: string }) {
       }
 
       setEnableFetch(false);
-      setShowLoader(false);
+      setShowFreshLoading(false);
+      setShowBottomLoader(false);
     },
     onError: (error) => {
       setEnableFetch(false);
-      setShowLoader(false);
+      setShowFreshLoading(false);
+      setShowBottomLoader(false);
       toast.error("Failed to fetch traces", {
         description: error instanceof Error ? error.message : String(error),
       });
@@ -420,7 +424,7 @@ export default function Traces({ email }: { email: string }) {
           {FILTERS.map((item, i) => (
             <div key={i} className="flex items-center space-x-2">
               <Checkbox
-                disabled={showLoader}
+                disabled={showBottomLoader}
                 id={item.key}
                 checked={filters.some((filter) => filter.value === item.key)}
                 onCheckedChange={(checked) => {
@@ -531,9 +535,11 @@ export default function Traces({ email }: { email: string }) {
         project_id={project_id}
         columns={columns}
         data={currentData}
-        loading={fetchTraces.isLoading && !showLoader}
+        loading={
+          (fetchTraces.isLoading || showFreshLoading) && !showBottomLoader
+        }
         fetching={fetchTraces.isFetching}
-        paginationLoading={showLoader}
+        paginationLoading={showBottomLoader}
         scrollableDivRef={scrollableDivRef}
       />
       <TraceFilter
