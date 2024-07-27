@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -254,6 +255,20 @@ export function TracesTable<TData, TValue>({
               ))}
             </TableHeader>
             <TableBody>
+              {fetching && (
+                <TableRow className="cursor-pointer">
+                  {table.getFlatHeaders().map((header) => (
+                    <TableCell
+                      key={header.id}
+                      style={{
+                        width: `calc(var(--col-${header.column.id}-size) * 1px)`,
+                      }}
+                    >
+                      <Skeleton className="h-5 w-28" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )}
               {table.getRowModel().rows.map((row) => (
                 <TableRow
                   className="cursor-pointer"
