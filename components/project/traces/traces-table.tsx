@@ -52,27 +52,40 @@ export function TracesTable<TData, TValue>({
   paginationLoading,
   scrollableDivRef,
 }: TracesTableProps<TData, TValue>) {
-  const [tableState, setTableState] = useState({});
+  const [tableState, setTableState] = useState<any>({
+    pagination: {
+      pageIndex: 0,
+      pageSize: 100,
+    },
+  });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
 
   useEffect(() => {
-    // fetch preferences from local storage
     if (typeof window !== "undefined") {
-      const initState = window.localStorage.getItem(
-        "preferences.traces.table-view"
-      );
-      const parsedInitState = JSON.parse(initState || "{}");
-      const pagination = {
-        pageIndex: 0, //initial page index
-        pageSize: 100, //default page size
-      };
-      parsedInitState.pagination = pagination;
-      setTableState(parsedInitState);
-      if (parsedInitState.columnVisibility)
-        setColumnVisibility(parsedInitState.columnVisibility);
+      try {
+        const storedState = window.localStorage.getItem(
+          "preferences.traces.table-view"
+        );
+        if (storedState) {
+          const parsedState = JSON.parse(storedState);
+          setTableState((prevState: any) => ({
+            ...prevState,
+            ...parsedState,
+            pagination: {
+              ...prevState.pagination,
+              ...parsedState.pagination,
+            },
+          }));
+          if (parsedState.columnVisibility) {
+            setColumnVisibility(parsedState.columnVisibility);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing stored table state:", error);
+      }
     }
   }, []);
 
@@ -82,14 +95,19 @@ export function TracesTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     initialState: {
       ...tableState,
+      pagination: tableState.pagination,
       columnVisibility,
     },
     state: {
       ...tableState,
+      pagination: tableState.pagination,
       columnVisibility,
     },
-    onStateChange: (newState) => {
-      setTableState(newState);
+    onStateChange: (newState: any) => {
+      setTableState((prevState: any) => ({
+        ...newState,
+        pagination: newState.pagination || prevState.pagination,
+      }));
       const currState = table.getState();
       localStorage.setItem(
         "preferences.traces.table-view",
@@ -106,6 +124,7 @@ export function TracesTable<TData, TValue>({
     },
     enableColumnResizing: true,
     columnResizeMode: "onChange",
+    manualPagination: true, // Add this if you're handling pagination yourself
   });
 
   const columnSizeVars = useMemo(() => {
