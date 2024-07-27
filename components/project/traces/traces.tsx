@@ -4,7 +4,7 @@ import { HoverCell } from "@/components/shared/hover-cell";
 import { Info } from "@/components/shared/info";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { HOW_TO_GROUP_RELATED_OPERATIONS, PAGE_SIZE } from "@/lib/constants";
+import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
@@ -12,7 +12,6 @@ import { cn, formatDateTime } from "@/lib/utils";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -34,7 +33,6 @@ export default function Traces({ email }: { email: string }) {
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(false);
   const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
-  const [groupSpans, setGroupSpans] = useState(true);
   const [userId, setUserId] = useState<string>("");
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");
@@ -50,9 +48,6 @@ export default function Traces({ email }: { email: string }) {
     if (typeof window !== "undefined") {
       const utc = window.localStorage.getItem("preferences.timestamp.utc");
       setUtcTime(utc === "true");
-
-      const group = window.localStorage.getItem("preferences.group");
-      setGroupSpans(group === "true");
 
       const expanded = window.localStorage.getItem("preferences.expanded");
       setExpandedView(expanded === "true");
@@ -345,7 +340,7 @@ export default function Traces({ email }: { email: string }) {
           filters: filters,
           operation: "OR",
         },
-        group: groupSpans,
+        group: true,
       };
 
       const response = await fetch(apiEndpoint, {
@@ -361,7 +356,7 @@ export default function Traces({ email }: { email: string }) {
       }
       return await response.json();
     },
-    [project_id, filters, groupSpans]
+    [project_id, filters]
   );
 
   const fetchTraces = useQuery({
@@ -504,37 +499,6 @@ export default function Traces({ email }: { email: string }) {
             <div className="flex items-center gap-1">
               <p className="text-xs font-semibold">UTC</p>
               <Info information="By default all the spans are recorded in UTC timezone for the sake of standardization. By toggling this setting, you can visualize the spans in your local timezone." />
-            </div>
-          </div>
-          <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Don&apos;t Group</p>
-            <Switch
-              className="text-start"
-              id="group"
-              checked={groupSpans}
-              onCheckedChange={(check) => {
-                setGroupSpans(check);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.group",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">Group Spans by Trace ID</p>
-              <Info information="This will group spans with the same parent trace id together. Grouping spans will help organize related operations together. To learn more about how you can group spans, refer to our documentation on this." />
-              <Link
-                href={HOW_TO_GROUP_RELATED_OPERATIONS}
-                target="_blank"
-                className="text-xs hover:underline text-blue-600"
-              >
-                Learn More
-              </Link>
             </div>
           </div>
           <div className="flex gap-2 items-center w-full">

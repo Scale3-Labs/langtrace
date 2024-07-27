@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { HOW_TO_GROUP_RELATED_OPERATIONS } from "@/lib/constants";
 import { Trace } from "@/lib/trace_util";
 import { cn } from "@/lib/utils";
 import { ResetIcon } from "@radix-ui/react-icons";
@@ -26,6 +27,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { TraceSheet } from "./trace-sheet";
 import { TracesPageSkeleton } from "./traces";
@@ -120,16 +122,28 @@ export function TracesTable<TData, TValue>({
     <>
       {!loading && data && data.length > 0 && (
         <div className="flex justify-between items-center">
-          <p
-            className={cn(
-              "text-xs font-semibold",
-              fetching ? "text-orange-500" : "text-muted-foreground"
-            )}
-          >
-            {fetching
-              ? "Fetching traces..."
-              : `Fetched the last ${data.length} traces`}
-          </p>
+          <div className="flex flex-col gap-2">
+            <p
+              className={cn(
+                "text-xs font-semibold",
+                fetching ? "text-orange-500" : "text-muted-foreground"
+              )}
+            >
+              {fetching
+                ? "Fetching traces..."
+                : `Fetched the last ${data.length} traces`}
+            </p>
+            <div className="text-xs text-muted-foreground">
+              Seeing related spans as separate rows?{" "}
+              <Link
+                className="text-blue-500 underline"
+                href={HOW_TO_GROUP_RELATED_OPERATIONS}
+                target="_blank"
+              >
+                Learn how to group spans
+              </Link>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
               <DropdownMenuTrigger asChild>
