@@ -14,7 +14,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -41,7 +41,6 @@ export default function Traces({ email }: { email: string }) {
   const [expandedView, setExpandedView] = useState(false);
 
   useEffect(() => {
-    // setShowLoader(true);
     setCurrentData([]);
     setPage(1);
     setTotalPages(1);
@@ -59,6 +58,19 @@ export default function Traces({ email }: { email: string }) {
       setExpandedView(expanded === "true");
     }
   }, [filters]);
+
+  useEffect(() => {
+    const handleFocusChange = () => {
+      setPage(1);
+      setEnableFetch(true);
+    };
+
+    window.addEventListener("focus", handleFocusChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocusChange);
+    };
+  }, []);
 
   const columns: ColumnDef<Trace>[] = [
     {
@@ -321,13 +333,12 @@ export default function Traces({ email }: { email: string }) {
     }
   });
 
-  const fetchTraces = useQuery({
-    queryKey: ["fetch-traces-query"],
-    queryFn: async () => {
+  const fetchTracesCall = useCallback(
+    async (pageNum: number) => {
       const apiEndpoint = "/api/traces";
 
       const body = {
-        page,
+        page: pageNum,
         pageSize: PAGE_SIZE,
         projectId: project_id,
         filters: {
@@ -348,31 +359,31 @@ export default function Traces({ email }: { email: string }) {
         const error = await response.json();
         throw new Error(error?.message || "Failed to fetch traces");
       }
-      const result = await response.json();
-      return result;
+      return await response.json();
     },
+    [project_id, filters, groupSpans]
+  );
+
+  const fetchTraces = useQuery({
+    queryKey: ["fetch-traces-query", page],
+    queryFn: () => fetchTracesCall(page),
     onSuccess: (data) => {
-      // Get the newly fetched data and metadata
       const newData = data?.traces?.result || [];
       const metadata = data?.traces?.metadata || {};
 
-      // Update the total pages and current page number
       setTotalPages(parseInt(metadata?.total_pages) || 1);
       if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
         setPage(parseInt(metadata?.page) + 1);
       }
 
-      // transform the data
       const transformedNewData = newData.map((trace: any) =>
         processTrace(trace)
       );
 
-      // Merge the new data with the existing data
-      if (currentData.length > 0) {
-        const updatedData = [...currentData, ...transformedNewData];
-        setCurrentData(updatedData);
-      } else {
+      if (page === 1) {
         setCurrentData(transformedNewData);
+      } else {
+        setCurrentData((prevData: any) => [...prevData, ...transformedNewData]);
       }
 
       setEnableFetch(false);
@@ -556,9 +567,8 @@ export default function Traces({ email }: { email: string }) {
         project_id={project_id}
         columns={columns}
         data={currentData}
-        loading={
-          (fetchTraces.isLoading || fetchTraces.isFetching) && !showLoader
-        }
+        loading={fetchTraces.isLoading && !showLoader}
+        fetching={fetchTraces.isFetching}
         paginationLoading={showLoader}
         scrollableDivRef={scrollableDivRef}
       />

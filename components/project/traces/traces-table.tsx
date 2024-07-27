@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Trace } from "@/lib/trace_util";
+import { cn } from "@/lib/utils";
 import { ResetIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
@@ -34,6 +35,7 @@ interface TracesTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading?: boolean;
+  fetching?: boolean;
   paginationLoading?: boolean;
   scrollableDivRef?: React.RefObject<HTMLElement>;
 }
@@ -43,6 +45,7 @@ export function TracesTable<TData, TValue>({
   columns,
   data,
   loading,
+  fetching,
   paginationLoading,
   scrollableDivRef,
 }: TracesTableProps<TData, TValue>) {
@@ -116,46 +119,58 @@ export function TracesTable<TData, TValue>({
   return (
     <>
       {!loading && data && data.length > 0 && (
-        <div className="flex items-center gap-2">
-          <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Columns
-                <ChevronDown size={16} className="ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="h-72 overflow-y-visible">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onSelect={() => setOpenDropdown(true)}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.columnDef.header?.toString()}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            size={"icon"}
-            variant={"destructive"}
-            onClick={() => {
-              setColumnVisibility({});
-              setTableState({});
-              localStorage.removeItem("preferences.traces.table-view");
-            }}
+        <div className="flex justify-between items-center">
+          <p
+            className={cn(
+              "text-xs font-semibold",
+              fetching ? "text-orange-500" : "text-muted-foreground"
+            )}
           >
-            <ResetIcon className="w-4 h-4" />
-          </Button>
+            {fetching
+              ? "Fetching traces..."
+              : `Fetched the last ${data.length} traces`}
+          </p>
+          <div className="flex items-center gap-2">
+            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns
+                  <ChevronDown size={16} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="h-72 overflow-y-visible">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onSelect={() => setOpenDropdown(true)}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.columnDef.header?.toString()}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size={"icon"}
+              variant={"destructive"}
+              onClick={() => {
+                setColumnVisibility({});
+                setTableState({});
+                localStorage.removeItem("preferences.traces.table-view");
+              }}
+            >
+              <ResetIcon className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       )}
       <div
