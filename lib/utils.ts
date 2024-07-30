@@ -693,6 +693,11 @@ export function getVendorFromSpan(span: Span): string {
   ) {
     vendor = "langchain";
   } else if (
+    span.name.includes("langgraph") ||
+    serviceName.includes("langgraph")
+  ) {
+    vendor = "langgraph";
+  } else if (
     span.name.includes("llamaindex") ||
     serviceName.includes("llamaindex")
   ) {
