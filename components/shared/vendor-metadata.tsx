@@ -251,7 +251,7 @@ export function VendorLogo({
     );
   }
 
-  if (vendor.includes("langchain")) {
+  if (vendor.includes("langchain") || vendor.includes("langgraph")) {
     const color = vendorColor("langchain");
     return (
       <Image
