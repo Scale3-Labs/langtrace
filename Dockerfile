@@ -18,7 +18,7 @@ RUN npm install
 
 EXPOSE 3000
 
-CMD [ "/bin/sh", "-c", "bash migration.sh" ]
+CMD [ "/bin/sh", "-c", "bash entrypoint.sh" ]
 
 
 # Intermediate image for building the application
@@ -43,6 +43,6 @@ COPY --from=builder /app/scripts ./scripts
 # Install only production dependencies
 RUN npm install --only=production --omit=dev
 
-CMD [ "/bin/sh", "-c", "bash migration.sh" ]
+CMD [ "/bin/sh", "-c", "bash entrypoint.sh" ]
 
 EXPOSE 3000

@@ -19,8 +19,6 @@ export PGPASSWORD=$POSTGRES_PASSWORD
 # Check if the _prisma_migrations table exists
 TABLE_EXISTS=$(psql -U $POSTGRES_USER -h $DB_HOST -d $POSTGRES_DATABASE -p $DB_PORT -t -c "SELECT to_regclass('$PRISMA_MIGRATIONS_TABLE');")
 
-
-
 # Function to rename the _prisma_migrations table
 rename_migrations_table() {
     echo "Renaming $PRISMA_MIGRATIONS_TABLE table to ${PRISMA_MIGRATIONS_TABLE}_old..."
