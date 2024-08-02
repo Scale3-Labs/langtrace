@@ -17,7 +17,7 @@ import { Evaluation, Test } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -32,10 +32,24 @@ export default function Annotations({ email }: { email: string }) {
   const projectId = useParams()?.project_id as string;
   const [currentData, setCurrentData] = useState<any>([]);
   const [processedData, setProcessedData] = useState<LLMSpan[]>([]);
+  const [enableFetch, setEnableFetch] = useState(true);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [showBottomLoader, setShowBottomLoader] = useState(false);
+
+  useEffect(() => {
+    const handleFocusChange = () => {
+      setPage(1);
+      setEnableFetch(true);
+    };
+
+    window.addEventListener("focus", handleFocusChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocusChange);
+    };
+  }, []);
 
   const scrollableDivRef = useBottomScrollListener(() => {
     if (fetchLlmPromptSpans.isRefetching) {
@@ -109,11 +123,11 @@ export default function Annotations({ email }: { email: string }) {
         setPage(parseInt(metadata?.page) + 1);
       }
 
-      const updatedData = [];
-      if (currentData.length > 0) {
-        updatedData.push(...currentData, ...newData);
+      let updatedData = [];
+      if (page === 1) {
+        updatedData = [...newData];
       } else {
-        updatedData.push(...newData);
+        updatedData = [...currentData, ...newData];
       }
       // Remove duplicates
       const uniqueData = updatedData.filter(
@@ -143,13 +157,17 @@ export default function Annotations({ email }: { email: string }) {
       setProcessedData(pData);
       setCurrentData(uniqueData);
       setShowBottomLoader(false);
+      setEnableFetch(false);
     },
     onError: (error) => {
       setShowBottomLoader(false);
+      setEnableFetch(false);
       toast.error("Failed to fetch traces", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
+    refetchOnWindowFocus: false,
+    enabled: enableFetch,
   });
 
   const [columns, setColumns] = useState<ColumnDef<LLMSpan & any>[]>([
