@@ -310,15 +310,18 @@ export function AnnotationsTable<TData, TValue>({
             </TableBody>
           </Table>
         )}
-        {rowIndex !== -1 && <EvaluationSheet
-          data={data}
-          rowIndex={rowIndex}
-          setRowIndex={setRowIndex}
-          open={openSheet}
-          setOpen={setOpenSheet}
-          tests={tests}
-          projectId={project_id}
-        />}
+        {rowIndex !== -1 && (
+          <EvaluationSheet
+            data={data}
+            span={data[rowIndex] as LLMSpan}
+            rowIndex={rowIndex}
+            setRowIndex={setRowIndex}
+            open={openSheet}
+            setOpen={setOpenSheet}
+            tests={tests}
+            projectId={project_id}
+          />
+        )}
         {paginationLoading && (
           <div className="flex flex-col gap-3">
             <Separator />
@@ -334,6 +337,7 @@ export function AnnotationsTable<TData, TValue>({
 
 function EvaluationSheet({
   data,
+  span,
   rowIndex,
   setRowIndex,
   open,
@@ -342,6 +346,7 @@ function EvaluationSheet({
   projectId,
 }: {
   data: any[];
+  span: LLMSpan;
   rowIndex: number;
   setRowIndex: (index: number) => void;
   open: boolean;
@@ -349,10 +354,10 @@ function EvaluationSheet({
   tests: Test[];
   projectId: string;
 }) {
-  const span = data[rowIndex] as LLMSpan;
   const {
     isError,
     isLoading,
+    isFetching,
     data: evaluations,
   } = useQuery({
     queryKey: ["fetch-evaluation-query", span.span_id],
@@ -383,64 +388,71 @@ function EvaluationSheet({
             Evaluate the input and output of this LLM request.
           </SheetDescription>
         </SheetHeader>
-        <div className="relative flex flex-row gap-2 mt-4 justify-between">
+        <div className="flex flex-row gap-2 mt-4 justify-between">
           <div className="relative w-1/2 min-w-1/2">
             <ConversationView span={span.raw_span} />
           </div>
           <div className="w-1/2 min-w-1/2 flex flex-col gap-4">
             {tests.map((test: Test, i) => {
-              if (isLoading || isError) {
+              if (isLoading) {
                 return <Skeleton key={i} className="h-20" />;
+              } else if (isError) {
+                return (
+                  <p className="text-xs text-destructive" key={i}>
+                    Error loading tests. Please try again.
+                  </p>
+                );
               }
-              const evaluation = evaluations?.find((e) => e.testId === test.id);
               return (
                 <EvaluateTest
                   key={i}
                   test={test}
                   span={span}
                   projectId={projectId}
-                  evaluation={evaluation}
+                  evaluations={evaluations}
                 />
               );
             })}
-          </div>
-          <div className="flex flex-row gap-2 absolute bottom-1 right-1">
-            <Button
-              variant={rowIndex == 0 ? "destructive" : "outline"}
-              onClick={() => {
-                if (rowIndex == 0) {
-                  setOpen(false);
-                } else {
-                  setRowIndex(rowIndex - 1);
+            <div className="flex flex-row gap-2 absolute bottom-1 right-1">
+              <Button
+                variant={rowIndex == 0 ? "destructive" : "outline"}
+                onClick={() => {
+                  if (rowIndex == 0) {
+                    setOpen(false);
+                  } else {
+                    setRowIndex(rowIndex - 1);
+                  }
+                }}
+                className="ml-auto"
+              >
+                {rowIndex == 0 ? (
+                  <XIcon className="mr-2 h-4 w-4" />
+                ) : (
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                )}
+                {rowIndex == 0 ? "Exit" : "Back"}
+              </Button>
+              <Button
+                variant={
+                  rowIndex == data.length - 1 ? "destructive" : "outline"
                 }
-              }}
-              className="ml-auto"
-            >
-              {rowIndex == 0 ? (
-                <XIcon className="mr-2 h-4 w-4" />
-              ) : (
-                <ChevronLeft className="mr-2 h-4 w-4" />
-              )}
-              {rowIndex == 0 ? "Exit" : "Back"}
-            </Button>
-            <Button
-              variant={rowIndex == data.length - 1 ? "destructive" : "outline"}
-              onClick={() => {
-                if (rowIndex == data.length - 1) {
-                  setOpen(false);
-                } else {
-                  setRowIndex(rowIndex + 1);
-                }
-              }}
-              className="ml-auto"
-            >
-              {rowIndex == data.length - 1 ? (
-                <XIcon className="mr-2 h-4 w-4" />
-              ) : (
-                <ChevronRight className="mr-2 h-4 w-4" />
-              )}
-              {rowIndex == data.length - 1 ? "Exit" : "Next"}
-            </Button>
+                onClick={() => {
+                  if (rowIndex == data.length - 1) {
+                    setOpen(false);
+                  } else {
+                    setRowIndex(rowIndex + 1);
+                  }
+                }}
+                className="ml-auto"
+              >
+                {rowIndex == data.length - 1 ? (
+                  <XIcon className="mr-2 h-4 w-4" />
+                ) : (
+                  <ChevronRight className="mr-2 h-4 w-4" />
+                )}
+                {rowIndex == data.length - 1 ? "Exit" : "Next"}
+              </Button>
+            </div>
           </div>
         </div>
       </SheetContent>
@@ -452,24 +464,35 @@ function EvaluateTest({
   test,
   span,
   projectId,
-  evaluation,
+  evaluations,
 }: {
   test: Test;
   projectId: string;
   span: LLMSpan;
-  evaluation?: Evaluation;
+  evaluations?: Evaluation[];
 }) {
   const [score, setScore] = useState(0);
+  const [evaluation, setEvaluation] = useState<Evaluation>();
   const [color, setColor] = useState("red");
   const [scorePercent, setScorePercent] = useState(0);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (evaluation && evaluation.ltUserScore) {
-      setScore(evaluation.ltUserScore);
-      onScoreSelected(test, evaluation.ltUserScore);
+    if (evaluations && evaluations.length > 0) {
+      const evaln = evaluations?.find((e) => e.testId === test.id);
+      setEvaluation(evaln);
+      if (evaln && evaln.ltUserScore) {
+        setScore(evaln.ltUserScore);
+        onScoreSelected(test, evaln.ltUserScore);
+      } else {
+        setScore(0);
+        setScorePercent(0);
+      }
+    } else {
+      setScore(0);
+      setScorePercent(0);
     }
-  }, []);
+  }, [span.span_id]);
 
   const onScoreSelected = (test: Test, value: number, submit = false) => {
     setScore(value);
