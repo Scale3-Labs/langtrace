@@ -1,4 +1,5 @@
 import ConversationView from "@/components/shared/conversation-view";
+import LanggraphView from "@/components/shared/langgraph-view";
 import TraceGraph, { AttributesTabs } from "@/components/traces/trace_graph";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,7 +16,12 @@ import {
   convertTracesToHierarchy,
 } from "@/lib/trace_utils";
 import { getVendorFromSpan } from "@/lib/utils";
-import { ChevronLeft, CodeIcon, MessageCircle } from "lucide-react";
+import {
+  ChevronLeft,
+  CodeIcon,
+  MessageCircle,
+  NetworkIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function TraceSheet({
@@ -33,8 +39,9 @@ export function TraceSheet({
   const [selectedVendors, setSelectedVendors] = useState<string[]>(
     trace.vendors
   );
+  const [includesLanggraph, setIncludesLanggraph] = useState<boolean>(false);
   const [spansView, setSpansView] = useState<
-    "SPANS" | "ATTRIBUTES" | "CONVERSATION"
+    "SPANS" | "ATTRIBUTES" | "CONVERSATION" | "LANGGRAPH"
   >("SPANS");
   const [span, setSpan] = useState<any | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
@@ -43,6 +50,7 @@ export function TraceSheet({
   useEffect(() => {
     setSelectedTrace(trace.trace_hierarchy);
     setSelectedVendors(trace.vendors);
+    if (trace.vendors.includes("langgraph")) setIncludesLanggraph(true);
     if (!open) setSpansView("SPANS");
   }, [trace, open]);
 
@@ -65,7 +73,9 @@ export function TraceSheet({
               setEvents={setEvents}
             />
           )}
-          {(spansView === "ATTRIBUTES" || spansView === "CONVERSATION") &&
+          {(spansView === "ATTRIBUTES" ||
+            spansView === "CONVERSATION" ||
+            spansView === "LANGGRAPH") &&
             span &&
             attributes &&
             events && (
@@ -98,6 +108,16 @@ export function TraceSheet({
                       <MessageCircle size={16} className="mr-2" />
                       LLM Conversations
                     </Button>
+                    {includesLanggraph && (
+                      <Button
+                        className="w-fit"
+                        variant={"secondary"}
+                        onClick={() => setSpansView("LANGGRAPH")}
+                      >
+                        <NetworkIcon size={16} className="mr-2" />
+                        Langgraph
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="overflow-y-scroll h-[85vh]">
@@ -110,6 +130,9 @@ export function TraceSheet({
                   )}
                   {spansView === "CONVERSATION" && span && (
                     <ConversationView span={span} />
+                  )}
+                  {spansView === "LANGGRAPH" && (
+                    <LanggraphView trace={trace.sorted_trace} />
                   )}
                 </div>
               </div>
@@ -136,7 +159,9 @@ function SpansView({
   setSelectedTrace: (trace: any[]) => void;
   selectedVendors: string[];
   setSelectedVendors: (vendors: string[]) => void;
-  setSpansView: (spansView: "SPANS" | "ATTRIBUTES" | "CONVERSATION") => void;
+  setSpansView: (
+    spansView: "SPANS" | "ATTRIBUTES" | "CONVERSATION" | "LANGGRAPH"
+  ) => void;
   setSpan: (span: any) => void;
   setAttributes: (attributes: any) => void;
   setEvents: (events: any) => void;

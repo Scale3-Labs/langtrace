@@ -55,6 +55,7 @@ export function calculateTotalTime(spans: any[]): number {
 }
 
 export function correctTimestampFormat(timestamp: string) {
+  if (!timestamp) return timestamp;
   // Corrects the format by removing the additional ".xxx" before the "Z"
   return timestamp.replace(/(\.\d{3})\.\d+Z$/, "$1Z");
 }
