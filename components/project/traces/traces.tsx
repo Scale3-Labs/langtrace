@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import { Checkbox } from "../../ui/checkbox";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
-import TraceRowSkeleton from "./trace-row-skeleton";
 import { TracesTable } from "./traces-table";
 
 export default function Traces({ email }: { email: string }) {
@@ -38,6 +37,7 @@ export default function Traces({ email }: { email: string }) {
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");
   const [expandedView, setExpandedView] = useState(false);
+  const [group, setGroup] = useState(true);
 
   useEffect(() => {
     setCurrentData([]);
@@ -53,6 +53,9 @@ export default function Traces({ email }: { email: string }) {
 
       const expanded = window.localStorage.getItem("preferences.expanded");
       setExpandedView(expanded === "true");
+
+      const group = window.localStorage.getItem("preferences.group");
+      setGroup(group === "true");
     }
   }, [filters]);
 
@@ -169,11 +172,12 @@ export default function Traces({ email }: { email: string }) {
         const vendors = row.getValue("vendors") as string[];
         return (
           <div className="flex flex-col gap-3 flex-wrap">
-            {vendors.map((vendor, i) => (
-              <Badge key={i} variant="secondary" className="lowercase">
-                {vendor}
-              </Badge>
-            ))}
+            {vendors &&
+              vendors.map((vendor, i) => (
+                <Badge key={i} variant="secondary" className="lowercase">
+                  {vendor}
+                </Badge>
+              ))}
           </div>
         );
       },
@@ -185,11 +189,12 @@ export default function Traces({ email }: { email: string }) {
         const models = row.getValue("models") as string[];
         return (
           <div className="flex flex-col gap-3">
-            {models.map((model, i) => (
-              <Badge key={i} variant="secondary" className="lowercase">
-                {model}
-              </Badge>
-            ))}
+            {models &&
+              models.map((model, i) => (
+                <Badge key={i} variant="secondary" className="lowercase">
+                  {model}
+                </Badge>
+              ))}
           </div>
         );
       },
@@ -279,6 +284,9 @@ export default function Traces({ email }: { email: string }) {
       header: "Input Cost",
       cell: ({ row }) => {
         const cost = row.getValue("input_cost") as number;
+        if (!cost) {
+          return null;
+        }
         return (
           <p className="text-xs font-semibold">
             {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
@@ -291,6 +299,9 @@ export default function Traces({ email }: { email: string }) {
       header: "Output Cost",
       cell: ({ row }) => {
         const cost = row.getValue("output_cost") as number;
+        if (!cost) {
+          return null;
+        }
         return (
           <p className="text-xs font-semibold">
             {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
@@ -303,6 +314,9 @@ export default function Traces({ email }: { email: string }) {
       header: "Total Cost",
       cell: ({ row }) => {
         const cost = row.getValue("total_cost") as number;
+        if (!cost) {
+          return null;
+        }
         return (
           <p className="text-xs font-semibold">
             {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
@@ -315,6 +329,9 @@ export default function Traces({ email }: { email: string }) {
       header: "Total Duration",
       cell: ({ row }) => {
         const duration = row.getValue("total_duration") as number;
+        if (!duration) {
+          return null;
+        }
         return <p className="text-xs font-semibold">{duration}ms</p>;
       },
     },
@@ -373,9 +390,19 @@ export default function Traces({ email }: { email: string }) {
         setPage(parseInt(metadata?.page) + 1);
       }
 
-      const transformedNewData = newData.map((trace: any) =>
-        processTrace(trace)
-      );
+      let transformedNewData = [];
+      if (group) {
+        transformedNewData = newData.map((trace: any) => {
+          return processTrace(trace);
+        });
+      } else {
+        for (const i in newData) {
+          for (const j in newData[i]) {
+            const processedSpan = processTrace([newData[i][j]]);
+            transformedNewData.push(processedSpan);
+          }
+        }
+      }
 
       if (page === 1) {
         setCurrentData(transformedNewData);
@@ -529,6 +556,30 @@ export default function Traces({ email }: { email: string }) {
               <Info information="By default, the input and output messages are compressed to fit the table. By toggling this setting, you can expand the input and output messages to view the complete content." />
             </div>
           </div>
+          <div className="flex gap-2 items-center w-full">
+            <p className="text-xs font-semibold">Don&apos;t group</p>
+            <Switch
+              className="text-start"
+              id="group"
+              checked={group}
+              onCheckedChange={(check) => {
+                setGroup(check);
+
+                // Save the preference in local storage
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(
+                    "preferences.group",
+                    check ? "true" : "false"
+                  );
+                  toast.success("Preferences updated.");
+                }
+              }}
+            />
+            <div className="flex items-center gap-1">
+              <p className="text-xs font-semibold">Group</p>
+              <Info information="By default, the spans are grouped if they are part of a single trace with a common parent. By toggling this setting, you can view spans individually without any relationships." />
+            </div>
+          </div>
         </div>
       </div>
       <TracesTable
@@ -554,16 +605,6 @@ export default function Traces({ email }: { email: string }) {
         model={model}
         setModel={setModel}
       />
-    </div>
-  );
-}
-
-export function TracesPageSkeleton() {
-  return (
-    <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-      {Array.from({ length: 20 }).map((_, index) => (
-        <TraceRowSkeleton key={index} />
-      ))}
     </div>
   );
 }

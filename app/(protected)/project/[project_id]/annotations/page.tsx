@@ -2,7 +2,7 @@ import { authOptions } from "@/lib/auth/options";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import PageClient from "./page-client";
+import Annotations from "./annotations";
 
 export const metadata: Metadata = {
   title: "Langtrace | Evaluations",
@@ -18,7 +18,7 @@ export default async function Page() {
 
   return (
     <>
-      <PageClient email={user.email as string} />
+      <Annotations email={user.email as string} />
     </>
   );
 }
