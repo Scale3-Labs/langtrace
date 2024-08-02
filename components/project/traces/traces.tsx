@@ -587,6 +587,10 @@ export default function Traces({ email }: { email: string }) {
         loading={
           (fetchTraces.isLoading || showFreshLoading) && !showBottomLoader
         }
+        refetch={() => {
+          setPage(1);
+          setEnableFetch(true);
+        }}
         fetching={fetchTraces.isFetching}
         paginationLoading={showBottomLoader}
         scrollableDivRef={scrollableDivRef}

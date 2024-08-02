@@ -467,6 +467,10 @@ export default function Annotations({ email }: { email: string }) {
             tests={tests}
             loading={fetchLlmPromptSpans.isLoading && !showBottomLoader}
             fetching={fetchLlmPromptSpans.isFetching}
+            refetch={() => {
+              setPage(1);
+              setEnableFetch(true);
+            }}
             paginationLoading={showBottomLoader}
             scrollableDivRef={scrollableDivRef}
           />

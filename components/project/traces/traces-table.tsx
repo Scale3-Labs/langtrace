@@ -27,7 +27,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, RefreshCwIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import TraceRowSkeleton from "../../shared/row-skeleton";
@@ -41,6 +41,7 @@ interface TracesTableProps<TData, TValue> {
   data: TData[];
   loading?: boolean;
   fetching?: boolean;
+  refetch: () => void;
   paginationLoading?: boolean;
   scrollableDivRef?: React.RefObject<HTMLElement>;
 }
@@ -51,6 +52,7 @@ export function TracesTable<TData, TValue>({
   data,
   loading,
   fetching,
+  refetch,
   paginationLoading,
   scrollableDivRef,
 }: TracesTableProps<TData, TValue>) {
@@ -145,16 +147,21 @@ export function TracesTable<TData, TValue>({
       {!loading && data && data.length > 0 && (
         <div className="flex justify-between items-center">
           <div className="flex flex-col gap-2">
-            <p
-              className={cn(
-                "text-xs font-semibold",
-                fetching ? "text-orange-500" : "text-muted-foreground"
-              )}
-            >
-              {fetching
-                ? "Fetching traces..."
-                : `Fetched the last ${data.length} traces`}
-            </p>
+            <div className="flex gap-3 items-center">
+              <Button variant="outline" size={"icon"} onClick={() => refetch()}>
+                <RefreshCwIcon className="w-4 h-4" />
+              </Button>
+              <p
+                className={cn(
+                  "text-xs font-semibold",
+                  fetching ? "text-orange-500" : "text-muted-foreground"
+                )}
+              >
+                {fetching
+                  ? "Fetching traces..."
+                  : `Fetched the last ${data.length} traces`}
+              </p>
+            </div>
             <div className="text-xs text-muted-foreground">
               Seeing related spans as separate rows?{" "}
               <Link

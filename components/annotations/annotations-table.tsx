@@ -36,7 +36,13 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import { ProgressCircle } from "@tremor/react";
-import { ChevronDown, ChevronLeft, ChevronRight, XIcon } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCwIcon,
+  XIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
@@ -53,6 +59,7 @@ interface AnnotationsTableProps<TData, TValue> {
   tests: Test[];
   loading?: boolean;
   fetching?: boolean;
+  refetch: () => void;
   paginationLoading?: boolean;
   scrollableDivRef?: React.RefObject<HTMLElement>;
 }
@@ -64,6 +71,7 @@ export function AnnotationsTable<TData, TValue>({
   tests,
   loading,
   fetching,
+  refetch,
   paginationLoading,
   scrollableDivRef,
 }: AnnotationsTableProps<TData, TValue>) {
@@ -158,16 +166,21 @@ export function AnnotationsTable<TData, TValue>({
       {!loading && data && data.length > 0 && (
         <div className="flex justify-between items-center">
           <div className="flex flex-col gap-2">
-            <p
-              className={cn(
-                "text-xs font-semibold",
-                fetching ? "text-orange-500" : "text-muted-foreground"
-              )}
-            >
-              {fetching
-                ? "Fetching conversations..."
-                : `Fetched the last ${data.length} conversations`}
-            </p>
+            <div className="flex gap-3 items-center">
+              <Button variant="outline" size={"icon"} onClick={() => refetch()}>
+                <RefreshCwIcon className="w-4 h-4" />
+              </Button>
+              <p
+                className={cn(
+                  "text-xs font-semibold",
+                  fetching ? "text-orange-500" : "text-muted-foreground"
+                )}
+              >
+                {fetching
+                  ? "Fetching conversations..."
+                  : `Fetched the last ${data.length} conversations`}
+              </p>
+            </div>
             <Link
               className="text-blue-500 underline text-xs flex items-center"
               href={HOW_TO_DO_ANNOTATIONS}
