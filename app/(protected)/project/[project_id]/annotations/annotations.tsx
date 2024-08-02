@@ -308,6 +308,53 @@ export default function Annotations({ email }: { email: string }) {
     },
   ]);
 
+  // Cell content component
+  const CellContent = ({ test, row }: { test: Test; row: any }) => {
+    const isEval = test.id !== "user_id";
+    const spanId = row.original.span_id;
+    const testId = test.id;
+    const { isError, isLoading, data } = useQuery({
+      queryKey: ["fetch-evaluation-query", spanId],
+      queryFn: async () => {
+        const response = await fetch(
+          `/api/evaluation?spanId=${spanId}&projectId=${projectId}&includeTest=true`
+        );
+        const result = await response.json();
+        const evaluations =
+          result.evaluations.length > 0 ? result.evaluations : [];
+        return evaluations;
+      },
+    });
+    if (isError || !data || data?.length === 0) {
+      return (
+        <p className="text-xs">{isEval ? "Not Evaluated" : "Not Reported"}</p>
+      );
+    }
+    if (isLoading) {
+      return <Skeleton variant="text" />;
+    }
+
+    if (isEval) {
+      const evaluation = data?.find((e: Evaluation) => e.testId === testId);
+      return (
+        <p className="text-xs">
+          {evaluation ? evaluation.ltUserScore : "Not evaluated"}
+        </p>
+      );
+    }
+
+    const userScore = data[0]?.userScore || "";
+    const userId = data[0]?.userId || "Not Reported";
+    if (test.id === "user_id") {
+      return (
+        <Badge variant="secondary" className="lowercase">
+          {userId}
+        </Badge>
+      );
+    }
+    return <p className="text-xs">{userScore}</p>;
+  };
+
   const {
     data: tests,
     isLoading: testsLoading,
@@ -346,55 +393,7 @@ export default function Annotations({ email }: { email: string }) {
           {
             accessorKey: `test_${test.id}`,
             header: test.name[0].toUpperCase() + test.name.slice(1),
-            cell: ({ row }) => {
-              const isEval = test.id !== "user_id";
-              const spanId = row.original.span_id;
-              const testId = test.id;
-              const { isError, isLoading, data } = useQuery({
-                queryKey: ["fetch-evaluation-query", spanId],
-                queryFn: async () => {
-                  const response = await fetch(
-                    `/api/evaluation?spanId=${spanId}&projectId=${projectId}&includeTest=true`
-                  );
-                  const result = await response.json();
-                  const evaluations =
-                    result.evaluations.length > 0 ? result.evaluations : [];
-                  return evaluations;
-                },
-              });
-              if (isError || !data || data?.length === 0) {
-                return (
-                  <p className="text-xs">
-                    {isEval ? "Not Evaluated" : "Not Reported"}
-                  </p>
-                );
-              }
-              if (isLoading) {
-                return <Skeleton variant="text" />;
-              }
-
-              if (isEval) {
-                const evaluation = data?.find(
-                  (e: Evaluation) => e.testId === testId
-                );
-                return (
-                  <p className="text-xs">
-                    {evaluation ? evaluation.ltUserScore : "Not evaluated"}
-                  </p>
-                );
-              }
-
-              const userScore = data[0]?.userScore || "";
-              const userId = data[0]?.userId || "Not Reported";
-              if (test.id === "user_id") {
-                return (
-                  <Badge variant="secondary" className="lowercase">
-                    {userId}
-                  </Badge>
-                );
-              }
-              return <p className="text-xs">{userScore}</p>;
-            },
+            cell: ({ row }) => <CellContent test={test} row={row} />,
           },
         ]);
       });
