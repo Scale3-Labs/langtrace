@@ -1,15 +1,12 @@
 "use client";
 
+import { AnnotationsTable } from "@/components/annotations/annotations-table";
 import { CreateTest } from "@/components/annotations/create-test";
 import { EditTest } from "@/components/annotations/edit-test";
-import {
-  AnnotationsTable,
-  EvaluationTableSkeleton,
-} from "@/components/annotations/evaluation-table";
+import { TableSkeleton } from "@/components/project/traces/table-skeleton";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { HoverCell } from "@/components/shared/hover-cell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PAGE_SIZE } from "@/lib/constants";
 import { LLMSpan, processLLMSpan } from "@/lib/llm_span_util";
@@ -18,7 +15,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 import { Skeleton } from "@mui/material";
 import { Evaluation, Test } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
-import { PlusIcon, RabbitIcon } from "lucide-react";
+import { RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -38,7 +35,6 @@ export default function PageClient({ email }: { email: string }) {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
-  const [selectedSpan, setSelectedSpan] = useState();
   const [showBottomLoader, setShowBottomLoader] = useState(false);
 
   const scrollableDivRef = useBottomScrollListener(() => {
@@ -158,6 +154,7 @@ export default function PageClient({ email }: { email: string }) {
 
   const [columns, setColumns] = useState<ColumnDef<LLMSpan & any>[]>([
     {
+      size: 50,
       accessorKey: "check_box",
       header: "Select",
       cell: ({ row }) => {
@@ -440,7 +437,14 @@ export default function PageClient({ email }: { email: string }) {
         </div>
       </div>
       {testsLoading || !tests ? (
-        <PageSkeleton />
+        <div className="flex flex-col gap-8 top-[16rem] w-full md:px-24 px-12 mb-24">
+          <AddtoDataset
+            projectId={projectId}
+            selectedData={selectedData}
+            className="w-fit self-end"
+          />
+          <TableSkeleton />
+        </div>
       ) : tests?.length > 0 ? (
         <div className="flex flex-col gap-8 top-[16rem] w-full md:px-24 px-12 mb-24">
           <AddtoDataset
@@ -467,20 +471,6 @@ export default function PageClient({ email }: { email: string }) {
           <CreateTest projectId={projectId} />
         </div>
       )}
-    </div>
-  );
-}
-
-function PageSkeleton() {
-  return (
-    <div className="flex flex-col gap-8 top-[16rem] w-full md:px-24 px-12 mb-24">
-      <div className="flex flex-col gap-2">
-        <Button className="ml-auto" disabled={true} size={"sm"}>
-          Add to Dataset
-          <PlusIcon className="ml-2 h-4 w-4 shrink-0" />
-        </Button>
-      </div>
-      <EvaluationTableSkeleton />
     </div>
   );
 }

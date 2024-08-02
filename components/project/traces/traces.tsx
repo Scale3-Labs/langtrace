@@ -20,7 +20,6 @@ import { toast } from "sonner";
 import { Checkbox } from "../../ui/checkbox";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
-import TraceRowSkeleton from "./trace-row-skeleton";
 import { TracesTable } from "./traces-table";
 
 export default function Traces({ email }: { email: string }) {
@@ -554,16 +553,6 @@ export default function Traces({ email }: { email: string }) {
         model={model}
         setModel={setModel}
       />
-    </div>
-  );
-}
-
-export function TracesPageSkeleton() {
-  return (
-    <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-      {Array.from({ length: 20 }).map((_, index) => (
-        <TraceRowSkeleton key={index} />
-      ))}
     </div>
   );
 }
