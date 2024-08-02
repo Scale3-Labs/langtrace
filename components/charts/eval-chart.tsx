@@ -85,7 +85,7 @@ export function EvalChart({
             className="mt-2 h-72"
             data={chartData.metrics}
             index="date"
-            categories={tests.map((test) => `${test.id}-${test.name}`)}
+            categories={tests.map((test) => `${test.name}(${test.id})`)}
             colors={["purple", "blue", "red", "green", "orange", "black"]}
             showAnimation={true}
             showTooltip={true}
