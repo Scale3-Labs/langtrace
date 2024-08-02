@@ -19,12 +19,7 @@ export function ChartTabs({
     timeRanges[timeRanges.length - 1].value
   );
 
-  const {
-    data: chartData,
-    isLoading,
-    isFetching,
-    refetch,
-  } = useQuery({
+  const { data: chartData, isLoading } = useQuery({
     queryKey: ["fetch-score", projectId, lastNHours],
     queryFn: async () => {
       const filters = {
@@ -84,7 +79,7 @@ export function ChartTabs({
           chartData={chartData}
         />
       </TabsContent>
-      <TabsContent value="score" className="p-3">
+      <TabsContent value="score" className="p-3 h-96 rounded-md border">
         {isLoading && !chartData ? (
           <div className="flex flex-row gap-4 flex-wrap">
             <Skeleton className="h-24 w-24 rounded-full" />
@@ -129,8 +124,42 @@ export function ChartTabs({
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center">
-            <p className="text-lg font-semibold">No data available</p>
+          <div className="relative">
+            <p className="text-xl font-semibold absolute right-1/2 transform translate-x-1/2 top-1/2 translate-y-1/2 text-center bg-muted p-1 rounded-md shadow-md">
+              Get Started and measure the baseline performance of your
+              application.
+            </p>
+            <div className="flex flex-row gap-4 flex-wrap opacity-30">
+              {["accuracy", "quality", "relevance"].map((testName, index) => {
+                const score = Math.floor(Math.random() * 100);
+                const color =
+                  score < 50 ? "red" : score < 80 ? "orange" : "green";
+                const bgColor = `bg-${color}-100`;
+                return (
+                  <div key={index} className="flex flex-col gap-2 items-center">
+                    <ProgressCircle
+                      value={score}
+                      radius={45}
+                      strokeWidth={6}
+                      color={color}
+                      tooltip={`overall ${testName} score %`}
+                    >
+                      <span
+                        className={cn(
+                          "text-lg font-semibold text-primary rounded-full h-16 w-16 flex items-center justify-center",
+                          bgColor
+                        )}
+                      >
+                        {score}%
+                      </span>
+                    </ProgressCircle>
+                    <span className="text-lg font-semibold capitalize">
+                      {testName}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </TabsContent>
