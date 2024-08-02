@@ -8,7 +8,7 @@ import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { cn, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
@@ -200,6 +200,8 @@ export default function Traces({ email }: { email: string }) {
       },
     },
     {
+      size: 500,
+      minSize: 20,
       accessorKey: "inputs",
       header: "Inputs",
       cell: ({ row }) => {
@@ -215,10 +217,7 @@ export default function Traces({ email }: { email: string }) {
                     <HoverCell
                       key={j}
                       values={JSON.parse(prompt)}
-                      className={cn(
-                        "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
-                        expandedView ? "" : "max-h-10"
-                      )}
+                      expand={expandedView}
                     />
                   ))
                 : null
@@ -228,6 +227,8 @@ export default function Traces({ email }: { email: string }) {
       },
     },
     {
+      size: 500,
+      minSize: 20,
       accessorKey: "outputs",
       header: "Outputs",
       cell: ({ row }) => {
@@ -243,10 +244,7 @@ export default function Traces({ email }: { email: string }) {
                     <HoverCell
                       key={j}
                       values={JSON.parse(response)}
-                      className={cn(
-                        "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
-                        expandedView ? "" : "max-h-10"
-                      )}
+                      expand={expandedView}
                     />
                   ))
                 : null

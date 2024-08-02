@@ -27,7 +27,7 @@ import { HOW_TO_DO_ANNOTATIONS } from "@/lib/constants";
 import { LLMSpan } from "@/lib/llm_span_util";
 import { cn } from "@/lib/utils";
 import { Evaluation, Test } from "@prisma/client";
-import { ResetIcon } from "@radix-ui/react-icons";
+import { ArrowTopRightIcon, ResetIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
   flexRender,
@@ -168,16 +168,14 @@ export function AnnotationsTable<TData, TValue>({
                 ? "Fetching conversations..."
                 : `Fetched the last ${data.length} conversations`}
             </p>
-            <div className="text-xs text-muted-foreground">
-              Seeing related spans as separate rows?{" "}
-              <Link
-                className="text-blue-500 underline"
-                href={HOW_TO_DO_ANNOTATIONS}
-                target="_blank"
-              >
-                Learn how to do annotations
-              </Link>
-            </div>
+            <Link
+              className="text-blue-500 underline text-xs flex items-center"
+              href={HOW_TO_DO_ANNOTATIONS}
+              target="_blank"
+            >
+              Learn how to do annotations
+              <ArrowTopRightIcon className="w-3 h-3" />
+            </Link>
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>

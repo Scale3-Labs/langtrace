@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PAGE_SIZE } from "@/lib/constants";
 import { LLMSpan, processLLMSpan } from "@/lib/llm_span_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { cn, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { Skeleton } from "@mui/material";
 import { Evaluation, Test } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
@@ -264,6 +264,7 @@ export default function Annotations({ email }: { email: string }) {
     },
     {
       size: 500,
+      minSize: 20,
       accessorKey: "input",
       header: "Input",
       cell: ({ row }) => {
@@ -274,14 +275,7 @@ export default function Annotations({ email }: { email: string }) {
         return (
           <div className="flex flex-col gap-3 flex-wrap w-full">
             {input.map((item, i) => (
-              <HoverCell
-                key={i}
-                values={JSON.parse(item)}
-                className={cn(
-                  "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
-                  false ? "" : "max-h-10"
-                )}
-              />
+              <HoverCell key={i} values={JSON.parse(item)} />
             ))}
           </div>
         );
@@ -289,6 +283,7 @@ export default function Annotations({ email }: { email: string }) {
     },
     {
       size: 500,
+      minSize: 20,
       accessorKey: "output",
       header: "Output",
       cell: ({ row }) => {
@@ -299,14 +294,7 @@ export default function Annotations({ email }: { email: string }) {
         return (
           <div className="flex flex-col gap-3 flex-wrap w-full">
             {output.map((item, i) => (
-              <HoverCell
-                key={i}
-                values={JSON.parse(item)}
-                className={cn(
-                  "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
-                  false ? "" : "max-h-10"
-                )}
-              />
+              <HoverCell key={i} values={JSON.parse(item)} />
             ))}
           </div>
         );
