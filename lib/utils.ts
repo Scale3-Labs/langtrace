@@ -680,16 +680,23 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("pinecone")
   ) {
     vendor = "pinecone";
+  } else if (span.name.includes("chroma") || serviceName.includes("chroma")) {
+    vendor = "chroma";
   } else if (
-    span.name.includes("chromadb") ||
-    serviceName.includes("chromadb")
+    span.name.includes("langchain core") ||
+    serviceName.includes("langchain core")
   ) {
-    vendor = "chromadb";
+    vendor = "langchain core";
   } else if (
     span.name.includes("langchain") ||
     serviceName.includes("langchain")
   ) {
     vendor = "langchain";
+  } else if (
+    span.name.includes("langgraph") ||
+    serviceName.includes("langgraph")
+  ) {
+    vendor = "langgraph";
   } else if (
     span.name.includes("llamaindex") ||
     serviceName.includes("llamaindex")

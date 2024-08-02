@@ -235,8 +235,8 @@ export function VendorLogo({
     );
   }
 
-  if (vendor.includes("chromadb")) {
-    const color = vendorColor("chromadb");
+  if (vendor.includes("chroma")) {
+    const color = vendorColor("chroma");
     return (
       <Image
         alt="ChromaDB Logo"
@@ -251,7 +251,7 @@ export function VendorLogo({
     );
   }
 
-  if (vendor.includes("langchain")) {
+  if (vendor.includes("langchain") || vendor.includes("langgraph")) {
     const color = vendorColor("langchain");
     return (
       <Image
