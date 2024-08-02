@@ -13,6 +13,8 @@ export const HOW_TO_PROMPT_FETCHING =
   "https://docs.langtrace.ai/features/attach_prompt_id";
 export const HOW_TO_GROUP_RELATED_OPERATIONS =
   "https://docs.langtrace.ai/features/grouptraces";
+export const HOW_TO_DO_ANNOTATIONS =
+  "https://docs.langtrace.ai/features/annotations#annotations";
 export const SCHEDULE_CALL_LINK =
   "https://calendar.app.google/Go5gXNPcqZjAY4i47";
 export const OTEL_GENAI = "https://opentelemetry.io/docs/specs/semconv/gen-ai/";

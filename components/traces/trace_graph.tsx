@@ -85,7 +85,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
     color = "bg-yellow-500";
   else if (span.name.includes("pinecone") || serviceName.includes("pinecone"))
     color = "bg-green-500";
-  else if (span.name.includes("chromadb") || serviceName.includes("chromadb"))
+  else if (span.name.includes("chroma") || serviceName.includes("chroma"))
     color = "bg-indigo-500";
   else if (span.name.includes("langchain") || serviceName.includes("langchain"))
     color = "bg-purple-500";
@@ -222,9 +222,9 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
   const step = totalTime / 5;
 
   const SpanBars = () =>
-    spans.map((span) => (
+    spans.map((span, i) => (
       <SpanItem
-        key={span.name}
+        key={`${span.name}-${i}`}
         span={span}
         level={0}
         totalTime={totalTime}

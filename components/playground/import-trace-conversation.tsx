@@ -9,7 +9,7 @@ import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 import { ConversationRow } from "../project/traces/conversation-row";
-import TraceRowSkeleton from "../project/traces/trace-row-skeleton";
+import TraceRowSkeleton from "../shared/row-skeleton";
 import { SetupInstructions } from "../shared/setup-instructions";
 import { Spinner } from "../shared/spinner";
 import { Button } from "../ui/button";
