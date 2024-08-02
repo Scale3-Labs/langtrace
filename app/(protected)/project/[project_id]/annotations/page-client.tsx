@@ -428,7 +428,9 @@ export default function PageClient({ email }: { email: string }) {
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Annotate & Measure</h1>
+        <h1 className="text-3xl font-semibold">
+          Annotate & Evaluate Conversations
+        </h1>
         <div className="flex gap-2">
           <CreateTest projectId={projectId} variant={"outline"} />
           {tests && tests?.length > 0 && (
