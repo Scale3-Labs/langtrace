@@ -33,6 +33,7 @@ import { useEffect, useMemo, useState } from "react";
 import TraceRowSkeleton from "../../shared/row-skeleton";
 import { TableSkeleton } from "./table-skeleton";
 import { TraceSheet } from "./trace-sheet";
+import { TracesDownload } from "./traces-download";
 
 interface TracesTableProps<TData, TValue> {
   project_id: string;
@@ -205,6 +206,7 @@ export function TracesTable<TData, TValue>({
             >
               <ResetIcon className="w-4 h-4" />
             </Button>
+            <TracesDownload project_id={project_id} />
           </div>
         </div>
       )}
