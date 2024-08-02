@@ -562,6 +562,8 @@ export default function Traces({ email }: { email: string }) {
               checked={group}
               onCheckedChange={(check) => {
                 setGroup(check);
+                setPage(1);
+                setEnableFetch(true);
 
                 // Save the preference in local storage
                 if (typeof window !== "undefined") {
