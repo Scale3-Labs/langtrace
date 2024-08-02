@@ -28,7 +28,7 @@ interface CheckedData {
   spanId: string;
 }
 
-export default function PageClient({ email }: { email: string }) {
+export default function Annotations({ email }: { email: string }) {
   const projectId = useParams()?.project_id as string;
   const [currentData, setCurrentData] = useState<any>([]);
   const [processedData, setProcessedData] = useState<LLMSpan[]>([]);
@@ -439,7 +439,7 @@ export default function PageClient({ email }: { email: string }) {
         </div>
       </div>
       {testsLoading || !tests ? (
-        <div className="flex flex-col gap-8 top-[16rem] w-full md:px-24 px-12 mb-24">
+        <div className="flex flex-col gap-6 top-[16rem] w-full md:px-24 px-12 mb-24">
           <AddtoDataset
             projectId={projectId}
             selectedData={selectedData}
@@ -448,7 +448,7 @@ export default function PageClient({ email }: { email: string }) {
           <TableSkeleton />
         </div>
       ) : tests?.length > 0 ? (
-        <div className="flex flex-col gap-8 top-[16rem] w-full md:px-24 px-12 mb-24">
+        <div className="flex flex-col gap-6 top-[16rem] w-full md:px-24 px-12 mb-24">
           <AddtoDataset
             projectId={projectId}
             selectedData={selectedData}

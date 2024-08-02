@@ -76,7 +76,7 @@ export function AnnotationsTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
-  const [rowIndex, setRowIndex] = useState<number>(0);
+  const [rowIndex, setRowIndex] = useState<number>(-1);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -223,7 +223,7 @@ export function AnnotationsTable<TData, TValue>({
         </div>
       )}
       <div
-        className="rounded-md border flex flex-col relative h-fit overflow-y-scroll"
+        className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
         ref={scrollableDivRef as any}
       >
         {!loading && (!data || data.length === 0) && (
@@ -237,7 +237,7 @@ export function AnnotationsTable<TData, TValue>({
         )}
         {!loading && data && data.length > 0 && (
           <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
-            <TableHeader className="sticky top-0 bg-secondary">
+            <TableHeader className="sticky top-0 bg-secondary z-50">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -310,7 +310,7 @@ export function AnnotationsTable<TData, TValue>({
             </TableBody>
           </Table>
         )}
-        <EvaluationSheet
+        {rowIndex !== -1 && <EvaluationSheet
           data={data}
           rowIndex={rowIndex}
           setRowIndex={setRowIndex}
@@ -318,7 +318,7 @@ export function AnnotationsTable<TData, TValue>({
           setOpen={setOpenSheet}
           tests={tests}
           projectId={project_id}
-        />
+        />}
         {paginationLoading && (
           <div className="flex flex-col gap-3">
             <Separator />
