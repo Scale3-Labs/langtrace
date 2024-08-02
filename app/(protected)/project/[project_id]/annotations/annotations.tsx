@@ -310,7 +310,7 @@ export default function Annotations({ email }: { email: string }) {
 
   // Cell content component
   const CellContent = ({ test, row }: { test: Test; row: any }) => {
-    const isEval = test.id !== "user_id";
+    const isEval = test.id !== "user_id" && test.id !== "user_score";
     const spanId = row.original.span_id;
     const testId = test.id;
     const { isError, isLoading, data } = useQuery({
@@ -341,18 +341,19 @@ export default function Annotations({ email }: { email: string }) {
           {evaluation ? evaluation.ltUserScore : "Not evaluated"}
         </p>
       );
+    } else {
+      if (test.id === "user_id") {
+        const userId = data[0]?.userId || "Not Reported";
+        return (
+          <Badge variant="secondary" className="lowercase">
+            {userId}
+          </Badge>
+        );
+      } else if (test.id === "user_score") {
+        const userScore = data[0]?.userScore || "Not Reported";
+        return <p className="text-xs">{userScore}</p>;
+      }
     }
-
-    const userScore = data[0]?.userScore || "";
-    const userId = data[0]?.userId || "Not Reported";
-    if (test.id === "user_id") {
-      return (
-        <Badge variant="secondary" className="lowercase">
-          {userId}
-        </Badge>
-      );
-    }
-    return <p className="text-xs">{userScore}</p>;
   };
 
   const {
