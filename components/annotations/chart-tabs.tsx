@@ -1,10 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { Test } from "@prisma/client";
 import { ProgressCircle } from "@tremor/react";
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { EvalChart } from "../charts/eval-chart";
 import { timeRanges } from "../shared/day-filter";
+import { Skeleton } from "../ui/skeleton";
 
 export function ChartTabs({
   projectId,
@@ -13,9 +15,16 @@ export function ChartTabs({
   projectId: string;
   tests: Test[];
 }) {
-  const [lastNHours, setLastNHours] = useState(timeRanges[0].value);
+  const [lastNHours, setLastNHours] = useState(
+    timeRanges[timeRanges.length - 1].value
+  );
 
-  const { data: chartData, isLoading } = useQuery({
+  const {
+    data: chartData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: ["fetch-score", projectId, lastNHours],
     queryFn: async () => {
       const filters = {
@@ -60,53 +69,71 @@ export function ChartTabs({
     },
   });
 
-  if (isLoading || !chartData) {
-    return <div>Loading</div>;
-  } else {
-    return (
-      <Tabs defaultValue="metrics" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="metrics">Overall Metrics</TabsTrigger>
-          <TabsTrigger value="score">Total Score</TabsTrigger>
-        </TabsList>
-        <TabsContent value="metrics">
-          <EvalChart projectId={projectId} tests={tests} />
-        </TabsContent>
-        <TabsContent value="score" className="p-3">
-          {Object.keys(chartData?.scores).length > 0 ? (
-            <div className="flex flex-row gap-4 flex-wrap">
-              {Object.keys(chartData?.scores).map(
-                (testId: string, index: number) => {
-                  return (
-                    <div
-                      key={index}
-                      className="flex flex-col gap-2 items-center"
+  return (
+    <Tabs defaultValue="score" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="score">Total Score (%)</TabsTrigger>
+        <TabsTrigger value="metrics">Trend (%)</TabsTrigger>
+      </TabsList>
+      <TabsContent value="metrics">
+        <EvalChart
+          tests={tests}
+          lastNHours={lastNHours}
+          setLastNHours={setLastNHours}
+          isLoading={isLoading}
+          chartData={chartData}
+        />
+      </TabsContent>
+      <TabsContent value="score" className="p-3">
+        {isLoading && !chartData ? (
+          <div className="flex flex-row gap-4 flex-wrap">
+            <Skeleton className="h-24 w-24 rounded-full" />
+            <Skeleton className="h-24 w-24 rounded-full" />
+            <Skeleton className="h-24 w-24 rounded-full" />
+          </div>
+        ) : Object.keys(chartData?.scores).length > 0 ? (
+          <div className="flex flex-row gap-4 flex-wrap">
+            {Object.keys(chartData?.scores).map(
+              (testId: string, index: number) => {
+                const score = (chartData?.scores[testId] || 0) * 100;
+                const testName = tests.find((test) =>
+                  testId.includes(test.id)
+                )?.name;
+                const color =
+                  score < 50 ? "red" : score < 80 ? "orange" : "green";
+                const bgColor = `bg-${color}-100`;
+                return (
+                  <div key={index} className="flex flex-col gap-2 items-center">
+                    <ProgressCircle
+                      value={score}
+                      radius={45}
+                      strokeWidth={6}
+                      color={color}
+                      tooltip={`overall ${testName} score %`}
                     >
-                      <ProgressCircle
-                        value={(chartData?.scores[testId] || 0) * 100}
-                        radius={45}
-                        strokeWidth={6}
-                        tooltip="radius: 25, strokeWidth: 6"
+                      <span
+                        className={cn(
+                          "text-lg font-semibold text-primary rounded-full h-16 w-16 flex items-center justify-center",
+                          bgColor
+                        )}
                       >
-                        <span className="text-xs font-medium text-primary">
-                          {(chartData?.scores[testId] || 0) * 100}%
-                        </span>
-                      </ProgressCircle>
-                      <span className="text-sm font-semibold capitalize">
-                        {tests.find((test) => testId.includes(test.id))?.name}
+                        {(chartData?.scores[testId] || 0) * 100}%
                       </span>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center">
-              <p className="text-lg font-semibold">No data available</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-    );
-  }
+                    </ProgressCircle>
+                    <span className="text-lg font-semibold capitalize">
+                      {testName}
+                    </span>
+                  </div>
+                );
+              }
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center">
+            <p className="text-lg font-semibold">No data available</p>
+          </div>
+        )}
+      </TabsContent>
+    </Tabs>
+  );
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import { AnnotationsTable } from "@/components/annotations/annotations-table";
+import { ChartTabs } from "@/components/annotations/chart-tabs";
 import { CreateTest } from "@/components/annotations/create-test";
 import { EditTest } from "@/components/annotations/edit-test";
-import { EvalChart } from "@/components/charts/eval-chart";
 import { TableSkeleton } from "@/components/project/traces/table-skeleton";
 import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import { HoverCell } from "@/components/shared/hover-cell";
@@ -456,7 +456,7 @@ export default function Annotations({ email }: { email: string }) {
         </div>
       ) : tests?.length > 0 ? (
         <div className="flex flex-col gap-6 top-[16rem] w-full md:px-24 px-12 mb-24">
-          <EvalChart projectId={projectId} tests={tests as Test[]} />
+          <ChartTabs projectId={projectId} tests={tests as Test[]} />
           <AddtoDataset
             projectId={projectId}
             selectedData={selectedData}
