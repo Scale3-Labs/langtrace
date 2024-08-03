@@ -26,7 +26,7 @@ export default function Metrics({ email }: { email: string }) {
           <UserCombobox setSelectedUser={setUserId} selectedUser={userId} />
           <ModelCombobox selectedModel={model} setSelectedModel={setModel} />
         </div>
-        <div className="flex flex-row items-center gap-5">
+        <div className="flex flex-row flex-wrap items-center gap-3">
           <TokenChart
             userId={userId}
             model={model}
