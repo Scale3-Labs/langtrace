@@ -110,7 +110,7 @@ export function ChartTabs({
                     >
                       <span
                         className={cn(
-                          "text-lg font-semibold text-primary rounded-full h-16 w-16 flex items-center justify-center",
+                          "text-lg font-semibold text-black rounded-full h-16 w-16 flex items-center justify-center",
                           bgColor
                         )}
                       >
