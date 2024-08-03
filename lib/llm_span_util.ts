@@ -46,8 +46,8 @@ export function processLLMSpan(span: any) {
 
   // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
   if ("llm.prompts" in attributes && "llm.responses" in attributes) {
-    input = attributes["llm.prompts"];
-    output = attributes["llm.responses"];
+    input.push(attributes["llm.prompts"]);
+    output.push(attributes["llm.responses"]);
   }
 
   // extract the model

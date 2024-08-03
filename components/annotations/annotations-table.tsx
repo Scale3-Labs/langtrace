@@ -424,7 +424,7 @@ function EvaluationSheet({
                 />
               );
             })}
-            <div className="flex flex-row gap-2 absolute bottom-1 right-1">
+            <div className="flex flex-row gap-2 absolute top-10 right-10">
               <Button
                 variant={rowIndex == 0 ? "destructive" : "outline"}
                 onClick={() => {
