@@ -4,17 +4,21 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { cn, safeStringify } from "@/lib/utils";
-import { ClipboardIcon } from "lucide-react";
+import { ClipboardIcon, MoveDiagonal, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function HoverCell({
   values,
   className,
+  expand = false,
 }: {
   values: any[];
   className?: string;
+  expand?: boolean;
 }) {
   try {
+    const [expandedView, setExpandedView] = useState(expand);
     if (!values || !Array.isArray(values)) {
       return null;
     }
@@ -57,8 +61,30 @@ export function HoverCell({
               className="h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground absolute top-1 right-1"
               onClick={copyToClipboard}
             />
+            {!expandedView && (
+              <MoveDiagonal
+                className="h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground absolute top-1 right-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedView(!expandedView);
+                }}
+              />
+            )}
+            {expandedView && (
+              <X
+                className="h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground absolute top-1 right-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedView(!expandedView);
+                }}
+              />
+            )}
             <div
-              className={cn(className, "overflow-y-scroll whitespace-pre-wrap")}
+              className={cn(
+                className,
+                "overflow-y-scroll whitespace-pre-wrap px-[6px] pb-[6px] pt-5 text-sm bg-muted rounded-md",
+                expandedView ? "" : "max-h-14"
+              )}
               dangerouslySetInnerHTML={{
                 __html:
                   contents[contents.length - 1].content === ""

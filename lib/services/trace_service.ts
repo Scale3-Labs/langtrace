@@ -826,9 +826,8 @@ export class TraceService implements ITraceService {
             inputTokens += prompt_tokens;
             outputTokens += completion_tokens;
             totalTokens += prompt_tokens + completion_tokens;
-          }  else if ("gen_ai.usage.input_tokens" in parsedAttributes) {
-            const prompt_tokens =
-              parsedAttributes["gen_ai.usage.input_tokens"];
+          } else if ("gen_ai.usage.input_tokens" in parsedAttributes) {
+            const prompt_tokens = parsedAttributes["gen_ai.usage.input_tokens"];
             const completion_tokens =
               parsedAttributes["gen_ai.usage.output_tokens"];
             inputTokens += prompt_tokens;
@@ -869,7 +868,7 @@ export class TraceService implements ITraceService {
       const conditions = [
         sql.or(
           sql.like("attributes", "%total_tokens%"),
-          sql.like("attributes", "%gen_ai.usage.prompt_tokens%")
+          sql.like("attributes", "%gen_ai.usage.input_tokens%")
         ),
         sql.gte("start_time", nHoursAgo),
       ];
@@ -913,20 +912,22 @@ export class TraceService implements ITraceService {
             JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
           ) + COALESCE(
             JSONExtractInt(attributes, 'gen_ai.usage.total_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.request.total_tokens'), 0
           )
         ) AS total_tokens`,
           `SUM(
           JSONExtractInt(
             JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
           ) + COALESCE(
-            JSONExtractInt(attributes, 'gen_ai.usage.prompt_tokens'), 0
+            JSONExtractInt(attributes, 'gen_ai.usage.input_tokens'), 0
           )
         ) AS input_tokens`,
           `SUM(
           JSONExtractInt(
             JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
           ) + COALESCE(
-            JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
+            JSONExtractInt(attributes, 'gen_ai.usage.output_tokens'), 0
           )
         ) AS output_tokens`,
         ])

@@ -25,6 +25,26 @@ export async function GET(req: NextRequest) {
       userId,
       model
     );
+
+    // aggregate cost by date
+    const costPerDate: any = [];
+    for (const c of cost) {
+      const date = c.date;
+      const existing = costPerDate.find((d: any) => d.date === date);
+      if (existing) {
+        existing.total += c.total;
+        existing.input += c.input;
+        existing.output += c.output;
+      } else {
+        costPerDate.push({
+          date,
+          total: c.total,
+          input: c.input,
+          output: c.output,
+        });
+      }
+    }
+
     const total = {
       total: cost.reduce(
         (acc: any, curr: { total: any }) => acc + curr.total,
@@ -42,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        cost,
+        cost: costPerDate,
         ...total,
       },
       {
