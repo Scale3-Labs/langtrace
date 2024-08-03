@@ -223,7 +223,7 @@ export default function Annotations({ email }: { email: string }) {
                   output,
                 };
                 if (checked) {
-                  setSelectedData([...selectedData, checkedData]);
+                  setSelectedData((prev) => [...prev, checkedData]);
                 } else {
                   setSelectedData(
                     selectedData.filter((d) => d.spanId !== spanId)
