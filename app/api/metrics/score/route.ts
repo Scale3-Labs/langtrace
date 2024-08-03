@@ -87,15 +87,15 @@ export async function POST(req: NextRequest) {
           dateScoreMap[date] = {};
         }
 
-        if (!dateScoreMap[date][`${testId}-${evaluation.Test?.name}`]) {
-          dateScoreMap[date][`${testId}-${evaluation.Test?.name}`] = [0, 0];
+        if (!dateScoreMap[date][`${evaluation.Test?.name}(${testId})`]) {
+          dateScoreMap[date][`${evaluation.Test?.name}(${testId})`] = [0, 0];
         }
 
         const total =
-          dateScoreMap[date][`${testId}-${evaluation.Test?.name}`][0] +
+          dateScoreMap[date][`${evaluation.Test?.name}(${testId})`][0] +
             evaluation.ltUserScore || 0;
-        dateScoreMap[date][`${testId}-${evaluation.Test?.name}`][0] = total;
-        dateScoreMap[date][`${testId}-${evaluation.Test?.name}`][1] += 1;
+        dateScoreMap[date][`${evaluation.Test?.name}(${testId})`][0] = total;
+        dateScoreMap[date][`${evaluation.Test?.name}(${testId})`][1] += 1;
       });
     }
 
@@ -104,7 +104,11 @@ export async function POST(req: NextRequest) {
         const entry: any = { date };
         Object.entries(scoresByTestId as any).forEach(
           ([testId, scores]: any) => {
-            entry[testId] = scores[0];
+            if (scores[1] === 0) {
+              entry[testId] = 0;
+            } else {
+              entry[testId] = Math.round((scores[0] / scores[1]) * 100);
+            }
           }
         );
         return entry;
@@ -124,7 +128,8 @@ export async function POST(req: NextRequest) {
         if (scores[1] === 0) {
           scoresChartData[testId] = 0;
         }
-        scoresChartData[testId] = scores[0] / scores[1];
+        scoresChartData[testId] =
+          Math.round((scores[0] / scores[1]) * 100) / 100;
       });
     });
 

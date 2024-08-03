@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SmallChartSkeleton() {
   return (
-    <div className="flex flex-col gap-2 border p-3 rounded-lg w-1/3">
+    <div className="flex flex-col gap-2 border p-3 rounded-lg w-[55vh]">
       <div className="flex flex-col gap-1">
         <div className="text-sm font-semibold text-start">
           <Skeleton className="w-full h-6" />
