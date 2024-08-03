@@ -1,6 +1,7 @@
 "use client";
 
 import { AnnotationsTable } from "@/components/annotations/annotations-table";
+import { ChartTabs } from "@/components/annotations/chart-tabs";
 import { CreateTest } from "@/components/annotations/create-test";
 import { EditTest } from "@/components/annotations/edit-test";
 import { TableSkeleton } from "@/components/project/traces/table-skeleton";
@@ -11,13 +12,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PAGE_SIZE } from "@/lib/constants";
 import { LLMSpan, processLLMSpan } from "@/lib/llm_span_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { cn, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { Skeleton } from "@mui/material";
 import { Evaluation, Test } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 import { RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -32,10 +33,24 @@ export default function Annotations({ email }: { email: string }) {
   const projectId = useParams()?.project_id as string;
   const [currentData, setCurrentData] = useState<any>([]);
   const [processedData, setProcessedData] = useState<LLMSpan[]>([]);
+  const [enableFetch, setEnableFetch] = useState(true);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
   const [showBottomLoader, setShowBottomLoader] = useState(false);
+
+  useEffect(() => {
+    const handleFocusChange = () => {
+      setPage(1);
+      setEnableFetch(true);
+    };
+
+    window.addEventListener("focus", handleFocusChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocusChange);
+    };
+  }, []);
 
   const scrollableDivRef = useBottomScrollListener(() => {
     if (fetchLlmPromptSpans.isRefetching) {
@@ -109,11 +124,11 @@ export default function Annotations({ email }: { email: string }) {
         setPage(parseInt(metadata?.page) + 1);
       }
 
-      const updatedData = [];
-      if (currentData.length > 0) {
-        updatedData.push(...currentData, ...newData);
+      let updatedData = [];
+      if (page === 1) {
+        updatedData = [...newData];
       } else {
-        updatedData.push(...newData);
+        updatedData = [...currentData, ...newData];
       }
       // Remove duplicates
       const uniqueData = updatedData.filter(
@@ -143,13 +158,17 @@ export default function Annotations({ email }: { email: string }) {
       setProcessedData(pData);
       setCurrentData(uniqueData);
       setShowBottomLoader(false);
+      setEnableFetch(false);
     },
     onError: (error) => {
       setShowBottomLoader(false);
+      setEnableFetch(false);
       toast.error("Failed to fetch traces", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
+    refetchOnWindowFocus: false,
+    enabled: enableFetch,
   });
 
   const [columns, setColumns] = useState<ColumnDef<LLMSpan & any>[]>([
@@ -246,6 +265,7 @@ export default function Annotations({ email }: { email: string }) {
     },
     {
       size: 500,
+      minSize: 20,
       accessorKey: "input",
       header: "Input",
       cell: ({ row }) => {
@@ -256,14 +276,7 @@ export default function Annotations({ email }: { email: string }) {
         return (
           <div className="flex flex-col gap-3 flex-wrap w-full">
             {input.map((item, i) => (
-              <HoverCell
-                key={i}
-                values={JSON.parse(item)}
-                className={cn(
-                  "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
-                  false ? "" : "max-h-10"
-                )}
-              />
+              <HoverCell key={i} values={JSON.parse(item)} />
             ))}
           </div>
         );
@@ -271,6 +284,7 @@ export default function Annotations({ email }: { email: string }) {
     },
     {
       size: 500,
+      minSize: 20,
       accessorKey: "output",
       header: "Output",
       cell: ({ row }) => {
@@ -281,14 +295,7 @@ export default function Annotations({ email }: { email: string }) {
         return (
           <div className="flex flex-col gap-3 flex-wrap w-full">
             {output.map((item, i) => (
-              <HoverCell
-                key={i}
-                values={JSON.parse(item)}
-                className={cn(
-                  "text-sm overflow-y-scroll bg-muted p-[6px] rounded-md",
-                  false ? "" : "max-h-10"
-                )}
-              />
+              <HoverCell key={i} values={JSON.parse(item)} />
             ))}
           </div>
         );
@@ -310,7 +317,7 @@ export default function Annotations({ email }: { email: string }) {
 
   // Cell content component
   const CellContent = ({ test, row }: { test: Test; row: any }) => {
-    const isEval = test.id !== "user_id";
+    const isEval = test.id !== "user_id" && test.id !== "user_score";
     const spanId = row.original.span_id;
     const testId = test.id;
     const { isError, isLoading, data } = useQuery({
@@ -341,18 +348,19 @@ export default function Annotations({ email }: { email: string }) {
           {evaluation ? evaluation.ltUserScore : "Not evaluated"}
         </p>
       );
+    } else {
+      if (test.id === "user_id") {
+        const userId = data[0]?.userId || "Not Reported";
+        return (
+          <Badge variant="secondary" className="lowercase">
+            {userId}
+          </Badge>
+        );
+      } else if (test.id === "user_score") {
+        const userScore = data[0]?.userScore || "Not Reported";
+        return <p className="text-xs">{userScore}</p>;
+      }
     }
-
-    const userScore = data[0]?.userScore || "";
-    const userId = data[0]?.userId || "Not Reported";
-    if (test.id === "user_id") {
-      return (
-        <Badge variant="secondary" className="lowercase">
-          {userId}
-        </Badge>
-      );
-    }
-    return <p className="text-xs">{userScore}</p>;
   };
 
   const {
@@ -448,6 +456,7 @@ export default function Annotations({ email }: { email: string }) {
         </div>
       ) : tests?.length > 0 ? (
         <div className="flex flex-col gap-6 top-[16rem] w-full md:px-24 px-12 mb-24">
+          <ChartTabs projectId={projectId} tests={tests as Test[]} />
           <AddtoDataset
             projectId={projectId}
             selectedData={selectedData}
@@ -460,6 +469,10 @@ export default function Annotations({ email }: { email: string }) {
             tests={tests}
             loading={fetchLlmPromptSpans.isLoading && !showBottomLoader}
             fetching={fetchLlmPromptSpans.isFetching}
+            refetch={() => {
+              setPage(1);
+              setEnableFetch(true);
+            }}
             paginationLoading={showBottomLoader}
             scrollableDivRef={scrollableDivRef}
           />
