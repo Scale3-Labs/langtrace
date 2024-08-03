@@ -89,7 +89,7 @@ export function ChartTabs({
             <Skeleton className="h-24 w-24 rounded-full" />
           </div>
         ) : Object.keys(chartData?.scores).length > 0 ? (
-          <div className="flex flex-row gap-4 flex-wrap">
+          <div className="flex flex-row gap-6 flex-wrap">
             {Object.keys(chartData?.scores).map(
               (testId: string, index: number) => {
                 const score = (chartData?.scores[testId] || 0) * 100;
@@ -117,7 +117,7 @@ export function ChartTabs({
                         {(chartData?.scores[testId] || 0) * 100}%
                       </span>
                     </ProgressCircle>
-                    <span className="text-lg font-semibold capitalize">
+                    <span className="text-lg text-center font-semibold capitalize text-wrap w-24">
                       {testName}
                     </span>
                   </div>
