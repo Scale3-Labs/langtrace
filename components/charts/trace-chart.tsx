@@ -100,7 +100,7 @@ export function TraceSpanChart({
 
     return (
       <>
-        <div className="flex flex-col gap-2 border p-3 rounded-lg w-1/3">
+        <div className="flex flex-col gap-2 border p-3 rounded-lg w-[55vh]">
           <div className="flex flex-col gap-1 h-12">
             <div className="flex flex-row gap-4 flex-wrap ">
               <p className="text-sm font-semibold text-start">

@@ -1,7 +1,14 @@
 "use client";
 
+import { Test } from "@prisma/client";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { useQuery } from "react-query";
+import { toast } from "sonner";
+import { ChartTabs } from "../annotations/chart-tabs";
+import LargeChartSkeleton from "../charts/large-chart-skeleton";
 import { TraceLatencyChart } from "../charts/latency-chart";
 import { CostChart, TokenChart } from "../charts/token-chart";
 import { TraceSpanChart } from "../charts/trace-chart";
@@ -16,6 +23,36 @@ export default function Metrics({ email }: { email: string }) {
   const [userId, setUserId] = useState("");
   const [model, setModel] = useState("");
 
+  const {
+    data: tests,
+    isLoading: testsLoading,
+    error: testsError,
+  } = useQuery({
+    queryKey: ["fetch-tests-query", project_id],
+    queryFn: async () => {
+      const response = await fetch(`/api/test?projectId=${project_id}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch tests");
+      }
+      const result = await response.json();
+
+      // sort tests by created date
+      result.tests.sort(
+        (a: Test, b: Test) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      return result.tests as Test[];
+    },
+    refetchOnWindowFocus: false,
+    onError: (error) => {
+      toast.error("Failed to fetch tests", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
+
   return (
     <div className="w-full flex flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
@@ -26,7 +63,7 @@ export default function Metrics({ email }: { email: string }) {
           <UserCombobox setSelectedUser={setUserId} selectedUser={userId} />
           <ModelCombobox selectedModel={model} setSelectedModel={setModel} />
         </div>
-        <div className="flex flex-row items-center gap-5">
+        <div className="flex flex-row flex-wrap items-center gap-3">
           <TokenChart
             userId={userId}
             model={model}
@@ -45,6 +82,30 @@ export default function Metrics({ email }: { email: string }) {
             projectId={project_id}
             lastNHours={lastNHours}
           />
+        </div>
+      </div>
+      <div className="flex flex-row gap-4 w-full">
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-row items-center gap-2">
+            <p className="text-lg font-semibold">Manual Evaluation Scores</p>
+            <Link
+              href={`/project/${project_id}/annotations`}
+              className="flex flex-row cursor-pointer text-xs text-blue-600 underline items-center"
+            >
+              Jump to Annotations
+              <ArrowTopRightIcon className="w-3 h-3" />
+            </Link>
+          </div>
+          <Separator />
+          {testsLoading || testsError ? (
+            <LargeChartSkeleton />
+          ) : (
+            <ChartTabs
+              projectId={project_id}
+              defaultTab="metrics"
+              tests={tests as Test[]}
+            />
+          )}
         </div>
       </div>
       <div className="flex flex-row gap-4 w-full">
