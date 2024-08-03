@@ -11,9 +11,11 @@ import { Skeleton } from "../ui/skeleton";
 export function ChartTabs({
   projectId,
   tests,
+  defaultTab = "score",
 }: {
   projectId: string;
   tests: Test[];
+  defaultTab?: "metrics" | "score";
 }) {
   const [lastNHours, setLastNHours] = useState(
     timeRanges[timeRanges.length - 1].value
@@ -65,7 +67,7 @@ export function ChartTabs({
   });
 
   return (
-    <Tabs defaultValue="score" className="w-full">
+    <Tabs defaultValue={defaultTab} className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="score">Total Score (%)</TabsTrigger>
         <TabsTrigger value="metrics">Trend (%)</TabsTrigger>
