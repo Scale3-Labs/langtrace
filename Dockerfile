@@ -33,12 +33,17 @@ FROM node:21.6-bookworm AS production
 
 WORKDIR /app
 
+RUN apt update && apt install postgresql-client -y
+
 # Copy only the necessary files
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package.json .
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/scripts ./scripts
+COPY ./entrypoint.sh /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh
 
 # Install only production dependencies
 RUN npm install --only=production --omit=dev
