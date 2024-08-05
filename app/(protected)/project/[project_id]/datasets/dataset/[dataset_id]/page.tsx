@@ -13,6 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -35,6 +36,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
+  Check,
   ChevronDown,
   ChevronLeft,
   FlaskConical,
@@ -45,7 +47,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 
 export default function Dataset() {
@@ -128,6 +130,15 @@ export default function Dataset() {
       } else {
         setCurrentData(newData);
       }
+
+      // sort the data by timestamp createdAt
+      setCurrentData((prevData) =>
+        prevData.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        )
+      );
+
       setShowBottomLoader(false);
     },
     onError: (error) => {
@@ -148,11 +159,25 @@ export default function Dataset() {
     }
   });
 
-  const DataComponent = ({ value }: { value: string }) => {
+  const DataComponent = ({
+    label,
+    value,
+    id,
+    editable = false,
+  }: {
+    label: string;
+    value: string;
+    id?: string;
+    editable?: boolean;
+  }) => {
     const [expandedView, setExpandedView] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [changedValue, setChangedValue] = useState(value);
+    const [busy, setBusy] = useState(false);
+    const queryClient = useQueryClient();
     return (
       <div className="flex flex-col gap-2">
-        {!expandedView && (
+        {!editMode && !expandedView && value && (
           <MoveDiagonal
             className="self-end h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground"
             onClick={(e) => {
@@ -161,7 +186,7 @@ export default function Dataset() {
             }}
           />
         )}
-        {expandedView && (
+        {!editMode && expandedView && value && (
           <X
             className="self-end h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground"
             onClick={(e) => {
@@ -170,19 +195,91 @@ export default function Dataset() {
             }}
           />
         )}
-        <p
-          className={cn(
-            expandedView ? "" : "h-10",
-            "text-sm overflow-y-scroll"
-          )}
-        >
-          {value}
-        </p>
+        {editable && editMode && (
+          <div className="relative">
+            <Input
+              onChange={(e) => {
+                e.stopPropagation();
+                setChangedValue(e.target.value);
+              }}
+              className={cn(
+                expandedView ? "" : "h-20",
+                "text-sm overflow-y-scroll"
+              )}
+              value={changedValue}
+            />
+            <div className="absolute bottom-2 right-2 flex gap-1">
+              <Button
+                disabled={busy}
+                variant="secondary"
+                size="icon"
+                onClick={async () => {
+                  try {
+                    setBusy(true);
+                    await fetch("/api/data", {
+                      method: "PUT",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        id: id,
+                        [label]: changedValue,
+                      }),
+                    });
+                    await queryClient.invalidateQueries(dataset_id);
+                    toast("Data saved!", {
+                      description: "Your data has been saved.",
+                    });
+                  } catch (error: any) {
+                    toast("Error saving your dataset!", {
+                      description: `There was an error saving your dataset: ${error.message}`,
+                    });
+                  } finally {
+                    setBusy(false);
+                    setEditMode(false);
+                  }
+                }}
+              >
+                <Check className="w-4 h-4" />
+              </Button>
+              <Button
+                disabled={busy}
+                variant="outline"
+                size="icon"
+                onClick={() => setEditMode(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+        {(!editable || !editMode) && (
+          <p
+            onClick={() => editable && setEditMode(true)}
+            className={cn(
+              expandedView ? "" : "h-10",
+              "text-sm overflow-y-scroll"
+            )}
+          >
+            {value}
+          </p>
+        )}
       </div>
     );
   };
 
   const columns: ColumnDef<Data>[] = [
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => {
+        return (
+          <p className="overflow-x-scroll text-xs text-muted-foreground">
+            {row.getValue("id")}
+          </p>
+        );
+      },
+    },
     {
       size: 500,
       accessorKey: "input",
@@ -190,7 +287,7 @@ export default function Dataset() {
       header: "Input",
       cell: ({ row }) => {
         const input = row.getValue("input") as string;
-        return <DataComponent value={input} />;
+        return <DataComponent value={input} label={"input"} />;
       },
     },
     {
@@ -200,7 +297,7 @@ export default function Dataset() {
       header: "Output",
       cell: ({ row }) => {
         const output = row.getValue("output") as string;
-        return <DataComponent value={output} />;
+        return <DataComponent value={output} label={"output"} />;
       },
     },
     {
@@ -210,7 +307,15 @@ export default function Dataset() {
       header: "Expected Output",
       cell: ({ row }) => {
         const expectedOutput = row.getValue("expectedOutput") as string;
-        return <DataComponent value={expectedOutput} />;
+        const id = row.getValue("id") as string;
+        return (
+          <DataComponent
+            editable={true}
+            value={expectedOutput}
+            id={id}
+            label={"expectedOutput"}
+          />
+        );
       },
     },
     {
@@ -224,13 +329,16 @@ export default function Dataset() {
       },
     },
     {
-      size: 100,
+      size: 300,
       accessorKey: "note",
       enableResizing: true,
       header: "Note",
       cell: ({ row }) => {
         const note = row.getValue("note") as string;
-        return <DataComponent value={note} />;
+        const id = row.getValue("id") as string;
+        return (
+          <DataComponent editable={true} value={note} id={id} label={"note"} />
+        );
       },
     },
   ];
