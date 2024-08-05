@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EVALUATIONS_DOCS_URL, PAGE_SIZE } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import { Data } from "@prisma/client";
 import { ArrowTopRightIcon, ResetIcon } from "@radix-ui/react-icons";
 import {
@@ -33,7 +34,13 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronLeft, FlaskConical } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  FlaskConical,
+  MoveDiagonal,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -141,6 +148,40 @@ export default function Dataset() {
     }
   });
 
+  const DataComponent = ({ value }: { value: string }) => {
+    const [expandedView, setExpandedView] = useState(false);
+    return (
+      <div className="flex flex-col gap-2">
+        {!expandedView && (
+          <MoveDiagonal
+            className="self-end h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpandedView(!expandedView);
+            }}
+          />
+        )}
+        {expandedView && (
+          <X
+            className="self-end h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpandedView(!expandedView);
+            }}
+          />
+        )}
+        <p
+          className={cn(
+            expandedView ? "" : "h-10",
+            "text-sm overflow-y-scroll"
+          )}
+        >
+          {value}
+        </p>
+      </div>
+    );
+  };
+
   const columns: ColumnDef<Data>[] = [
     {
       size: 500,
@@ -149,7 +190,7 @@ export default function Dataset() {
       header: "Input",
       cell: ({ row }) => {
         const input = row.getValue("input") as string;
-        return <p className="text-sm h-10 overflow-y-scroll">{input}</p>;
+        return <DataComponent value={input} />;
       },
     },
     {
@@ -159,7 +200,7 @@ export default function Dataset() {
       header: "Output",
       cell: ({ row }) => {
         const output = row.getValue("output") as string;
-        return <p className="text-sm h-10 overflow-y-scroll">{output}</p>;
+        return <DataComponent value={output} />;
       },
     },
     {
@@ -169,9 +210,7 @@ export default function Dataset() {
       header: "Expected Output",
       cell: ({ row }) => {
         const expectedOutput = row.getValue("expectedOutput") as string;
-        return (
-          <p className="text-sm h-10 overflow-y-scroll">{expectedOutput}</p>
-        );
+        return <DataComponent value={expectedOutput} />;
       },
     },
     {
@@ -191,7 +230,7 @@ export default function Dataset() {
       header: "Note",
       cell: ({ row }) => {
         const note = row.getValue("note") as string;
-        return <p className="text-sm h-10 overflow-y-scroll">{note}</p>;
+        return <DataComponent value={note} />;
       },
     },
   ];
