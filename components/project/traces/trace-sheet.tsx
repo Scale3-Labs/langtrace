@@ -83,7 +83,8 @@ export function TraceSheet({
                 <div className="flex gap-2 items-center justify-between w-full">
                   <Button
                     className="w-fit"
-                    variant={"secondary"}
+                    size={"sm"}
+                    variant={"outline"}
                     onClick={() => setSpansView("SPANS")}
                   >
                     <ChevronLeft size={16} className="mr-2" />
@@ -92,7 +93,8 @@ export function TraceSheet({
                   <div className="flex gap-2 items-center">
                     <Button
                       className="w-fit"
-                      variant={"secondary"}
+                      size={"sm"}
+                      variant={"outline"}
                       disabled={spansView === "ATTRIBUTES"}
                       onClick={() => setSpansView("ATTRIBUTES")}
                     >
@@ -101,11 +103,12 @@ export function TraceSheet({
                     </Button>
                     <Button
                       className="w-fit"
-                      variant={"secondary"}
+                      size={"sm"}
+                      variant={"outline"}
                       disabled={spansView === "CONVERSATION"}
                       onClick={() => setSpansView("CONVERSATION")}
                     >
-                      <MessageCircle size={16} className="mr-2" />
+                      <MessageCircle size={16} className="mr-2 fill-primary" />
                       LLM Conversations
                     </Button>
                     {includesLanggraph && (

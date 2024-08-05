@@ -368,7 +368,6 @@ function EvaluationSheet({
   const {
     isError,
     isLoading,
-    isFetching,
     data: evaluations,
   } = useQuery({
     queryKey: ["fetch-evaluation-query", span.span_id],

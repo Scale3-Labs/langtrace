@@ -88,12 +88,12 @@ export async function POST(req: NextRequest) {
 
     const payload = datas.map((data: Data) => {
       const d: any = {
-        input: data.input,
-        output: data.output,
-        contexts: data.contexts || [],
-        annotatedOutput: data.annotatedOutput || "",
-        note: data.note || "",
         spanId: data.spanId || "",
+        input: data.input || "",
+        output: data.output || "",
+        expectedOutput: data.expectedOutput || "",
+        model: data.model || "",
+        note: data.note || "",
         projectId: projectId || "",
         datasetId: datasetId || "",
       };
@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
 
     const result = await prisma.data.createMany({
       data: payload,
+      skipDuplicates: true,
     });
 
     return NextResponse.json({
@@ -129,7 +130,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const data = await req.json();
-    const { id, input, output, annotatedOutput, contexts, note } = data;
+    const { id, input, output, expectedOutput, model, note } = data;
 
     const result = await prisma.data.update({
       where: {
@@ -138,8 +139,8 @@ export async function PUT(req: NextRequest) {
       data: {
         input,
         output,
-        annotatedOutput,
-        contexts,
+        expectedOutput,
+        model,
         note,
       },
     });

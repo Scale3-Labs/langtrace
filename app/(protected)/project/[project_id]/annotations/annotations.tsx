@@ -181,15 +181,17 @@ export default function Annotations({ email }: { email: string }) {
           const spanId = row.original.span_id;
           const prompts = row.getValue("input") as string[];
           const responses = row.getValue("output") as string[];
+          const model = row.getValue("model") as string;
 
           let input = "";
           if (prompts && prompts.length > 0) {
             // get last item in prompts
             const lastItem = prompts[prompts.length - 1];
+            const parsedLastItem = JSON.parse(lastItem);
             input =
-              JSON.parse(lastItem)[0]?.content ||
-              JSON.parse(lastItem)[0]?.message?.content ||
-              JSON.parse(lastItem)[0]?.text;
+              parsedLastItem[parsedLastItem.length - 1]?.content ||
+              parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
+              parsedLastItem[parsedLastItem.length - 1]?.text;
 
             // check if input is not a string
             if (typeof input !== "string") {
@@ -201,10 +203,11 @@ export default function Annotations({ email }: { email: string }) {
           if (responses && responses.length > 0) {
             // get last item in responses
             const lastItem = responses[responses.length - 1];
+            const parsedLastItem = JSON.parse(lastItem);
             output =
-              JSON.parse(lastItem)[0]?.message?.content ||
-              JSON.parse(lastItem)[0]?.text ||
-              JSON.parse(lastItem)[0]?.content;
+              parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
+              parsedLastItem[parsedLastItem.length - 1]?.text ||
+              parsedLastItem[parsedLastItem.length - 1]?.content;
 
             // check if output is not a string
             if (typeof output !== "string") {
@@ -221,9 +224,10 @@ export default function Annotations({ email }: { email: string }) {
                   spanId,
                   input,
                   output,
+                  model,
                 };
                 if (checked) {
-                  setSelectedData([...selectedData, checkedData]);
+                  setSelectedData((prev) => [...prev, checkedData]);
                 } else {
                   setSelectedData(
                     selectedData.filter((d) => d.spanId !== spanId)

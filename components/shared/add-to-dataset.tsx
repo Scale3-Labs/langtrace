@@ -1,8 +1,3 @@
-"use client";
-
-import { Check, ChevronsUpDown, PlusIcon } from "lucide-react";
-import * as React from "react";
-
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -11,13 +6,6 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-
 import {
   Dialog,
   DialogContent,
@@ -28,7 +16,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@mui/material";
 import { Dataset } from "@prisma/client";
+import { Check, ChevronsUpDown, PlusIcon } from "lucide-react";
+import * as React from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import { CreateDataset } from "../project/dataset/create";
@@ -140,7 +137,7 @@ export default function DatasetCombobox({
   });
 
   if (fetchDatasets.isLoading || !fetchDatasets.data) {
-    return <div>Loading...</div>; // this componenet isn't being used, will add updated loading later
+    return <Skeleton width={200} height={50} />;
   } else {
     return (
       <Popover open={open} onOpenChange={setOpen}>
