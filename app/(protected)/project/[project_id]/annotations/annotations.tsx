@@ -181,6 +181,7 @@ export default function Annotations({ email }: { email: string }) {
           const spanId = row.original.span_id;
           const prompts = row.getValue("input") as string[];
           const responses = row.getValue("output") as string[];
+          const model = row.getValue("model") as string;
 
           let input = "";
           if (prompts && prompts.length > 0) {
@@ -221,6 +222,7 @@ export default function Annotations({ email }: { email: string }) {
                   spanId,
                   input,
                   output,
+                  model,
                 };
                 if (checked) {
                   setSelectedData((prev) => [...prev, checkedData]);
