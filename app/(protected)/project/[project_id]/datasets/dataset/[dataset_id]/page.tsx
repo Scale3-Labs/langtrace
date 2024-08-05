@@ -245,7 +245,7 @@ export default function Dataset() {
     return colSizes;
   }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
 
-  if (fetchDataset.isLoading || !fetchDataset.data || !currentData) {
+  if (fetchDataset.isLoading || !fetchDataset.data) {
     return <PageSkeleton />;
   } else {
     return (
@@ -319,8 +319,8 @@ export default function Dataset() {
           className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
           ref={scrollableDivRef as any}
         >
-          {fetchDataset.isLoading && currentData?.length === 0 && (
-            <div className="flex items-center justify-center">
+          {!fetchDataset.isLoading && currentData.length === 0 && (
+            <div className="flex items-center justify-center mt-24">
               <p className="text-muted-foreground">
                 No data found in this dataset
               </p>
