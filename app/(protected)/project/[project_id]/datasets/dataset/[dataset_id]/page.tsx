@@ -3,7 +3,7 @@
 import { ExpandingTextArea } from "@/components/playground/common";
 import { CreateData } from "@/components/project/dataset/create-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
-// import { EditData } from "@/components/project/dataset/edit-data";
+import { DeleteData } from "@/components/project/dataset/delete-data";
 import { DownloadDataset } from "@/components/shared/download-dataset";
 import RowSkeleton from "@/components/shared/row-skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -247,17 +247,6 @@ export default function Dataset() {
 
   const columns: ColumnDef<Data>[] = [
     {
-      accessorKey: "createdAt",
-      header: "Created At",
-      cell: ({ row }) => {
-        return (
-          <p className="overflow-x-scroll text-xs text-muted-foreground">
-            {row.getValue("createdAt")}
-          </p>
-        );
-      },
-    },
-    {
       accessorKey: "id",
       header: "ID",
       cell: ({ row }) => {
@@ -327,6 +316,15 @@ export default function Dataset() {
         return (
           <DataComponent editable={true} value={note} id={id} label={"note"} />
         );
+      },
+    },
+    {
+      size: 50,
+      accessorKey: "delete",
+      enableResizing: true,
+      header: "Delete",
+      cell: ({ row }) => {
+        return <DeleteData id={row.getValue("id") as string} />;
       },
     },
   ];
