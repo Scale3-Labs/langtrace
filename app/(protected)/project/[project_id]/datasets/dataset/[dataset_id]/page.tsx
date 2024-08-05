@@ -2,19 +2,41 @@
 
 import { CreateData } from "@/components/project/dataset/create-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
-import { EditData } from "@/components/project/dataset/edit-data";
+// import { EditData } from "@/components/project/dataset/edit-data";
 import { DownloadDataset } from "@/components/shared/download-dataset";
-import { Spinner } from "@/components/shared/spinner";
+import RowSkeleton from "@/components/shared/row-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { EVALUATIONS_DOCS_URL, PAGE_SIZE } from "@/lib/constants";
 import { Data } from "@prisma/client";
-import { ArrowTopRightIcon } from "@radix-ui/react-icons";
-import { ChevronLeft, FlaskConical } from "lucide-react";
+import { ArrowTopRightIcon, ResetIcon } from "@radix-ui/react-icons";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  VisibilityState,
+} from "@tanstack/react-table";
+import { ChevronDown, ChevronLeft, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -24,18 +46,42 @@ export default function Dataset() {
   const dataset_id = useParams()?.dataset_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [showLoader, setShowLoader] = useState(false);
+  const [showBottomLoader, setShowBottomLoader] = useState(false);
   const [currentData, setCurrentData] = useState<Data[]>([]);
-
-  useBottomScrollListener(() => {
-    if (fetchDataset.isRefetching) {
-      return;
-    }
-    if (page <= totalPages) {
-      setShowLoader(true);
-      fetchDataset.refetch();
-    }
+  const [tableState, setTableState] = useState<any>({
+    pagination: {
+      pageIndex: 0,
+      pageSize: 100,
+    },
   });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const storedState = window.localStorage.getItem(
+          "preferences.dataset.table-view"
+        );
+        if (storedState) {
+          const parsedState = JSON.parse(storedState);
+          setTableState((prevState: any) => ({
+            ...prevState,
+            ...parsedState,
+            pagination: {
+              ...prevState.pagination,
+              ...parsedState.pagination,
+            },
+          }));
+          if (parsedState.columnVisibility) {
+            setColumnVisibility(parsedState.columnVisibility);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing stored table state:", error);
+      }
+    }
+  }, []);
 
   const fetchDataset = useQuery({
     queryKey: [dataset_id],
@@ -75,15 +121,129 @@ export default function Dataset() {
       } else {
         setCurrentData(newData);
       }
-      setShowLoader(false);
+      setShowBottomLoader(false);
     },
     onError: (error) => {
-      setShowLoader(false);
+      setShowBottomLoader(false);
       toast.error("Failed to fetch dataset", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
   });
+
+  const scrollableDivRef = useBottomScrollListener(() => {
+    if (fetchDataset.isRefetching) {
+      return;
+    }
+    if (page <= totalPages) {
+      setShowBottomLoader(true);
+      fetchDataset.refetch();
+    }
+  });
+
+  const columns: ColumnDef<Data>[] = [
+    {
+      size: 500,
+      accessorKey: "input",
+      enableResizing: true,
+      header: "Input",
+      cell: ({ row }) => {
+        const input = row.getValue("input") as string;
+        return <p className="text-sm h-10 overflow-y-scroll">{input}</p>;
+      },
+    },
+    {
+      size: 500,
+      accessorKey: "output",
+      enableResizing: true,
+      header: "Output",
+      cell: ({ row }) => {
+        const output = row.getValue("output") as string;
+        return <p className="text-sm h-10 overflow-y-scroll">{output}</p>;
+      },
+    },
+    {
+      size: 500,
+      accessorKey: "expectedOutput",
+      enableResizing: true,
+      header: "Expected Output",
+      cell: ({ row }) => {
+        const expectedOutput = row.getValue("expectedOutput") as string;
+        return (
+          <p className="text-sm h-10 overflow-y-scroll">{expectedOutput}</p>
+        );
+      },
+    },
+    {
+      size: 100,
+      accessorKey: "model",
+      enableResizing: true,
+      header: "Model",
+      cell: ({ row }) => {
+        const model = row.getValue("model") as string;
+        return <p className="text-sm h-10 overflow-y-scroll">{model}</p>;
+      },
+    },
+    {
+      size: 100,
+      accessorKey: "note",
+      enableResizing: true,
+      header: "Note",
+      cell: ({ row }) => {
+        const note = row.getValue("note") as string;
+        return <p className="text-sm h-10 overflow-y-scroll">{note}</p>;
+      },
+    },
+  ];
+
+  const table = useReactTable({
+    data: currentData,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    initialState: {
+      ...tableState,
+      pagination: tableState.pagination,
+      columnVisibility,
+    },
+    state: {
+      ...tableState,
+      pagination: tableState.pagination,
+      columnVisibility,
+    },
+    onStateChange: (newState: any) => {
+      setTableState((prevState: any) => ({
+        ...newState,
+        pagination: newState.pagination || prevState.pagination,
+      }));
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.dataset.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    onColumnVisibilityChange: (newVisibility) => {
+      setColumnVisibility(newVisibility);
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.dataset.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    manualPagination: true, // Add this if you're handling pagination yourself
+  });
+
+  const columnSizeVars = useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   if (fetchDataset.isLoading || !fetchDataset.data || !currentData) {
     return <PageSkeleton />;
@@ -114,15 +274,51 @@ export default function Dataset() {
                 <ArrowTopRightIcon className="ml-1 h-4 w-4" />
               </Button>
             </Link>
+            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns
+                  <ChevronDown size={16} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="h-40 overflow-y-visible">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onSelect={() => setOpenDropdown(true)}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.columnDef.header?.toString()}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size={"icon"}
+              variant={"destructive"}
+              onClick={() => {
+                setColumnVisibility({});
+                setTableState({});
+                localStorage.removeItem("preferences.dataset.table-view");
+              }}
+            >
+              <ResetIcon className="w-4 h-4" />
+            </Button>
           </div>
         </div>
-        <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
-          <div className="grid grid-cols-5 items-center justify-stretch gap-3 py-3 px-4 bg-muted">
-            <p className="text-xs font-medium">Created at</p>
-            <p className="text-xs font-medium">Input</p>
-            <p className="text-xs font-medium">Output</p>
-            <p className="text-xs font-medium text-end">Note</p>
-          </div>
+        <div
+          className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
+          ref={scrollableDivRef as any}
+        >
           {fetchDataset.isLoading && currentData?.length === 0 && (
             <div className="flex items-center justify-center">
               <p className="text-muted-foreground">
@@ -131,34 +327,84 @@ export default function Dataset() {
             </div>
           )}
           {!fetchDataset.isLoading &&
-            currentData.length > 0 &&
-            currentData.map((data: any, i: number) => {
-              return (
-                <div className="flex flex-col" key={i}>
-                  <div className="grid grid-cols-5 items-start justify-stretch gap-3 py-3 px-4">
-                    <p className="text-xs">{data.createdAt}</p>
-                    <p className="text-xs h-12 overflow-y-scroll">
-                      {data.input}
-                    </p>
-                    <p className="text-xs h-12 overflow-y-scroll">
-                      {data.output}
-                    </p>
-                    <p className="text-xs text-end">{data.note}</p>
-                    <div className="text-end">
-                      <EditData
-                        key={data.id}
-                        idata={data}
-                        datasetId={dataset_id}
-                      />
-                    </div>
-                  </div>
-                  <Separator orientation="horizontal" />
-                </div>
-              );
-            })}
-          {showLoader && (
-            <div className="flex justify-center py-8">
-              <Spinner className="h-8 w-8 text-center" />
+            currentData &&
+            currentData?.length > 0 && (
+              <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
+                <TableHeader className="sticky top-0 bg-secondary">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          style={{
+                            width: `calc(var(--header-${header.id}-size) * 1px)`,
+                            position: "relative",
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          <div
+                            onDoubleClick={() => header.column.resetSize()}
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={`bg-muted-foreground resizer ${
+                              header.column.getIsResizing() ? "isResizing" : ""
+                            }`}
+                          />
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {fetchDataset.isFetching && (
+                    <TableRow className="cursor-pointer">
+                      {table.getFlatHeaders().map((header) => (
+                        <TableCell
+                          key={header.id}
+                          style={{
+                            width: `calc(var(--col-${header.column.id}-size) * 1px)`,
+                          }}
+                        >
+                          <Skeleton className="h-5 w-28" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  )}
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      className="cursor-pointer"
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          style={{
+                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          {showBottomLoader && (
+            <div className="flex flex-col gap-3">
+              <Separator />
+              {Array.from({ length: 2 }).map((_, index) => (
+                <RowSkeleton key={index} />
+              ))}
             </div>
           )}
         </div>
@@ -183,12 +429,13 @@ function PageSkeleton() {
       </div>
       <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen overflow-y-scroll">
         <div className="grid grid-cols-5 items-center justify-stretch gap-3 py-3 px-4 bg-muted">
-          <p className="text-xs font-medium">Created at</p>
           <p className="text-xs font-medium">Input</p>
           <p className="text-xs font-medium">Output</p>
+          <p className="text-xs font-medium">Expected Output</p>
+          <p className="text-xs font-medium">Model</p>
           <p className="text-xs font-medium text-end">Note</p>
         </div>
-        {Array.from({ length: 5 }).map((_, index) => (
+        {Array.from({ length: 6 }).map((_, index) => (
           <DatasetRowSkeleton key={index} />
         ))}
       </div>

@@ -30,7 +30,7 @@ import {
 import { ChevronDown, RefreshCwIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import TraceRowSkeleton from "../../shared/row-skeleton";
+import RowSkeleton from "../../shared/row-skeleton";
 import { TableSkeleton } from "./table-skeleton";
 import { TraceSheet } from "./trace-sheet";
 import { TracesDownload } from "./traces-download";
@@ -317,7 +317,7 @@ export function TracesTable<TData, TValue>({
           <div className="flex flex-col gap-3">
             <Separator />
             {Array.from({ length: 2 }).map((_, index) => (
-              <TraceRowSkeleton key={index} />
+              <RowSkeleton key={index} />
             ))}
           </div>
         )}
