@@ -1,5 +1,6 @@
 "use client";
 
+import { ExpandingTextArea } from "@/components/playground/common";
 import { CreateData } from "@/components/project/dataset/create-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
 // import { EditData } from "@/components/project/dataset/edit-data";
@@ -13,7 +14,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -35,7 +35,6 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
-  Check,
   ChevronDown,
   ChevronLeft,
   FlaskConical,
@@ -44,7 +43,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
@@ -117,26 +116,28 @@ export default function Dataset() {
 
       // Merge the new data with the existing data
       if (currentData.length > 0) {
-        const updatedData = [...currentData, ...newData];
+        const uniqueData = [
+          ...currentData.filter(
+            (item) => !newData.some((existing) => existing.id === item.id)
+          ),
+          ...newData,
+        ];
 
-        // Remove duplicates
-        const uniqueData = updatedData.filter(
-          (v: any, i: number, a: any) =>
-            a.findIndex((t: any) => t.id === v.id) === i
+        // sort new data by created_at
+        uniqueData.sort(
+          (a: Data, b: Data) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
 
         setCurrentData(uniqueData);
       } else {
+        // sort new data by created_at
+        newData.sort(
+          (a: Data, b: Data) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
         setCurrentData(newData);
       }
-
-      // sort the data by timestamp createdAt
-      setCurrentData((prevData) =>
-        prevData.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        )
-      );
 
       setShowBottomLoader(false);
     },
@@ -172,7 +173,7 @@ export default function Dataset() {
     const [expandedView, setExpandedView] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [changedValue, setChangedValue] = useState(value);
-    const [busy, setBusy] = useState(false);
+    const saveButtonRef = useRef<HTMLButtonElement>(null);
     const queryClient = useQueryClient();
     return (
       <div className="flex flex-col gap-2">
@@ -195,68 +196,45 @@ export default function Dataset() {
           />
         )}
         {editable && editMode && (
-          <div className="relative">
-            <Input
-              onChange={(e) => {
-                e.stopPropagation();
-                setChangedValue(e.target.value);
-              }}
-              className={cn(
-                expandedView ? "" : "h-20",
-                "text-sm overflow-y-scroll"
-              )}
-              value={changedValue}
-            />
-            <div className="absolute bottom-2 right-2 flex gap-1">
-              <Button
-                disabled={busy}
-                variant="secondary"
-                size="icon"
-                onClick={async () => {
-                  try {
-                    setBusy(true);
-                    await fetch("/api/data", {
-                      method: "PUT",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        id: id,
-                        [label]: changedValue,
-                      }),
-                    });
-                    await queryClient.invalidateQueries(dataset_id);
-                    toast("Data saved!", {
-                      description: "Your data has been saved.",
-                    });
-                  } catch (error: any) {
-                    toast("Error saving your dataset!", {
-                      description: `There was an error saving your dataset: ${error.message}`,
-                    });
-                  } finally {
-                    setBusy(false);
-                    setEditMode(false);
-                  }
-                }}
-              >
-                <Check className="w-4 h-4" />
-              </Button>
-              <Button
-                disabled={busy}
-                variant="outline"
-                size="icon"
-                onClick={() => setEditMode(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+          <ExpandingTextArea
+            onChange={(value: string) => {
+              setChangedValue(value);
+            }}
+            value={changedValue}
+            setFocusing={setEditMode}
+            saveButtonRef={saveButtonRef}
+            saveButtonLabel="Save"
+            handleSave={async () => {
+              try {
+                await fetch("/api/data", {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    id: id,
+                    [label]: changedValue,
+                  }),
+                });
+                await queryClient.invalidateQueries({ queryKey: [dataset_id] });
+                toast("Data saved!", {
+                  description: "Your data has been saved.",
+                });
+              } catch (error: any) {
+                toast("Error saving your dataset!", {
+                  description: `There was an error saving your dataset: ${error.message}`,
+                });
+              } finally {
+                setEditMode(false);
+              }
+            }}
+          />
         )}
         {(!editable || !editMode) && (
           <p
             onClick={() => editable && setEditMode(true)}
             className={cn(
-              expandedView ? "" : "h-10",
+              expandedView ? "" : "h-20",
               "text-sm overflow-y-scroll"
             )}
           >
@@ -268,6 +246,17 @@ export default function Dataset() {
   };
 
   const columns: ColumnDef<Data>[] = [
+    {
+      accessorKey: "createdAt",
+      header: "Created At",
+      cell: ({ row }) => {
+        return (
+          <p className="overflow-x-scroll text-xs text-muted-foreground">
+            {row.getValue("createdAt")}
+          </p>
+        );
+      },
+    },
     {
       accessorKey: "id",
       header: "ID",
