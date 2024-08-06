@@ -58,23 +58,49 @@ export async function GET(req: NextRequest) {
     }
 
     // fetch count of runs for the project or dataset
-    let totalEvaluations = 0;
+    let evaluationMetrics: any = {};
+    const body: any = {
+      projectId,
+    };
     if (datasetId) {
-      totalEvaluations = await prisma.run.count({
-        where: {
-          datasetId,
-        },
-      });
-    } else {
-      totalEvaluations = await prisma.run.count({
-        where: {
-          projectId,
-        },
-      });
+      body["datasetId"] = datasetId;
+    }
+    const totalEvaluations = await prisma.run.count({
+      where: body,
+    });
+    const runs = await prisma.run.findMany({
+      where: body,
+    });
+
+    for (const run of runs) {
+      const logs: any = run.log || {};
+      const parsedLogs = JSON.parse(logs);
+      const scorers = parsedLogs?.results?.scores || [];
+      const model = parsedLogs?.eval?.model || "model-unspecified";
+      for (const scorer of scorers) {
+        if (scorer.name && !evaluationMetrics[scorer.name]) {
+          evaluationMetrics[scorer.name] = {};
+        }
+        if (scorer?.metrics) {
+          for (const metric of Object.keys(scorer.metrics)) {
+            if (!evaluationMetrics[scorer.name][metric]) {
+              evaluationMetrics[scorer.name][metric] = {};
+            }
+            if (evaluationMetrics[scorer.name][metric][model]) {
+              evaluationMetrics[scorer.name][metric][model] +=
+                parseFloat(scorer.metrics[metric]?.value) || 0;
+            } else {
+              evaluationMetrics[scorer.name][metric][model] =
+                parseFloat(scorer.metrics[metric]?.value) || 0;
+            }
+          }
+        }
+      }
     }
 
     return NextResponse.json({
       total_evaluations: totalEvaluations,
+      evaluation_metrics: evaluationMetrics,
     });
   } catch (error) {
     return NextResponse.json(
