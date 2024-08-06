@@ -1,9 +1,9 @@
 "use client";
 
+import { DatasetDropdown } from "@/components/shared/dataset-dropdown";
 import RowSkeleton from "@/components/shared/row-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -55,6 +54,15 @@ export default function Evaluations() {
   });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [datasetId, setDatasetId] = useState<string>("");
+  const [manualRefetching, setManualRefetching] = useState(true);
+
+  useEffect(() => {
+    setCurrentData([]);
+    setPage(1);
+    setTotalPages(1);
+    setManualRefetching(true);
+  }, [datasetId]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -96,7 +104,7 @@ export default function Evaluations() {
     queryKey: ["fetch-experiments-query"],
     queryFn: async () => {
       const response = await fetch(
-        `/api/run?projectId=${projectId}&page=${page}&pageSize=25`
+        `/api/run?projectId=${projectId}&datasetId=${datasetId}&page=${page}&pageSize=25`
       );
       if (!response.ok) {
         const error = await response.json();
@@ -126,12 +134,17 @@ export default function Evaluations() {
         setCurrentData(newData);
       }
       setShowLoader(false);
+      setManualRefetching(false);
     },
     onError: (error) => {
+      setShowLoader(false);
+      setManualRefetching(false);
       toast.error("Failed to fetch evaluations", {
         description: error instanceof Error ? error.message : String(error),
       });
     },
+    enabled: manualRefetching,
+    refetchOnWindowFocus: false,
   });
 
   const columns: ColumnDef<Run>[] = [
@@ -339,7 +352,7 @@ export default function Evaluations() {
       </div>
       {!fetchExperiments.isLoading && (
         <div className="flex flex-col gap-12 w-full px-12">
-          {currentData.length === 0 && (
+          {currentData.length === 0 && !manualRefetching && (
             <div className="flex flex-col items-center gap-2 mt-24">
               <p className="text-center text-md">
                 {fetchExperiments.isError
@@ -355,48 +368,55 @@ export default function Evaluations() {
               </Link>
             </div>
           )}
-          <div className="flex items-center gap-2">
-            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  Columns
-                  <ChevronDown size={16} className="ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="h-72 overflow-y-visible">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize"
-                        checked={column.getIsVisible()}
-                        onSelect={() => setOpenDropdown(true)}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
-                      >
-                        {column.columnDef.header?.toString()}
-                      </DropdownMenuCheckboxItem>
-                    );
-                  })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button
-              size={"icon"}
-              variant={"destructive"}
-              onClick={() => {
-                setColumnVisibility({});
-                setTableState({});
-                localStorage.removeItem("preferences.evals.table-view");
-              }}
-            >
-              <ResetIcon className="w-4 h-4" />
-            </Button>
+          <div className="flex items-center justify-between">
+            <DatasetDropdown
+              projectId={projectId}
+              setDatasetId={setDatasetId}
+              datasetId={datasetId}
+            />
+            <div className="flex items-center gap-2">
+              <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="ml-auto">
+                    Columns
+                    <ChevronDown size={16} className="ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="h-72 overflow-y-visible">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={column.id}
+                          className="capitalize"
+                          checked={column.getIsVisible()}
+                          onSelect={() => setOpenDropdown(true)}
+                          onCheckedChange={(value) =>
+                            column.toggleVisibility(!!value)
+                          }
+                        >
+                          {column.columnDef.header?.toString()}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                size={"icon"}
+                variant={"destructive"}
+                onClick={() => {
+                  setColumnVisibility({});
+                  setTableState({});
+                  localStorage.removeItem("preferences.evals.table-view");
+                }}
+              >
+                <ResetIcon className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-          {currentData.length > 0 && (
+          {currentData.length > 0 && !manualRefetching && (
             <div
               className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll mb-12"
               ref={scrollableDivRef as any}
@@ -468,46 +488,16 @@ export default function Evaluations() {
           )}
         </div>
       )}
-      {fetchExperiments.isLoading && (
-        <div className="flex flex-col gap-12 w-full px-12">
-          <table className="table-auto overflow-x-scroll w-max border-separate border border-muted rounded-md mt-6">
-            <thead className="bg-muted">
-              <tr>
-                <th className="w-12 rounded-md p-2">
-                  <Checkbox disabled={true} />
-                </th>
-                <th className="p-2 rounded-md text-sm font-medium">Run ID</th>
-                <th className="p-2 rounded-md text-sm font-medium">
-                  Started at
-                </th>
-                <th className="p-2 rounded-md text-sm font-medium">
-                  Completed at
-                </th>
-                <th className="p-2 rounded-md text-sm font-medium">Task</th>
-                <th className="p-2 rounded-md text-sm font-medium">
-                  Total Samples
-                </th>
-                <th className="p-2 rounded-md text-sm font-medium">Model</th>
-                <th className="p-2 rounded-md text-sm font-medium">
-                  Plan Name
-                </th>
-                <th className="p-2 rounded-md text-sm font-medium">Scorer</th>
-                <th className="p-2 rounded-md text-sm font-medium">Metrics</th>
-                <th className="p-2 rounded-md text-sm font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((j) => (
-                <tr key={j}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((i) => (
-                    <td key={i}>
-                      <Skeleton className="h-[20px] w-[120px]" />
-                    </td>
-                  ))}
-                </tr>
+      {(fetchExperiments.isLoading || manualRefetching) && (
+        <div className="px-12 mt-8">
+          <div className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll mb-12">
+            <div className="flex flex-col gap-3">
+              <Separator />
+              {Array.from({ length: 10 }).map((_, index) => (
+                <RowSkeleton key={index} />
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       )}
     </div>
