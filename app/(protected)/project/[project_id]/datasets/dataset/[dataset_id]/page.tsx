@@ -123,19 +123,23 @@ export default function Dataset() {
           ...newData,
         ];
 
-        // sort new data by created_at
-        uniqueData.sort(
-          (a: Data, b: Data) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        // sort new data by created_at and id if created_at is the same
+        uniqueData.sort((a: Data, b: Data) => {
+          const dateComparison =
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          if (dateComparison !== 0) return dateComparison;
+          return a.id.localeCompare(b.id);
+        });
 
         setCurrentData(uniqueData);
       } else {
-        // sort new data by created_at
-        newData.sort(
-          (a: Data, b: Data) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        // sort new data by created_at and id if created_at is the same
+        newData.sort((a: Data, b: Data) => {
+          const dateComparison =
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          if (dateComparison !== 0) return dateComparison;
+          return a.id.localeCompare(b.id);
+        });
         setCurrentData(newData);
       }
 
@@ -170,6 +174,7 @@ export default function Dataset() {
     id?: string;
     editable?: boolean;
   }) => {
+    const [busy, setBusy] = useState<boolean>(false);
     const [expandedView, setExpandedView] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [changedValue, setChangedValue] = useState(value);
@@ -200,12 +205,14 @@ export default function Dataset() {
             onChange={(value: string) => {
               setChangedValue(value);
             }}
+            busy={busy}
             value={changedValue}
             setFocusing={setEditMode}
             saveButtonRef={saveButtonRef}
             saveButtonLabel="Save"
             handleSave={async () => {
               try {
+                setBusy(true);
                 await fetch("/api/data", {
                   method: "PUT",
                   headers: {
@@ -225,6 +232,7 @@ export default function Dataset() {
                   description: `There was an error saving your dataset: ${error.message}`,
                 });
               } finally {
+                setBusy(false);
                 setEditMode(false);
               }
             }}
@@ -246,6 +254,17 @@ export default function Dataset() {
   };
 
   const columns: ColumnDef<Data>[] = [
+    {
+      accessorKey: "createdAt",
+      header: "Created At",
+      cell: ({ row }) => {
+        return (
+          <p className="overflow-x-scroll text-xs text-muted-foreground">
+            {row.getValue("createdAt")}
+          </p>
+        );
+      },
+    },
     {
       accessorKey: "id",
       header: "ID",
