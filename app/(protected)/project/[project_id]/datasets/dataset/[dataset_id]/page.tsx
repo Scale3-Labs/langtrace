@@ -473,9 +473,13 @@ export default function Dataset() {
         </div>
         <div className="flex gap-4 items-center">
           {!fetchEvalMetrics.isLoading && (
-            <p className="text-muted-foreground font-semibold text-sm">
+            <Link
+              href={`/project/${projectId}/evaluations?dataset_id=${dataset_id}`}
+              className="text-muted-foreground font-semibold text-sm hover:underline hover:text-primary flex items-center gap-0"
+            >
               Total Evaluations: {fetchEvalMetrics.data?.total_evaluations || 0}
-            </p>
+              <ArrowTopRightIcon className="h-4 w-4" />
+            </Link>
           )}
         </div>
         <div

@@ -4,6 +4,7 @@ import { DatasetDropdown } from "@/components/shared/dataset-dropdown";
 import RowSkeleton from "@/components/shared/row-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -32,13 +33,15 @@ import {
 } from "@tanstack/react-table";
 import { ChevronDown, ClipboardIcon, FlaskConical } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
 export default function Evaluations() {
+  const searchParams = useSearchParams();
+  const urldatasetId = searchParams?.get("dataset_id") || "";
   const router = useRouter();
   const projectId = useParams()?.project_id as string;
   const [comparisonRunIds, setComparisonRunIds] = useState<string[]>([]);
@@ -54,7 +57,7 @@ export default function Evaluations() {
   });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
-  const [datasetId, setDatasetId] = useState<string>("");
+  const [datasetId, setDatasetId] = useState<string>(urldatasetId);
   const [manualRefetching, setManualRefetching] = useState(true);
 
   useEffect(() => {
@@ -148,6 +151,36 @@ export default function Evaluations() {
   });
 
   const columns: ColumnDef<Run>[] = [
+    {
+      size: 50,
+      accessorKey: "check_box",
+      enableResizing: false,
+      header: "Select",
+      cell: ({ row }) => {
+        const logString = row.getValue("log") as string;
+        const log = JSON.parse(logString);
+        return (
+          <Checkbox
+            id={row.getValue("runId") as string}
+            onClick={(e) => e.stopPropagation()}
+            disabled={log?.status !== "success"}
+            checked={comparisonRunIds.includes(row.getValue("runId") as string)}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                setComparisonRunIds((prev) => [
+                  ...prev,
+                  row.getValue("runId") as string,
+                ]);
+              } else {
+                setComparisonRunIds((prev) =>
+                  prev.filter((id) => id !== row.getValue("runId"))
+                );
+              }
+            }}
+          />
+        );
+      },
+    },
     {
       accessorKey: "runId",
       enableResizing: true,
@@ -422,7 +455,7 @@ export default function Evaluations() {
               ref={scrollableDivRef as any}
             >
               <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
-                <TableHeader className="sticky top-0 bg-secondary">
+                <TableHeader className="sticky top-0 bg-secondary z-50">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
