@@ -255,17 +255,6 @@ export default function Dataset() {
 
   const columns: ColumnDef<Data>[] = [
     {
-      accessorKey: "createdAt",
-      header: "Created At",
-      cell: ({ row }) => {
-        return (
-          <p className="overflow-x-scroll text-xs text-muted-foreground">
-            {row.getValue("createdAt")}
-          </p>
-        );
-      },
-    },
-    {
       accessorKey: "id",
       header: "ID",
       cell: ({ row }) => {
