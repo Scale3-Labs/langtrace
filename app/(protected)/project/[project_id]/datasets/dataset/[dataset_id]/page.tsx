@@ -90,6 +90,21 @@ export default function Dataset() {
     }
   }, []);
 
+  const fetchEvalMetrics = useQuery({
+    queryKey: ["fetchEvalMetrics", dataset_id],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/run/metrics?datasetId=${dataset_id}&projectId=${projectId}`
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch dataset metrics");
+      }
+      const result = await response.json();
+      return result;
+    },
+  });
+
   const fetchDataset = useQuery({
     queryKey: [dataset_id],
     queryFn: async () => {
@@ -455,6 +470,13 @@ export default function Dataset() {
               <ResetIcon className="w-4 h-4" />
             </Button>
           </div>
+        </div>
+        <div className="flex gap-4 items-center">
+          {!fetchEvalMetrics.isLoading && (
+            <p className="text-muted-foreground font-semibold text-sm">
+              Total Evaluations: {fetchEvalMetrics.data?.total_evaluations || 0}
+            </p>
+          )}
         </div>
         <div
           className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"

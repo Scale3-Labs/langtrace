@@ -1,18 +1,40 @@
 "use client";
 
-import { Spinner } from "@/components/shared/spinner";
+import RowSkeleton from "@/components/shared/row-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { EVALUATIONS_DOCS_URL } from "@/lib/constants";
 import { cn, formatDateTime } from "@/lib/utils";
 import { Run } from "@prisma/client";
-import { ArrowTopRightIcon } from "@radix-ui/react-icons";
-import { FlaskConical } from "lucide-react";
+import { ArrowTopRightIcon, ResetIcon } from "@radix-ui/react-icons";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  VisibilityState,
+} from "@tanstack/react-table";
+import { ChevronDown, ClipboardIcon, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -25,6 +47,40 @@ export default function Evaluations() {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
   const [showLoader, setShowLoader] = useState(false);
+  const [tableState, setTableState] = useState<any>({
+    pagination: {
+      pageIndex: 0,
+      pageSize: 100,
+    },
+  });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const storedState = window.localStorage.getItem(
+          "preferences.evals.table-view"
+        );
+        if (storedState) {
+          const parsedState = JSON.parse(storedState);
+          setTableState((prevState: any) => ({
+            ...prevState,
+            ...parsedState,
+            pagination: {
+              ...prevState.pagination,
+              ...parsedState.pagination,
+            },
+          }));
+          if (parsedState.columnVisibility) {
+            setColumnVisibility(parsedState.columnVisibility);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing stored table state:", error);
+      }
+    }
+  }, []);
 
   const scrollableDivRef = useBottomScrollListener(() => {
     if (fetchExperiments.isRefetching) {
@@ -78,6 +134,182 @@ export default function Evaluations() {
     },
   });
 
+  const columns: ColumnDef<Run>[] = [
+    {
+      accessorKey: "runId",
+      enableResizing: true,
+      header: "Run ID",
+      cell: ({ row }) => {
+        return (
+          <div className="text-muted-foreground text-xs">
+            {row.getValue("runId") as string}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "datasetId",
+      enableResizing: true,
+      header: "Dataset ID",
+      cell: ({ row }) => {
+        return (
+          <div className="text-muted-foreground text-xs font-semibold">
+            {row.getValue("datasetId") as string}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "startedAt",
+      size: 200,
+      enableResizing: true,
+      header: "Started At",
+      cell: ({ row }) => {
+        const logString = row.getValue("log") as string;
+        const log = JSON.parse(logString);
+        return (
+          <div className="text-muted-foreground text-sm">
+            {formatDateTime(log?.stats?.started_at, true)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "completedAt",
+      size: 200,
+      enableResizing: true,
+      header: "Completed At",
+      cell: ({ row }) => {
+        const logString = row.getValue("log") as string;
+        const log = JSON.parse(logString);
+        return (
+          <div className="text-muted-foreground text-sm">
+            {formatDateTime(log?.stats?.completed_at, true)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "totalSamples",
+      enableResizing: true,
+      header: "Total Samples",
+      cell: ({ row }) => {
+        const logString = row.getValue("log") as string;
+        const log = JSON.parse(logString);
+        return (
+          <div className="text-muted-foreground text-sm font-semibold">
+            {log?.samples?.length || 0}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "model",
+      enableResizing: true,
+      size: 400,
+      header: "Model",
+      cell: ({ row }) => {
+        const logString = row.getValue("log") as string;
+        const log = JSON.parse(logString);
+        return (
+          <div className="text-muted-foreground text-sm font-semibold">
+            {log?.eval?.model}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      enableResizing: true,
+      header: "Status",
+      cell: ({ row }) => {
+        const logString = row.getValue("log") as string;
+        const log = JSON.parse(logString);
+        return (
+          <Badge
+            className={cn(
+              log?.status === "success" ? "bg-green-500" : "bg-destructive",
+              "text-white"
+            )}
+          >
+            {log?.status}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "log",
+      enableResizing: true,
+      header: "Raw Logs",
+      cell: ({ row }) => {
+        const logString = row.getValue("log") as string;
+        const log = JSON.parse(logString);
+        return (
+          <Button
+            size={"icon"}
+            variant={"outline"}
+            className="cursor-pointer"
+            onClick={() => {
+              toast.success("Log copied to clipboard");
+              navigator.clipboard.writeText(JSON.stringify(log, null, 2));
+            }}
+          >
+            <ClipboardIcon size={20} />
+          </Button>
+        );
+      },
+    },
+  ];
+
+  const table = useReactTable({
+    data: currentData,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    initialState: {
+      ...tableState,
+      pagination: tableState.pagination,
+      columnVisibility,
+    },
+    state: {
+      ...tableState,
+      pagination: tableState.pagination,
+      columnVisibility,
+    },
+    onStateChange: (newState: any) => {
+      setTableState((prevState: any) => ({
+        ...newState,
+        pagination: newState.pagination || prevState.pagination,
+      }));
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.evals.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    onColumnVisibilityChange: (newVisibility) => {
+      setColumnVisibility(newVisibility);
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.evals.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    manualPagination: true, // Add this if you're handling pagination yourself
+  });
+
+  const columnSizeVars = useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
@@ -123,138 +355,113 @@ export default function Evaluations() {
               </Link>
             </div>
           )}
-          {currentData.length > 0 && (
-            <div className="overflow-y-scroll" ref={scrollableDivRef as any}>
-              <table className="table-auto overflow-x-scroll w-max border-separate border border-muted rounded-md mt-6">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="w-12 rounded-md p-2">
-                      <Checkbox disabled={true} />
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Run ID
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Started at
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Completed at
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">Task</th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Total Samples
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Model
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Plan Name
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Scorer
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Metrics
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentData.map((experiment: Run) => {
-                    const log: any = JSON.parse(experiment.log as string);
+          <div className="flex items-center gap-2">
+            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns
+                  <ChevronDown size={16} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="h-72 overflow-y-visible">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
                     return (
-                      <tr
-                        key={experiment.id}
-                        className="hover:cursor-pointer hover:bg-muted"
-                        onClick={() =>
-                          router.push(
-                            `/project/${projectId}/evaluations/${log?.eval?.run_id}`
-                          )
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onSelect={() => setOpenDropdown(true)}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
                         }
                       >
-                        <td
-                          className="px-2 py-1 text-center"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Checkbox
-                            disabled={log?.status !== "success"}
-                            onCheckedChange={(value) => {
-                              if (value) {
-                                setComparisonRunIds([
-                                  ...comparisonRunIds,
-                                  log?.eval?.run_id,
-                                ]);
-                              } else {
-                                setComparisonRunIds(
-                                  comparisonRunIds.filter(
-                                    (id) => id !== log?.eval?.run_id
-                                  )
-                                );
-                              }
-                            }}
-                          />
-                        </td>
-                        <td className="text-sm px-2 py-1">
-                          {log?.eval?.run_id}
-                        </td>
-                        <td className="text-sm px-2 py-1">
-                          {formatDateTime(log?.stats?.started_at, true)}
-                        </td>
-                        <td className="text-sm px-2 py-1">
-                          {formatDateTime(log?.stats?.completed_at, true)}
-                        </td>
-                        <td className="text-sm px-2 py-1">{log?.eval?.task}</td>
-                        <td className="text-sm px-2 py-1">
-                          {log?.samples?.length || 0}
-                        </td>
-                        <td className="text-sm px-2 py-1">
-                          {log?.eval?.model}
-                        </td>
-                        <td className="text-sm px-2 py-1">{log?.plan?.name}</td>
-                        <td className="text-sm px-2 py-1">
-                          {log?.results?.scorer?.name || "N/A"}
-                        </td>
-                        <td className="text-sm px-2 py-1 flex flex-wrap gap-2 w-72">
-                          {log?.results?.metrics
-                            ? Object.keys(log?.results?.metrics).map(
-                                (metric, i) => (
-                                  <Badge
-                                    variant={"outline"}
-                                    className=""
-                                    key={i}
-                                  >
-                                    {metric +
-                                      ": " +
-                                      (log?.results?.metrics as any)[
-                                        metric
-                                      ].value.toFixed(2)}
-                                  </Badge>
-                                )
-                              )
-                            : "N/A"}
-                        </td>
-                        <td className="px-2 py-1">
-                          <Badge
-                            className={cn(
-                              "capitalize",
-                              log?.status === "success"
-                                ? "text-green-600 bg-green-200 hover:bg-green-200"
-                                : "text-destructive bg-red-200 hover:bg-red-200"
-                            )}
-                          >
-                            {log?.status}
-                          </Badge>
-                        </td>
-                      </tr>
+                        {column.columnDef.header?.toString()}
+                      </DropdownMenuCheckboxItem>
                     );
                   })}
-                </tbody>
-              </table>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size={"icon"}
+              variant={"destructive"}
+              onClick={() => {
+                setColumnVisibility({});
+                setTableState({});
+                localStorage.removeItem("preferences.evals.table-view");
+              }}
+            >
+              <ResetIcon className="w-4 h-4" />
+            </Button>
+          </div>
+          {currentData.length > 0 && (
+            <div
+              className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll mb-12"
+              ref={scrollableDivRef as any}
+            >
+              <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
+                <TableHeader className="sticky top-0 bg-secondary">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          style={{
+                            width: `calc(var(--header-${header.id}-size) * 1px)`,
+                            position: "relative",
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          <div
+                            onDoubleClick={() => header.column.resetSize()}
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={`bg-muted-foreground resizer ${
+                              header.column.getIsResizing() ? "isResizing" : ""
+                            }`}
+                          />
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      className="cursor-pointer"
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          style={{
+                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
               {showLoader && (
-                <div className="flex justify-center py-8">
-                  <Spinner className="h-8 w-8 text-center" />
+                <div className="flex flex-col gap-3">
+                  <Separator />
+                  {Array.from({ length: 2 }).map((_, index) => (
+                    <RowSkeleton key={index} />
+                  ))}
                 </div>
               )}
             </div>

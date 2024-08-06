@@ -14,7 +14,6 @@ export default async function Page() {
   if (!session || !session.user) {
     redirect("/login");
   }
-  const email = session?.user?.email as string;
 
   return (
     <>
