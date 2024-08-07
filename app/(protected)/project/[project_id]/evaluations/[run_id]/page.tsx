@@ -253,8 +253,8 @@ function SampleRow({
         {typeof sample.input === "string"
           ? sample.input
           : Array.isArray(sample.input)
-          ? sample.input[sample.input.length - 1].content
-          : ""}
+            ? sample.input[sample.input.length - 1].content
+            : ""}
       </td>
       <td
         className={cn(
@@ -300,8 +300,12 @@ function SampleRow({
           </Badge>
           <p className="text-sm">
             {sample.output?.choices && sample.output.choices?.length > 0
-              ? sample.output.choices[sample.output.choices.length - 1].message
-                  ?.content
+              ? typeof sample.output.choices[sample.output.choices.length - 1]
+                  .message?.content === "string"
+                ? sample.output.choices[sample.output.choices.length - 1]
+                    .message?.content
+                : sample.output.choices[sample.output.choices.length - 1]
+                    .message?.content[0]?.text
               : ""}
           </p>
         </div>

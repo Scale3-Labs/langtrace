@@ -159,10 +159,10 @@ function SampleRow({
         {typeof experiments[0]?.samples[index]?.input === "string"
           ? experiments[0]?.samples[index]?.input
           : Array.isArray(experiments[0]?.samples[index]?.input)
-          ? experiments[0]?.samples[index]?.input[
-              experiments[0]?.samples[index]?.input?.length - 1
-            ]?.content
-          : ""}
+            ? experiments[0]?.samples[index]?.input[
+                experiments[0]?.samples[index]?.input?.length - 1
+              ]?.content
+            : ""}
       </td>
       <td className={cn("relative text-sm px-2 py-1 max-w-80")}>
         {experiments[0]?.samples[index]?.target || "none"}
@@ -188,9 +188,15 @@ function SampleRow({
             <p className="text-sm">
               {experiment?.samples[index]?.output?.choices &&
               experiment?.samples[index]?.output?.choices?.length > 0
-                ? experiment?.samples[index]?.output?.choices[
+                ? typeof experiment?.samples[index]?.output?.choices[
                     experiment?.samples[index]?.output?.choices?.length - 1
-                  ].message?.content
+                  ].message?.content === "string"
+                  ? experiment?.samples[index]?.output?.choices[
+                      experiment?.samples[index]?.output?.choices?.length - 1
+                    ].message?.content
+                  : experiment?.samples[index]?.output?.choices[
+                      experiment?.samples[index]?.output?.choices?.length - 1
+                    ].message?.content[0]?.text
                 : ""}
             </p>
           </div>

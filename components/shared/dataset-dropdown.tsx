@@ -82,7 +82,7 @@ export function DatasetDropdown({
                 {datasets.result.map((dataset: any) => (
                   <CommandItem
                     key={dataset?.dataset?.id}
-                    value={dataset?.dataset?.id}
+                    value={dataset?.dataset?.name}
                     onSelect={(currentValue) => {
                       setDatasetId(
                         currentValue === datasetId ? "" : currentValue

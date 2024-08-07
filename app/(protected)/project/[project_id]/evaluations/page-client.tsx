@@ -488,6 +488,11 @@ export default function Evaluations() {
                 <TableBody>
                   {table.getRowModel().rows.map((row) => (
                     <TableRow
+                      onClick={() =>
+                        router.push(
+                          `/project/${projectId}/evaluations/${row.original.runId}`
+                        )
+                      }
                       className="cursor-pointer"
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
