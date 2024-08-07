@@ -43,7 +43,7 @@ export default function ModelScorerMetricsChart({ data }: { data: any }) {
               {`${d?.scorer} - ${Object.keys(d?.config)[0]}`}
             </CardTitle>
             <CardDescription>
-              {`Model comparison for ${d?.scorer} - ${Object.keys(d?.config)[0]}`}
+              {`Model comparison for ${d?.scorer} - ${Object.keys(d?.config)[0]} (sum of scores)`}
             </CardDescription>
           </CardHeader>
           <CardContent className="pb-0">

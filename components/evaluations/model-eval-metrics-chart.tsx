@@ -33,7 +33,11 @@ export default function ModelEvalMetricsChart({ data }: { data: any }) {
       <Card>
         <CardHeader className="items-center pb-4">
           <CardTitle>Total Samples</CardTitle>
-          <CardDescription></CardDescription>
+          <CardDescription className="text-xs w-96 text-center">
+            Total number of samples used for evaluation per model. Samples can
+            be counted multiple times if the same model is evaluated multiple
+            times.
+          </CardDescription>
         </CardHeader>
         <CardContent className="pb-0">
           <ChartContainer config={samplesConfig} className="w-[500px]">
@@ -57,7 +61,9 @@ export default function ModelEvalMetricsChart({ data }: { data: any }) {
       <Card>
         <CardHeader className="items-center pb-4">
           <CardTitle>Total Runs</CardTitle>
-          <CardDescription></CardDescription>
+          <CardDescription className="text-xs w-96 text-center">
+            Total number of evaluation runs per model
+          </CardDescription>
         </CardHeader>
         <CardContent className="pb-0">
           <ChartContainer config={runsConfig} className="w-[500px]">
