@@ -1,6 +1,7 @@
 "use client";
 
-import ModelMetricsChart from "@/components/evaluations/model-metrics-chart";
+import ModelEvalMetricsChart from "@/components/evaluations/model-eval-metrics-chart";
+import ModelScorerMetricsChart from "@/components/evaluations/model-scorer-metrics-chart";
 import { ExpandingTextArea } from "@/components/playground/common";
 import { CreateData } from "@/components/project/dataset/create-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
@@ -36,6 +37,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
+  AreaChartIcon,
   ChevronDown,
   ChevronLeft,
   FlaskConical,
@@ -64,6 +66,7 @@ export default function Dataset() {
   });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [viewMetrics, setViewMetrics] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -472,25 +475,47 @@ export default function Dataset() {
             </Button>
           </div>
         </div>
-        <div className="flex gap-4 flex-col w-full">
-          <div className="flex gap-4 items-center">
+        <Button
+          disabled={
+            (!fetchDataset.isLoading && currentData.length === 0) ||
+            fetchEvalMetrics.isLoading
+          }
+          variant={"outline"}
+          className="flex self-start"
+          onClick={() => setViewMetrics(!viewMetrics)}
+        >
+          {viewMetrics ? "Hide Metrics" : "View Metrics"}
+          <AreaChartIcon className="h-4 w-4 ml-1" />
+        </Button>
+        {viewMetrics && (
+          <div className="flex gap-4 flex-col w-full border rounded-md p-2">
+            <div className="flex gap-4 items-center">
+              {!fetchEvalMetrics.isLoading && (
+                <Link
+                  href={`/project/${projectId}/evaluations?dataset_id=${dataset_id}`}
+                >
+                  <Button
+                    variant={"secondary"}
+                    className="flex items-center gap-0"
+                  >
+                    Evaluations
+                    <ArrowTopRightIcon className="h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
+            </div>
             {!fetchEvalMetrics.isLoading && (
-              <Link
-                href={`/project/${projectId}/evaluations?dataset_id=${dataset_id}`}
-                className="text-muted-foreground font-semibold text-sm hover:underline hover:text-primary flex items-center gap-0"
-              >
-                Total Evaluations:{" "}
-                {fetchEvalMetrics?.data?.total_evaluations || 0}
-                <ArrowTopRightIcon className="h-4 w-4" />
-              </Link>
+              <div className="flex flex-row gap-4 pb-12 overflow-x-scroll">
+                <ModelScorerMetricsChart
+                  data={fetchEvalMetrics?.data?.scorer_metrics || {}}
+                />
+                <ModelEvalMetricsChart
+                  data={fetchEvalMetrics?.data?.eval_metrics || {}}
+                />
+              </div>
             )}
           </div>
-          {!fetchEvalMetrics.isLoading && (
-            <ModelMetricsChart
-              data={fetchEvalMetrics?.data?.evaluation_metrics || {}}
-            />
-          )}
-        </div>
+        )}
         <div
           className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
           ref={scrollableDivRef as any}

@@ -58,16 +58,14 @@ export async function GET(req: NextRequest) {
     }
 
     // fetch count of runs for the project or dataset
-    let evaluationMetrics: any = {};
+    let scorerMetrics: any = {};
+    let evalMetrics: any = [];
     const body: any = {
       projectId,
     };
     if (datasetId) {
       body["datasetId"] = datasetId;
     }
-    const totalEvaluations = await prisma.run.count({
-      where: body,
-    });
     const runs = await prisma.run.findMany({
       where: body,
     });
@@ -77,22 +75,34 @@ export async function GET(req: NextRequest) {
       const parsedLogs = JSON.parse(logs);
       const scorers = parsedLogs?.results?.scores || [];
       const model = parsedLogs?.eval?.model || "model-unspecified";
+      const samples = parsedLogs?.eval?.dataset?.samples || 0;
+      const existingEval = evalMetrics.find((m: any) => m.model === model);
+      if (existingEval) {
+        existingEval.samples += samples;
+        existingEval.runs += 1;
+      } else {
+        evalMetrics.push({
+          model,
+          samples,
+          runs: 1,
+        });
+      }
       for (const scorer of scorers) {
-        if (scorer.name && !evaluationMetrics[scorer.name]) {
-          evaluationMetrics[scorer.name] = [];
+        if (scorer.name && !scorerMetrics[scorer.name]) {
+          scorerMetrics[scorer.name] = [];
         }
         if (scorer?.metrics) {
           for (const metric of Object.keys(scorer.metrics)) {
-            let existingMetric = evaluationMetrics[scorer.name].find(
+            let existingMetric = scorerMetrics[scorer.name].find(
               (m: any) => m.name === metric
             );
             if (!existingMetric) {
-              evaluationMetrics[scorer.name].push({
+              scorerMetrics[scorer.name].push({
                 name: metric,
                 scores: [],
               });
             }
-            existingMetric = evaluationMetrics[scorer.name].find(
+            existingMetric = scorerMetrics[scorer.name].find(
               (m: any) => m.name === metric
             );
             const existingModel = existingMetric.scores.find(
@@ -113,8 +123,9 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({
-      total_evaluations: totalEvaluations,
-      evaluation_metrics: evaluationMetrics,
+      total_evaluations: runs.length,
+      scorer_metrics: scorerMetrics,
+      eval_metrics: evalMetrics,
     });
   } catch (error) {
     return NextResponse.json(

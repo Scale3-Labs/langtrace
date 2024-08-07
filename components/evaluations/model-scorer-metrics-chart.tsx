@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/chart";
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
 
-export default function ModelMetricsChart({ data }: { data: any }) {
+export default function ModelScorerMetricsChart({ data }: { data: any }) {
   const chartData: any = [];
   for (let i = 0; i < Object.keys(data).length; i++) {
     const scorer = Object.keys(data)[i];
@@ -35,7 +35,7 @@ export default function ModelMetricsChart({ data }: { data: any }) {
   }
 
   return (
-    <div className="flex gap-4 max-h-[500px] flex-wrap mb-12 w-full">
+    <div className="flex gap-4 w-full">
       {chartData.map((d: any, i: number) => (
         <Card key={i}>
           <CardHeader className="items-center pb-4">

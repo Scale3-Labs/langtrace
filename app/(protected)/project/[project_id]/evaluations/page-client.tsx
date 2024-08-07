@@ -385,22 +385,6 @@ export default function Evaluations() {
       </div>
       {!fetchExperiments.isLoading && (
         <div className="flex flex-col gap-12 w-full px-12">
-          {currentData.length === 0 && !manualRefetching && (
-            <div className="flex flex-col items-center gap-2 mt-24">
-              <p className="text-center text-md">
-                {fetchExperiments.isError
-                  ? "Something went wrong. Please try later."
-                  : "No evaluations found. Get started by running your first evaluation."}
-              </p>
-              <Link href={EVALUATIONS_DOCS_URL} target="_blank">
-                <Button>
-                  New Evaluation
-                  <FlaskConical className="ml-1 h-4 w-4" />
-                  <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          )}
           <div className="flex items-center justify-between">
             <DatasetDropdown
               projectId={projectId}
@@ -449,6 +433,22 @@ export default function Evaluations() {
               </Button>
             </div>
           </div>
+          {currentData.length === 0 && !manualRefetching && (
+            <div className="flex flex-col items-center gap-2 mt-24">
+              <p className="text-center text-md">
+                {fetchExperiments.isError
+                  ? "Something went wrong. Please try later."
+                  : "No evaluations found. Get started by running your first evaluation."}
+              </p>
+              <Link href={EVALUATIONS_DOCS_URL} target="_blank">
+                <Button>
+                  New Evaluation
+                  <FlaskConical className="ml-1 h-4 w-4" />
+                  <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          )}
           {currentData.length > 0 && !manualRefetching && (
             <div
               className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll mb-12"
