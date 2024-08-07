@@ -10,6 +10,7 @@ export enum OpenAIModel {
   "gpt-4o-mini-2024-07-18" = "gpt-4o-mini-2024-07-18",
   "gpt-4o" = "gpt-4o",
   "gpt-4o-2024-05-13" = "gpt-4o-2024-05-13",
+  "gpt-4o-2024-08-06" = "gpt-4o-2024-08-06",
   "gpt-4-turbo-preview" = "gpt-4-turbo-preview",
   "gpt-4-turbo-2024-04-09" = "gpt-4-turbo-2024-04-09",
   "gpt-4-turbo" = "gpt-4-turbo",
@@ -131,67 +132,63 @@ export const cohereModels = [
     value: "command-r",
     label: "Command R",
   },
-  {
-    value: "command",
-    label: "Command",
-  },
-  {
-    value: "command-nightly",
-    label: "Command Nightly",
-  },
-  {
-    value: "command-light",
-    label: "Command Light",
-  },
-  {
-    value: "command-light-nightly",
-    label: "Command Light Nightly",
-  },
 ];
 
 export const groqModels = [
   {
-    value: "llama3-8b-8192",
-    label: "Llama3 8B (8192)",
+    value: "llama3-70b-8192",
+    label: "Llama 3 70B 8192",
   },
   {
-    value: "llama3-70b-8192",
-    label: "Llama3 70B (8192)",
+    value: "llama3-8b-8192",
+    label: "Llama 3 8B 8192",
+  },
+  {
+    value: "llama3-groq-70b-8192-tool-use-preview",
+    label: "Llama 3 Groq 70B",
+  },
+  {
+    value: "llama3-groq-8b-8192-tool-use-preview",
+    label: "Llama 3 Groq 8B",
   },
   {
     value: "mixtral-8x7b-32768",
-    label: "Mixtral 8x7B (32768)",
-  },
-  {
-    value: "gemma-7b-it",
-    label: "Gemma 7B (IT)",
+    label: "Mixtral 8x7B 32768",
   },
 ];
 
 export const perplexityModels = [
   {
-    value: "sonar-small-chat",
-    label: "Sonar Small (Chat)",
+    value: "llama-3-sonar-small-32k-online",
+    label: "Llama 3 Sonar Small 32K (Online)",
   },
   {
-    value: "sonar-small-online",
-    label: "Sonar Small (Online)",
+    value: "llama-3-sonar-small-32k-chat",
+    label: "Llama 3 Sonar Small 32K (Chat)",
   },
   {
-    value: "sonar-medium-chat",
-    label: "Sonar Medium (Chat)",
+    value: "llama-3-sonar-large-32k-online",
+    label: "Llama 3 Sonar Large 32K (Online)",
   },
   {
-    value: "sonar-medium-online",
-    label: "Sonar Medium (Online)",
+    value: "llama-3-sonar-large-32k-chat",
+    label: "Llama 3 Sonar Large 32K (Chat)",
   },
   {
-    value: "mistral-7b-instruct",
-    label: "Mistral 7B (Instruct)",
+    value: "llama-3.1-sonar-small-128k-online",
+    label: "Llama 3.1 Sonar Small 128K (Online)",
   },
   {
-    value: "mixtral-8x7b-instruct",
-    label: "Mixtral 8x7B (Instruct)",
+    value: "llama-3.1-sonar-small-128k-chat",
+    label: "Llama 3.1 Sonar Small 128K (Chat)",
+  },
+  {
+    value: "llama-3.1-sonar-large-128k-online",
+    label: "Llama 3.1 Sonar Large 128K (Online)",
+  },
+  {
+    value: "llama-3.1-sonar-large-128k-chat",
+    label: "Llama 3.1 Sonar Large 128K (Chat)",
   },
 ];
 
