@@ -478,7 +478,9 @@ export default function Dataset() {
         <Button
           disabled={
             (!fetchDataset.isLoading && currentData.length === 0) ||
-            fetchEvalMetrics.isLoading
+            fetchEvalMetrics.isLoading ||
+            (!fetchEvalMetrics.isLoading &&
+              fetchEvalMetrics.data?.eval_metrics.length === 0)
           }
           variant={"outline"}
           className="flex self-start"
