@@ -79,19 +79,33 @@ export async function GET(req: NextRequest) {
       const model = parsedLogs?.eval?.model || "model-unspecified";
       for (const scorer of scorers) {
         if (scorer.name && !evaluationMetrics[scorer.name]) {
-          evaluationMetrics[scorer.name] = {};
+          evaluationMetrics[scorer.name] = [];
         }
         if (scorer?.metrics) {
           for (const metric of Object.keys(scorer.metrics)) {
-            if (!evaluationMetrics[scorer.name][metric]) {
-              evaluationMetrics[scorer.name][metric] = {};
+            let existingMetric = evaluationMetrics[scorer.name].find(
+              (m: any) => m.name === metric
+            );
+            if (!existingMetric) {
+              evaluationMetrics[scorer.name].push({
+                name: metric,
+                scores: [],
+              });
             }
-            if (evaluationMetrics[scorer.name][metric][model]) {
-              evaluationMetrics[scorer.name][metric][model] +=
+            existingMetric = evaluationMetrics[scorer.name].find(
+              (m: any) => m.name === metric
+            );
+            const existingModel = existingMetric.scores.find(
+              (m: any) => m.model === model
+            );
+            if (existingModel) {
+              existingModel[metric] +=
                 parseFloat(scorer.metrics[metric]?.value) || 0;
             } else {
-              evaluationMetrics[scorer.name][metric][model] =
-                parseFloat(scorer.metrics[metric]?.value) || 0;
+              existingMetric.scores.push({
+                model: model,
+                [metric]: parseFloat(scorer.metrics[metric]?.value) || 0,
+              });
             }
           }
         }

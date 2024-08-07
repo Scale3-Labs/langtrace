@@ -1,5 +1,6 @@
 "use client";
 
+import ModelMetricsChart from "@/components/evaluations/model-metrics-chart";
 import { ExpandingTextArea } from "@/components/playground/common";
 import { CreateData } from "@/components/project/dataset/create-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
@@ -471,15 +472,23 @@ export default function Dataset() {
             </Button>
           </div>
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-4 flex-col w-full">
+          <div className="flex gap-4 items-center">
+            {!fetchEvalMetrics.isLoading && (
+              <Link
+                href={`/project/${projectId}/evaluations?dataset_id=${dataset_id}`}
+                className="text-muted-foreground font-semibold text-sm hover:underline hover:text-primary flex items-center gap-0"
+              >
+                Total Evaluations:{" "}
+                {fetchEvalMetrics?.data?.total_evaluations || 0}
+                <ArrowTopRightIcon className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
           {!fetchEvalMetrics.isLoading && (
-            <Link
-              href={`/project/${projectId}/evaluations?dataset_id=${dataset_id}`}
-              className="text-muted-foreground font-semibold text-sm hover:underline hover:text-primary flex items-center gap-0"
-            >
-              Total Evaluations: {fetchEvalMetrics.data?.total_evaluations || 0}
-              <ArrowTopRightIcon className="h-4 w-4" />
-            </Link>
+            <ModelMetricsChart
+              data={fetchEvalMetrics?.data?.evaluation_metrics || {}}
+            />
           )}
         </div>
         <div
