@@ -295,7 +295,8 @@ export default function Evaluations() {
             size={"icon"}
             variant={"outline"}
             className="cursor-pointer"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               toast.success("Log copied to clipboard");
               navigator.clipboard.writeText(JSON.stringify(log, null, 2));
             }}
