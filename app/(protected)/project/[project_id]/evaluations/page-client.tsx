@@ -386,11 +386,23 @@ export default function Evaluations() {
       {!fetchExperiments.isLoading && (
         <div className="flex flex-col gap-12 w-full px-12">
           <div className="flex items-center justify-between">
-            <DatasetDropdown
-              projectId={projectId}
-              setDatasetId={setDatasetId}
-              datasetId={datasetId}
-            />
+            <div className="flex items-center gap-2">
+              <DatasetDropdown
+                projectId={projectId}
+                setDatasetId={setDatasetId}
+                datasetId={datasetId}
+              />
+              {datasetId && (
+                <Link
+                  href={`/project/${projectId}/datasets/dataset/${datasetId}`}
+                >
+                  <Button variant="secondary" className="flex">
+                    Dataset
+                    <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
                 <DropdownMenuTrigger asChild>

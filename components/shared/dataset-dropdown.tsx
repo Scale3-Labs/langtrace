@@ -84,9 +84,16 @@ export function DatasetDropdown({
                     key={dataset?.dataset?.id}
                     value={dataset?.dataset?.name}
                     onSelect={(currentValue) => {
-                      setDatasetId(
-                        currentValue === datasetId ? "" : currentValue
+                      // find dataset id by name
+                      const dataset = datasets.result.find(
+                        (dataset: any) =>
+                          dataset?.dataset?.name === currentValue
                       );
+                      if (dataset.dataset.id !== datasetId) {
+                        setDatasetId(dataset.dataset.id);
+                      } else {
+                        setDatasetId("");
+                      }
                       setOpen(false);
                     }}
                   >
