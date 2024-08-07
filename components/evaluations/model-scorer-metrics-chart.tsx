@@ -12,9 +12,25 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  XAxis,
+} from "recharts";
 
-export default function ModelScorerMetricsChart({ data }: { data: any }) {
+export default function ModelScorerMetricsChart({
+  data,
+  chartType,
+}: {
+  data: any;
+  chartType: string;
+}) {
   const chartData: any = [];
   for (let i = 0; i < Object.keys(data).length; i++) {
     const scorer = Object.keys(data)[i];
@@ -46,26 +62,65 @@ export default function ModelScorerMetricsChart({ data }: { data: any }) {
               {`Model comparison for ${d?.scorer} - ${Object.keys(d?.config)[0]} (sum of scores)`}
             </CardDescription>
           </CardHeader>
-          <CardContent className="pb-0">
-            <ChartContainer config={d.config} className="w-[500px]">
-              <RadarChart data={d.data}>
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent />}
-                />
-                <PolarAngleAxis dataKey="model" />
-                <PolarGrid />
-                <Radar
-                  dataKey={Object.keys(d.config)[0]}
-                  fill={`hsl(var(--chart-${i + 1}))`}
-                  fillOpacity={0.6}
-                  dot={{
-                    r: 4,
-                    fillOpacity: 1,
+          <CardContent>
+            {chartType === "radar" && (
+              <ChartContainer config={d.config} className="w-[500px]">
+                <RadarChart data={d.data}>
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent />}
+                  />
+                  <PolarAngleAxis dataKey="model" />
+                  <PolarGrid />
+                  <Radar
+                    dataKey={Object.keys(d.config)[0]}
+                    fill={`hsl(var(--chart-${i + 1}))`}
+                    fillOpacity={0.6}
+                    dot={{
+                      r: 4,
+                      fillOpacity: 1,
+                    }}
+                  />
+                </RadarChart>
+              </ChartContainer>
+            )}
+            {chartType === "bar" && (
+              <ChartContainer config={d.config} className="w-[500px]">
+                <BarChart
+                  accessibilityLayer
+                  data={d.data}
+                  margin={{
+                    top: 20,
                   }}
-                />
-              </RadarChart>
-            </ChartContainer>
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey={"model"}
+                    fill={`hsl(var(--chart-${i + 1}))`}
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) => value}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="dashed" />}
+                  />
+                  <Bar
+                    dataKey={Object.keys(d.config)[0]}
+                    fill={`hsl(var(--chart-${i + 1}))`}
+                    radius={4}
+                  >
+                    <LabelList
+                      position="top"
+                      offset={12}
+                      className="fill-foreground"
+                      fontSize={12}
+                    />
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
       ))}

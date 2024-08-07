@@ -6,6 +6,7 @@ import { ExpandingTextArea } from "@/components/playground/common";
 import { CreateData } from "@/components/project/dataset/create-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
 import { DeleteData } from "@/components/project/dataset/delete-data";
+import { ChartTypesDropDown } from "@/components/shared/chart-types";
 import { DownloadDataset } from "@/components/shared/download-dataset";
 import RowSkeleton from "@/components/shared/row-skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +68,7 @@ export default function Dataset() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
   const [viewMetrics, setViewMetrics] = useState(false);
+  const [chartType, setChartType] = useState("radar");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -505,10 +507,15 @@ export default function Dataset() {
                   </Button>
                 </Link>
               )}
+              <ChartTypesDropDown
+                chartType={chartType}
+                setChartType={setChartType}
+              />
             </div>
             {!fetchEvalMetrics.isLoading && (
               <div className="flex flex-row gap-4 pb-6 overflow-x-scroll">
                 <ModelScorerMetricsChart
+                  chartType={chartType}
                   data={fetchEvalMetrics?.data?.scorer_metrics || {}}
                 />
               </div>
@@ -516,6 +523,7 @@ export default function Dataset() {
             {!fetchEvalMetrics.isLoading && (
               <div className="flex flex-row gap-4 pb-12 overflow-x-scroll">
                 <ModelEvalMetricsChart
+                  chartType={chartType}
                   data={fetchEvalMetrics?.data?.eval_metrics || {}}
                 />
               </div>
