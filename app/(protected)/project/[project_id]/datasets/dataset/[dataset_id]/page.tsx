@@ -505,10 +505,14 @@ export default function Dataset() {
               )}
             </div>
             {!fetchEvalMetrics.isLoading && (
-              <div className="flex flex-row gap-4 pb-12 overflow-x-scroll">
+              <div className="flex flex-row gap-4 pb-6 overflow-x-scroll">
                 <ModelScorerMetricsChart
                   data={fetchEvalMetrics?.data?.scorer_metrics || {}}
                 />
+              </div>
+            )}
+            {!fetchEvalMetrics.isLoading && (
+              <div className="flex flex-row gap-4 pb-12 overflow-x-scroll">
                 <ModelEvalMetricsChart
                   data={fetchEvalMetrics?.data?.eval_metrics || {}}
                 />

@@ -29,7 +29,7 @@ export default function ModelEvalMetricsChart({ data }: { data: any }) {
     },
   };
   return (
-    <div className="flex gap-4 w-full">
+    <>
       <Card>
         <CardHeader className="items-center pb-4">
           <CardTitle>Total Samples</CardTitle>
@@ -78,6 +78,6 @@ export default function ModelEvalMetricsChart({ data }: { data: any }) {
           </ChartContainer>
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }

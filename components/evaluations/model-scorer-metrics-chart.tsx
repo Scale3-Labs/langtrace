@@ -35,7 +35,7 @@ export default function ModelScorerMetricsChart({ data }: { data: any }) {
   }
 
   return (
-    <div className="flex gap-4 w-full">
+    <>
       {chartData.map((d: any, i: number) => (
         <Card key={i}>
           <CardHeader className="items-center pb-4">
@@ -69,6 +69,6 @@ export default function ModelScorerMetricsChart({ data }: { data: any }) {
           </CardContent>
         </Card>
       ))}
-    </div>
+    </>
   );
 }
