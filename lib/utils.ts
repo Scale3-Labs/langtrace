@@ -12,6 +12,7 @@ import {
   ANTHROPIC_PRICING,
   COHERE_PRICING,
   CostTableEntry,
+  GROQ_PRICING,
   LangTraceAttributes,
   OPENAI_PRICING,
   PERPLEXITY_PRICING,
@@ -547,6 +548,8 @@ export function calculatePriceFromUsage(
     costTable = PERPLEXITY_PRICING[model];
   } else if (vendor === "cohere") {
     costTable = COHERE_PRICING[model];
+  } else if (vendor === "groq") {
+    costTable = GROQ_PRICING[model];
   }
   if (costTable) {
     const total =
