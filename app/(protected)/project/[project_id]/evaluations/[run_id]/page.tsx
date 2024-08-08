@@ -121,7 +121,7 @@ export default function Evaluation() {
   const columns: ColumnDef<RunSample>[] = [
     {
       accessorKey: "input",
-      size: 200,
+      size: 500,
       enableResizing: true,
       header: "Input",
       cell: ({ row }) => {
@@ -131,7 +131,7 @@ export default function Evaluation() {
     },
     {
       accessorKey: "target",
-      size: 200,
+      size: 500,
       enableResizing: true,
       header: "Target",
       cell: ({ row }) => {
@@ -141,7 +141,7 @@ export default function Evaluation() {
     },
     {
       accessorKey: "output",
-      size: 200,
+      size: 500,
       enableResizing: true,
       header: "Output",
       cell: ({ row }) => {

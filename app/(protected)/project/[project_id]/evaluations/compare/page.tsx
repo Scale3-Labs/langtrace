@@ -2,15 +2,35 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { EVALUATIONS_DOCS_URL } from "@/lib/constants";
 import { processRun, RunView } from "@/lib/run_util";
-import { cn } from "@/lib/utils";
-import { ArrowTopRightIcon } from "@radix-ui/react-icons";
-import { ChevronLeft, FlaskConical } from "lucide-react";
+import { ArrowTopRightIcon, ResetIcon } from "@radix-ui/react-icons";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  VisibilityState,
+} from "@tanstack/react-table";
+import { ChevronDown, ChevronLeft, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
@@ -22,6 +42,16 @@ export default function Compare() {
   const runIds = searchParams.getAll("run_id") as string[];
   const [isComparable, setIsComparable] = useState<boolean>(false);
   const [runs, setRuns] = useState<RunView[]>([]);
+  const [tableState, setTableState] = useState<any>({
+    pagination: {
+      pageIndex: 0,
+      pageSize: 100,
+    },
+  });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [openSheet, setOpenSheet] = useState(false);
+  const [rowIndex, setRowIndex] = useState<number>(-1);
 
   const { isLoading: experimentsLoading, error: experimentsError } = useQuery({
     queryKey: ["fetch-runs-query", projectId, ...runIds],
@@ -54,6 +84,121 @@ export default function Compare() {
     },
   });
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const storedState = window.localStorage.getItem(
+          "preferences.compare.table-view"
+        );
+        if (storedState) {
+          const parsedState = JSON.parse(storedState);
+          setTableState((prevState: any) => ({
+            ...prevState,
+            ...parsedState,
+            pagination: {
+              ...prevState.pagination,
+              ...parsedState.pagination,
+            },
+          }));
+          if (parsedState.columnVisibility) {
+            setColumnVisibility(parsedState.columnVisibility);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing stored table state:", error);
+      }
+    }
+  }, []);
+
+  const columns: ColumnDef<RunView>[] = [
+    {
+      accessorKey: "input",
+      size: 500,
+      enableResizing: true,
+      header: "Input",
+      cell: ({ row }) => {
+        const input = row.original.samples[0].input;
+        return <p className="text-sm font-semibold">{input}</p>;
+      },
+    },
+    {
+      accessorKey: "target",
+      size: 500,
+      enableResizing: true,
+      header: "Target",
+      cell: ({ row }) => {
+        const target = row.original.samples[0].target;
+        return <p className="text-sm font-semibold">{target}</p>;
+      },
+    },
+    ...runs.map((run, i) => ({
+      accessorKey: `output-${i}`,
+      size: 500,
+      enableResizing: true,
+      header: `Output - (${run.model})`,
+      cell: ({ row }: any) => {
+        const output = row.original.samples[i].output;
+        return (
+          <div className="flex flex-col gap-2">
+            <Badge variant={"secondary"} className="w-fit">
+              {run.model}
+            </Badge>
+            <p className="text-sm">{output}</p>
+          </div>
+        );
+      },
+    })),
+  ];
+
+  const table = useReactTable({
+    data: runs || [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    initialState: {
+      ...tableState,
+      pagination: tableState.pagination,
+      columnVisibility,
+    },
+    state: {
+      ...tableState,
+      pagination: tableState.pagination,
+      columnVisibility,
+    },
+    onStateChange: (newState: any) => {
+      setTableState((prevState: any) => ({
+        ...newState,
+        pagination: newState.pagination || prevState.pagination,
+      }));
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.compare.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    onColumnVisibilityChange: (newVisibility) => {
+      setColumnVisibility(newVisibility);
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.compare.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    manualPagination: true, // Add this if you're handling pagination yourself
+  });
+
+  const columnSizeVars = useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="px-12 py-12 flex flex-col gap-2 bg-muted">
@@ -61,10 +206,49 @@ export default function Compare() {
         <p className="text-sm w-1/2">{runIds.join(", ")}</p>
       </div>
       <div className="flex flex-col gap-12 w-full px-12">
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => router.back()}>
             <ChevronLeft className="text-muted-foreground" size={20} />
             Back
+          </Button>
+          <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                Columns
+                <ChevronDown size={16} className="ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="h-36 overflow-y-visible">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onSelect={() => setOpenDropdown(true)}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.columnDef.header?.toString()}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            size={"icon"}
+            variant={"destructive"}
+            onClick={() => {
+              setColumnVisibility({});
+              setTableState({});
+              localStorage.removeItem("preferences.compare.table-view");
+            }}
+          >
+            <ResetIcon className="w-4 h-4" />
           </Button>
         </div>
         {(experimentsError as any) && (
@@ -108,58 +292,67 @@ export default function Compare() {
           </div>
         )}
         {!experimentsLoading && isComparable && runs.length > 0 && (
-          <div className="overflow-y-scroll">
-            <table className="table-auto overflow-x-scroll w-screen border-separate border border-muted rounded-md">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="p-2 rounded-md text-sm font-medium">Input</th>
-                  <th className="p-2 rounded-md text-sm font-medium">Target</th>
-                  {runs.map((run, i) => (
-                    <th
-                      key={i}
-                      className="p-2 rounded-md text-sm font-medium"
-                    >{`Output - (${run.model})`}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {runs[0].samples.map((_: any, i: number) => (
-                  <SampleRow key={i} index={i} runs={runs} />
+          <div className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll">
+            <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
+              <TableHeader className="sticky top-0 bg-secondary">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          width: `calc(var(--header-${header.id}-size) * 1px)`,
+                          position: "relative",
+                        }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        <div
+                          onDoubleClick={() => header.column.resetSize()}
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={`bg-muted-foreground resizer ${
+                            header.column.getIsResizing() ? "isResizing" : ""
+                          }`}
+                        />
+                      </TableHead>
+                    ))}
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    className="cursor-pointer"
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        style={{
+                          width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
         {experimentsLoading && <Skeleton className="w-full h-96" />}
       </div>
     </div>
-  );
-}
-
-function SampleRow({ index, runs }: { index: number; runs: RunView[] }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <tr
-      className="hover:cursor-pointer hover:bg-muted group"
-      onClick={() => setOpen(!open)}
-    >
-      <td className={cn("text-sm px-2 py-1 max-w-80 relative")}>
-        {runs[0]?.samples[index]?.input || "none"}
-      </td>
-      <td className={cn("relative text-sm px-2 py-1 max-w-80")}>
-        {runs[0]?.samples[index]?.target || "none"}
-      </td>
-      {runs.map((run: RunView, i: number) => (
-        <td key={i} className={cn("px-2 py-1 max-w-80 relative")}>
-          <div className="flex flex-col gap-2">
-            <Badge variant={"secondary"} className="w-fit">
-              {run.model}
-            </Badge>
-            <p className="text-sm">{run.samples[index]?.output || "none"}</p>
-          </div>
-        </td>
-      ))}
-    </tr>
   );
 }
 
