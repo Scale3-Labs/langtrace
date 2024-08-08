@@ -18,7 +18,8 @@ export interface ITraceService {
     project_id: string,
     lastNHours?: number,
     userId?: string,
-    model?: string
+    model?: string,
+    inference?: string
   ) => Promise<number>;
   GetTotalSpansPerHourPerProject: (
     project_id: string,
@@ -41,7 +42,8 @@ export interface ITraceService {
     project_id: string,
     lastNHours?: number,
     userId?: string,
-    model?: string
+    model?: string,
+    inference?: string
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (project_id: string) => Promise<number>;
@@ -91,6 +93,7 @@ export interface ITraceService {
   GetUsersInProject: (project_id: string) => Promise<string[]>;
   GetPromptsInProject: (project_id: string) => Promise<string[]>;
   GetModelsInProject: (project_id: string) => Promise<string[]>;
+  GetAvgInferenceCostPerProject: (project_id: string) => Promise<number>;
 }
 
 export class TraceService implements ITraceService {
@@ -99,6 +102,46 @@ export class TraceService implements ITraceService {
   constructor() {
     this.client = new ClickhouseBaseClient();
     this.queryBuilderService = new QueryBuilderService();
+  }
+
+  async GetAvgInferenceCostPerProject(project_id: string): Promise<number> {
+    try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return 0;
+      }
+      const conditions = [
+        sql.eq(
+          "JSONExtractString(attributes, 'langtrace.service.type')",
+          "llm"
+        ),
+      ];
+
+      // NEED TO BREAK UP BY MODEL so { model: tokens, model: tokens, etc. }
+      // then can calculate total cost divided by total number of llm traces
+      const query = sql
+        .select([
+          `SUM(
+        JSONExtractInt(
+          JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
+        ) + COALESCE(
+          JSONExtractInt(attributes, 'gen_ai.usage.total_tokens'), 0
+        ) + COALESCE(
+          JSONExtractInt(attributes, 'gen_ai.request.total_tokens'), 0
+        )
+      ) AS total_tokens`,
+        ])
+        .from(project_id)
+        .where(...conditions);
+      const result = await this.client.find<any>(query);
+      console.log(result);
+      // return parseFloat(result[0].avg_cost);
+      return 0;
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the tokens used ${error}`
+      );
+    }
   }
 
   async GetUsersInProject(project_id: string): Promise<string[]> {
@@ -331,7 +374,8 @@ export class TraceService implements ITraceService {
     project_id: string,
     lastNHours = 168,
     userId?: string,
-    model?: string
+    model?: string,
+    inference?: string
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -351,6 +395,15 @@ export class TraceService implements ITraceService {
       if (model) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+        );
+      }
+
+      if (inference === "true") {
+        conditions.push(
+          sql.eq(
+            "JSONExtractString(attributes, 'langtrace.service.type')",
+            "llm"
+          )
         );
       }
 
@@ -639,7 +692,8 @@ export class TraceService implements ITraceService {
     project_id: string,
     lastNHours = 168,
     userId?: string,
-    model?: string
+    model?: string,
+    inference?: string
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -663,6 +717,15 @@ export class TraceService implements ITraceService {
       if (model) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+        );
+      }
+
+      if (inference === "true") {
+        conditions.push(
+          sql.eq(
+            "JSONExtractString(attributes, 'langtrace.service.type')",
+            "llm"
+          )
         );
       }
 
