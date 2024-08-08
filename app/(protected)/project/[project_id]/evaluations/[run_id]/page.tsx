@@ -3,6 +3,12 @@
 import { Conversation } from "@/components/shared/conversation-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -23,7 +29,7 @@ import {
 import { EVALUATIONS_DOCS_URL } from "@/lib/constants";
 import { processRun, RunSample, RunView } from "@/lib/run_util";
 import { cn } from "@/lib/utils";
-import { ArrowTopRightIcon } from "@radix-ui/react-icons";
+import { ArrowTopRightIcon, ResetIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
   flexRender,
@@ -31,7 +37,12 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronLeft, ChevronRight, FlaskConical } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  FlaskConical,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -53,6 +64,7 @@ export default function Evaluation() {
   const [messages, setMessages] = useState<any>();
   const [plan, setPlan] = useState<any>();
   const [open, setOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(false);
 
   const { isLoading: runLoading } = useQuery({
     queryKey: ["fetch-runs-query", projectId, runId],
@@ -289,20 +301,63 @@ export default function Evaluation() {
           ))}
         </div>
         <div className="flex justify-between items-center">
-          <Button variant="outline" onClick={() => router.back()}>
-            <ChevronLeft className="text-muted-foreground" size={20} />
-            Back
-          </Button>
-          {!runLoading && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground font-semibold">
-                Total Samples: {run?.samples?.length || 0}
-              </p>
-              <p className="text-sm text-muted-foreground font-semibold">
-                Model: {run?.model || "N/A"}
-              </p>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => router.back()}>
+              <ChevronLeft className="text-muted-foreground" size={20} />
+              Back
+            </Button>
+            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns
+                  <ChevronDown size={16} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="h-36 overflow-y-visible">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onSelect={() => setOpenDropdown(true)}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.columnDef.header?.toString()}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size={"icon"}
+              variant={"destructive"}
+              onClick={() => {
+                setColumnVisibility({});
+                setTableState({});
+                localStorage.removeItem("preferences.run.table-view");
+              }}
+            >
+              <ResetIcon className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            {!runLoading && (
+              <div className="flex flex-col gap-2">
+                <p className="text-sm text-muted-foreground font-semibold">
+                  Total Samples: {run?.samples?.length || 0}
+                </p>
+                <p className="text-sm text-muted-foreground font-semibold">
+                  Model: {run?.model || "N/A"}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
         {run?.error && (
           <div className="flex flex-col gap-4 items-center">
