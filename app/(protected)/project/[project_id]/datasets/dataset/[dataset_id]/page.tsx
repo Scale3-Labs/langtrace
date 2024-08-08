@@ -389,7 +389,7 @@ export default function Dataset() {
         <div className="px-12 py-12 flex justify-between bg-muted">
           <h1 className="text-3xl font-semibold">Dataset</h1>
         </div>
-        <div className="flex flex-col gap-12 w-full px-12">
+        <div className="flex flex-col gap-12 w-full px-12 mb-6">
           <PathBreadCrumbs projectId={projectId} datasetId={dataset_id} />
           <div className="flex justify-between items-center">
             <div className="flex gap-4 items-center w-fit">

@@ -294,7 +294,9 @@ export default function Evaluation() {
                   <p className="text-sm font-semibold capitalize">
                     {metric.name}:
                   </p>
-                  <p className="text-sm font-semibold">{metric.value}</p>
+                  <p className="text-sm font-semibold">
+                    {parseFloat(metric.value).toFixed(2)}
+                  </p>
                 </div>
               ))}
             </div>

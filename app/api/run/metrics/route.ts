@@ -77,6 +77,9 @@ export async function GET(req: NextRequest) {
       const model = parsedLogs?.eval?.model || "model-unspecified";
       const samples = parsedLogs?.eval?.dataset?.samples || 0;
       const existingEval = evalMetrics.find((m: any) => m.model === model);
+      if (parsedLogs?.status !== "success") {
+        continue;
+      }
       if (existingEval) {
         existingEval.samples += samples;
         existingEval.runs += 1;
@@ -114,7 +117,8 @@ export async function GET(req: NextRequest) {
             } else {
               existingMetric.scores.push({
                 model: model,
-                [metric]: parseFloat(scorer.metrics[metric]?.value) || 0,
+                [metric]:
+                  parseFloat(scorer.metrics[metric]?.value).toFixed(3) || 0,
               });
             }
           }

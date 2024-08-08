@@ -39,6 +39,7 @@ import {
   ChevronDown,
   ClipboardIcon,
   FlaskConical,
+  RefreshCwIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -411,20 +412,37 @@ export default function Evaluations() {
           </div>
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <Button
-                disabled={
-                  fetchEvalMetrics.isLoading ||
-                  (!fetchEvalMetrics.isLoading &&
-                    fetchEvalMetrics.data?.eval_metrics.length === 0)
-                }
-                variant={"outline"}
-                className="flex self-start"
-                onClick={() => setViewMetrics(!viewMetrics)}
-              >
-                {viewMetrics ? "Hide Metrics" : "View Metrics"}
-                <AreaChartIcon className="h-4 w-4 ml-1" />
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size={"icon"}
+                  onClick={() => {
+                    setPage(1);
+                    setTotalPages(1);
+                    setCurrentData([]);
+                    setManualRefetching(true);
+                  }}
+                >
+                  <RefreshCwIcon className="w-4 h-4" />
+                </Button>
+                <Button
+                  disabled={
+                    fetchEvalMetrics.isLoading ||
+                    (!fetchEvalMetrics.isLoading &&
+                      fetchEvalMetrics.data?.eval_metrics.length === 0)
+                  }
+                  variant={"outline"}
+                  className="flex self-start"
+                  onClick={() => setViewMetrics(!viewMetrics)}
+                >
+                  {viewMetrics ? "Hide Metrics" : "View Metrics"}
+                  <AreaChartIcon className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
               <div className="flex items-center gap-2">
+                <Badge variant={"outline"} className="text-sm">
+                  Dataset ID: {datasetId}
+                </Badge>
                 <DropdownMenu
                   open={openDropdown}
                   onOpenChange={setOpenDropdown}
