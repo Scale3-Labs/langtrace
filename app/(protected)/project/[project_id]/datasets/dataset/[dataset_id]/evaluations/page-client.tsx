@@ -1,6 +1,9 @@
 "use client";
 
-import { DatasetDropdown } from "@/components/shared/dataset-dropdown";
+import { PathBreadCrumbs } from "@/components/dataset/path-breadcrumbs";
+import ModelEvalMetricsChart from "@/components/evaluations/model-eval-metrics-chart";
+import ModelScorerMetricsChart from "@/components/evaluations/model-scorer-metrics-chart";
+import { ChartTypesDropDown } from "@/components/shared/chart-types";
 import RowSkeleton from "@/components/shared/row-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,17 +34,21 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, ClipboardIcon, FlaskConical } from "lucide-react";
+import {
+  AreaChartIcon,
+  ChevronDown,
+  ClipboardIcon,
+  FlaskConical,
+} from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
 export default function Evaluations() {
-  const searchParams = useSearchParams();
-  const urldatasetId = searchParams?.get("dataset_id") || "";
+  const datasetId = useParams()?.dataset_id as string;
   const router = useRouter();
   const projectId = useParams()?.project_id as string;
   const [comparisonRunIds, setComparisonRunIds] = useState<string[]>([]);
@@ -57,15 +64,9 @@ export default function Evaluations() {
   });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
-  const [datasetId, setDatasetId] = useState<string>(urldatasetId);
   const [manualRefetching, setManualRefetching] = useState(true);
-
-  useEffect(() => {
-    setCurrentData([]);
-    setPage(1);
-    setTotalPages(1);
-    setManualRefetching(true);
-  }, [datasetId]);
+  const [viewMetrics, setViewMetrics] = useState(false);
+  const [chartType, setChartType] = useState("radar");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -101,6 +102,21 @@ export default function Evaluations() {
       setShowLoader(true);
       fetchExperiments.refetch();
     }
+  });
+
+  const fetchEvalMetrics = useQuery({
+    queryKey: ["fetchEvalMetrics", datasetId],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/run/metrics?datasetId=${datasetId}&projectId=${projectId}`
+      );
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch dataset metrics");
+      }
+      const result = await response.json();
+      return result;
+    },
   });
 
   const fetchExperiments = useQuery({
@@ -359,7 +375,7 @@ export default function Evaluations() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
+      <div className="px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Evaluations</h1>
         <div className="flex gap-2">
           <Button
@@ -370,7 +386,9 @@ export default function Evaluations() {
               const query = comparisonRunIds
                 .map((runId, i) => (i === 0 ? "" : "&") + "run_id=" + runId)
                 .join("");
-              router.push(`/project/${projectId}/evaluations/compare?${query}`);
+              router.push(
+                `/project/${projectId}/datasets/dataset/${datasetId}/evaluations/compare?${query}`
+              );
             }}
           >
             Compare
@@ -386,65 +404,97 @@ export default function Evaluations() {
       </div>
       {!fetchExperiments.isLoading && (
         <div className="flex flex-col gap-12 w-full px-12">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <DatasetDropdown
-                projectId={projectId}
-                setDatasetId={setDatasetId}
-                datasetId={datasetId}
-              />
-              {datasetId && (
-                <Link
-                  href={`/project/${projectId}/datasets/dataset/${datasetId}`}
-                >
-                  <Button variant="secondary" className="flex">
-                    Dataset
-                    <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-                  </Button>
-                </Link>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="ml-auto">
-                    Columns
-                    <ChevronDown size={16} className="ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="h-72 overflow-y-visible">
-                  {table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => {
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onSelect={() => setOpenDropdown(true)}
-                          onCheckedChange={(value) =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {column.columnDef.header?.toString()}
-                        </DropdownMenuCheckboxItem>
-                      );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+          <div className="flex items-center gap-2">
+            {datasetId && (
+              <PathBreadCrumbs projectId={projectId} datasetId={datasetId} />
+            )}
+          </div>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
               <Button
-                size={"icon"}
-                variant={"destructive"}
-                onClick={() => {
-                  setColumnVisibility({});
-                  setTableState({});
-                  localStorage.removeItem("preferences.evals.table-view");
-                }}
+                disabled={
+                  fetchEvalMetrics.isLoading ||
+                  (!fetchEvalMetrics.isLoading &&
+                    fetchEvalMetrics.data?.eval_metrics.length === 0)
+                }
+                variant={"outline"}
+                className="flex self-start"
+                onClick={() => setViewMetrics(!viewMetrics)}
               >
-                <ResetIcon className="w-4 h-4" />
+                {viewMetrics ? "Hide Metrics" : "View Metrics"}
+                <AreaChartIcon className="h-4 w-4 ml-1" />
               </Button>
+              <div className="flex items-center gap-2">
+                <DropdownMenu
+                  open={openDropdown}
+                  onOpenChange={setOpenDropdown}
+                >
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="ml-auto">
+                      Columns
+                      <ChevronDown size={16} className="ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="h-72 overflow-y-visible">
+                    {table
+                      .getAllColumns()
+                      .filter((column) => column.getCanHide())
+                      .map((column) => {
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={column.id}
+                            className="capitalize"
+                            checked={column.getIsVisible()}
+                            onSelect={() => setOpenDropdown(true)}
+                            onCheckedChange={(value) =>
+                              column.toggleVisibility(!!value)
+                            }
+                          >
+                            {column.columnDef.header?.toString()}
+                          </DropdownMenuCheckboxItem>
+                        );
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  size={"icon"}
+                  variant={"destructive"}
+                  onClick={() => {
+                    setColumnVisibility({});
+                    setTableState({});
+                    localStorage.removeItem("preferences.evals.table-view");
+                  }}
+                >
+                  <ResetIcon className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
+            {viewMetrics && (
+              <div className="flex gap-4 flex-col w-full border rounded-md p-2">
+                <div className="flex gap-4 items-center overflow-x-scroll">
+                  <ChartTypesDropDown
+                    chartType={chartType}
+                    setChartType={setChartType}
+                  />
+                </div>
+                {!fetchEvalMetrics.isLoading && (
+                  <div className="flex flex-row gap-4 pb-6 overflow-x-scroll">
+                    <ModelScorerMetricsChart
+                      chartType={chartType}
+                      data={fetchEvalMetrics?.data?.scorer_metrics || {}}
+                    />
+                  </div>
+                )}
+                {!fetchEvalMetrics.isLoading && (
+                  <div className="flex flex-row gap-4 pb-12">
+                    <ModelEvalMetricsChart
+                      chartType={chartType}
+                      data={fetchEvalMetrics?.data?.eval_metrics || {}}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           {currentData.length === 0 && !manualRefetching && (
             <div className="flex flex-col items-center gap-2 mt-24">
@@ -503,7 +553,7 @@ export default function Evaluations() {
                     <TableRow
                       onClick={() =>
                         router.push(
-                          `/project/${projectId}/evaluations/${row.original.runId}`
+                          `/project/${projectId}/datasets/dataset/${datasetId}/evaluations/${row.original.runId}`
                         )
                       }
                       className="cursor-pointer"
