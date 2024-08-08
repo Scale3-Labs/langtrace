@@ -1,6 +1,5 @@
 "use client";
 
-import { UtilityButton } from "@/components/evaluations/report-utility";
 import { Conversation } from "@/components/shared/conversation-view";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,19 +12,29 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { EVALUATIONS_DOCS_URL } from "@/lib/constants";
+import { processRun, RunSample, RunView } from "@/lib/run_util";
 import { cn } from "@/lib/utils";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import {
-  ChevronLeft,
-  ChevronRight,
-  FlaskConical,
-  MoveDiagonal,
-  X,
-} from "lucide-react";
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  VisibilityState,
+} from "@tanstack/react-table";
+import { ChevronLeft, ChevronRight, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
@@ -33,12 +42,20 @@ export default function Evaluation() {
   const router = useRouter();
   const runId = useParams()?.run_id as string;
   const projectId = useParams()?.project_id as string;
+  const [run, setRun] = useState<RunView>();
+  const [tableState, setTableState] = useState<any>({
+    pagination: {
+      pageIndex: 0,
+      pageSize: 100,
+    },
+  });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [messages, setMessages] = useState<any>();
+  const [plan, setPlan] = useState<any>();
+  const [open, setOpen] = useState(false);
 
-  const [expand, setExpand] = useState<boolean[]>();
-  const [experiment, setExperiment] = useState<any>({});
-
-  const { isLoading: experimentLoading, error: experimentError } = useQuery({
-    queryKey: ["fetch-experiments-query", projectId, runId],
+  const { isLoading: runLoading } = useQuery({
+    queryKey: ["fetch-runs-query", projectId, runId],
     queryFn: async () => {
       const response = await fetch(
         `/api/run?projectId=${projectId}&runId=${runId}`
@@ -51,13 +68,9 @@ export default function Evaluation() {
       if (!result.run || !result.run.log) {
         throw new Error("No evaluations found");
       }
-      const exp = JSON.parse(result.run.log);
-      setExperiment(exp);
-      setExpand(
-        exp?.samples && exp?.samples?.length > 0
-          ? exp?.samples.map(() => false)
-          : []
-      );
+      const processedRun = processRun(result.run);
+      setRun(processedRun);
+      setPlan(processedRun.plan);
       return result;
     },
     onError: (error) => {
@@ -67,32 +80,188 @@ export default function Evaluation() {
     },
   });
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const storedState = window.localStorage.getItem(
+          "preferences.run.table-view"
+        );
+        if (storedState) {
+          const parsedState = JSON.parse(storedState);
+          setTableState((prevState: any) => ({
+            ...prevState,
+            ...parsedState,
+            pagination: {
+              ...prevState.pagination,
+              ...parsedState.pagination,
+            },
+          }));
+          if (parsedState.columnVisibility) {
+            setColumnVisibility(parsedState.columnVisibility);
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing stored table state:", error);
+      }
+    }
+  }, []);
+
+  const columns: ColumnDef<RunSample>[] = [
+    {
+      accessorKey: "input",
+      size: 200,
+      enableResizing: true,
+      header: "Input",
+      cell: ({ row }) => {
+        const input = row.getValue("input") as string;
+        return <p className="text-sm font-semibold">{input}</p>;
+      },
+    },
+    {
+      accessorKey: "target",
+      size: 200,
+      enableResizing: true,
+      header: "Target",
+      cell: ({ row }) => {
+        const target = row.getValue("target") as string;
+        return <p className="text-sm font-semibold">{target}</p>;
+      },
+    },
+    {
+      accessorKey: "output",
+      size: 200,
+      enableResizing: true,
+      header: "Output",
+      cell: ({ row }) => {
+        const output = row.getValue("output") as string;
+        return <p className="text-sm font-semibold">{output}</p>;
+      },
+    },
+    {
+      accessorKey: "model",
+      size: 200,
+      enableResizing: true,
+      header: "Model",
+      cell: ({ row }) => {
+        return <p className="text-sm font-semibold">{run?.model}</p>;
+      },
+    },
+    {
+      accessorKey: "scores",
+      size: 200,
+      enableResizing: true,
+      header: "Scores",
+      cell: ({ row }) => {
+        const scores = row.getValue("scores") as {
+          scorer: string;
+          value: string;
+          explanation: string;
+        }[];
+        return (
+          <div className="flex gap-2 flex-wrap">
+            {scores.map((score, idx) => {
+              // remove underscore from scorer
+              let scorer = score?.scorer?.replace(/_/g, " ") || "";
+              // capitalize the entire scorer
+              if (scorer) {
+                scorer = scorer.toUpperCase();
+              }
+              return (
+                <Badge key={idx} className="flex gap-2">
+                  <p className="text-xs">{scorer}:</p>
+                  <p className="text-xl font-bold">{score.value}</p>
+                </Badge>
+              );
+            })}
+          </div>
+        );
+      },
+    },
+  ];
+
+  const table = useReactTable({
+    data: run?.samples || [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    initialState: {
+      ...tableState,
+      pagination: tableState.pagination,
+      columnVisibility,
+    },
+    state: {
+      ...tableState,
+      pagination: tableState.pagination,
+      columnVisibility,
+    },
+    onStateChange: (newState: any) => {
+      setTableState((prevState: any) => ({
+        ...newState,
+        pagination: newState.pagination || prevState.pagination,
+      }));
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.run.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    onColumnVisibilityChange: (newVisibility) => {
+      setColumnVisibility(newVisibility);
+      const currState = table.getState();
+      localStorage.setItem(
+        "preferences.run.table-view",
+        JSON.stringify(currState)
+      );
+    },
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    manualPagination: true, // Add this if you're handling pagination yourself
+  });
+
+  const columnSizeVars = useMemo(() => {
+    const headers = table.getFlatHeaders();
+    const colSizes: { [key: string]: number } = {};
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i]!;
+      colSizes[`--header-${header.id}-size`] = header.getSize();
+      colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
+    }
+    return colSizes;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="px-12 py-12 flex justify-between bg-muted">
         <div className="flex flex-col gap-2">
-          <h1 className="text-lg font-semibold">Run ID</h1>
-          <p className="text-md">{runId}</p>
-          {!experimentError && !experimentLoading && (
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-semibold">Run ID</h1>
+            <p className="text-sm text-muted-foreground font-semibold">
+              {runId}
+            </p>
+          </div>
+          {!runLoading && (
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-semibold">Dataset ID</h1>
+              <p className="text-sm text-muted-foreground font-semibold">
+                {run?.dataset_id || ""}
+              </p>
+            </div>
+          )}
+          {!runLoading && run && (
             <Badge
               className={cn(
                 "capitalize w-fit",
-                experiment.status === "success"
-                  ? "text-green-600 bg-green-200 hover:bg-green-200"
-                  : "text-destructive bg-red-200 hover:bg-red-200"
+                run.status === "success"
+                  ? "text-black bg-green-500"
+                  : "text-black bg-destructive"
               )}
             >
-              {experiment.status}
+              {run.status}
             </Badge>
           )}
         </div>
         <Link href={EVALUATIONS_DOCS_URL} target="_blank">
           <Button
-            variant={
-              experiment && experiment?.samples?.length > 0
-                ? "outline"
-                : "default"
-            }
+            variant={run && run?.samples?.length > 0 ? "outline" : "default"}
           >
             New Evaluation
             <FlaskConical className="ml-1 h-4 w-4" />
@@ -102,258 +271,193 @@ export default function Evaluation() {
       </div>
       <div className="flex flex-col gap-6 w-full px-12">
         <div className="flex gap-2">
+          {run?.scores?.map((score, i) => (
+            <div
+              className="flex flex-col gap-0 p-2 border rounded-md border-muted bg-muted shadow-md"
+              key={i}
+            >
+              <p className="text-md font-semibold mb-3">{score.scorer}</p>
+              {score?.metrics.map((metric, j) => (
+                <div className="flex gap-2" key={j}>
+                  <p className="text-sm font-semibold capitalize">
+                    {metric.name}:
+                  </p>
+                  <p className="text-sm font-semibold">{metric.value}</p>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between items-center">
           <Button variant="outline" onClick={() => router.back()}>
             <ChevronLeft className="text-muted-foreground" size={20} />
             Back
           </Button>
-          {!experimentError && !experimentLoading && (
-            <Button
-              variant={"outline"}
-              size={"icon"}
-              disabled={
-                !experiment?.samples || experiment?.samples?.length === 0
-              }
-              onClick={() => {
-                setExpand(
-                  expand &&
-                    expand.map(() => {
-                      return !expand[0];
-                    })
-                );
-              }}
-            >
-              {expand && expand.some((v: any) => v === false) && (
-                <MoveDiagonal size={20} />
-              )}
-              {expand && !expand.some((v: any) => v === false) && (
-                <X size={20} />
-              )}
-            </Button>
+          {!runLoading && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground font-semibold">
+                Total Samples: {run?.samples?.length || 0}
+              </p>
+              <p className="text-sm text-muted-foreground font-semibold">
+                Model: {run?.model || "N/A"}
+              </p>
+            </div>
           )}
         </div>
-        {experiment?.error && (
-          <div className="flex flex-col gap-4">
-            <p className="text-xl text-center font-semibold">
+        {run?.error && (
+          <div className="flex flex-col gap-4 items-center">
+            <p className="text-sm text-muted-foreground text-center font-semibold">
               An error occurred while running this evaluation. See below for
               more details
             </p>
-            <div className="flex flex-col gap-2 p-2 border border-muted-foreground bg-muted rounded-md">
+            <div className="text-xs flex flex-col gap-2 p-2 border border-muted rounded-md text-muted-foreground">
               <pre className="text-start text-md">
-                {experiment.error.message || "An error occurred."}
+                {run?.error?.message || "An error occurred."}
               </pre>
               <pre className="text-start text-sm">
-                {experiment.error.traceback || "No traceback available."}
+                {run?.error?.traceback || "No traceback available."}
               </pre>
             </div>
           </div>
         )}
-        {experimentError && (
-          <div className="flex flex-col items-center gap-2 mt-6">
-            <p className="text-center text-md">
-              Failed to fetch the evaluation. Please try again later.
-            </p>
-          </div>
-        )}
-        {((!experimentError && !experimentLoading && !experiment?.samples) ||
-          experiment?.samples?.length === 0) && (
-          <div className="flex flex-col items-center gap-2 mt-6">
-            <p className="text-center text-md">
-              No samples found for this evaluation.
-            </p>
-            <Link href={EVALUATIONS_DOCS_URL} target="_blank">
-              <Button className="w-fit">
-                New Evaluation
-                <FlaskConical className="ml-1 h-4 w-4" />
-                <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        )}
-        {!experimentLoading &&
-          experiment?.samples &&
-          experiment?.samples?.length > 0 && (
-            <div className="overflow-y-scroll">
-              <table className="table-auto overflow-x-scroll w-screen border-separate border border-muted rounded-md">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Input
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Target
-                    </th>
-                    <th className="p-2 rounded-md text-sm font-medium">{`Output - (${experiment.eval.model})`}</th>
-                    <th className="p-2 rounded-md text-sm font-medium">
-                      Explanation
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {experiment.samples.map((sample: any, i: number) => (
-                    <SampleRow
-                      key={i}
-                      index={i}
-                      plan={experiment.plan}
-                      sample={sample}
-                      model={experiment.eval.model}
-                      expand={expand ? expand[i] : false}
-                      setExpand={(value: boolean, index: number) => {
-                        setExpand(
-                          expand &&
-                            expand.map((_: any, j: number) => {
-                              return j === index ? value : expand[j];
-                            })
-                        );
-                      }}
-                    />
-                  ))}
-                </tbody>
-              </table>
+        {!run?.error &&
+          ((!runLoading && !run?.samples) || run?.samples?.length === 0) && (
+            <div className="flex flex-col items-center gap-2 mt-6">
+              <p className="text-center text-md">
+                No samples found for this evaluation.
+              </p>
+              <Link href={EVALUATIONS_DOCS_URL} target="_blank">
+                <Button className="w-fit">
+                  New Evaluation
+                  <FlaskConical className="ml-1 h-4 w-4" />
+                  <ArrowTopRightIcon className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           )}
-        {experimentLoading && <Skeleton className="w-full h-96" />}
+        {!run?.error &&
+          !runLoading &&
+          run?.samples &&
+          run?.samples?.length > 0 && (
+            <div className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll">
+              <EvaluationConversation
+                model={run?.model}
+                plan={plan}
+                messages={messages}
+                open={open}
+                setOpen={setOpen}
+              />
+              <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
+                <TableHeader className="sticky top-0 bg-secondary">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          style={{
+                            width: `calc(var(--header-${header.id}-size) * 1px)`,
+                            position: "relative",
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          <div
+                            onDoubleClick={() => header.column.resetSize()}
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={`bg-muted-foreground resizer ${
+                              header.column.getIsResizing() ? "isResizing" : ""
+                            }`}
+                          />
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      className="cursor-pointer"
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      onClick={() => {
+                        setMessages(row.original.messages);
+                        setOpen(true);
+                      }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          style={{
+                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        {runLoading && <Skeleton className="w-full h-96" />}
       </div>
     </div>
   );
 }
 
-function SampleRow({
-  index,
-  sample,
-  plan,
+function EvaluationConversation({
+  open,
+  setOpen,
   model,
-  expand,
-  setExpand,
+  plan,
+  messages,
 }: {
-  index: number;
-  sample: any;
-  plan: any;
+  open: boolean;
+  setOpen: any;
   model: string;
-  expand: boolean;
-  setExpand: (value: boolean, index: number) => void;
+  plan: any;
+  messages: any;
 }) {
-  const [open, setOpen] = useState(false);
   return (
-    <tr
-      className="hover:cursor-pointer hover:bg-muted group"
-      onClick={() => setOpen(!open)}
-    >
-      <td
-        className={cn(
-          "text-sm px-2 py-1 max-w-80 relative",
-          expand ? "" : "truncate"
-        )}
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetContent
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          e.preventDefault();
+        }}
+        className={"overflow-y-scroll w-1/4"}
+        onClick={(e) => e.stopPropagation()}
       >
-        <UtilityButton
-          index={index}
-          expand={expand}
-          setExpand={setExpand}
-          text={sample.input || ""}
-        />
-        {typeof sample.input === "string"
-          ? sample.input
-          : Array.isArray(sample.input)
-            ? sample.input[sample.input.length - 1].content
-            : ""}
-      </td>
-      <td
-        className={cn(
-          "relative text-sm px-2 py-1 max-w-80",
-          expand ? "" : "truncate"
-        )}
-      >
-        <UtilityButton
-          index={index}
-          expand={expand}
-          setExpand={setExpand}
-          text={sample.target || ""}
-        />
-        {sample.target || "none"}
-      </td>
-      <td
-        className={cn("px-2 py-1 max-w-80 relative", expand ? "" : "truncate")}
-      >
-        <UtilityButton
-          index={index}
-          expand={expand}
-          setExpand={setExpand}
-          text={
-            sample.output?.choices && sample.output.choices?.length > 0
-              ? sample.output.choices[sample.output.choices.length - 1].message
-                  ?.content
-              : ""
-          }
-        />
-        <div className="flex flex-col gap-2">
-          <Badge
-            className={cn(
-              sample.score?.value === "I"
-                ? "hover:bg-red-200 bg-red-200 text-destructive border-destructive"
-                : "hover:bg-green-200 bg-green-200 text-green-700 border-green-700",
-              "border w-fit"
-            )}
-          >
-            {sample.score?.value === "I" ? "INCORRECT" : "CORRECT"}
-          </Badge>
-          <Badge variant={"secondary"} className="w-fit">
-            {sample.output?.model || ""}
-          </Badge>
-          <p className="text-sm">
-            {sample.output?.choices && sample.output.choices?.length > 0
-              ? typeof sample.output.choices[sample.output.choices.length - 1]
-                  .message?.content === "string"
-                ? sample.output.choices[sample.output.choices.length - 1]
-                    .message?.content
-                : sample.output.choices[sample.output.choices.length - 1]
-                    .message?.content[0]?.text
-              : ""}
-          </p>
+        <SheetHeader>
+          <SheetTitle>Evaluation Plan</SheetTitle>
+          <SheetDescription>
+            Evaluation plan and the messages exchanged during the evaluation
+            run.
+          </SheetDescription>
+        </SheetHeader>
+        <Separator className="my-3" />
+        <p className="text-medium my-3 font-semibold">Plan</p>
+        <div className="flex my-4 gap-2 flex-wrap items-center">
+          {plan.steps.map((step: any, i: number) => (
+            <div className="flex gap-2 items-center" key={i}>
+              <Badge variant={"outline"}>{step}</Badge>
+              {i < plan.steps.length - 1 && <ChevronRight size={12} />}
+            </div>
+          ))}
         </div>
-      </td>
-      <td
-        className={cn(
-          "text-sm px-2 py-1 max-w-80 relative",
-          expand ? "" : "truncate"
-        )}
-      >
-        <UtilityButton
-          index={index}
-          expand={expand}
-          setExpand={setExpand}
-          text={sample.score?.explanation || ""}
-        />
-        {sample.score?.explanation || "none"}
-      </td>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          onInteractOutside={(e) => {
-            e.preventDefault();
-          }}
-          className={"overflow-y-scroll w-1/4"}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <SheetHeader>
-            <SheetTitle>Messages</SheetTitle>
-            <SheetDescription>
-              Messages exchanged between the model and the user.
-            </SheetDescription>
-          </SheetHeader>
-          <Separator className="my-3" />
-          <p className="text-medium my-3 font-semibold">Plan</p>
-          <div className="flex my-4 gap-2 flex-wrap items-center">
-            {plan.steps.map((step: any, i: number) => (
-              <div className="flex gap-2 items-center" key={i}>
-                <Badge variant={"outline"}>{step.solver}</Badge>
-                {i < plan.steps.length - 1 && <ChevronRight size={12} />}
-              </div>
-            ))}
-          </div>
-          <Separator className="my-3" />
-          <p className="text-medium my-3 font-semibold">Messages</p>
-          <Conversation messages={sample.messages} model={model} />
-        </SheetContent>
-      </Sheet>
-    </tr>
+        <Separator className="my-3" />
+        <p className="text-medium my-3 font-semibold">Messages</p>
+        <Conversation messages={messages} model={model} />
+      </SheetContent>
+    </Sheet>
   );
 }
