@@ -279,7 +279,7 @@ export default function Compare() {
                 </Link>
               </div>
             )))}
-        {!experimentsLoading && !isComparable && (
+        {!experimentsLoading && runs?.length > 0 && !isComparable && (
           <div className="flex flex-col items-center gap-2 mt-24">
             <p className="text-center text-md">
               The selected evaluations are not comparable. Please select
