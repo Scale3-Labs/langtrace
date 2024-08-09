@@ -46,7 +46,10 @@ export interface ITraceService {
     inference?: string
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
-  GetTotalTracesPerProject: (project_id: string) => Promise<number>;
+  GetTotalTracesPerProject: (
+    project_id: string,
+    inference?: string
+  ) => Promise<number>;
   GetTotalSpansPerProject: (project_id: string) => Promise<number>;
   GetTotalSpansWithAttributesPerProject: (
     project_id: string,
@@ -93,7 +96,7 @@ export interface ITraceService {
   GetUsersInProject: (project_id: string) => Promise<string[]>;
   GetPromptsInProject: (project_id: string) => Promise<string[]>;
   GetModelsInProject: (project_id: string) => Promise<string[]>;
-  GetAvgInferenceCostPerProject: (project_id: string) => Promise<number>;
+  GetInferenceCostPerProject: (project_id: string) => Promise<any>;
 }
 
 export class TraceService implements ITraceService {
@@ -104,7 +107,7 @@ export class TraceService implements ITraceService {
     this.queryBuilderService = new QueryBuilderService();
   }
 
-  async GetAvgInferenceCostPerProject(project_id: string): Promise<number> {
+  async GetInferenceCostPerProject(project_id: string): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
@@ -117,26 +120,39 @@ export class TraceService implements ITraceService {
         ),
       ];
 
-      // NEED TO BREAK UP BY MODEL so { model: tokens, model: tokens, etc. }
-      // then can calculate total cost divided by total number of llm traces
       const query = sql
         .select([
+          `IF(
+            JSONExtractString(attributes, 'llm.model') != '',
+            JSONExtractString(attributes, 'llm.model'),
+            IF(
+              JSONExtractString(attributes, 'gen_ai.response.model') != '',
+              JSONExtractString(attributes, 'gen_ai.response.model'),
+              JSONExtractString(attributes, 'gen_ai.request.model')
+            )
+          ) AS model`,
+          `JSONExtractString(attributes, 'langtrace.service.name') AS vendor`,
           `SUM(
-        JSONExtractInt(
-          JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
-        ) + COALESCE(
-          JSONExtractInt(attributes, 'gen_ai.usage.total_tokens'), 0
-        ) + COALESCE(
-          JSONExtractInt(attributes, 'gen_ai.request.total_tokens'), 0
-        )
-      ) AS total_tokens`,
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.input_tokens'), 0
+          )
+        ) AS input_tokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.output_tokens'), 0
+          )
+        ) AS output_tokens`,
         ])
         .from(project_id)
-        .where(...conditions);
+        .where(...conditions)
+        .groupBy("vendor", "model");
+
       const result = await this.client.find<any>(query);
-      console.log(result);
-      // return parseFloat(result[0].avg_cost);
-      return 0;
+      return result;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
@@ -350,17 +366,30 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTotalTracesPerProject(project_id: string): Promise<number> {
+  async GetTotalTracesPerProject(
+    project_id: string,
+    inference?: string
+  ): Promise<number> {
     try {
       // check if the table exists
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
         return 0;
       }
+      const conditions = [];
 
+      if (inference === "true") {
+        conditions.push(
+          sql.eq(
+            "JSONExtractString(attributes, 'langtrace.service.type')",
+            "llm"
+          )
+        );
+      }
       const query = sql
         .select("COUNT(DISTINCT trace_id) AS total_traces")
-        .from(project_id);
+        .from(project_id)
+        .where(...conditions);
       const result = await this.client.find<any>(query);
       return parseInt(result[0]["total_traces"], 10);
     } catch (error) {

@@ -121,7 +121,7 @@ export function AverageCostInferenceChart({
     ],
     queryFn: async () => {
       const response = await fetch(
-        `/api/metrics/usage/cost/total?projectId=${projectId}`
+        `/api/metrics/usage/cost/inference?projectId=${projectId}`
       );
       if (!response.ok) {
         const error = await response.json();
@@ -130,7 +130,6 @@ export function AverageCostInferenceChart({
         );
       }
       const result = await response.json();
-      console.log(result);
       return result;
     },
     onError: (error) => {
@@ -145,20 +144,25 @@ export function AverageCostInferenceChart({
   } else {
     return (
       <>
-        <div className="flex flex-col gap-2 border p-3 rounded-lg w-[55vh]">
-          <div className="flex flex-row gap-4 h-12">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-semibold text-start">
-                Average Inference Cost: ${costUsage?.cost?.toFixed(6) || 0}
-              </p>
-            </div>
-            <p className="text-sm font-semibold text-start">
-              Total Cost: ${costUsage?.total?.toFixed(6) || 0}
+        <div className="flex flex-col justify-between h-[406px] border p-14 rounded-lg w-[55vh]">
+          <div className="flex flex-col items-center">
+            <p className="text-7xl text-center w-full">
+              ${(costUsage?.cost / costUsage?.count).toFixed(6) || 0}
+            </p>
+            <p className="text-md text-center w-full">Average Inference Cost</p>
+            <p className="text-xs text-center w-full">
+              Average cost per inference based on current LLM pricing.
             </p>
           </div>
-          <p className="text-sm text-center text-muted-foreground">
-            Total cost over time {formatDurationForDisplay(lastNHours)}
-          </p>
+          <div className="flex flex-col items-center">
+            <p className="text-7xl text-center w-full">
+              ${costUsage?.cost?.toFixed(6) || 0}
+            </p>
+            <p className="text-md text-center w-full">Total Cost</p>
+            <p className="text-xs text-center w-full">
+              Based on input/output tokens and current LLM pricing.
+            </p>
+          </div>
         </div>
       </>
     );
