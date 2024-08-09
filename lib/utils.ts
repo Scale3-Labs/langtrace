@@ -556,7 +556,18 @@ export function calculatePriceFromUsage(
   } else if (vendor === "groq") {
     costTable = GROQ_PRICING[model];
   } else if (vendor === "azure") {
-    costTable = AZURE_PRICING[model];
+    // check if model is present as key in AZURE_PRICING
+    let correctModel = model;
+    if (!AZURE_PRICING.hasOwnProperty(model)) {
+      if (model.includes("gpt-4o-mini")) {
+        correctModel = "gpt-4o-mini";
+      } else if (model.includes("gpt-4o")) {
+        correctModel = "gpt-4o";
+      } else if (model.includes("gpt-4")) {
+        correctModel = "gpt-4";
+      }
+    }
+    costTable = AZURE_PRICING[correctModel];
   }
   if (costTable) {
     const total =
