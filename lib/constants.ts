@@ -235,6 +235,21 @@ export const GROQ_PRICING: Record<string, CostTableEntry> = {
   },
 };
 
+export const AZURE_PRICING: Record<string, CostTableEntry> = {
+  "gpt-4o": {
+    input: 0.005,
+    output: 0.015,
+  },
+  "gpt-4o-mini": {
+    input: 0.00015,
+    output: 0.0006,
+  },
+  "gpt-4": {
+    input: 0.03,
+    output: 0.06,
+  },
+};
+
 export const PAGE_SIZE = 15;
 
 export const DEFAULT_TESTS: Partial<Test>[] = [

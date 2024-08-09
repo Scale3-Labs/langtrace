@@ -10,6 +10,7 @@ import { twMerge } from "tailwind-merge";
 import { Span } from "./clients/scale3_clickhouse/models/span";
 import {
   ANTHROPIC_PRICING,
+  AZURE_PRICING,
   COHERE_PRICING,
   CostTableEntry,
   GROQ_PRICING,
@@ -521,7 +522,11 @@ export function calculatePriceFromUsage(
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
     if (!OPENAI_PRICING.hasOwnProperty(model)) {
-      if (model.includes("gpt-4")) {
+      if (model.includes("gpt-4o-mini")) {
+        correctModel = "gpt-4o-mini";
+      } else if (model.includes("gpt-4o")) {
+        correctModel = "gpt-4o";
+      } else if (model.includes("gpt-4")) {
         correctModel = "gpt-4";
       }
     }
@@ -550,6 +555,8 @@ export function calculatePriceFromUsage(
     costTable = COHERE_PRICING[model];
   } else if (vendor === "groq") {
     costTable = GROQ_PRICING[model];
+  } else if (vendor === "azure") {
+    costTable = AZURE_PRICING[model];
   }
   if (costTable) {
     const total =
