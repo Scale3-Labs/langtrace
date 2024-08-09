@@ -79,7 +79,7 @@ export default function Annotations({ email }: { email: string }) {
               {
                 key: "name",
                 operation: "EQUALS",
-                value: "gen_ai.content.prompt",
+                value: "gen_ai.content.completion",
                 type: "event",
               },
             ],
