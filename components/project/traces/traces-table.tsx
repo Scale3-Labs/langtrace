@@ -1,4 +1,5 @@
 import { SetupInstructions } from "@/components/shared/setup-instructions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -174,6 +175,9 @@ export function TracesTable<TData, TValue>({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Badge variant={"outline"} className="text-sm">
+              Project ID: {project_id}
+            </Badge>
             <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
