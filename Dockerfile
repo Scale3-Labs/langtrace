@@ -21,12 +21,14 @@ EXPOSE 3000
 CMD [ "/bin/sh", "-c", "bash entrypoint.sh" ]
 
 
-# Intermediate image for building the application
+# Intermediate image for building the application for production
 FROM development AS builder
 
 WORKDIR /app
 
-RUN NEXT_PUBLIC_ENABLE_ADMIN_LOGIN=true npm run build
+ARG LANGTRACE_VERSION
+
+RUN NEXT_PUBLIC_ENABLE_ADMIN_LOGIN=true NEXT_PUBLIC_LANGTRACE_VERSION=$LANGTRACE_VERSION npm run build
 
 # Final release image
 FROM node:21.6-bookworm AS production
