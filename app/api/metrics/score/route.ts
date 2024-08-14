@@ -95,7 +95,8 @@ export async function POST(req: NextRequest) {
           dateScoreMap[date][`${evaluation.Test?.name}(${testId})`][0] +
             evaluation.ltUserScore || 0;
         dateScoreMap[date][`${evaluation.Test?.name}(${testId})`][0] = total;
-        dateScoreMap[date][`${evaluation.Test?.name}(${testId})`][1] += 1;
+        dateScoreMap[date][`${evaluation.Test?.name}(${testId})`][1] +=
+          evaluation.Test?.max || 1;
       });
     }
 

@@ -61,17 +61,19 @@ export function TraceSheet({
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
           {spansView === "SPANS" && (
-            <SpansView
-              trace={trace}
-              selectedTrace={selectedTrace}
-              setSelectedTrace={setSelectedTrace}
-              selectedVendors={selectedVendors}
-              setSelectedVendors={setSelectedVendors}
-              setSpansView={setSpansView}
-              setSpan={setSpan}
-              setAttributes={setAttributes}
-              setEvents={setEvents}
-            />
+            <div className="overflow-y-scroll h-[90vh]">
+              <SpansView
+                trace={trace}
+                selectedTrace={selectedTrace}
+                setSelectedTrace={setSelectedTrace}
+                selectedVendors={selectedVendors}
+                setSelectedVendors={setSelectedVendors}
+                setSpansView={setSpansView}
+                setSpan={setSpan}
+                setAttributes={setAttributes}
+                setEvents={setEvents}
+              />
+            </div>
           )}
           {(spansView === "ATTRIBUTES" ||
             spansView === "CONVERSATION" ||
@@ -83,7 +85,8 @@ export function TraceSheet({
                 <div className="flex gap-2 items-center justify-between w-full">
                   <Button
                     className="w-fit"
-                    variant={"secondary"}
+                    size={"sm"}
+                    variant={"outline"}
                     onClick={() => setSpansView("SPANS")}
                   >
                     <ChevronLeft size={16} className="mr-2" />
@@ -92,7 +95,8 @@ export function TraceSheet({
                   <div className="flex gap-2 items-center">
                     <Button
                       className="w-fit"
-                      variant={"secondary"}
+                      size={"sm"}
+                      variant={"outline"}
                       disabled={spansView === "ATTRIBUTES"}
                       onClick={() => setSpansView("ATTRIBUTES")}
                     >
@@ -101,11 +105,12 @@ export function TraceSheet({
                     </Button>
                     <Button
                       className="w-fit"
-                      variant={"secondary"}
+                      size={"sm"}
+                      variant={"outline"}
                       disabled={spansView === "CONVERSATION"}
                       onClick={() => setSpansView("CONVERSATION")}
                     >
-                      <MessageCircle size={16} className="mr-2" />
+                      <MessageCircle size={16} className="mr-2 fill-primary" />
                       LLM Conversations
                     </Button>
                     {includesLanggraph && (
@@ -181,7 +186,7 @@ function SpansView({
         </ul>
         <div className="flex gap-2 items-center flex-wrap">
           {trace.vendors.map((vendor, i) => (
-            <div className="flex items-center space-x-2" key={i}>
+            <div className="flex items-center space-x-2 py-3" key={i}>
               <Checkbox
                 id={vendor}
                 checked={selectedVendors.includes(vendor)}
@@ -231,7 +236,7 @@ function SpansView({
           ))}
         </div>
       </div>
-      <div className="overflow-x-scroll">
+      <div className="overflow-x-scroll pb-12">
         <TraceGraph
           spans={selectedTrace}
           totalSpans={trace.sorted_trace.length}
