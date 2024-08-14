@@ -90,7 +90,7 @@ export default function Metrics({ email }: { email: string }) {
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <p className="text-lg font-semibold pr-2">Inference</p>
+        <p className="text-lg font-semibold pr-2">LLM Inference Metrics</p>
         <Separator />
         <div className="flex flex-row flex-wrap items-center gap-3">
           <CountInferenceChart

@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
         lastNHours,
         userId,
         model,
-        inference
+        inference === "true"
       );
     const { averageLatencies, p99Latencies, p95Latencies } =
       await traceService.GetAverageTraceLatenciesPerHourPerProject(
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         lastNHours,
         userId,
         model,
-        inference
+        inference === "true"
       );
     return NextResponse.json(
       {

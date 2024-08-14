@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       lastNHours,
       userId,
       model,
-      inference
+      inference === "true"
     );
     const total = traces.reduce(
       (acc: number, curr: { traceCount: string }) =>

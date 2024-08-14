@@ -19,7 +19,7 @@ export interface ITraceService {
     lastNHours?: number,
     userId?: string,
     model?: string,
-    inference?: string
+    inference?: boolean
   ) => Promise<number>;
   GetTotalSpansPerHourPerProject: (
     project_id: string,
@@ -43,12 +43,12 @@ export interface ITraceService {
     lastNHours?: number,
     userId?: string,
     model?: string,
-    inference?: string
+    inference?: boolean
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
   GetTotalTracesPerProject: (
     project_id: string,
-    inference?: string
+    inference?: boolean
   ) => Promise<number>;
   GetTotalSpansPerProject: (project_id: string) => Promise<number>;
   GetTotalSpansWithAttributesPerProject: (
@@ -137,6 +137,8 @@ export class TraceService implements ITraceService {
             JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
           ) + COALESCE(
             JSONExtractInt(attributes, 'gen_ai.usage.input_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.prompt_tokens'), 0
           )
         ) AS input_tokens`,
           `SUM(
@@ -144,6 +146,8 @@ export class TraceService implements ITraceService {
             JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
           ) + COALESCE(
             JSONExtractInt(attributes, 'gen_ai.usage.output_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
           )
         ) AS output_tokens`,
         ])
@@ -368,7 +372,7 @@ export class TraceService implements ITraceService {
 
   async GetTotalTracesPerProject(
     project_id: string,
-    inference?: string
+    inference = false
   ): Promise<number> {
     try {
       // check if the table exists
@@ -378,7 +382,7 @@ export class TraceService implements ITraceService {
       }
       const conditions = [];
 
-      if (inference === "true") {
+      if (inference) {
         conditions.push(
           sql.eq(
             "JSONExtractString(attributes, 'langtrace.service.type')",
@@ -404,7 +408,7 @@ export class TraceService implements ITraceService {
     lastNHours = 168,
     userId?: string,
     model?: string,
-    inference?: string
+    inference = false
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -427,7 +431,7 @@ export class TraceService implements ITraceService {
         );
       }
 
-      if (inference === "true") {
+      if (inference) {
         conditions.push(
           sql.eq(
             "JSONExtractString(attributes, 'langtrace.service.type')",
@@ -722,7 +726,7 @@ export class TraceService implements ITraceService {
     lastNHours = 168,
     userId?: string,
     model?: string,
-    inference?: string
+    inference = false
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -749,7 +753,7 @@ export class TraceService implements ITraceService {
         );
       }
 
-      if (inference === "true") {
+      if (inference) {
         conditions.push(
           sql.eq(
             "JSONExtractString(attributes, 'langtrace.service.type')",

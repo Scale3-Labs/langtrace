@@ -69,7 +69,7 @@ export function CountInferenceChart({
           <div className="flex flex-col gap-1 h-12">
             <div className="flex flex-row gap-4 flex-wrap ">
               <p className="text-sm font-semibold text-start">
-                Total Inferences Ingested: {inferenceCount?.total || 0}
+                Total LLM Inferences: {inferenceCount?.total || 0}
               </p>
             </div>
             <p className="text-xs text-start text-muted-foreground">
@@ -151,7 +151,7 @@ export function AverageCostInferenceChart({
             </p>
             <p className="text-md text-center w-full">Average Inference Cost</p>
             <p className="text-xs text-center w-full">
-              Average cost per inference based on current LLM pricing.
+              Average cost per LLM call based on current LLM pricing.
             </p>
           </div>
           <div className="flex flex-col items-center">
@@ -160,7 +160,8 @@ export function AverageCostInferenceChart({
             </p>
             <p className="text-md text-center w-full">Total Cost</p>
             <p className="text-xs text-center w-full">
-              Based on input/output tokens and current LLM pricing.
+              Total cost of all LLM calls based on input/output tokens and
+              current LLM pricing.
             </p>
           </div>
         </div>

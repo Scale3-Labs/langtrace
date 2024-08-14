@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const cost = await traceService.GetInferenceCostPerProject(projectId);
     const inferenceCount = await traceService.GetTotalTracesPerProject(
       projectId,
-      "true"
+      true
     );
 
     let totalCost = 0;
