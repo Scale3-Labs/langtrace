@@ -92,7 +92,9 @@ export async function GET(req: NextRequest) {
       result.push({
         input: d.input,
         target: d.output,
-        annotated_output: d.annotatedOutput,
+        expected_output: d.expectedOutput,
+        model: d.model,
+        note: d.note,
       });
     });
 

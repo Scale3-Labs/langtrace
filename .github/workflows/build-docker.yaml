@@ -55,6 +55,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: production
           push: true
+          build-args: |
+            LANGTRACE_VERSION=${{ inputs.imageTag }}
           tags: |
             ${{ env.DOCKER_REGISTRY }}:${{ inputs.imageTag }}
             ${{ env.DOCKER_REGISTRY }}:latest

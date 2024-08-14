@@ -128,20 +128,20 @@ model Prompt {
 }
 
 model Data {
-  id              String       @id @default(cuid())
-  input           String
-  output          String
-  contexts        String[]
-  annotatedOutput String?
-  note            String?
-  spanId          String?
-  Evaluation      Evaluation[]
-  datasetId       String?
-  Dataset         Dataset?     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  projectId       String?
-  Project         Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id             String       @id @default(cuid())
+  spanId         String?
+  input          String
+  output         String
+  expectedOutput String?
+  model          String?
+  note           String?
+  Evaluation     Evaluation[]
+  datasetId      String?
+  Dataset        Dataset?     @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  projectId      String?
+  Project        Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model Dataset {
