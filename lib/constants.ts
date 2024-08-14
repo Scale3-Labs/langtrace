@@ -150,19 +150,15 @@ export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
 // https://docs.perplexity.ai/docs/pricing --> slightly unclear
 // https://docs.perplexity.ai/changelog/api-updates-february-2024 --> diff prices
 export const PERPLEXITY_PRICING: Record<string, CostTableEntry> = {
-  "llama-3-sonar-small-32k-online": {
+  "llama-3.1-sonar-huge-128k-online": {
+    input: 0.005,
+    output: 0.005,
+  },
+  "llama-3.1-8b-instruct": {
     input: 0.0002,
     output: 0.0002,
   },
-  "llama-3-sonar-small-32k-chat": {
-    input: 0.0002,
-    output: 0.0002,
-  },
-  "llama-3-sonar-large-32k-online": {
-    input: 0.001,
-    output: 0.001,
-  },
-  "llama-3-sonar-large-32k-chat": {
+  "llama-3.1-70b-instruct": {
     input: 0.001,
     output: 0.001,
   },
