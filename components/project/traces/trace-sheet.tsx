@@ -61,17 +61,19 @@ export function TraceSheet({
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
           {spansView === "SPANS" && (
-            <SpansView
-              trace={trace}
-              selectedTrace={selectedTrace}
-              setSelectedTrace={setSelectedTrace}
-              selectedVendors={selectedVendors}
-              setSelectedVendors={setSelectedVendors}
-              setSpansView={setSpansView}
-              setSpan={setSpan}
-              setAttributes={setAttributes}
-              setEvents={setEvents}
-            />
+            <div className="overflow-y-scroll h-[90vh]">
+              <SpansView
+                trace={trace}
+                selectedTrace={selectedTrace}
+                setSelectedTrace={setSelectedTrace}
+                selectedVendors={selectedVendors}
+                setSelectedVendors={setSelectedVendors}
+                setSpansView={setSpansView}
+                setSpan={setSpan}
+                setAttributes={setAttributes}
+                setEvents={setEvents}
+              />
+            </div>
           )}
           {(spansView === "ATTRIBUTES" ||
             spansView === "CONVERSATION" ||
@@ -184,7 +186,7 @@ function SpansView({
         </ul>
         <div className="flex gap-2 items-center flex-wrap">
           {trace.vendors.map((vendor, i) => (
-            <div className="flex items-center space-x-2" key={i}>
+            <div className="flex items-center space-x-2 py-3" key={i}>
               <Checkbox
                 id={vendor}
                 checked={selectedVendors.includes(vendor)}
@@ -234,7 +236,7 @@ function SpansView({
           ))}
         </div>
       </div>
-      <div className="overflow-x-scroll">
+      <div className="overflow-x-scroll pb-12">
         <TraceGraph
           spans={selectedTrace}
           totalSpans={trace.sorted_trace.length}
