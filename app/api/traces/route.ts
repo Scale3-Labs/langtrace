@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const apiKey = req.headers.get("x-api-key");
-    const { page, pageSize, projectId, filters, group } = await req.json();
+    let { page, pageSize, projectId, filters, group } = await req.json();
 
     // check if user is logged in or has an api key
     if (!session || !session.user) {
@@ -34,42 +34,53 @@ export async function POST(req: NextRequest) {
             { status: 401 }
           );
         }
+
+        if (pageSize > 100) {
+          return NextResponse.json(
+            { error: "Page size cannot be more than 100" },
+            { status: 400 }
+          );
+        }
+
+        // set defaults for API Access
+        group = true; // always group by default
+        filters = { filters: [], operation: "OR" }; // no filters by default
       } else {
         redirect("/login");
       }
-    }
-
-    // check if user has access to the project
-    const email = session?.user?.email as string;
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        {
-          message: "user not found",
+    } else {
+      // check if user has access to the project
+      const email = session?.user?.email as string;
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
         },
-        { status: 404 }
-      );
-    }
+      });
 
-    const project = await prisma.project.findFirst({
-      where: {
-        id: projectId,
-        teamId: user.teamId,
-      },
-    });
+      if (!user) {
+        return NextResponse.json(
+          {
+            message: "user not found",
+          },
+          { status: 404 }
+        );
+      }
 
-    if (!project) {
-      return NextResponse.json(
-        {
-          message: "User does not have access to this project",
+      const project = await prisma.project.findFirst({
+        where: {
+          id: projectId,
+          teamId: user.teamId,
         },
-        { status: 403 }
-      );
+      });
+
+      if (!project) {
+        return NextResponse.json(
+          {
+            message: "User does not have access to this project",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // get traces

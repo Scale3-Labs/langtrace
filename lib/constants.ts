@@ -69,6 +69,10 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     input: 0.005,
     output: 0.015,
   },
+  "gpt-4o-2024-08-06": {
+    input: 0.0025,
+    output: 0.01,
+  },
   "gpt-4-turbo": {
     input: 0.01,
     output: 0.03,
@@ -146,31 +150,37 @@ export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
 // https://docs.perplexity.ai/docs/pricing --> slightly unclear
 // https://docs.perplexity.ai/changelog/api-updates-february-2024 --> diff prices
 export const PERPLEXITY_PRICING: Record<string, CostTableEntry> = {
-  "sonar-small-chat": {
+  "llama-3-sonar-small-32k-online": {
     input: 0.0002,
     output: 0.0002,
   },
-  "sonar-small-online": {
-    // + $5/K requests
+  "llama-3-sonar-small-32k-chat": {
     input: 0.0002,
     output: 0.0002,
   },
-  "sonar-medium-chat": {
-    input: 0.0006,
-    output: 0.0006,
+  "llama-3-sonar-large-32k-online": {
+    input: 0.001,
+    output: 0.001,
   },
-  "sonar-medium-online": {
-    // + $5/K requests
-    input: 0.0006,
-    output: 0.0006,
+  "llama-3-sonar-large-32k-chat": {
+    input: 0.001,
+    output: 0.001,
   },
-  "mistral-7b-instruct": {
+  "llama-3.1-sonar-small-128k-online": {
     input: 0.0002,
     output: 0.0002,
   },
-  "mixtral-8x7b-instruct": {
-    input: 0.0006,
-    output: 0.0018,
+  "llama-3.1-sonar-small-128k-chat": {
+    input: 0.0002,
+    output: 0.0002,
+  },
+  "llama-3.1-sonar-large-128k-online": {
+    input: 0.001,
+    output: 0.001,
+  },
+  "llama-3.1-sonar-large-128k-chat": {
+    input: 0.001,
+    output: 0.001,
   },
 };
 
@@ -199,6 +209,44 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
   "command-r-plus": {
     input: 0.003,
     output: 0.015,
+  },
+};
+
+export const GROQ_PRICING: Record<string, CostTableEntry> = {
+  "llama3-70b-8192": {
+    input: 0.00059,
+    output: 0.00079,
+  },
+  "llama3-8b-8192": {
+    input: 0.00005,
+    output: 0.00008,
+  },
+  "llama3-groq-70b-8192-tool-use-preview": {
+    input: 0.00089,
+    output: 0.00089,
+  },
+  "llama3-groq-8b-8192-tool-use-preview": {
+    input: 0.00019,
+    output: 0.00019,
+  },
+  "mixtral-8x7b-32768": {
+    input: 0.00024,
+    output: 0.00024,
+  },
+};
+
+export const AZURE_PRICING: Record<string, CostTableEntry> = {
+  "gpt-4o": {
+    input: 0.005,
+    output: 0.015,
+  },
+  "gpt-4o-mini": {
+    input: 0.00015,
+    output: 0.0006,
+  },
+  "gpt-4": {
+    input: 0.03,
+    output: 0.06,
   },
 };
 

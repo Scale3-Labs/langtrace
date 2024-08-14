@@ -9,7 +9,6 @@ import {
   OpenAIRole,
 } from "@/lib/types/playground_types";
 import { cn } from "@/lib/utils";
-import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { MinusCircleIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -41,12 +40,16 @@ export function ExpandingTextArea({
   onChange,
   setFocusing,
   saveButtonRef,
+  saveButtonLabel = "Save to Registry",
+  busy = false,
   handleSave,
 }: {
   value: string;
+  busy?: boolean;
   onChange: any;
   setFocusing?: any;
   saveButtonRef: React.RefObject<HTMLButtonElement>;
+  saveButtonLabel?: string;
   handleSave: (open: boolean) => void;
 }) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -80,22 +83,23 @@ export function ExpandingTextArea({
   return (
     <div className="relative w-[290px]">
       <textarea
+        disabled={busy}
         className="rounded-md text-sm w-[290px] bg-background pr-10 pt-5"
         ref={textAreaRef}
         defaultValue={value}
         onChange={handleChange}
         style={{ overflowY: "auto", height: "auto" }}
       />
-      <div className="absolute right-0 top-[-10px] py-2">
+      <div className="absolute right-1 top-0 py-2">
         <Button
           className="text-xs"
           size={"sm"}
           variant="outline"
           onClick={() => handleSave(true)}
+          disabled={value === "" || busy}
           ref={saveButtonRef}
         >
-          Save to Registry
-          <ArrowTopRightIcon className="ml-1 w-4 h-4" />
+          {saveButtonLabel}
         </Button>
       </div>
     </div>
