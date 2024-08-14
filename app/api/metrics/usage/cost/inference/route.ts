@@ -21,6 +21,18 @@ export async function GET(req: NextRequest) {
       true
     );
 
+    if (cost === 0 || inferenceCount === 0) {
+      return NextResponse.json(
+        {
+          cost: 0,
+          count: 0,
+        },
+        {
+          status: 200,
+        }
+      );
+    }
+
     let totalCost = 0;
 
     cost.forEach(
