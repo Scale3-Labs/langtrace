@@ -38,7 +38,7 @@ export function ChartTabs({
               {
                 key: "name",
                 operation: "EQUALS",
-                value: "gen_ai.content.prompt",
+                value: "gen_ai.content.completion",
                 type: "event",
               },
             ],
@@ -92,7 +92,7 @@ export function ChartTabs({
           <div className="flex flex-row gap-6 flex-wrap">
             {Object.keys(chartData?.scores).map(
               (testId: string, index: number) => {
-                const score = (chartData?.scores[testId] || 0) * 100;
+                const score = chartData?.scores[testId] || 0;
                 const testName = tests.find((test) =>
                   testId.includes(test.id)
                 )?.name;
@@ -114,7 +114,7 @@ export function ChartTabs({
                           bgColor
                         )}
                       >
-                        {(chartData?.scores[testId] || 0) * 100}%
+                        {chartData?.scores[testId] || 0}%
                       </span>
                     </ProgressCircle>
                     <span className="text-lg text-center font-semibold capitalize text-wrap w-24">

@@ -848,6 +848,7 @@ export class TraceService implements ITraceService {
       const conditions = [
         sql.or(
           sql.like("attributes", "%total_tokens%"),
+          sql.like("attributes", "%gen_ai.usage.input_tokens%"),
           sql.like("attributes", "%gen_ai.usage.prompt_tokens%")
         ),
         sql.gte("start_time", nHoursAgo),
@@ -1017,6 +1018,8 @@ export class TraceService implements ITraceService {
             JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
           ) + COALESCE(
             JSONExtractInt(attributes, 'gen_ai.usage.input_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.prompt_tokens'), 0
           )
         ) AS input_tokens`,
           `SUM(
@@ -1024,6 +1027,8 @@ export class TraceService implements ITraceService {
             JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
           ) + COALESCE(
             JSONExtractInt(attributes, 'gen_ai.usage.output_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
           )
         ) AS output_tokens`,
         ])
