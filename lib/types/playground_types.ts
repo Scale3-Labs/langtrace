@@ -159,20 +159,12 @@ export const groqModels = [
 
 export const perplexityModels = [
   {
-    value: "llama-3-sonar-small-32k-online",
-    label: "Llama 3 Sonar Small 32K (Online)",
+    value: "llama-3.1-8b-instruct",
+    label: "Llama 3 8B Instruct",
   },
   {
-    value: "llama-3-sonar-small-32k-chat",
-    label: "Llama 3 Sonar Small 32K (Chat)",
-  },
-  {
-    value: "llama-3-sonar-large-32k-online",
-    label: "Llama 3 Sonar Large 32K (Online)",
-  },
-  {
-    value: "llama-3-sonar-large-32k-chat",
-    label: "Llama 3 Sonar Large 32K (Chat)",
+    value: "llama-3.1-70b-instruct",
+    label: "Llama 3 70B Instruct",
   },
   {
     value: "llama-3.1-sonar-small-128k-online",
@@ -189,6 +181,10 @@ export const perplexityModels = [
   {
     value: "llama-3.1-sonar-large-128k-chat",
     label: "Llama 3.1 Sonar Large 128K (Chat)",
+  },
+  {
+    value: "llama-3.1-sonar-huge-128k-online",
+    label: "Llama 3.1 Sonar Huge 128K (Online)",
   },
 ];
 

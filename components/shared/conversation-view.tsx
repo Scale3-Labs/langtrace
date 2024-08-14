@@ -140,7 +140,7 @@ export function Conversation({
     <div className="flex flex-col gap-8 overflow-y-scroll">
       {messages.map((message, i) => {
         const role = message.role.toLowerCase();
-        const content = message.content;
+        const content: any = message.content;
         return (
           <div key={i} className="flex flex-col gap-2">
             <div className="flex gap-2 items-center">
@@ -155,7 +155,8 @@ export function Conversation({
             <div
               className="text-sm bg-muted rounded-md px-2 py-4"
               dangerouslySetInnerHTML={{
-                __html: content,
+                __html:
+                  typeof content === "string" ? content : content[0]?.text,
               }}
             />
           </div>

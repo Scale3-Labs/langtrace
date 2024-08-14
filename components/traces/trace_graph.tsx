@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTheme } from "next-themes";
 import React, { useState } from "react";
 import { JSONTree } from "react-json-tree";
-import { toast } from "sonner";
+import { RenderSpanAttributeValue } from "../shared/render-span-attribute-value";
 import { VendorLogo } from "../shared/vendor-metadata";
 import { Button } from "../ui/button";
 import {
@@ -118,46 +118,43 @@ const SpanItem: React.FC<SpanItemProps> = ({
   return (
     <div className="flex flex-col gap-1 w-full mt-2">
       <div className="flex items-center">
-        <HoverCard>
-          <HoverCardTrigger asChild>
-            <div
-              className="z-10 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2"
-              style={{ marginLeft: `${level * 10}px` }}
-            >
-              {span.children && span.children.length > 0 && (
-                <Button
-                  onClick={toggleCollapse}
-                  variant={"ghost"}
-                  size={"icon"}
-                >
-                  {isCollapsed ? (
-                    <ChevronRight className="h-5 w-5" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5" />
-                  )}
-                </Button>
+        <div
+          className="z-10 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2"
+          style={{ marginLeft: `${level * 10}px` }}
+        >
+          {span.children && span.children.length > 0 && (
+            <Button onClick={toggleCollapse} variant={"ghost"} size={"icon"}>
+              {isCollapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronDown className="h-5 w-5" />
               )}
-              {!span.children ||
-                (span.children.length === 0 && (
-                  <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
-                ))}
-              <VendorLogo vendor={vendor} />
-              <span className="text-xs max-w-72">{span.name}</span>
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  span.status_code === "ERROR"
-                    ? "bg-destructive animate-pulse"
-                    : "bg-teal-400"
-                }`}
-              ></span>
-            </div>
-          </HoverCardTrigger>
-          <SpanHoverContent
-            span={span}
-            attributes={attributes}
-            events={events}
-          />
-        </HoverCard>
+            </Button>
+          )}
+          {!span.children ||
+            (span.children.length === 0 && (
+              <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
+            ))}
+          <VendorLogo vendor={vendor} />
+          <span
+            className="text-xs max-w-72 cursor-pointer"
+            onClick={() => {
+              setSpansView("ATTRIBUTES");
+              setSpan(span);
+              setAttributes(attributes);
+              setEvents(events);
+            }}
+          >
+            {span.name}
+          </span>
+          <span
+            className={`w-2 h-2 rounded-full ${
+              span.status_code === "ERROR"
+                ? "bg-destructive animate-pulse"
+                : "bg-teal-400"
+            }`}
+          ></span>
+        </div>
         <HoverCard>
           <HoverCardTrigger asChild>
             <div
@@ -346,16 +343,7 @@ export function AttributesTabs({
                   <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
                     {key}
                   </p>
-                  <div
-                    onClick={() => {
-                      navigator.clipboard.writeText(value);
-                      toast.success("Copied to clipboard");
-                    }}
-                    className="text-xs select-all"
-                    dangerouslySetInnerHTML={{
-                      __html: JSON.stringify(jsonValue, null, 2),
-                    }}
-                  />
+                  <RenderSpanAttributeValue value={value} data={jsonValue} />
                 </div>
                 <Separator />
               </div>

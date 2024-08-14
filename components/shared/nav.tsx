@@ -32,10 +32,6 @@ const ProjectNavLinks = (id: string) => [
     href: `/project/${id}/datasets`,
   },
   {
-    name: "Evaluations",
-    href: `/project/${id}/evaluations`,
-  },
-  {
     name: "Playground",
     href: `/project/${id}/playground`,
   },

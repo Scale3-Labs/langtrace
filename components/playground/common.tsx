@@ -41,9 +41,11 @@ export function ExpandingTextArea({
   setFocusing,
   saveButtonRef,
   saveButtonLabel = "Save to Registry",
+  busy = false,
   handleSave,
 }: {
   value: string;
+  busy?: boolean;
   onChange: any;
   setFocusing?: any;
   saveButtonRef: React.RefObject<HTMLButtonElement>;
@@ -81,6 +83,7 @@ export function ExpandingTextArea({
   return (
     <div className="relative w-[290px]">
       <textarea
+        disabled={busy}
         className="rounded-md text-sm w-[290px] bg-background pr-10 pt-5"
         ref={textAreaRef}
         defaultValue={value}
@@ -93,7 +96,7 @@ export function ExpandingTextArea({
           size={"sm"}
           variant="outline"
           onClick={() => handleSave(true)}
-          disabled={value === ""}
+          disabled={value === "" || busy}
           ref={saveButtonRef}
         >
           {saveButtonLabel}

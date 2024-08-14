@@ -79,7 +79,7 @@ export default function Annotations({ email }: { email: string }) {
               {
                 key: "name",
                 operation: "EQUALS",
-                value: "gen_ai.content.prompt",
+                value: "gen_ai.content.completion",
                 type: "event",
               },
             ],
@@ -438,7 +438,7 @@ export default function Annotations({ email }: { email: string }) {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
+      <div className="px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">
           Annotate & Evaluate Conversations
         </h1>
@@ -450,7 +450,7 @@ export default function Annotations({ email }: { email: string }) {
         </div>
       </div>
       {testsLoading || !tests ? (
-        <div className="flex flex-col gap-6 top-[16rem] w-full md:px-24 px-12 mb-24">
+        <div className="flex flex-col gap-6 top-[16rem] w-full px-12 mb-24">
           <AddtoDataset
             projectId={projectId}
             selectedData={selectedData}
@@ -459,7 +459,7 @@ export default function Annotations({ email }: { email: string }) {
           <TableSkeleton />
         </div>
       ) : tests?.length > 0 ? (
-        <div className="flex flex-col gap-6 top-[16rem] w-full md:px-24 px-12 mb-24">
+        <div className="flex flex-col gap-6 top-[16rem] w-full px-12 mb-24">
           <ChartTabs projectId={projectId} tests={tests as Test[]} />
           <AddtoDataset
             projectId={projectId}
