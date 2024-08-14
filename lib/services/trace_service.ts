@@ -18,7 +18,8 @@ export interface ITraceService {
     project_id: string,
     lastNHours?: number,
     userId?: string,
-    model?: string
+    model?: string,
+    inference?: boolean
   ) => Promise<number>;
   GetTotalSpansPerHourPerProject: (
     project_id: string,
@@ -41,10 +42,14 @@ export interface ITraceService {
     project_id: string,
     lastNHours?: number,
     userId?: string,
-    model?: string
+    model?: string,
+    inference?: boolean
   ): Promise<any>;
   GetTokensCostPerProject: (project_id: string) => Promise<any>;
-  GetTotalTracesPerProject: (project_id: string) => Promise<number>;
+  GetTotalTracesPerProject: (
+    project_id: string,
+    inference?: boolean
+  ) => Promise<number>;
   GetTotalSpansPerProject: (project_id: string) => Promise<number>;
   GetTotalSpansWithAttributesPerProject: (
     project_id: string,
@@ -91,6 +96,7 @@ export interface ITraceService {
   GetUsersInProject: (project_id: string) => Promise<string[]>;
   GetPromptsInProject: (project_id: string) => Promise<string[]>;
   GetModelsInProject: (project_id: string) => Promise<string[]>;
+  GetInferenceCostPerProject: (project_id: string) => Promise<any>;
 }
 
 export class TraceService implements ITraceService {
@@ -99,6 +105,63 @@ export class TraceService implements ITraceService {
   constructor() {
     this.client = new ClickhouseBaseClient();
     this.queryBuilderService = new QueryBuilderService();
+  }
+
+  async GetInferenceCostPerProject(project_id: string): Promise<any> {
+    try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return 0;
+      }
+      const conditions = [
+        sql.eq(
+          "JSONExtractString(attributes, 'langtrace.service.type')",
+          "llm"
+        ),
+      ];
+
+      const query = sql
+        .select([
+          `IF(
+            JSONExtractString(attributes, 'llm.model') != '',
+            JSONExtractString(attributes, 'llm.model'),
+            IF(
+              JSONExtractString(attributes, 'gen_ai.response.model') != '',
+              JSONExtractString(attributes, 'gen_ai.response.model'),
+              JSONExtractString(attributes, 'gen_ai.request.model')
+            )
+          ) AS model`,
+          `JSONExtractString(attributes, 'langtrace.service.name') AS vendor`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.input_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.prompt_tokens'), 0
+          )
+        ) AS input_tokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.output_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
+          )
+        ) AS output_tokens`,
+        ])
+        .from(project_id)
+        .where(...conditions)
+        .groupBy("vendor", "model");
+
+      const result = await this.client.find<any>(query);
+      return result;
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the tokens used ${error}`
+      );
+    }
   }
 
   async GetUsersInProject(project_id: string): Promise<string[]> {
@@ -307,17 +370,30 @@ export class TraceService implements ITraceService {
     }
   }
 
-  async GetTotalTracesPerProject(project_id: string): Promise<number> {
+  async GetTotalTracesPerProject(
+    project_id: string,
+    inference = false
+  ): Promise<number> {
     try {
       // check if the table exists
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
         return 0;
       }
+      const conditions = [];
 
+      if (inference) {
+        conditions.push(
+          sql.eq(
+            "JSONExtractString(attributes, 'langtrace.service.type')",
+            "llm"
+          )
+        );
+      }
       const query = sql
         .select("COUNT(DISTINCT trace_id) AS total_traces")
-        .from(project_id);
+        .from(project_id)
+        .where(...conditions);
       const result = await this.client.find<any>(query);
       return parseInt(result[0]["total_traces"], 10);
     } catch (error) {
@@ -331,7 +407,8 @@ export class TraceService implements ITraceService {
     project_id: string,
     lastNHours = 168,
     userId?: string,
-    model?: string
+    model?: string,
+    inference = false
   ): Promise<any> {
     const nHoursAgo = getFormattedTime(lastNHours);
     try {
@@ -351,6 +428,15 @@ export class TraceService implements ITraceService {
       if (model) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+        );
+      }
+
+      if (inference) {
+        conditions.push(
+          sql.eq(
+            "JSONExtractString(attributes, 'langtrace.service.type')",
+            "llm"
+          )
         );
       }
 
@@ -639,7 +725,8 @@ export class TraceService implements ITraceService {
     project_id: string,
     lastNHours = 168,
     userId?: string,
-    model?: string
+    model?: string,
+    inference = false
   ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
@@ -663,6 +750,15 @@ export class TraceService implements ITraceService {
       if (model) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'llm.model')", model)
+        );
+      }
+
+      if (inference) {
+        conditions.push(
+          sql.eq(
+            "JSONExtractString(attributes, 'langtrace.service.type')",
+            "llm"
+          )
         );
       }
 

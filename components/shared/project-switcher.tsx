@@ -70,32 +70,34 @@ export function ProjectSwitcher({ email }: { email: string }) {
           <ScrollArea>
             <CommandEmpty>No project found.</CommandEmpty>
             <CommandGroup>
-              {projects?.projects.map((project: any) => (
-                <Link
-                  key={project.id}
-                  href={`/project/${project.id}/${pathname.split("/")[3]}`}
-                  legacyBehavior
-                >
-                  <a>
-                    <CommandItem
-                      value={`${project.name}${project.id}`}
-                      onSelect={() => setOpen(false)}
-                    >
-                      <div className="flex justify-between w-full cursor-pointer">
-                        <p className="truncate">{project.name}</p>
-                        <CheckIcon
-                          className={cn(
-                            "ml-auto h-4 w-4",
-                            pathname.split("/")[2] === project.id
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                      </div>
-                    </CommandItem>
-                  </a>
-                </Link>
-              ))}
+              {projects?.projects
+                .sort((a: any, b: any) => a.name.localeCompare(b.name))
+                .map((project: any) => (
+                  <Link
+                    key={project.id}
+                    href={`/project/${project.id}/${pathname.split("/")[3]}`}
+                    legacyBehavior
+                  >
+                    <a>
+                      <CommandItem
+                        value={`${project.name}${project.id}`}
+                        onSelect={() => setOpen(false)}
+                      >
+                        <div className="flex justify-between w-full cursor-pointer">
+                          <p className="truncate">{project.name}</p>
+                          <CheckIcon
+                            className={cn(
+                              "ml-auto h-4 w-4",
+                              pathname.split("/")[2] === project.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                        </div>
+                      </CommandItem>
+                    </a>
+                  </Link>
+                ))}
             </CommandGroup>
           </ScrollArea>
         </Command>
