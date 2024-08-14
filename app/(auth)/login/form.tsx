@@ -86,11 +86,11 @@ export default function LoginForm() {
           Sign up
         </Link>
         .
-				{process.env.NEXT_PUBLIC_LANGTRACE_VERSION && (
+        {process.env.NEXT_PUBLIC_LANGTRACE_VERSION && (
           <p className="text-center text-xs text-muted-foreground mt-4">
             Version: {process.env.NEXT_PUBLIC_LANGTRACE_VERSION}
           </p>
-				)}
+        )}
       </p>
     </>
   );
