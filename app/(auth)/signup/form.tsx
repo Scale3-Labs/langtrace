@@ -42,6 +42,11 @@ export default function RegisterForm() {
           Sign in
         </Link>
         .
+        {process.env.NEXT_PUBLIC_LANGTRACE_VERSION && (
+          <p className="text-center text-xs text-muted-foreground mt-4">
+            Version: {process.env.NEXT_PUBLIC_LANGTRACE_VERSION}
+          </p>
+        )}
       </p>
     </>
   );
