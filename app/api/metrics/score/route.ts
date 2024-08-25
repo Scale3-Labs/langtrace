@@ -131,14 +131,16 @@ export async function POST(req: NextRequest) {
       });
     });
 
-    const totalScores = Object.entries(scoresChartData).map(
-      ([testId, scores]: any) => {
-        if (scores[1] === 0) {
-          return 0;
-        }
-        return ((scores[0] / scores[1]) * 100).toFixed(2);
+    const totalScores: any = {};
+    for (const key in scoresChartData) {
+      const testId = key;
+      const scores = scoresChartData[testId];
+      if (scores[1] === 0) {
+        totalScores[testId] = 0;
+      } else {
+        totalScores[testId] = ((scores[0] / scores[1]) * 100).toFixed(2);
       }
-    );
+    }
 
     metricsChartData.sort(
       (a, b) =>
