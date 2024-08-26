@@ -12,9 +12,9 @@ services:
     ports:
       - "3000:3000"
     # Uncomment this for development
-    # command: npm run dev
-    # volumes:
-    #   - .:/app
+    command: npm run dev
+    volumes:
+      - .:/app
     restart: on-failure:5
     depends_on:
       postgres-db:
