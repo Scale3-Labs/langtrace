@@ -179,6 +179,7 @@ export default function Evaluations() {
         },
         body: JSON.stringify({
           runIds: comparisonRunIds,
+          projectId,
         }),
       });
 

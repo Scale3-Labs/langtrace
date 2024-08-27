@@ -194,13 +194,14 @@ export async function DELETE(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { runIds } = data;
+  const { runIds, projectId } = data;
 
   await prisma.run.deleteMany({
     where: {
       runId: {
         in: runIds,
       },
+      projectId: projectId,
     },
   });
 
