@@ -21,6 +21,7 @@ import { HOW_TO_GROUP_RELATED_OPERATIONS } from "@/lib/constants";
 import { Trace } from "@/lib/trace_util";
 import { cn } from "@/lib/utils";
 import { ResetIcon } from "@radix-ui/react-icons";
+import { Switch } from "@/components/ui/switch";
 import {
   ColumnDef,
   flexRender,
@@ -67,6 +68,7 @@ export function TracesTable<TData, TValue>({
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
+  const [viewMode, setViewMode] = useState<"trace" | "prompt">("trace");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -178,6 +180,64 @@ export function TracesTable<TData, TValue>({
             <Badge variant={"outline"} className="text-sm">
               Project ID: {project_id}
             </Badge>
+            <div className="flex items-center gap-4">
+              <p className="text-xs font-semibold">Trace</p>
+              <Switch
+                checked={viewMode === "prompt"}
+                onCheckedChange={(checked) => {
+                  const newMode = checked ? "prompt" : "trace";
+                  setViewMode(newMode);
+                  if (newMode === "prompt") {
+                    setColumnVisibility({
+                      start_time: true,
+                      models: true,
+                      inputs: true,
+                      outputs: true,
+                      status: false,
+                      namespace: false,
+                      user_ids: false,
+                      prompt_ids: false,
+                      vendors: false,
+                      input_tokens: false,
+                      output_tokens: false,
+                      total_tokens: false,
+                      input_cost: false,
+                      output_cost: false,
+                      total_cost: false,
+                      total_duration: false,
+                    });
+                  } else {
+                    setColumnVisibility({
+                      start_time: true,
+                      models: true,
+                      inputs: true,
+                      outputs: true,
+                      status: true,
+                      namespace: true,
+                      user_ids: true,
+                      prompt_ids: true,
+                      vendors: true,
+                      input_tokens: true,
+                      output_tokens: true,
+                      total_tokens: true,
+                      input_cost: true,
+                      output_cost: true,
+                      total_cost: true,
+                      total_duration: true,
+                    });
+                  }
+                }}
+                className="relative inline-flex items-center cursor-pointer"
+              >
+                <span
+                  className={`${
+                    viewMode === "prompt" ? "translate-x-5" : "translate-x-0"
+                  } inline-block w-10 h-6 bg-gray-200 rounded-full transition-transform`}
+                />
+              </Switch>
+              <p className="text-xs font-semibold">Prompt</p>
+            </div>
+
             <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
