@@ -45,7 +45,6 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error(error);
     return NextResponse.json(
       {
         error: "Something went wrong while ingesting traces",
