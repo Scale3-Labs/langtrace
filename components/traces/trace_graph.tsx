@@ -116,28 +116,28 @@ const SpanItem: React.FC<SpanItemProps> = ({
   const vendor = getVendorFromSpan(span as any);
 
   return (
-    <div className="flex flex-col gap-1 w-full mt-2">
-      <div className="flex items-center">
+    <div className='flex flex-col gap-1 w-full mt-2'>
+      <div className='flex items-center'>
         <div
-          className="z-10 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2"
+          className='z-10 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2'
           style={{ marginLeft: `${level * 10}px` }}
         >
           {span.children && span.children.length > 0 && (
             <Button onClick={toggleCollapse} variant={"ghost"} size={"icon"}>
               {isCollapsed ? (
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className='h-5 w-5' />
               ) : (
-                <ChevronDown className="h-5 w-5" />
+                <ChevronDown className='h-5 w-5' />
               )}
             </Button>
           )}
           {!span.children ||
             (span.children.length === 0 && (
-              <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
+              <div className='border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2' />
             ))}
           <VendorLogo vendor={vendor} />
           <span
-            className="text-xs max-w-72 cursor-pointer"
+            className='text-xs max-w-72 cursor-pointer'
             onClick={() => {
               setSpansView("ATTRIBUTES");
               setSpan(span);
@@ -170,7 +170,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
               )}
               style={{ left: `${startX}px`, width: `${spanLength}px` }}
             >
-              <span className="text-xs text-primary font-semibold">
+              <span className='text-xs text-primary font-semibold'>
                 {(
                   new Date(correctTimestampFormat(span.end_time)).getTime() -
                   new Date(correctTimestampFormat(span.start_time)).getTime()
@@ -234,24 +234,24 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
     ));
 
   return (
-    <div className="relative flex flex-col h-screen overflow-y-scroll">
-      <div className="absolute top-3 left-3 flex flex-col">
-        <p className="text-sm font-semibold text-muted-foreground">
+    <div className='relative flex flex-col h-screen overflow-y-scroll'>
+      <div className='absolute top-3 left-3 flex flex-col'>
+        <p className='text-sm font-semibold text-muted-foreground'>
           Span Graph
         </p>
-        <p className="text-xs text-muted-foreground">{totalSpans} span(s)</p>
+        <p className='text-xs text-muted-foreground'>{totalSpans} span(s)</p>
       </div>
-      <div className="mt-3 grid grid-cols-6 gap-[166px] h-[100%] absolute ml-[500px] -z-10">
+      <div className='mt-3 grid grid-cols-6 gap-[166px] h-[100%] absolute ml-[500px] -z-10'>
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="flex flex-col gap-1 items-center">
-            <p className="text-muted-foreground text-xs">
+          <div key={i} className='flex flex-col gap-1 items-center'>
+            <p className='text-muted-foreground text-xs'>
               {(step * i).toFixed(2)}ms
             </p>
-            <Separator orientation="vertical" />
+            <Separator orientation='vertical' />
           </div>
         ))}
       </div>
-      <div className="flex flex-col gap-3 mt-12">
+      <div className='flex flex-col gap-3 mt-12'>
         <SpanBars />
       </div>
     </div>
@@ -300,9 +300,88 @@ function SpanHoverContent({
   events: any;
 }) {
   return (
-    <HoverCardContent className="w-[30rem] h-[30rem] max-h-[30rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm z-50">
+    <HoverCardContent className='w-[30rem] h-[30rem] max-h-[30rem] p-4 overflow-y-scroll whitespace-pre-wrap text-sm z-50'>
       <AttributesTabs span={span} attributes={attributes} events={events} />
     </HoverCardContent>
+  );
+}
+
+function CrewAIDiagram(attributes: any) {
+  if (!attributes) return;
+
+  let crewConfig = null;
+  let tasksConfig = null;
+  let agentsConfig = null;
+  let agents = [];
+  let tasks = [];
+
+  if ("crewai.crew.config" in attributes["attributes"]) {
+    crewConfig = JSON.parse(attributes["attributes"]["crewai.crew.config"]);
+    agents = crewConfig["agents"];
+    tasks = crewConfig["tasks"];
+  }
+
+  if ("crewai.task.config" in attributes["attributes"])
+    tasksConfig = JSON.parse(attributes["attributes"]["crewai.task.config"]);
+
+  if ("crewai.agent.config" in attributes["attributes"])
+    agentsConfig = JSON.parse(attributes["attributes"]["crewai.agent.config"]);
+
+  console.log("crewconfig", crewConfig);
+  console.log("tasksConfig", tasksConfig);
+  console.log("agentsConfig", agentsConfig);
+
+  return (
+    <>
+      <div className='py-4'>
+        {crewConfig && (
+          <div className='flex flex-col gap-4'>
+            <h1>Agents</h1>
+
+            <div className='flex flex-col gap-2'>
+              {agents.map((agent: any, idx: number) => (
+                <div
+                  key={idx}
+                  className='rounded-md border p-4 flex flex-col gap-2'
+                >
+                  <p>
+                    <span className='font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2'>
+                      ID
+                    </span>
+                    <span className='text-xs'>{agent?.id}</span>
+                  </p>
+                  <p>
+                    <span className='font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2'>
+                      Name
+                    </span>
+                    <span className='text-xs'>{agent?.role}</span>
+                  </p>
+                  <p>
+                    <span className='font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2'>
+                      Goal
+                    </span>
+                    <span className='text-xs'>{agent?.goal}</span>
+                  </p>
+                  <p>
+                    <span className='font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2'>
+                      Backstory
+                    </span>
+                    <span className='text-xs'>{agent?.backstory}</span>
+                  </p>
+
+                  <p>
+                    <span className='font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2'>
+                      LLM
+                    </span>
+                    <span className='text-xs'>{agent?.llm}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -315,21 +394,25 @@ export function AttributesTabs({
   attributes: any;
   events: any;
 }) {
+  const vendor = getVendorFromSpan(span);
+
   const { theme } = useTheme();
   return (
     <Tabs defaultValue={span.status_code === "ERROR" ? "events" : "attributes"}>
-      <TabsList className="grid w-full grid-cols-2 sticky top-0 z-50">
-        <TabsTrigger value="attributes">Attributes</TabsTrigger>
-        <TabsTrigger value="events">
+      <TabsList className='grid w-full grid-cols-2 sticky top-0 z-50'>
+        <TabsTrigger value='attributes'>Attributes</TabsTrigger>
+        <TabsTrigger value='events'>
           {span.status_code === "ERROR" ? "Errors" : "Events"}
         </TabsTrigger>
       </TabsList>
-      <p className="text-xs font-semibold my-3 text-blue-500">
+      <p className='text-xs font-semibold my-3 text-blue-500'>
         Tip: Click any content to copy to clipboard
       </p>
-      <TabsContent value="attributes">
+      <TabsContent value='attributes'>
         {Object.keys(attributes).length > 0 ? (
           Object.keys(attributes).map((key, i) => {
+            // if (key.includes("crew")) return;
+
             const value = attributes[key].toString();
             let jsonValue = value;
             try {
@@ -338,9 +421,9 @@ export function AttributesTabs({
               jsonValue = value;
             }
             return (
-              <div key={i} className="flex flex-col gap-2">
-                <div className="grid grid-cols-2 mt-2 items-start">
-                  <p className="font-semibold text-xs rounded-md p-1 bg-muted w-fit">
+              <div key={i} className='flex flex-col gap-2'>
+                <div className='grid grid-cols-2 mt-2 items-start'>
+                  <p className='font-semibold text-xs rounded-md p-1 bg-muted w-fit'>
                     {key}
                   </p>
                   <RenderSpanAttributeValue value={value} data={jsonValue} />
@@ -350,10 +433,12 @@ export function AttributesTabs({
             );
           })
         ) : (
-          <p className="text-xs text-muted-foreground">No attributes found.</p>
+          <p className='text-xs text-muted-foreground'>No attributes found.</p>
         )}
+
+        {vendor == "crewai" && <CrewAIDiagram attributes={attributes} />}
       </TabsContent>
-      <TabsContent value="events">
+      <TabsContent value='events'>
         {events.length > 0 ? (
           events.map((event: any, key: number) => (
             <JSONTree
@@ -364,7 +449,7 @@ export function AttributesTabs({
               invertTheme={theme === "light"}
               labelRenderer={([key]) => <strong>{key}</strong>}
               valueRenderer={(raw: any) => (
-                <span className="overflow-x-hidden">{raw}</span>
+                <span className='overflow-x-hidden'>{raw}</span>
               )}
               postprocessValue={(raw: any) => {
                 if (typeof raw === "string") {
@@ -379,7 +464,7 @@ export function AttributesTabs({
             />
           ))
         ) : (
-          <p className="text-sm text-muted-foreground">No events found.</p>
+          <p className='text-sm text-muted-foreground'>No events found.</p>
         )}
       </TabsContent>
     </Tabs>
