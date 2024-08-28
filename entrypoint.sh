@@ -43,7 +43,7 @@ if [ "$TABLE_EXISTS" == " " ]; then
 else
     echo "The $PRISMA_MIGRATIONS_TABLE table exists. Proceeding to apply migrations."
     # Check if the 0_init migration exists
-    INIT_MIGRATION=$(psql -U $POSTGRES_USER -h $DB_HOST -d $POSTGRES_DATABASE -p $DB_PORT -t -c "SELECT migration_name FROM $PRISMA_MIGRATIONS_TABLE WHERE migration_name = '0_init' AND logs NOT like '%failed%';")
+    INIT_MIGRATION=$(psql -U $POSTGRES_USER -h $DB_HOST -d $POSTGRES_DATABASE -p $DB_PORT -t -c "SELECT migration_name FROM $PRISMA_MIGRATIONS_TABLE WHERE migration_name = '0_init' AND (logs IS NULL OR logs = '' OR logs NOT LIKE '%failed%');")
     if [ -z "$INIT_MIGRATION" ]; then
         echo "The 0_init migration was not found. Renaming the existing _prisma_migrations table and applying migrations."
         rename_migrations_table

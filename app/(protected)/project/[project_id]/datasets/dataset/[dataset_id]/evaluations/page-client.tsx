@@ -40,6 +40,7 @@ import {
   ClipboardIcon,
   FlaskConical,
   RefreshCwIcon,
+  TrashIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -121,7 +122,7 @@ export default function Evaluations() {
   });
 
   const fetchExperiments = useQuery({
-    queryKey: ["fetch-experiments-query"],
+    queryKey: ["fetch-experiments-query", projectId, datasetId, page],
     queryFn: async () => {
       const response = await fetch(
         `/api/run?projectId=${projectId}&datasetId=${datasetId}&page=${page}&pageSize=25`
@@ -166,6 +167,36 @@ export default function Evaluations() {
     enabled: manualRefetching,
     refetchOnWindowFocus: false,
   });
+
+  const handleDeleteSelectedRuns = async () => {
+    if (comparisonRunIds.length === 0) return;
+
+    try {
+      const response = await fetch("/api/run", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          runIds: comparisonRunIds,
+          projectId,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to delete evaluations");
+      }
+
+      setComparisonRunIds([]);
+      await fetchExperiments.refetch();
+      toast.success("Selected evaluations deleted successfully.");
+    } catch (error) {
+      toast.error("Failed to delete evaluations", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
 
   const columns: ColumnDef<Run>[] = [
     {
@@ -438,6 +469,16 @@ export default function Evaluations() {
                   {viewMetrics ? "Hide Metrics" : "View Metrics"}
                   <AreaChartIcon className="h-4 w-4 ml-1" />
                 </Button>
+
+                {comparisonRunIds.length > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={handleDeleteSelectedRuns}
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={"outline"} className="text-sm">
