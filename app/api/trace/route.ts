@@ -26,7 +26,9 @@ export async function POST(req: NextRequest) {
 
     // Normalize and prepare data for Clickhouse
     let normalized = [];
-    if (userAgent?.toLowerCase().includes("otel-otlp")) {
+    if (userAgent?.toLowerCase().includes("otel-otlp") ||
+      userAgent?.toLowerCase().includes("opentelemetry")
+    ) {
       // coming from an OTEL exporter
       normalized = prepareForClickhouse(
         normalizeOTELData(data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans)
@@ -43,6 +45,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       {
         error: "Something went wrong while ingesting traces",
