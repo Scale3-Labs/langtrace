@@ -174,7 +174,10 @@ const SpanItem: React.FC<SpanItemProps> = ({
             >
               {isLlm && (
                 <MessageCircleIcon
-                  className={cn("h-6 w-6 absolute -top-6 z-50", fillColor)}
+                  className={cn(
+                    "h-4 w-4 absolute -top-4 z-50 animate-pulse",
+                    fillColor
+                  )}
                 />
               )}
               <span className="text-xs text-primary font-semibold">
@@ -241,7 +244,7 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
     ));
 
   return (
-    <div className="relative flex flex-col h-screen overflow-y-scroll">
+    <div className="relative flex flex-col h-[80vh] py-8 overflow-y-scroll">
       <div className="absolute top-3 left-3 flex flex-col">
         <p className="text-sm font-semibold text-muted-foreground">
           Span Graph

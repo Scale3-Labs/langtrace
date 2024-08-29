@@ -61,7 +61,7 @@ export function TraceSheet({
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
           {spansView === "SPANS" && (
-            <div className="overflow-y-scroll h-[90vh]">
+            <div className="">
               <SpansView
                 trace={trace}
                 selectedTrace={selectedTrace}
@@ -179,7 +179,7 @@ function SpansView({
 }) {
   return (
     <>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 pb-3">
         <ul className="flex flex-col gap-2">
           <li className="text-xs font-semibold text-muted-foreground">
             Tip 1: Hover over any span line to see additional attributes and
