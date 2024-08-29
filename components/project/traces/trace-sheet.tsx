@@ -125,7 +125,13 @@ export function TraceSheet({
                     )}
                   </div>
                 </div>
-                <div className="overflow-y-scroll h-[85vh]">
+                <div
+                  className={
+                    spansView === "CONVERSATION"
+                      ? ""
+                      : "overflow-y-scroll h-[85vh]"
+                  }
+                >
                   {spansView === "ATTRIBUTES" && (
                     <AttributesTabs
                       span={span}
@@ -134,7 +140,7 @@ export function TraceSheet({
                     />
                   )}
                   {spansView === "CONVERSATION" && span && (
-                    <ConversationView span={span} />
+                    <ConversationView className="py-6 h-[85vh]" span={span} />
                   )}
                   {spansView === "LANGGRAPH" && (
                     <LanggraphView trace={trace.sorted_trace} />
