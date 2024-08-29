@@ -25,6 +25,7 @@ import { useQueryClient } from "react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Info } from "../shared/info";
+import ProjectTypesDropdown from "./project-type-dropdown";
 
 export function Create({
   teamId,
@@ -43,6 +44,7 @@ export function Create({
   const schema = z.object({
     name: z.string().min(2, "Too short").max(30, "Too long"),
     description: z.string().max(100, "Too long").optional(),
+    type: z.string().optional(),
   });
   const CreateProjectForm = useForm({
     resolver: zodResolver(schema),
@@ -77,6 +79,7 @@ export function Create({
                       ? data.description.toLowerCase()
                       : "",
                     teamId,
+                    type: data.type || "default",
                   }),
                 });
                 await queryClient.invalidateQueries("fetch-projects-query");
@@ -136,6 +139,29 @@ export function Create({
                     <Input
                       placeholder="A chatbot for our website."
                       {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              disabled={busy}
+              control={CreateProjectForm.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-2 mt-1">
+                  <FormLabel>
+                    Project Type
+                    <Info
+                      information="The type of project. Leave blank for default."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <ProjectTypesDropdown
+                      value={field.value}
+                      setValue={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
