@@ -141,7 +141,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
           <span
             className="text-xs max-w-72 cursor-pointer"
             onClick={() => {
-              setSpansView("ATTRIBUTES");
+              setSpansView(isLlm ? "CONVERSATION" : "ATTRIBUTES");
               setSpan(span);
               setAttributes(attributes);
               setEvents(events);
@@ -161,7 +161,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
           <HoverCardTrigger asChild>
             <div
               onClick={() => {
-                setSpansView("ATTRIBUTES");
+                setSpansView(isLlm ? "CONVERSATION" : "ATTRIBUTES");
                 setSpan(span);
                 setAttributes(attributes);
                 setEvents(events);
