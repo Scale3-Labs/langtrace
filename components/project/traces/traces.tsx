@@ -596,6 +596,8 @@ export default function Traces({ email }: { email: string }) {
         fetching={fetchTraces.isFetching}
         paginationLoading={showBottomLoader}
         scrollableDivRef={scrollableDivRef}
+        filters={filters}
+        setFilters={setFilters}
       />
       <TraceFilter
         open={isTraceFilterOpen}
