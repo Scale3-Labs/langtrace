@@ -328,6 +328,8 @@ export const SUPPORTED_VENDORS: Record<string, string> = {
   OLLAMA: "Ollama",
   VERTEXAI: "VertexAI",
   GEMINI: "Gemini",
+  EMBEDCHAIN: "Embedchain",
+  VERCEL: "Vercel",
 };
 
 export const jsontheme = {

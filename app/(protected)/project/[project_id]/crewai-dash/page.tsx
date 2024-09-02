@@ -1,4 +1,4 @@
-import Traces from "@/components/project/traces/traces";
+import AgentCrewsDashboard from "@/components/project/agent-crews/dashboard";
 import { authOptions } from "@/lib/auth/options";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
@@ -18,7 +18,7 @@ export default async function Page() {
 
   return (
     <>
-      <Traces email={user.email as string} />
+      <AgentCrewsDashboard email={user.email as string} />
     </>
   );
 }

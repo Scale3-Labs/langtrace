@@ -49,10 +49,10 @@ const ProjectNavLinks = (id: string, type = "default") => {
     },
   ];
   if (type == "crewai") {
-    // add to the beginning
-    result.unshift({
-      name: "Agent Crews",
-      href: `/project/${id}/agent-crews`,
+    // add to the second position
+    result.splice(1, 0, {
+      name: "CrewAI Dash",
+      href: `/project/${id}/crewai-dash`,
     });
   }
   return result;
