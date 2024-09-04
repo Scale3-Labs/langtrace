@@ -4,8 +4,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CrewAIAgent, CrewAITask } from "@/lib/crewai_trace_util";
+import { CrewAIAgent, CrewAITask, CrewAITool } from "@/lib/crewai_trace_util";
 import { cn } from "@/lib/utils";
 import { MoveDiagonal } from "lucide-react";
 import { useState } from "react";
@@ -29,6 +30,24 @@ export function AgentsView({ agents }: { agents: CrewAIAgent[] }) {
                 content={agent?.backstory || "N/A"}
                 className="mt-2"
               />
+              {agent?.tools &&
+                agent?.tools?.length > 0 &&
+                agent?.tools?.map((tool, i) => (
+                  <>
+                    <p className="text-xs font-semibold mt-2 flex gap-1 items-center">
+                      <Badge>{`Tool ${i + 1}`}</Badge>
+                      Name
+                    </p>
+                    <p className="text-xs font-semibold mt-2">
+                      {tool?.name || "N/A"}
+                    </p>
+                    <p className="text-xs font-semibold mt-2 flex gap-1 items-center">
+                      <Badge>{`Tool ${i + 1}`}</Badge>
+                      Description
+                    </p>
+                    <ExpandableP content={tool?.description || "N/A"} />
+                  </>
+                ))}
               <p className="text-xs font-semibold mt-2">Result</p>
               <ExpandableP content={agent?.result || "N/A"} className="mt-2" />
               <p className="text-xs font-semibold mt-2">Max Iter</p>
@@ -58,6 +77,24 @@ export function TasksView({ tasks }: { tasks: CrewAITask[] }) {
               />
               <p className="text-xs font-semibold mt-2">Agent</p>
               <p className="w-fit mt-2">{task?.agent || "N/A"}</p>
+              {task?.tools &&
+                task?.tools?.length > 0 &&
+                task?.tools?.map((tool, i) => (
+                  <>
+                    <p className="text-xs font-semibold mt-2 flex gap-1 items-center">
+                      <Badge>{`Tool ${i + 1}`}</Badge>
+                      Name
+                    </p>
+                    <p className="text-xs font-semibold mt-2">
+                      {tool?.name || "N/A"}
+                    </p>
+                    <p className="text-xs font-semibold mt-2 flex gap-1 items-center">
+                      <Badge>{`Tool ${i + 1}`}</Badge>
+                      Description
+                    </p>
+                    <ExpandableP content={tool?.description || "N/A"} />
+                  </>
+                ))}
               <p className="text-xs font-semibold mt-2">Used Tools</p>
               <p className="text-xs font-semibold mt-2">
                 {task?.used_tools || "N/A"}
@@ -75,6 +112,29 @@ export function TasksView({ tasks }: { tasks: CrewAITask[] }) {
               />
               <p className="text-xs font-semibold mt-2">Result</p>
               <ExpandableP content={task?.result || "N/A"} className="mt-2" />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+
+export function ToolsView({ tools }: { tools: CrewAITool[] }) {
+  return (
+    <Accordion type="multiple" className="w-full">
+      {tools.map((tool, index) => (
+        <AccordionItem value={index.toString()} key={index}>
+          <AccordionTrigger>{`Task ${index + 1} - ${tool?.name}`}</AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-2 gap-1 rounded-md p-2">
+              <p className="text-xs font-semibold mt-2">Name</p>
+              <p className="w-fit mt-2">{tool?.name || "N/A"}</p>
+              <p className="text-xs font-semibold mt-2">Description</p>
+              <ExpandableP
+                content={tool?.description || "N/A"}
+                className="mt-2"
+              />
             </div>
           </AccordionContent>
         </AccordionItem>

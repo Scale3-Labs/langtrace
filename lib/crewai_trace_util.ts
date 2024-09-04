@@ -11,6 +11,7 @@ export interface CrewAITrace {
   crew: CrewAICrew;
   agents: CrewAIAgent[];
   tasks: CrewAITask[];
+  tools: CrewAITool[];
   namespace: string;
   user_ids: string[];
   prompt_ids: string[];
@@ -69,6 +70,7 @@ export interface CrewAIAgent {
   allow_delegation: boolean;
   cache: boolean;
   verbose: boolean;
+  tools?: CrewAITool[];
 }
 
 export interface CrewAITask {
@@ -82,6 +84,12 @@ export interface CrewAITask {
   delegations: number;
   used_tools: number;
   tool_errors: number;
+  tools?: CrewAITool[];
+}
+
+export interface CrewAITool {
+  name: string;
+  description: string;
 }
 
 export interface VendorMetadata {
@@ -107,6 +115,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
   let crew = {} as CrewAICrew;
   let agents: CrewAIAgent[] = [];
   let tasks: CrewAITask[] = [];
+  let crewTools: CrewAITool[] = [];
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
@@ -176,6 +185,23 @@ export function processCrewAITrace(trace: any): CrewAITrace {
           cache: attributes["crewai.agent.cache"] || false,
           verbose: attributes["crewai.agent.verbose"] || false,
         };
+
+        let tools = attributes["crewai.agent.tools"];
+        try {
+          tools = JSON.parse(tools);
+        } catch (e) {
+          tools = [];
+        }
+        if (tools.length > 0) {
+          agent.tools = tools.map((tool: any) => {
+            return {
+              name: tool.name,
+              description: tool.description,
+            } as CrewAITool;
+          });
+          crewTools = [...(agent.tools as CrewAITool[])];
+        }
+
         agents.push(agent);
       }
 
@@ -193,6 +219,21 @@ export function processCrewAITrace(trace: any): CrewAITrace {
           used_tools: attributes["crewai.task.used_tools"] || 0,
           tool_errors: attributes["crewai.task.tool_errors"] || 0,
         };
+        let tools = attributes["crewai.task.tools"];
+        try {
+          tools = JSON.parse(tools);
+        } catch (e) {
+          tools = [];
+        }
+        if (tools.length > 0) {
+          task.tools = tools.map((tool: any) => {
+            return {
+              name: tool.name,
+              description: tool.description,
+            };
+          });
+        }
+
         tasks.push(task);
       }
 
@@ -389,6 +430,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
     crew: crew,
     agents: agents,
     tasks: tasks,
+    tools: crewTools,
     user_ids: userIds,
     prompt_ids: promptIds,
     prompt_versions: promptVersions,

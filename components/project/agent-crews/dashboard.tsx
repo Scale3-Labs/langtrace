@@ -1,20 +1,20 @@
 "use client";
 
-import { Info } from "@/components/shared/info";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PAGE_SIZE } from "@/lib/constants";
 import { CrewAITrace, processCrewAITrace } from "@/lib/crewai_trace_util";
 import { cn } from "@/lib/utils";
-import { RefreshCwIcon } from "lucide-react";
+import { GearIcon } from "@radix-ui/react-icons";
+import { BotIcon, FileIcon, RefreshCwIcon } from "lucide-react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { Switch } from "../../ui/switch";
 import { TraceComponent } from "../traces/trace-component";
-import { AgentsView, TasksView } from "./agents-view";
+import { AgentsView, TasksView, ToolsView } from "./agents-view";
 import TimelineChart from "./timeline-chart";
 
 export default function AgentCrewsDashboard({ email }: { email: string }) {
@@ -148,37 +148,6 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-3">
-      <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs text-muted-foreground font-semibold">
-            Preferences
-          </p>
-          <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Local time</p>
-            <Switch
-              className="text-start"
-              id="timestamp"
-              checked={utcTime}
-              onCheckedChange={(check) => {
-                setUtcTime(check);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.timestamp.utc",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">UTC</p>
-              <Info information="By default all the spans are recorded in UTC timezone for the sake of standardization. By toggling this setting, you can visualize the spans in your local timezone." />
-            </div>
-          </div>
-        </div>
-      </div>
       <div className="flex gap-3 items-center">
         <Button variant="outline" size={"icon"} onClick={fetchLatestTraces}>
           <RefreshCwIcon className="w-4 h-4" />
@@ -213,7 +182,16 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
           <div className="flex gap-3 items-stretch">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl">Session Details</CardTitle>
+                <CardTitle className="text-xl flex items-center gap-1">
+                  <Image
+                    alt="CrewAI Logo"
+                    src="/crewai.png"
+                    width={60}
+                    height={30}
+                    className={"rounded-md"}
+                  />
+                  Session Details
+                </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-3">
                 <p className="text-xs font-semibold">STATUS</p>
@@ -265,9 +243,12 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
           <div className="flex gap-3 items-stretch">
             <Card className="w-1/2">
               <CardHeader>
-                <CardTitle className="text-xl">Agent Details</CardTitle>
+                <CardTitle className="text-xl flex items-center gap-1">
+                  <BotIcon className="w-6 h-6" />
+                  Agent Details
+                </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3">
+              <CardContent className="flex flex-col gap-3 min-h-fit max-h-[500px] overflow-y-scroll">
                 {selectedTrace?.agents.length > 0 ? (
                   <AgentsView agents={selectedTrace?.agents} />
                 ) : (
@@ -277,9 +258,12 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
             </Card>
             <Card className="w-1/2">
               <CardHeader>
-                <CardTitle className="text-xl">Task Details</CardTitle>
+                <CardTitle className="text-xl flex items-center gap-1">
+                  <FileIcon className="w-6 h-6" />
+                  Task Details
+                </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3">
+              <CardContent className="flex flex-col gap-3 min-h-fit max-h-[500px] overflow-y-scroll">
                 {selectedTrace?.tasks.length > 0 ? (
                   <TasksView tasks={selectedTrace?.tasks} />
                 ) : (
@@ -288,6 +272,21 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
               </CardContent>
             </Card>
           </div>
+          <Card className="w-1/2">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-1">
+                <GearIcon className="w-6 h-6" />
+                Tool Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 min-h-fit max-h-[500px] overflow-y-scroll">
+              {selectedTrace?.tools.length > 0 ? (
+                <ToolsView tools={selectedTrace?.tools} />
+              ) : (
+                <p className="text-xs font-semibold">No tools detected</p>
+              )}
+            </CardContent>
+          </Card>
           <TraceComponent trace={selectedTrace} />
         </>
       )}

@@ -39,7 +39,7 @@ export function TraceComponent({ trace }: { trace: CrewAITrace }) {
     <div className="flex md:flex-row flex-col items-stretch w-full">
       <div
         className={cn(
-          "flex flex-col border border-muted rounded-md p-2",
+          "flex flex-col border border-muted rounded-md p-4",
           spansView !== "SPANS"
             ? "md:w-1/2 md:border-r-0 md:rounded-tr-none md:rounded-br-none w-full"
             : "w-full"
