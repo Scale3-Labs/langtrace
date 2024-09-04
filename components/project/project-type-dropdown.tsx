@@ -20,10 +20,22 @@ const projectTypes = [
   {
     value: "default",
     label: "Default",
+    comingSoon: false,
   },
   {
     value: "crewai",
     label: "CrewAI",
+    comingSoon: false,
+  },
+  {
+    value: "dspy",
+    label: "DSPy",
+    comingSoon: true,
+  },
+  {
+    value: "langgraph",
+    label: "LangGraph",
+    comingSoon: true,
   },
 ];
 
@@ -59,6 +71,7 @@ export default function ProjectTypesDropdown({
             <CommandGroup>
               {projectTypes.map((framework) => (
                 <CommandItem
+                  disabled={framework.comingSoon}
                   key={framework.value}
                   value={framework.value}
                   onSelect={(currentValue) => {
@@ -72,7 +85,7 @@ export default function ProjectTypesDropdown({
                       value === framework.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {framework.label}
+                  {framework.label} {framework.comingSoon && "(Coming soon)"}
                 </CommandItem>
               ))}
             </CommandGroup>
