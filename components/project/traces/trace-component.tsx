@@ -3,36 +3,17 @@ import LanggraphView from "@/components/shared/langgraph-view";
 import TraceGraph, { AttributesTabs } from "@/components/traces/trace_graph";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { CrewAITrace } from "@/lib/crewai_trace_util";
 import { Trace } from "@/lib/trace_util";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
 } from "@/lib/trace_utils";
-import { getVendorFromSpan } from "@/lib/utils";
-import {
-  ChevronLeft,
-  CodeIcon,
-  MessageCircle,
-  NetworkIcon,
-} from "lucide-react";
+import { cn, getVendorFromSpan } from "@/lib/utils";
+import { CodeIcon, MessageCircle, NetworkIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function TraceSheet({
-  trace,
-  open,
-  setOpen,
-}: {
-  trace: Trace;
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) {
+export function TraceComponent({ trace }: { trace: CrewAITrace }) {
   const [selectedTrace, setSelectedTrace] = useState<any[]>(
     trace.trace_hierarchy
   );
@@ -55,102 +36,102 @@ export function TraceSheet({
   }, [trace, open]);
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetDescription hidden>Trace Debugger</SheetDescription>
-      <SheetContent className="w-3/4">
-        <SheetHeader>
-          <SheetTitle>Trace Details</SheetTitle>
-          {spansView === "SPANS" && (
-            <div className="">
-              <SpansView
-                trace={trace}
-                selectedTrace={selectedTrace}
-                setSelectedTrace={setSelectedTrace}
-                selectedVendors={selectedVendors}
-                setSelectedVendors={setSelectedVendors}
-                setSpansView={setSpansView}
-                setSpan={setSpan}
-                setAttributes={setAttributes}
-                setEvents={setEvents}
-              />
-            </div>
-          )}
-          {(spansView === "ATTRIBUTES" ||
-            spansView === "CONVERSATION" ||
-            spansView === "LANGGRAPH") &&
-            span &&
-            attributes &&
-            events && (
-              <div className="flex flex-col gap-3">
-                <div className="flex gap-2 items-center justify-between w-full">
-                  <Button
-                    className="w-fit"
-                    size={"sm"}
-                    variant={"outline"}
-                    onClick={() => setSpansView("SPANS")}
-                  >
-                    <ChevronLeft size={16} className="mr-2" />
-                    Back
-                  </Button>
-                  <div className="flex gap-2 items-center">
-                    <Button
-                      className="w-fit"
-                      size={"sm"}
-                      variant={"outline"}
-                      disabled={spansView === "ATTRIBUTES"}
-                      onClick={() => setSpansView("ATTRIBUTES")}
-                    >
-                      <CodeIcon size={16} className="mr-2" />
-                      Attributes
-                    </Button>
-                    <Button
-                      className="w-fit"
-                      size={"sm"}
-                      variant={"outline"}
-                      disabled={spansView === "CONVERSATION"}
-                      onClick={() => setSpansView("CONVERSATION")}
-                    >
-                      <MessageCircle size={16} className="mr-2 fill-primary" />
-                      LLM Conversations
-                    </Button>
-                    {includesLanggraph && (
-                      <Button
-                        className="w-fit"
-                        variant={"secondary"}
-                        onClick={() => setSpansView("LANGGRAPH")}
-                      >
-                        <NetworkIcon size={16} className="mr-2" />
-                        Langgraph
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div
-                  className={
-                    spansView === "CONVERSATION"
-                      ? ""
-                      : "overflow-y-scroll h-[85vh]"
-                  }
+    <div className="flex md:flex-row flex-col items-stretch w-full">
+      <div
+        className={cn(
+          "flex flex-col border border-muted rounded-md p-4",
+          spansView !== "SPANS"
+            ? "md:w-1/2 md:border-r-0 md:rounded-tr-none md:rounded-br-none w-full"
+            : "w-full"
+        )}
+      >
+        <p className="text-xl font-semibold mb-2">Session Drilldown</p>
+        <div>
+          <SpansView
+            trace={trace}
+            selectedTrace={selectedTrace}
+            setSelectedTrace={setSelectedTrace}
+            selectedVendors={selectedVendors}
+            setSelectedVendors={setSelectedVendors}
+            setSpansView={setSpansView}
+            setSpan={setSpan}
+            setAttributes={setAttributes}
+            setEvents={setEvents}
+          />
+        </div>
+      </div>
+      {(spansView === "ATTRIBUTES" ||
+        spansView === "CONVERSATION" ||
+        spansView === "LANGGRAPH") &&
+        span &&
+        attributes &&
+        events && (
+          <div className="md:pl-2 flex flex-col gap-3 md:w-1/2 w-full md:border-l-2 md:rounded-tl-none md:rounded-bl-none border border-muted rounded-md p-2">
+            <div className="flex gap-2 items-center justify-end w-full">
+              <Button
+                className="w-fit"
+                size={"sm"}
+                variant={"outline"}
+                disabled={spansView === "ATTRIBUTES"}
+                onClick={() => setSpansView("ATTRIBUTES")}
+              >
+                <CodeIcon size={16} className="mr-2" />
+                Attributes
+              </Button>
+              <Button
+                className="w-fit"
+                size={"sm"}
+                variant={"outline"}
+                disabled={spansView === "CONVERSATION"}
+                onClick={() => setSpansView("CONVERSATION")}
+              >
+                <MessageCircle size={16} className="mr-2 fill-primary" />
+                LLM Conversations
+              </Button>
+              {includesLanggraph && (
+                <Button
+                  className="w-fit"
+                  variant={"secondary"}
+                  onClick={() => setSpansView("LANGGRAPH")}
                 >
-                  {spansView === "ATTRIBUTES" && (
-                    <AttributesTabs
-                      span={span}
-                      attributes={attributes}
-                      events={events}
-                    />
-                  )}
-                  {spansView === "CONVERSATION" && span && (
-                    <ConversationView className="py-6 h-[85vh]" span={span} />
-                  )}
-                  {spansView === "LANGGRAPH" && (
-                    <LanggraphView trace={trace.sorted_trace} />
-                  )}
-                </div>
-              </div>
-            )}
-        </SheetHeader>
-      </SheetContent>
-    </Sheet>
+                  <NetworkIcon size={16} className="mr-2" />
+                  Langgraph
+                </Button>
+              )}
+              <Button
+                className="w-fit"
+                size={"sm"}
+                variant={"destructive"}
+                onClick={() => setSpansView("SPANS")}
+              >
+                <XIcon size={16} />
+              </Button>
+            </div>
+            <div
+              className={cn(
+                spansView === "CONVERSATION"
+                  ? ""
+                  : "overflow-y-scroll h-[90vh]",
+                "mt-12"
+              )}
+            >
+              {spansView === "ATTRIBUTES" && (
+                <AttributesTabs
+                  span={span}
+                  attributes={attributes}
+                  events={events}
+                />
+              )}
+              {spansView === "CONVERSATION" && span && (
+                <ConversationView className="py-6 h-[85vh]" span={span} />
+              )}
+              {spansView === "LANGGRAPH" && (
+                <LanggraphView trace={trace.sorted_trace} />
+              )}
+            </div>
+          </div>
+        )}
+    </div>
   );
 }
 

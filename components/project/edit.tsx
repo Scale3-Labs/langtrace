@@ -33,6 +33,7 @@ import { useQueryClient } from "react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Info } from "../shared/info";
+import ProjectTypesDropdown from "./project-type-dropdown";
 
 export function Edit({
   teamId,
@@ -54,12 +55,14 @@ export function Edit({
   const schema = z.object({
     name: z.string().min(2, "Too short").max(30, "Too long"),
     description: z.string().min(2, "Too short").max(100, "Too long"),
+    type: z.string().optional(),
   });
   const EditProjectForm = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       name: project.name || "",
       description: project.description || "",
+      type: project.type || "default",
     },
   });
   return (
@@ -151,6 +154,7 @@ export function Edit({
                       name: data.name,
                       description: data.description,
                       teamId,
+                      type: data.type || "default",
                     }),
                   });
                   await queryClient.invalidateQueries("fetch-projects-query");
@@ -209,6 +213,29 @@ export function Edit({
                       <Input
                         placeholder="Documents for marketing team."
                         {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                disabled={busy}
+                control={EditProjectForm.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col gap-2 mt-1">
+                    <FormLabel>
+                      Project Type
+                      <Info
+                        information="The type of project. Leave blank for default."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <ProjectTypesDropdown
+                        value={field.value}
+                        setValue={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />

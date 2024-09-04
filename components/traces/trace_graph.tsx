@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { jsontheme } from "@/lib/constants";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import { cn, getVendorFromSpan } from "@/lib/utils";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, MessageCircleIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import React, { useState } from "react";
 import { JSONTree } from "react-json-tree";
@@ -75,6 +75,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
   if (attributes["langtrace.service.name"]) {
     serviceName = attributes["langtrace.service.name"].toLowerCase();
   }
+  let isLlm = attributes["langtrace.service.type"] === "llm";
 
   let color = "bg-gray-500";
   if (span.name.includes("perplexity") || serviceName.includes("perplexity"))
@@ -112,6 +113,17 @@ const SpanItem: React.FC<SpanItemProps> = ({
     serviceName.includes("llamaindex")
   )
     color = "bg-indigo-500";
+  else if (
+    span.name.includes("vercel") ||
+    serviceName.includes("vercel")
+  )
+    color = "bg-gray-500";
+  else if (
+    span.name.includes("embedchain") ||
+    serviceName.includes("embedchain")
+  )
+    color = "bg-slate-500";
+  const fillColor = color.replace("bg-", "fill-");
 
   const vendor = getVendorFromSpan(span as any);
 
@@ -139,7 +151,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
           <span
             className="text-xs max-w-72 cursor-pointer"
             onClick={() => {
-              setSpansView("ATTRIBUTES");
+              setSpansView(isLlm ? "CONVERSATION" : "ATTRIBUTES");
               setSpan(span);
               setAttributes(attributes);
               setEvents(events);
@@ -159,7 +171,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
           <HoverCardTrigger asChild>
             <div
               onClick={() => {
-                setSpansView("ATTRIBUTES");
+                setSpansView(isLlm ? "CONVERSATION" : "ATTRIBUTES");
                 setSpan(span);
                 setAttributes(attributes);
                 setEvents(events);
@@ -170,6 +182,14 @@ const SpanItem: React.FC<SpanItemProps> = ({
               )}
               style={{ left: `${startX}px`, width: `${spanLength}px` }}
             >
+              {isLlm && (
+                <MessageCircleIcon
+                  className={cn(
+                    "h-4 w-4 absolute -top-4 z-50 animate-pulse",
+                    fillColor
+                  )}
+                />
+              )}
               <span className="text-xs text-primary font-semibold">
                 {(
                   new Date(correctTimestampFormat(span.end_time)).getTime() -
@@ -234,7 +254,7 @@ export const TraceGraph: React.FC<TraceGraphProps> = ({
     ));
 
   return (
-    <div className="relative flex flex-col h-screen overflow-y-scroll">
+    <div className="relative flex flex-col h-[80vh] py-8 overflow-y-scroll">
       <div className="absolute top-3 left-3 flex flex-col">
         <p className="text-sm font-semibold text-muted-foreground">
           Span Graph
@@ -306,6 +326,81 @@ function SpanHoverContent({
   );
 }
 
+function CrewAIDiagram(attributes: any) {
+  if (!attributes) return;
+
+  let crewConfig = null;
+  let tasksConfig = null;
+  let agentsConfig = null;
+  let agents = [];
+  let tasks = [];
+
+  if ("crewai.crew.config" in attributes["attributes"]) {
+    crewConfig = JSON.parse(attributes["attributes"]["crewai.crew.config"]);
+    agents = crewConfig["agents"];
+    tasks = crewConfig["tasks"];
+  }
+
+  if ("crewai.task.config" in attributes["attributes"])
+    tasksConfig = JSON.parse(attributes["attributes"]["crewai.task.config"]);
+
+  if ("crewai.agent.config" in attributes["attributes"])
+    agentsConfig = JSON.parse(attributes["attributes"]["crewai.agent.config"]);
+
+  return (
+    <>
+      <div className="py-4">
+        {crewConfig && (
+          <div className="flex flex-col gap-4">
+            <h1>Agents</h1>
+
+            <div className="flex flex-col gap-2">
+              {agents.map((agent: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="rounded-md border p-4 flex flex-col gap-2"
+                >
+                  <p>
+                    <span className="font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2">
+                      ID
+                    </span>
+                    <span className="text-xs">{agent?.id}</span>
+                  </p>
+                  <p>
+                    <span className="font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2">
+                      Name
+                    </span>
+                    <span className="text-xs">{agent?.role}</span>
+                  </p>
+                  <p>
+                    <span className="font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2">
+                      Goal
+                    </span>
+                    <span className="text-xs">{agent?.goal}</span>
+                  </p>
+                  <p>
+                    <span className="font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2">
+                      Backstory
+                    </span>
+                    <span className="text-xs">{agent?.backstory}</span>
+                  </p>
+
+                  <p>
+                    <span className="font-semibold text-xs rounded-md p-1 bg-muted w-fit mr-2">
+                      LLM
+                    </span>
+                    <span className="text-xs">{agent?.llm}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export function AttributesTabs({
   span,
   attributes,
@@ -315,6 +410,8 @@ export function AttributesTabs({
   attributes: any;
   events: any;
 }) {
+  const vendor = getVendorFromSpan(span);
+
   const { theme } = useTheme();
   return (
     <Tabs defaultValue={span.status_code === "ERROR" ? "events" : "attributes"}>
