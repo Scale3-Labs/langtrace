@@ -48,6 +48,11 @@ export function Create({
   });
   const CreateProjectForm = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      name: "",
+      description: "",
+      type: "default",
+    },
   });
   return (
     <Dialog open={open} onOpenChange={setOpen}>

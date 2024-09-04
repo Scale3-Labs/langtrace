@@ -7,7 +7,13 @@ import { PAGE_SIZE } from "@/lib/constants";
 import { CrewAITrace, processCrewAITrace } from "@/lib/crewai_trace_util";
 import { cn } from "@/lib/utils";
 import { GearIcon } from "@radix-ui/react-icons";
-import { BotIcon, FileIcon, RefreshCwIcon } from "lucide-react";
+import {
+  BotIcon,
+  ChevronLeftSquareIcon,
+  ChevronRightSquareIcon,
+  FileIcon,
+  RefreshCwIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -24,17 +30,11 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<CrewAITrace[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
-  const [utcTime, setUtcTime] = useState(false);
   const [selectedTrace, setSelectedTrace] = useState<CrewAITrace | null>(null);
+  const [selectedTraceIndex, setSelectedTraceIndex] = useState<number>(0);
 
   useEffect(() => {
     setEnableFetch(true);
-
-    // fetch preferences from local storage
-    if (typeof window !== "undefined") {
-      const utc = window.localStorage.getItem("preferences.timestamp.utc");
-      setUtcTime(utc === "true");
-    }
   }, []);
 
   const fetchOldTraces = () => {
@@ -148,30 +148,52 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-3">
-      <div className="flex gap-3 items-center">
-        <Button variant="outline" size={"icon"} onClick={fetchLatestTraces}>
-          <RefreshCwIcon className="w-4 h-4" />
-        </Button>
-        <p
-          className={cn(
-            "text-xs font-semibold",
-            fetchTraces.isFetching ? "text-orange-500" : "text-muted-foreground"
-          )}
-        >
-          {fetchTraces.isFetching
-            ? "Fetching traces..."
-            : `Fetched the last ${currentData.length} traces`}
-        </p>
-      </div>
       <div className="flex flex-col">
-        <p className="text-xl">Agent Sessions</p>
+        <div className="flex gap-3 items-center">
+          <Image
+            alt="CrewAI Logo"
+            src="/crewai.png"
+            width={60}
+            height={30}
+            className={"rounded-md"}
+          />
+          <p className="text-2xl font-semibold">Sessions</p>
+        </div>
         <p className="text-sm text-muted-foreground">
           Read latest from right to left
         </p>
       </div>
+      <div className="flex items-center justify-between">
+        <div className="flex gap-3 items-center">
+          <Button variant="outline" size={"icon"} onClick={fetchLatestTraces}>
+            <RefreshCwIcon className="w-4 h-4" />
+          </Button>
+          <p
+            className={cn(
+              "text-xs font-semibold",
+              fetchTraces.isFetching
+                ? "text-orange-500"
+                : "text-muted-foreground"
+            )}
+          >
+            {fetchTraces.isFetching
+              ? "Fetching sessions..."
+              : `Fetched the last ${currentData.length} sessions`}
+          </p>
+        </div>
+        <div className="flex gap-3 items-center">
+          <p className="text-xs font-semibold text-muted-foreground">
+            Use arrow keys to navigate through traces timeline
+          </p>
+          <ChevronLeftSquareIcon className="w-6 h-6 text-muted-foreground" />
+          <ChevronRightSquareIcon className="w-6 h-6 text-muted-foreground" />
+        </div>
+      </div>
       <TimelineChart
         setSelectedTrace={setSelectedTrace}
         selectedTrace={selectedTrace}
+        selectedTraceIndex={selectedTraceIndex}
+        setSelectedTraceIndex={setSelectedTraceIndex}
         data={currentData}
         fetchOldTraces={fetchOldTraces}
         fetchLatestTraces={fetchLatestTraces}
@@ -180,18 +202,9 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
       {selectedTrace && (
         <>
           <div className="flex gap-3 items-stretch">
-            <Card>
+            <Card className="w-1/2">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-1">
-                  <Image
-                    alt="CrewAI Logo"
-                    src="/crewai.png"
-                    width={60}
-                    height={30}
-                    className={"rounded-md"}
-                  />
-                  Session Details
-                </CardTitle>
+                <CardTitle className="text-xl">Session Details</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-3">
                 <p className="text-xs font-semibold">STATUS</p>
@@ -220,7 +233,7 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
                 </Badge>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="w-1/3">
               <CardHeader>
                 <CardTitle className="text-xl">Libraries Detected</CardTitle>
               </CardHeader>

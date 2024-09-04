@@ -27,6 +27,8 @@ export default function TimelineChart({
   fetching,
   setSelectedTrace,
   selectedTrace,
+  selectedTraceIndex,
+  setSelectedTraceIndex,
 }: {
   data: CrewAITrace[];
   fetchOldTraces: () => void;
@@ -34,9 +36,9 @@ export default function TimelineChart({
   fetching: boolean;
   setSelectedTrace: (trace: CrewAITrace) => void;
   selectedTrace: CrewAITrace | null;
+  selectedTraceIndex: number;
+  setSelectedTraceIndex: (index: number) => void;
 }) {
-  // reverse the data array
-  const chartData = data;
   const barSize = 20;
   const barGap = 4;
   const groupGap = 20;
@@ -48,8 +50,27 @@ export default function TimelineChart({
     setChartWidth(width);
   }, [totalGroups]);
 
+  // use left and right keyboard shortcuts to navigate through traces using data index
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        if (selectedTraceIndex > 0) {
+          setSelectedTrace(data[selectedTraceIndex - 1]);
+          setSelectedTraceIndex(selectedTraceIndex - 1);
+        }
+      } else if (e.key === "ArrowLeft") {
+        if (selectedTraceIndex < data.length - 1) {
+          setSelectedTrace(data[selectedTraceIndex + 1]);
+          setSelectedTraceIndex(selectedTraceIndex + 1);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedTraceIndex]);
+
   return (
-    <Card className="flex items-center">
+    <Card className="flex items-center relative">
       <Button
         className="h-[230px] shadow-md"
         disabled={fetching}
@@ -70,7 +91,7 @@ export default function TimelineChart({
         >
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data}
             margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
             barSize={barSize}
             barGap={barGap}
@@ -91,7 +112,10 @@ export default function TimelineChart({
             <Bar dataKey="total_duration">
               {data.map((entry, index) => (
                 <Cell
-                  onClick={() => setSelectedTrace(entry)}
+                  onClick={() => {
+                    setSelectedTrace(entry);
+                    setSelectedTraceIndex(index);
+                  }}
                   radius={4}
                   className={cn(
                     "hover:cursor-pointer hover:fill-orange-600",
