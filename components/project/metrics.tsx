@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { ChartTabs } from "../annotations/chart-tabs";
 import {
   AverageCostInferenceChart,
-  AverageResponseTimeInferenceChart,
   CountInferenceChart,
 } from "../charts/inference-chart";
 import LargeChartSkeleton from "../charts/large-chart-skeleton";
@@ -105,14 +104,6 @@ export default function Metrics({ email }: { email: string }) {
             projectId={project_id}
             lastNHours={lastNHours}
           />
-          <div className="w-full">
-            <AverageResponseTimeInferenceChart
-              userId={userId}
-              model={model}
-              projectId={project_id}
-              lastNHours={lastNHours}
-            />
-          </div>
         </div>
       </div>
       <div className="flex flex-row gap-4 w-full">

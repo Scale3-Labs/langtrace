@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Project } from "@prisma/client";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { RabbitIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
@@ -179,11 +180,25 @@ function ProjectCard({
         <Edit teamId={teamId} project={project} />
       </div>
       <Link href={`/project/${project.id}/traces`}>
-        <Card className="w-full md:w-[325px] h-[180px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
+        <Card className="w-full md:w-[325px] h-[190px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
           <CardHeader>
-            <CardTitle className="capitalize w-1/2 truncate">
-              {project.name}
-            </CardTitle>
+            {project.type === "crewai" && (
+              <CardTitle className="capitalize w-full truncate flex items-center gap-1">
+                <Image
+                  alt="CrewAI Logo"
+                  src="/crewai.png"
+                  width={60}
+                  height={30}
+                  className="rounded-md"
+                />
+                {project.name}
+              </CardTitle>
+            )}
+            {project.type === "default" && (
+              <CardTitle className="capitalize w-full truncate">
+                {project.name}
+              </CardTitle>
+            )}
             <CardDescription className="text-sm capitalize text-muted-foreground w-3/4 truncate">
               {project.description}
             </CardDescription>
