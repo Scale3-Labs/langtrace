@@ -384,7 +384,7 @@ export function VendorLogo({
     return (
       <Image
         alt="Vertex AI Logo"
-        src="/vertextai.png"
+        src="/vertexai.svg"
         width={30}
         height={30}
         className={cn(
