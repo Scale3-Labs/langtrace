@@ -352,3 +352,8 @@ export const jsontheme = {
   base0E: "#ae81ff",
   base0F: "#cc6633",
 };
+
+export const RECIPE_DOCS = {
+  crewai:
+    "https://github.com/Scale3-Labs/langtrace-recipes/blob/main/integrations/llm-framework/crewai/starter.ipynb",
+};

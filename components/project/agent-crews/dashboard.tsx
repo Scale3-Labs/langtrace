@@ -3,24 +3,27 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PAGE_SIZE } from "@/lib/constants";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PAGE_SIZE, RECIPE_DOCS } from "@/lib/constants";
 import { CrewAITrace, processCrewAITrace } from "@/lib/crewai_trace_util";
 import { cn } from "@/lib/utils";
-import { GearIcon } from "@radix-ui/react-icons";
+import { ArrowTopRightIcon, GearIcon } from "@radix-ui/react-icons";
 import {
   BotIcon,
+  BrainCircuitIcon,
   ChevronLeftSquareIcon,
   ChevronRightSquareIcon,
   FileIcon,
   RefreshCwIcon,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 import { TraceComponent } from "../traces/trace-component";
-import { AgentsView, TasksView, ToolsView } from "./agents-view";
+import { AgentsView, MemoryView, TasksView, ToolsView } from "./agents-view";
 import TimelineChart from "./timeline-chart";
 
 export default function AgentCrewsDashboard({ email }: { email: string }) {
@@ -146,6 +149,10 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
     enabled: enableFetch,
   });
 
+  if (fetchTraces.isLoading && currentData.length === 0) {
+    return <PageLoading />;
+  }
+
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-3">
       <div className="flex flex-col">
@@ -181,7 +188,7 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
               : `Fetched the last ${currentData.length} sessions`}
           </p>
         </div>
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-1 items-center">
           <p className="text-xs font-semibold text-muted-foreground">
             Use arrow keys to navigate through traces timeline
           </p>
@@ -189,20 +196,35 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
           <ChevronRightSquareIcon className="w-6 h-6 text-muted-foreground" />
         </div>
       </div>
-      <TimelineChart
-        setSelectedTrace={setSelectedTrace}
-        selectedTrace={selectedTrace}
-        selectedTraceIndex={selectedTraceIndex}
-        setSelectedTraceIndex={setSelectedTraceIndex}
-        data={currentData}
-        fetchOldTraces={fetchOldTraces}
-        fetchLatestTraces={fetchLatestTraces}
-        fetching={fetchTraces.isFetching}
-      />
+      {(!currentData || currentData.length === 0) && (
+        <div className="flex flex-col gap-2 mt-12 w-full items-center justify-center">
+          <p className="text-sm font-semibold text-muted-foreground">
+            No crew sessions found.
+          </p>
+          <Link href={RECIPE_DOCS["crewai"]} target="_blank">
+            <Button size={"sm"}>
+              Learn how to create a crew session
+              <ArrowTopRightIcon className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
+      )}
+      {currentData && currentData.length > 0 && (
+        <TimelineChart
+          setSelectedTrace={setSelectedTrace}
+          selectedTrace={selectedTrace}
+          selectedTraceIndex={selectedTraceIndex}
+          setSelectedTraceIndex={setSelectedTraceIndex}
+          data={currentData}
+          fetchOldTraces={fetchOldTraces}
+          fetchLatestTraces={fetchLatestTraces}
+          fetching={fetchTraces.isFetching}
+        />
+      )}
       {selectedTrace && (
         <>
           <div className="flex gap-3 items-stretch">
-            <Card className="w-1/2">
+            <Card className="w-1/4">
               <CardHeader>
                 <CardTitle className="text-xl">Session Details</CardTitle>
               </CardHeader>
@@ -221,11 +243,11 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
                 </Badge>
                 <p className="text-xs font-semibold">CREW ID</p>
                 <Badge variant={"secondary"} className="w-fit">
-                  {selectedTrace?.crew.id}
+                  {selectedTrace?.crew?.id || "N/A"}
                 </Badge>
                 <p className="text-xs font-semibold">START TIME</p>
                 <Badge variant={"secondary"} className="w-fit">
-                  {selectedTrace?.formatted_start_time}
+                  {selectedTrace?.formatted_start_time || "N/A"}
                 </Badge>
                 <p className="text-xs font-semibold">TOTAL DURATION</p>
                 <Badge variant={"secondary"} className="w-fit">
@@ -233,7 +255,55 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
                 </Badge>
               </CardContent>
             </Card>
-            <Card className="w-1/3">
+            <Card className="w-1/4">
+              <CardHeader>
+                <CardTitle className="text-xl">Usage Metrics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs font-semibold mt-2">Input</p>
+                    {selectedTrace?.input_tokens && (
+                      <Badge variant={"secondary"} className="w-fit mt-2">
+                        Tokens: {selectedTrace?.input_tokens.toLocaleString()}
+                      </Badge>
+                    )}
+                    {selectedTrace?.input_cost && (
+                      <Badge variant={"secondary"} className="w-fit mt-2">
+                        Cost: ${selectedTrace?.input_cost.toFixed(2)}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs font-semibold mt-2">Output</p>
+                    {selectedTrace?.output_tokens && (
+                      <Badge variant={"secondary"} className="w-fit mt-2">
+                        Tokens: {selectedTrace?.output_tokens.toLocaleString()}
+                      </Badge>
+                    )}
+                    {selectedTrace?.output_cost && (
+                      <Badge variant={"secondary"} className="w-fit mt-2">
+                        Cost: ${selectedTrace?.output_cost.toFixed(2)}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs font-semibold mt-2">Total</p>
+                    {selectedTrace?.total_tokens && (
+                      <Badge variant={"secondary"} className="w-fit mt-2">
+                        Tokens: {selectedTrace?.total_tokens.toLocaleString()}
+                      </Badge>
+                    )}
+                    {selectedTrace?.total_cost && (
+                      <Badge variant={"secondary"} className="w-fit mt-2">
+                        Cost: ${selectedTrace?.total_cost.toFixed(2)}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="w-1/4">
               <CardHeader>
                 <CardTitle className="text-xl">Libraries Detected</CardTitle>
               </CardHeader>
@@ -285,24 +355,76 @@ export default function AgentCrewsDashboard({ email }: { email: string }) {
               </CardContent>
             </Card>
           </div>
-          <Card className="w-1/2">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-1">
-                <GearIcon className="w-6 h-6" />
-                Tool Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3 min-h-fit max-h-[500px] overflow-y-scroll">
-              {selectedTrace?.tools.length > 0 ? (
-                <ToolsView tools={selectedTrace?.tools} />
-              ) : (
-                <p className="text-xs font-semibold">No tools detected</p>
-              )}
-            </CardContent>
-          </Card>
+          <div className="flex gap-3 items-stretch">
+            <Card className="w-1/2">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-1">
+                  <GearIcon className="w-6 h-6" />
+                  Tool Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 min-h-fit max-h-[500px] overflow-y-scroll">
+                {selectedTrace?.tools.length > 0 ? (
+                  <ToolsView tools={selectedTrace?.tools} />
+                ) : (
+                  <p className="text-xs font-semibold">No tools detected</p>
+                )}
+              </CardContent>
+            </Card>
+            <Card className="w-1/2">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-1">
+                  <BrainCircuitIcon className="w-6 h-6" />
+                  Memory Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 min-h-fit max-h-[500px] overflow-y-scroll">
+                {selectedTrace?.memory.length > 0 ? (
+                  <MemoryView memory={selectedTrace?.memory} />
+                ) : (
+                  <p className="text-xs font-semibold">No memory detected</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
           <TraceComponent trace={selectedTrace} />
         </>
       )}
+    </div>
+  );
+}
+
+function PageLoading() {
+  return (
+    <div className="w-full py-6 px-6 flex flex-col gap-3">
+      <div className="flex flex-col">
+        <div className="flex gap-3 items-center">
+          <Image
+            alt="CrewAI Logo"
+            src="/crewai.png"
+            width={60}
+            height={30}
+            className={"rounded-md"}
+          />
+          <p className="text-2xl font-semibold">Sessions</p>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Read latest from right to left
+        </p>
+      </div>
+      <Skeleton className="w-full h-10 rounded-md" />
+      <Skeleton className="w-full h-56 rounded-md" />
+      <div className="flex gap-3 items-center">
+        <Skeleton className="w-1/4 h-56 rounded-md" />
+        <Skeleton className="w-1/4 h-56 rounded-md" />
+        <Skeleton className="w-1/4 h-56 rounded-md" />
+      </div>
+      <div className="flex items-center gap-3 justify-between">
+        <Skeleton className="w-1/2 h-56 rounded-md" />
+        <Skeleton className="w-1/2 h-56 rounded-md" />
+      </div>
+      <Skeleton className="w-1/2 h-56 rounded-md" />
+      <Skeleton className="w-full h-96 rounded-md" />
     </div>
   );
 }

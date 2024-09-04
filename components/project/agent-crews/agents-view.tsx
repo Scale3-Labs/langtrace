@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CrewAIAgent, CrewAITask, CrewAITool } from "@/lib/crewai_trace_util";
+import { CrewAIAgent, CrewAIMemory, CrewAITask, CrewAITool } from "@/lib/crewai_trace_util";
 import { cn } from "@/lib/utils";
 import { MoveDiagonal } from "lucide-react";
 import { useState } from "react";
@@ -125,7 +125,7 @@ export function ToolsView({ tools }: { tools: CrewAITool[] }) {
     <Accordion type="multiple" className="w-full">
       {tools.map((tool, index) => (
         <AccordionItem value={index.toString()} key={index}>
-          <AccordionTrigger>{`Task ${index + 1} - ${tool?.name}`}</AccordionTrigger>
+          <AccordionTrigger>{`Tool ${index + 1} - ${tool?.name}`}</AccordionTrigger>
           <AccordionContent>
             <div className="grid grid-cols-2 gap-1 rounded-md p-2">
               <p className="text-xs font-semibold mt-2">Name</p>
@@ -133,6 +133,29 @@ export function ToolsView({ tools }: { tools: CrewAITool[] }) {
               <p className="text-xs font-semibold mt-2">Description</p>
               <ExpandableP
                 content={tool?.description || "N/A"}
+                className="mt-2"
+              />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+
+export function MemoryView({ memory }: { memory: CrewAIMemory[] }) {
+  return (
+    <Accordion type="multiple" className="w-full">
+      {memory.map((mem, index) => (
+        <AccordionItem value={index.toString()} key={index}>
+          <AccordionTrigger>{`Memory ${index + 1}`}</AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-2 gap-1 rounded-md p-2">
+              <p className="text-xs font-semibold mt-2">Inputs</p>
+              <p className="w-fit mt-2">{mem?.inputs || "N/A"}</p>
+              <p className="text-xs font-semibold mt-2">Description</p>
+              <ExpandableP
+                content={mem?.outputs || "N/A"}
                 className="mt-2"
               />
             </div>

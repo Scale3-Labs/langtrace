@@ -12,6 +12,7 @@ export interface CrewAITrace {
   agents: CrewAIAgent[];
   tasks: CrewAITask[];
   tools: CrewAITool[];
+  memory: CrewAIMemory[];
   namespace: string;
   user_ids: string[];
   prompt_ids: string[];
@@ -92,6 +93,10 @@ export interface CrewAITool {
   description: string;
 }
 
+export interface CrewAIMemory {
+  inputs: string;
+  outputs: string;
+}
 export interface VendorMetadata {
   name: string;
   version: string;
@@ -116,6 +121,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
   let agents: CrewAIAgent[] = [];
   let tasks: CrewAITask[] = [];
   let crewTools: CrewAITool[] = [];
+  const memory: CrewAIMemory[] = [];
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
@@ -235,6 +241,16 @@ export function processCrewAITrace(trace: any): CrewAITrace {
         }
 
         tasks.push(task);
+      }
+
+      if (attributes["crewai.memory.storage.rag_storage.inputs"]) {
+        const memo: CrewAIMemory = {
+          inputs: attributes["crewai.memory.storage.rag_storage.inputs"],
+          outputs: attributes["crewai.memory.storage.rag_storage.outputs"] || "",
+        };
+        memo.inputs = memo.inputs.replace(/\\n/g, "\n");
+        memo.outputs = memo.outputs.replace(/\\n/g, "\n");
+        memory.push(memo);
       }
 
       // get the user_id, prompt_id, prompt_version, and model from the attributes
@@ -431,6 +447,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
     agents: agents,
     tasks: tasks,
     tools: crewTools,
+    memory: memory,
     user_ids: userIds,
     prompt_ids: promptIds,
     prompt_versions: promptVersions,

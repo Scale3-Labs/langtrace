@@ -43,11 +43,12 @@ export default function TimelineChart({
   const barGap = 4;
   const groupGap = 20;
   const totalGroups = data.length;
-  const [chartWidth, setChartWidth] = useState(0);
+  const [style, setStyle] = useState({ width: "200px", height: "200px" });
 
   useEffect(() => {
+    // Calculate the width dynamically when the container is mounted
     const width = totalGroups * (barSize + groupGap);
-    setChartWidth(width);
+    setStyle({ width: `${width}px`, height: "200px" });
   }, [totalGroups]);
 
   // use left and right keyboard shortcuts to navigate through traces using data index
@@ -85,7 +86,7 @@ export default function TimelineChart({
       </Button>
       <CardContent className="overflow-x-auto">
         <ChartContainer
-          style={{ width: `${chartWidth}px` }}
+          style={style}
           config={chartConfig}
           className="h-[200px] w-full"
         >

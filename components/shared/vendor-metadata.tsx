@@ -343,8 +343,8 @@ export function VendorLogo({
     const color = vendorColor("embedchain");
     return (
       <Image
-        alt="EmbedChain Logo"
-        src="/embedchain.png"
+        alt="Mem0 Logo"
+        src="/mem0.png"
         width={60}
         height={30}
         className={cn(
