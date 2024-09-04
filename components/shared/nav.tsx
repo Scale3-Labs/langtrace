@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -64,6 +64,14 @@ export default function Nav({}: {}) {
     ? pathname.split("/")[2]
     : "";
   const [navlinks, setNavlinks] = useState(DashboardNavLinks);
+
+  useEffect(() => {
+    if (projectId) {
+      setNavlinks(ProjectNavLinks(projectId));
+    } else {
+      setNavlinks(DashboardNavLinks);
+    }
+  }, [projectId]);
 
   const {
     data: project,
