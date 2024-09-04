@@ -1,8 +1,14 @@
-import { getVendorFromSpan, safeStringify } from "@/lib/utils";
+import { cn, getVendorFromSpan, safeStringify } from "@/lib/utils";
 import UserLogo from "./user-logo";
 import { VendorLogo } from "./vendor-metadata";
 
-export default function ConversationView({ span }: { span: any }) {
+export default function ConversationView({
+  span,
+  className,
+}: {
+  span: any;
+  className?: string;
+}) {
   const attributes = span?.attributes ? JSON.parse(span.attributes) : {};
   if (!attributes) return <p className="text-md">No data found</p>;
 
@@ -44,7 +50,12 @@ export default function ConversationView({ span }: { span: any }) {
   if (!prompts && !responses) return <p className="text-md">No data found</p>;
 
   return (
-    <div className="flex flex-col gap-8 overflow-y-scroll pr-6 max-h-screen">
+    <div
+      className={cn(
+        className,
+        "flex flex-col gap-8 overflow-y-scroll pr-6 max-h-screen"
+      )}
+    >
       {prompts?.length > 0 &&
         JSON.parse(prompts).map((prompt: any, i: number) => {
           const role = prompt?.role ? prompt?.role?.toLowerCase() : "User";

@@ -17,10 +17,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Info } from "@/components/shared/info";
 import { HOW_TO_GROUP_RELATED_OPERATIONS } from "@/lib/constants";
 import { Trace } from "@/lib/trace_util";
 import { cn } from "@/lib/utils";
 import { ResetIcon } from "@radix-ui/react-icons";
+import { PropertyFilter } from "@/lib/services/query_builder_service";
+import { Switch } from "@/components/ui/switch";
 import {
   ColumnDef,
   flexRender,
@@ -45,6 +48,8 @@ interface TracesTableProps<TData, TValue> {
   refetch: () => void;
   paginationLoading?: boolean;
   scrollableDivRef?: React.RefObject<HTMLElement>;
+  filters: PropertyFilter[];
+  setFilters: (filters: PropertyFilter[]) => void;
 }
 
 export function TracesTable<TData, TValue>({
@@ -56,6 +61,8 @@ export function TracesTable<TData, TValue>({
   refetch,
   paginationLoading,
   scrollableDivRef,
+  filters,
+  setFilters,
 }: TracesTableProps<TData, TValue>) {
   const [tableState, setTableState] = useState<any>({
     pagination: {
@@ -67,6 +74,7 @@ export function TracesTable<TData, TValue>({
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
+  const [viewMode, setViewMode] = useState<"trace" | "prompt">("trace");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -174,7 +182,87 @@ export function TracesTable<TData, TValue>({
               </Link>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
+            <div className="flex-col">
+              <div className="flex items-center gap-4 ">
+                <p className="text-xs font-semibold">Trace</p>
+                <Switch
+                  checked={viewMode === "prompt"}
+                  onCheckedChange={(checked) => {
+                    const newMode = checked ? "prompt" : "trace";
+                    setViewMode(newMode);
+                    if (newMode === "prompt") {
+                      setColumnVisibility({
+                        start_time: true,
+                        models: true,
+                        inputs: true,
+                        outputs: true,
+                        status: false,
+                        namespace: false,
+                        user_ids: false,
+                        prompt_ids: false,
+                        vendors: false,
+                        input_tokens: false,
+                        output_tokens: false,
+                        total_tokens: false,
+                        input_cost: false,
+                        output_cost: false,
+                        total_cost: false,
+                        total_duration: false,
+                      });
+                      if (!filters.some((filter) => filter.value === "llm")) {
+                        setFilters([
+                          ...filters,
+                          {
+                            key: "langtrace.service.type",
+                            operation: "EQUALS",
+                            value: "llm",
+                            type: "attribute",
+                          },
+                        ]);
+                      }
+                    } else {
+                      setColumnVisibility({
+                        start_time: true,
+                        models: true,
+                        inputs: true,
+                        outputs: true,
+                        status: true,
+                        namespace: true,
+                        user_ids: true,
+                        prompt_ids: true,
+                        vendors: true,
+                        input_tokens: true,
+                        output_tokens: true,
+                        total_tokens: true,
+                        input_cost: true,
+                        output_cost: true,
+                        total_cost: true,
+                        total_duration: true,
+                      });
+                      setFilters(
+                        filters.filter((filter) => filter.value !== "llm")
+                      );
+                    }
+                  }}
+                  className="relative inline-flex items-center cursor-pointer"
+                >
+                  <span
+                    className={`${
+                      viewMode === "prompt" ? "translate-x-5" : "translate-x-0"
+                    } inline-block w-10 h-6 bg-gray-200 rounded-full transition-transform`}
+                  />
+                </Switch>
+                <p className="text-xs font-semibold">Prompt</p>
+                <Info
+                  className="ml-[-10px]"
+                  information={
+                    "Switch to a condensed view optimized for debugging Prompts."
+                  }
+                />
+              </div>
+            </div>
             <Badge variant={"outline"} className="text-sm">
               Project ID: {project_id}
             </Badge>
@@ -237,7 +325,7 @@ export function TracesTable<TData, TValue>({
         )}
         {!loading && data && data.length > 0 && (
           <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
-            <TableHeader className="sticky top-0 bg-secondary">
+            <TableHeader className="sticky top-0 z-50 bg-secondary">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
