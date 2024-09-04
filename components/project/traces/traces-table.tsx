@@ -325,7 +325,7 @@ export function TracesTable<TData, TValue>({
         )}
         {!loading && data && data.length > 0 && (
           <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
-            <TableHeader className="sticky top-0 bg-secondary">
+            <TableHeader className="sticky top-0 z-50 bg-secondary">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (

@@ -134,6 +134,14 @@ export function vendorColor(vendor: string) {
     return "bg-blue-200";
   }
 
+  if (vendor.includes("embedchain")) {
+    return "bg-slate-200";
+  }
+
+  if (vendor.includes("vercel")) {
+    return "bg-black";
+  }
+
   return "bg-gray-800";
 }
 
@@ -305,6 +313,38 @@ export function VendorLogo({
       <Image
         alt="CrewAI Logo"
         src="/crewai.png"
+        width={60}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("vercel")) {
+    const color = vendorColor("vercel");
+    return (
+      <Image
+        alt="Vercel Logo"
+        src="/vercel.png"
+        width={60}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("embedchain")) {
+    const color = vendorColor("embedchain");
+    return (
+      <Image
+        alt="Mem0 Logo"
+        src="/mem0.png"
         width={60}
         height={30}
         className={cn(

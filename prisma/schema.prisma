@@ -185,6 +185,7 @@ model Project {
   description String?
   teamId      String?
   apiKeyHash  String?      @unique
+  type        String?      @default("default") // default, crewai, langchain
   Team        Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

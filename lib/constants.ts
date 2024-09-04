@@ -328,6 +328,8 @@ export const SUPPORTED_VENDORS: Record<string, string> = {
   OLLAMA: "Ollama",
   VERTEXAI: "VertexAI",
   GEMINI: "Gemini",
+  EMBEDCHAIN: "Embedchain",
+  VERCEL: "Vercel",
 };
 
 export const jsontheme = {
@@ -349,4 +351,9 @@ export const jsontheme = {
   base0D: "#66d9ef",
   base0E: "#ae81ff",
   base0F: "#cc6633",
+};
+
+export const RECIPE_DOCS = {
+  crewai:
+    "https://github.com/Scale3-Labs/langtrace-recipes/blob/main/integrations/llm-framework/crewai/starter.ipynb",
 };

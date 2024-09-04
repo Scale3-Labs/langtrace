@@ -42,7 +42,7 @@ export function Header({ email }: { email: string }) {
   });
 
   return (
-    <header className="flex flex-col gap-2 w-full px-12 z-30 sticky top-0 bg-primary-foreground">
+    <header className="flex flex-col gap-2 w-full px-12 z-[900] sticky top-0 bg-primary-foreground">
       <div className="flex justify-between items-center w-full pt-3">
         <div className="flex items-center gap-3">
           <Link
@@ -96,7 +96,7 @@ export function Header({ email }: { email: string }) {
                 )}
               </DropdownMenuTrigger>
             )}
-            <DropdownMenuContent className="h-full w-56 mx-12 mt-1 overflow-x-auto">
+            <DropdownMenuContent className="h-full w-56 mx-12 mt-1 overflow-x-auto z-[910]">
               <DropdownMenuLabel className="flex flex-col gap-1 break-all">
                 {!fetchUser.isLoading && fetchUser.data && (
                   <p className="font-semibold">

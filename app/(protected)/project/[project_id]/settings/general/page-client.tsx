@@ -1,5 +1,7 @@
 "use client";
 
+import ProjectTypesDropdown from "@/components/project/project-type-dropdown";
+import { Info } from "@/components/shared/info";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +52,7 @@ export default function ProjectView() {
       .min(3, { message: "Name must be 3 to 20 characters long" })
       .max(20, { message: "Name must be 20 or less characters long" }),
     description: z.string().optional(),
+    type: z.string().optional(),
   });
 
   const ProjectDetailsForm = useForm({
@@ -57,6 +60,7 @@ export default function ProjectView() {
     defaultValues: {
       name: "",
       description: "",
+      type: "",
     },
   });
 
@@ -67,6 +71,7 @@ export default function ProjectView() {
         name: data.name.toLowerCase(),
         description: data.description.toLowerCase(),
         id: project.project.id,
+        type: data.type,
       };
       await fetch(`/api/project?id=${projectId}`, {
         method: "PUT",
@@ -139,6 +144,7 @@ export default function ProjectView() {
         description: project.project.description
           ? project.project.description
           : "",
+        type: project.project.type ? project.project.type : "default",
       });
     }
   }, [project, ProjectDetailsForm]);
@@ -157,7 +163,7 @@ export default function ProjectView() {
       <div className="flex flex-col gap-8">
         <Card>
           <CardHeader>
-            <CardTitle>Profile</CardTitle>
+            <CardTitle>Project</CardTitle>
             <CardDescription>Update your project details here</CardDescription>
           </CardHeader>
           <CardContent className="w-full">
@@ -203,6 +209,29 @@ export default function ProjectView() {
                           className="capitalize"
                           placeholder="Project Description"
                           {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  disabled={busy}
+                  control={ProjectDetailsForm.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-2 mt-1">
+                      <FormLabel>
+                        Project Type
+                        <Info
+                          information="The type of project. Leave blank for default."
+                          className="inline-block ml-2"
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <ProjectTypesDropdown
+                          value={field.value}
+                          setValue={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -280,7 +309,7 @@ function PageSkeleton() {
     <div className="flex flex-col gap-8">
       <Card>
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
+          <CardTitle>Project</CardTitle>
           <CardDescription>Update your project details here</CardDescription>
         </CardHeader>
         <CardContent className="w-full">
