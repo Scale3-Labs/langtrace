@@ -21,9 +21,9 @@ export const RenderSpanAttributeValue = ({
     } else if (typeof item === "object" && item !== null) {
       return (
         <div>
-          {Object.entries(item).map(([key, value]) => (
+          {Object.entries(item).map(([key, v]) => (
             <div key={key}>
-              <strong>{key}:</strong> {renderContent(value)}
+              <strong>{key}:</strong> {renderContent(v)}
             </div>
           ))}
         </div>
