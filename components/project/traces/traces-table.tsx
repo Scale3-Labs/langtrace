@@ -74,7 +74,6 @@ export function TracesTable<TData, TValue>({
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
-  const [viewMode, setViewMode] = useState<"trace" | "prompt">("trace");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -104,7 +103,6 @@ export function TracesTable<TData, TValue>({
 
   useEffect(() => {
     if (filters.some((filter) => filter.value === "llm")) {
-      // Prompt view: show specific columns
       setColumnVisibility({
         start_time: true,
         models: true,
@@ -124,7 +122,6 @@ export function TracesTable<TData, TValue>({
         total_duration: false,
       });
     } else {
-      // Trace view: show all columns
       setColumnVisibility({
         start_time: true,
         status: true,
@@ -229,76 +226,71 @@ export function TracesTable<TData, TValue>({
 
           <div className="flex items-center gap-2">
             <div className="flex-col">
-              <div className="flex items-center gap-4 ">
-                <p className="text-xs font-semibold">Trace</p>
-                <Switch
-                  checked={filters.some((filter) => filter.value === "llm")}
-                  onCheckedChange={(checked) => {
-                    console.log("checked", checked);
-                    const newMode = checked ? "prompt" : "trace";
-                    setColumnVisibility({
-                      start_time: true,
-                      models: true,
-                      inputs: true,
-                      outputs: true,
-                      status: newMode === "trace",
-                      namespace: newMode === "trace",
-                      user_ids: newMode === "trace",
-                      prompt_ids: newMode === "trace",
-                      vendors: newMode === "trace",
-                      input_tokens: newMode === "trace",
-                      output_tokens: newMode === "trace",
-                      total_tokens: newMode === "trace",
-                      input_cost: newMode === "trace",
-                      output_cost: newMode === "trace",
-                      total_cost: newMode === "trace",
-                      total_duration: newMode === "trace",
-                    });
-
-                    if (newMode === "prompt") {
-                      setFilters([
-                        ...filters,
-                        {
-                          key: "langtrace.service.type",
-                          operation: "EQUALS",
-                          value: "llm",
-                          type: "attribute",
-                        },
-                      ]);
-                    } else {
-                      setFilters(
-                        filters.filter((filter) => filter.value !== "llm")
-                      );
+              <div className="flex flex-col items-center">
+                <p className="text-xs font-semibold mb-1">Mode</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-semibold">Trace</p>
+                  <Switch
+                    checked={filters.some((filter) => filter.value === "llm")}
+                    onCheckedChange={(checked) => {
+                      const newMode = checked ? "prompt" : "trace";
                       setColumnVisibility({
                         start_time: true,
-                        status: true,
-                        namespace: true,
-                        user_ids: true,
-                        prompt_ids: true,
-                        vendors: true,
                         models: true,
                         inputs: true,
                         outputs: true,
-                        input_tokens: true,
-                        output_tokens: true,
-                        total_tokens: true,
-                        input_cost: true,
-                        output_cost: true,
-                        total_cost: true,
-                        total_duration: true,
+                        status: newMode === "trace",
+                        namespace: newMode === "trace",
+                        user_ids: newMode === "trace",
+                        prompt_ids: newMode === "trace",
+                        vendors: newMode === "trace",
+                        input_tokens: newMode === "trace",
+                        output_tokens: newMode === "trace",
+                        total_tokens: newMode === "trace",
+                        input_cost: newMode === "trace",
+                        output_cost: newMode === "trace",
+                        total_cost: newMode === "trace",
+                        total_duration: newMode === "trace",
                       });
-                    }
-                  }}
-                  className="relative inline-flex items-center cursor-pointer"
-                />
 
-                <p className="text-xs font-semibold">Prompt</p>
-                <Info
-                  className="ml-[-10px]"
-                  information={
-                    "Switch to a condensed view optimized for debugging Prompts."
-                  }
-                />
+                      if (newMode === "prompt") {
+                        setFilters([
+                          ...filters,
+                          {
+                            key: "langtrace.service.type",
+                            operation: "EQUALS",
+                            value: "llm",
+                            type: "attribute",
+                          },
+                        ]);
+                      } else {
+                        setFilters(
+                          filters.filter((filter) => filter.value !== "llm")
+                        );
+                        setColumnVisibility({
+                          start_time: true,
+                          status: true,
+                          namespace: true,
+                          user_ids: true,
+                          prompt_ids: true,
+                          vendors: true,
+                          models: true,
+                          inputs: true,
+                          outputs: true,
+                          input_tokens: true,
+                          output_tokens: true,
+                          total_tokens: true,
+                          input_cost: true,
+                          output_cost: true,
+                          total_cost: true,
+                          total_duration: true,
+                        });
+                      }
+                    }}
+                    className="relative inline-flex items-center cursor-pointer"
+                  />
+                  <p className="text-xs font-semibold">Prompt</p>
+                </div>
               </div>
             </div>
             <Badge variant={"outline"} className="text-sm">
