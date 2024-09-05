@@ -1,4 +1,3 @@
-import { Info } from "@/components/shared/info";
 import { SetupInstructions } from "@/components/shared/setup-instructions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -74,6 +73,7 @@ export function TracesTable<TData, TValue>({
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
+  const [profileMode, setProfileMode] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -100,48 +100,6 @@ export function TracesTable<TData, TValue>({
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (filters.some((filter) => filter.value === "llm")) {
-      setColumnVisibility({
-        start_time: true,
-        models: true,
-        inputs: true,
-        outputs: true,
-        status: false,
-        namespace: false,
-        user_ids: false,
-        prompt_ids: false,
-        vendors: false,
-        input_tokens: false,
-        output_tokens: false,
-        total_tokens: false,
-        input_cost: false,
-        output_cost: false,
-        total_cost: false,
-        total_duration: false,
-      });
-    } else {
-      setColumnVisibility({
-        start_time: true,
-        status: true,
-        namespace: true,
-        user_ids: true,
-        prompt_ids: true,
-        vendors: true,
-        models: true,
-        inputs: true,
-        outputs: true,
-        input_tokens: true,
-        output_tokens: true,
-        total_tokens: true,
-        input_cost: true,
-        output_cost: true,
-        total_cost: true,
-        total_duration: true,
-      });
-    }
-  }, [filters]);
 
   const table = useReactTable({
     data,
@@ -225,73 +183,65 @@ export function TracesTable<TData, TValue>({
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex-col">
-              <div className="flex flex-col items-center">
-                <p className="text-xs font-semibold mb-1">Mode</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs font-semibold">Trace</p>
-                  <Switch
-                    checked={filters.some((filter) => filter.value === "llm")}
-                    onCheckedChange={(checked) => {
-                      const newMode = checked ? "prompt" : "trace";
-                      setColumnVisibility({
-                        start_time: true,
-                        models: true,
-                        inputs: true,
-                        outputs: true,
-                        status: newMode === "trace",
-                        namespace: newMode === "trace",
-                        user_ids: newMode === "trace",
-                        prompt_ids: newMode === "trace",
-                        vendors: newMode === "trace",
-                        input_tokens: newMode === "trace",
-                        output_tokens: newMode === "trace",
-                        total_tokens: newMode === "trace",
-                        input_cost: newMode === "trace",
-                        output_cost: newMode === "trace",
-                        total_cost: newMode === "trace",
-                        total_duration: newMode === "trace",
-                      });
-
-                      if (newMode === "prompt") {
-                        setFilters([
-                          ...filters,
-                          {
-                            key: "langtrace.service.type",
-                            operation: "EQUALS",
-                            value: "llm",
-                            type: "attribute",
-                          },
-                        ]);
-                      } else {
-                        setFilters(
-                          filters.filter((filter) => filter.value !== "llm")
-                        );
-                        setColumnVisibility({
-                          start_time: true,
-                          status: true,
-                          namespace: true,
-                          user_ids: true,
-                          prompt_ids: true,
-                          vendors: true,
-                          models: true,
-                          inputs: true,
-                          outputs: true,
-                          input_tokens: true,
-                          output_tokens: true,
-                          total_tokens: true,
-                          input_cost: true,
-                          output_cost: true,
-                          total_cost: true,
-                          total_duration: true,
-                        });
-                      }
-                    }}
-                    className="relative inline-flex items-center cursor-pointer"
-                  />
-                  <p className="text-xs font-semibold">Prompt</p>
-                </div>
-              </div>
+            <div className="flex items-center gap-1 rounded-md border border-muted px-2 py-1">
+              <p className="text-sm font-semibold text-orange-600">I am</p>
+              <p
+                className={cn(
+                  "text-sm font-semibold",
+                  !profileMode ? "text-orange-600" : "text-muted"
+                )}
+              >
+                debugging
+              </p>
+              <Switch
+                checked={filters.some((filter) => filter.value === "llm")}
+                onCheckedChange={(checked) => {
+                  const newMode = checked ? "prompt" : "trace";
+                  setProfileMode(checked);
+                  setColumnVisibility({
+                    start_time: true,
+                    models: true,
+                    inputs: true,
+                    outputs: true,
+                    status: newMode === "trace",
+                    namespace: newMode === "trace",
+                    user_ids: newMode === "trace",
+                    prompt_ids: newMode === "trace",
+                    vendors: newMode === "trace",
+                    input_tokens: newMode === "trace",
+                    output_tokens: newMode === "trace",
+                    total_tokens: newMode === "trace",
+                    input_cost: newMode === "trace",
+                    output_cost: newMode === "trace",
+                    total_cost: newMode === "trace",
+                    total_duration: newMode === "trace",
+                  });
+                  if (newMode === "prompt") {
+                    setFilters([
+                      ...filters,
+                      {
+                        key: "langtrace.service.type",
+                        operation: "EQUALS",
+                        value: "llm",
+                        type: "attribute",
+                      },
+                    ]);
+                  } else {
+                    setFilters(
+                      filters.filter((filter) => filter.value !== "llm")
+                    );
+                  }
+                }}
+                className="relative inline-flex items-center cursor-pointer"
+              />
+              <p
+                className={cn(
+                  "text-sm font-semibold",
+                  profileMode ? "text-orange-600" : "text-muted"
+                )}
+              >
+                prompt engineering
+              </p>
             </div>
             <Badge variant={"outline"} className="text-sm">
               Project ID: {project_id}
