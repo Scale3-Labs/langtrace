@@ -56,7 +56,7 @@ export default function Traces({ email }: { email: string }) {
       const group = window.localStorage.getItem("preferences.group");
       setGroup(group === "true");
     }
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     const handleFocusChange = () => {
