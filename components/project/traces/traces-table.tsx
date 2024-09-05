@@ -380,6 +380,7 @@ export function TracesTable<TData, TValue>({
         )}
         {selectedTrace !== null && (
           <TraceSheet
+            project_id={project_id}
             trace={selectedTrace}
             open={openSheet}
             setOpen={setOpenSheet}

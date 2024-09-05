@@ -1,3 +1,4 @@
+import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import ConversationView from "@/components/shared/conversation-view";
 import LanggraphView from "@/components/shared/langgraph-view";
 import TraceGraph, { AttributesTabs } from "@/components/traces/trace_graph";
@@ -25,10 +26,12 @@ import {
 import { useEffect, useState } from "react";
 
 export function TraceSheet({
+  project_id,
   trace,
   open,
   setOpen,
 }: {
+  project_id: string;
   trace: Trace;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -52,6 +55,84 @@ export function TraceSheet({
     setSelectedVendors(trace.vendors);
     if (trace.vendors.includes("langgraph")) setIncludesLanggraph(true);
     if (!open) setSpansView("SPANS");
+
+    // const spanId = row.original.span_id;
+    // const prompts = row.getValue("input") as string[];
+    // const responses = row.getValue("output") as string[];
+    // const model = row.getValue("model") as string;
+
+    // let input = "";
+    // if (prompts && prompts.length > 0) {
+    //   // get last item in prompts
+    //   const lastItem = prompts[prompts.length - 1];
+    //   const parsedLastItem = JSON.parse(lastItem);
+    //   input =
+    //     parsedLastItem[parsedLastItem.length - 1]?.content ||
+    //     parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
+    //     parsedLastItem[parsedLastItem.length - 1]?.text;
+
+    //   // check if input is not a string
+    //   if (typeof input !== "string") {
+    //     input = JSON.stringify(input);
+    //   }
+    // }
+
+    // let output = "";
+    // if (responses && responses.length > 0) {
+    //   // get last item in responses
+    //   const lastItem = responses[responses.length - 1];
+    //   const parsedLastItem = JSON.parse(lastItem);
+    //   output =
+    //     parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
+    //     parsedLastItem[parsedLastItem.length - 1]?.text ||
+    //     parsedLastItem[parsedLastItem.length - 1]?.content;
+
+    //   // check if output is not a string
+    //   if (typeof output !== "string") {
+    //     output = JSON.stringify(output);
+    //   }
+    // }
+  }, [trace, open]);
+
+  useEffect(() => {
+    if (span) {
+      const spanId = row.original.span_id;
+      const prompts = row.getValue("input") as string[];
+      const responses = row.getValue("output") as string[];
+      const model = row.getValue("model") as string;
+
+      let input = "";
+      if (prompts && prompts.length > 0) {
+        // get last item in prompts
+        const lastItem = prompts[prompts.length - 1];
+        const parsedLastItem = JSON.parse(lastItem);
+        input =
+          parsedLastItem[parsedLastItem.length - 1]?.content ||
+          parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
+          parsedLastItem[parsedLastItem.length - 1]?.text;
+
+        // check if input is not a string
+        if (typeof input !== "string") {
+          input = JSON.stringify(input);
+        }
+      }
+
+      let output = "";
+      if (responses && responses.length > 0) {
+        // get last item in responses
+        const lastItem = responses[responses.length - 1];
+        const parsedLastItem = JSON.parse(lastItem);
+        output =
+          parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
+          parsedLastItem[parsedLastItem.length - 1]?.text ||
+          parsedLastItem[parsedLastItem.length - 1]?.content;
+
+        // check if output is not a string
+        if (typeof output !== "string") {
+          output = JSON.stringify(output);
+        }
+      }
+    }
   }, [trace, open]);
 
   return (
@@ -93,12 +174,19 @@ export function TraceSheet({
                     Back
                   </Button>
                   <div className="flex gap-2 items-center">
+                    {/* <AddtoDataset
+                      projectId={project_id}
+                      disabled={spansView === "ATTRIBUTES"}
+                      selectedData={[]}
+                    /> */}
                     <Button
                       className="w-fit"
                       size={"sm"}
                       variant={"outline"}
                       disabled={spansView === "ATTRIBUTES"}
-                      onClick={() => setSpansView("ATTRIBUTES")}
+                      onClick={() => {
+                        console.log(span), setSpansView("ATTRIBUTES");
+                      }}
                     >
                       <CodeIcon size={16} className="mr-2" />
                       Attributes
