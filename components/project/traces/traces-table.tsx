@@ -1,3 +1,4 @@
+import { Info } from "@/components/shared/info";
 import { SetupInstructions } from "@/components/shared/setup-instructions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
