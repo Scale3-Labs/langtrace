@@ -1,3 +1,4 @@
+import { Info } from "@/components/shared/info";
 import { SetupInstructions } from "@/components/shared/setup-instructions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -17,13 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Info } from "@/components/shared/info";
 import { HOW_TO_GROUP_RELATED_OPERATIONS } from "@/lib/constants";
+import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { Trace } from "@/lib/trace_util";
 import { cn } from "@/lib/utils";
 import { ResetIcon } from "@radix-ui/react-icons";
-import { PropertyFilter } from "@/lib/services/query_builder_service";
-import { Switch } from "@/components/ui/switch";
 import {
   ColumnDef,
   flexRender,
