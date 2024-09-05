@@ -46,7 +46,6 @@ export default function Traces({ email }: { email: string }) {
     setShowFreshLoading(true);
     setEnableFetch(true);
 
-    // fetch preferences from local storage
     if (typeof window !== "undefined") {
       const utc = window.localStorage.getItem("preferences.timestamp.utc");
       setUtcTime(utc === "true");
@@ -57,7 +56,7 @@ export default function Traces({ email }: { email: string }) {
       const group = window.localStorage.getItem("preferences.group");
       setGroup(group === "true");
     }
-  }, [filters]);
+  }, []);
 
   useEffect(() => {
     const handleFocusChange = () => {
