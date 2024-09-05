@@ -76,6 +76,41 @@ export function TracesTable<TData, TValue>({
   const [profileMode, setProfileMode] = useState(false);
 
   useEffect(() => {
+    const newMode = profileMode ? "prompt" : "trace";
+    setColumnVisibility({
+      start_time: true,
+      models: true,
+      inputs: true,
+      outputs: true,
+      status: newMode === "trace",
+      namespace: newMode === "trace",
+      user_ids: newMode === "trace",
+      prompt_ids: newMode === "trace",
+      vendors: newMode === "trace",
+      input_tokens: newMode === "trace",
+      output_tokens: newMode === "trace",
+      total_tokens: newMode === "trace",
+      input_cost: newMode === "trace",
+      output_cost: newMode === "trace",
+      total_cost: newMode === "trace",
+      total_duration: newMode === "trace",
+    });
+    if (newMode === "prompt") {
+      setFilters([
+        ...filters,
+        {
+          key: "langtrace.service.type",
+          operation: "EQUALS",
+          value: "llm",
+          type: "attribute",
+        },
+      ]);
+    } else {
+      setFilters(filters.filter((filter) => filter.value !== "llm"));
+    }
+  }, [profileMode]);
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       try {
         const storedState = window.localStorage.getItem(
@@ -194,44 +229,8 @@ export function TracesTable<TData, TValue>({
                 debugging
               </p>
               <Switch
-                checked={filters.some((filter) => filter.value === "llm")}
-                onCheckedChange={(checked) => {
-                  const newMode = checked ? "prompt" : "trace";
-                  setProfileMode(checked);
-                  setColumnVisibility({
-                    start_time: true,
-                    models: true,
-                    inputs: true,
-                    outputs: true,
-                    status: newMode === "trace",
-                    namespace: newMode === "trace",
-                    user_ids: newMode === "trace",
-                    prompt_ids: newMode === "trace",
-                    vendors: newMode === "trace",
-                    input_tokens: newMode === "trace",
-                    output_tokens: newMode === "trace",
-                    total_tokens: newMode === "trace",
-                    input_cost: newMode === "trace",
-                    output_cost: newMode === "trace",
-                    total_cost: newMode === "trace",
-                    total_duration: newMode === "trace",
-                  });
-                  if (newMode === "prompt") {
-                    setFilters([
-                      ...filters,
-                      {
-                        key: "langtrace.service.type",
-                        operation: "EQUALS",
-                        value: "llm",
-                        type: "attribute",
-                      },
-                    ]);
-                  } else {
-                    setFilters(
-                      filters.filter((filter) => filter.value !== "llm")
-                    );
-                  }
-                }}
+                checked={profileMode}
+                onCheckedChange={(checked) => setProfileMode(checked)}
                 className="relative inline-flex items-center cursor-pointer"
               />
               <p
