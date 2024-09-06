@@ -189,7 +189,7 @@ export function TracesTable<TData, TValue>({
   return (
     <>
       {!loading && data && data.length > 0 && (
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center z-99">
           <div className="flex flex-col gap-2">
             <div className="flex gap-3 items-center">
               <Button variant="outline" size={"icon"} onClick={() => refetch()}>
@@ -380,6 +380,7 @@ export function TracesTable<TData, TValue>({
         )}
         {selectedTrace !== null && (
           <TraceSheet
+            project_id={project_id}
             trace={selectedTrace}
             open={openSheet}
             setOpen={setOpenSheet}
