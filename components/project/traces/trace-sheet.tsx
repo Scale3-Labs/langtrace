@@ -25,6 +25,12 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+interface CheckedData {
+  input: string;
+  output: string;
+  spanId: string;
+}
+
 export function TraceSheet({
   project_id,
   trace,
@@ -49,96 +55,56 @@ export function TraceSheet({
   const [span, setSpan] = useState<any | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
+  const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
 
   useEffect(() => {
     setSelectedTrace(trace.trace_hierarchy);
     setSelectedVendors(trace.vendors);
     if (trace.vendors.includes("langgraph")) setIncludesLanggraph(true);
-    if (!open) setSpansView("SPANS");
-
-    // const spanId = row.original.span_id;
-    // const prompts = row.getValue("input") as string[];
-    // const responses = row.getValue("output") as string[];
-    // const model = row.getValue("model") as string;
-
-    // let input = "";
-    // if (prompts && prompts.length > 0) {
-    //   // get last item in prompts
-    //   const lastItem = prompts[prompts.length - 1];
-    //   const parsedLastItem = JSON.parse(lastItem);
-    //   input =
-    //     parsedLastItem[parsedLastItem.length - 1]?.content ||
-    //     parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
-    //     parsedLastItem[parsedLastItem.length - 1]?.text;
-
-    //   // check if input is not a string
-    //   if (typeof input !== "string") {
-    //     input = JSON.stringify(input);
-    //   }
-    // }
-
-    // let output = "";
-    // if (responses && responses.length > 0) {
-    //   // get last item in responses
-    //   const lastItem = responses[responses.length - 1];
-    //   const parsedLastItem = JSON.parse(lastItem);
-    //   output =
-    //     parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
-    //     parsedLastItem[parsedLastItem.length - 1]?.text ||
-    //     parsedLastItem[parsedLastItem.length - 1]?.content;
-
-    //   // check if output is not a string
-    //   if (typeof output !== "string") {
-    //     output = JSON.stringify(output);
-    //   }
-    // }
+    if (!open) {
+      setSelectedData([]);
+      setSpansView("SPANS");
+    }
   }, [trace, open]);
 
   useEffect(() => {
     if (span) {
-      const spanId = row.original.span_id;
-      const prompts = row.getValue("input") as string[];
-      const responses = row.getValue("output") as string[];
-      const model = row.getValue("model") as string;
-
+      const spanId = span.span_id;
+      const prompts = span?.input || [];
+      const responses = span?.output || [];
       let input = "";
-      if (prompts && prompts.length > 0) {
-        // get last item in prompts
-        const lastItem = prompts[prompts.length - 1];
-        const parsedLastItem = JSON.parse(lastItem);
-        input =
-          parsedLastItem[parsedLastItem.length - 1]?.content ||
-          parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
-          parsedLastItem[parsedLastItem.length - 1]?.text;
-
-        // check if input is not a string
-        if (typeof input !== "string") {
-          input = JSON.stringify(input);
-        }
-      }
-
       let output = "";
-      if (responses && responses.length > 0) {
-        // get last item in responses
-        const lastItem = responses[responses.length - 1];
-        const parsedLastItem = JSON.parse(lastItem);
-        output =
-          parsedLastItem[parsedLastItem.length - 1]?.message?.content ||
-          parsedLastItem[parsedLastItem.length - 1]?.text ||
-          parsedLastItem[parsedLastItem.length - 1]?.content;
 
-        // check if output is not a string
-        if (typeof output !== "string") {
-          output = JSON.stringify(output);
-        }
+      if (prompts && prompts.length > 0) {
+        const lastPrompt = prompts[prompts.length - 1];
+        input =
+          typeof lastPrompt === "string"
+            ? lastPrompt
+            : JSON.stringify(lastPrompt);
       }
+
+      if (responses && responses.length > 0) {
+        const lastResponse = responses[responses.length - 1];
+        output =
+          typeof lastResponse === "string"
+            ? lastResponse
+            : JSON.stringify(lastResponse);
+      }
+
+      const checkedData = {
+        spanId,
+        input,
+        output,
+      };
+
+      setSelectedData((prev) => [...prev, checkedData]);
     }
-  }, [trace, open]);
+  }, [span]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetDescription hidden>Trace Debugger</SheetDescription>
-      <SheetContent className="w-3/4">
+      <SheetContent className="w-3/4 z-40">
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
           {spansView === "SPANS" && (
@@ -174,11 +140,12 @@ export function TraceSheet({
                     Back
                   </Button>
                   <div className="flex gap-2 items-center">
-                    {/* <AddtoDataset
+                    <AddtoDataset
+                      className="z-[920]"
                       projectId={project_id}
-                      disabled={spansView === "ATTRIBUTES"}
-                      selectedData={[]}
-                    /> */}
+                      selectedData={selectedData}
+                      disabled={selectedData.length === 0}
+                    />
                     <Button
                       className="w-fit"
                       size={"sm"}
