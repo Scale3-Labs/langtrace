@@ -70,33 +70,51 @@ export function TraceSheet({
   useEffect(() => {
     if (span) {
       const spanId = span.span_id;
-      const prompts = span?.input || [];
-      const responses = span?.output || [];
-      let input = "";
-      let output = "";
+      const attributes = span?.attributes ? JSON.parse(span.attributes) : {};
 
-      if (prompts && prompts.length > 0) {
-        const lastPrompt = prompts[prompts.length - 1];
-        input =
-          typeof lastPrompt === "string"
-            ? lastPrompt
-            : JSON.stringify(lastPrompt);
+      let prompt: string = "";
+      let response: string = "";
+      if (span.events) {
+        const events: any[] = JSON.parse(span.events);
+
+        const promptEvent = events.find(
+          (event: any) => event.name === "gen_ai.content.prompt"
+        );
+        if (
+          promptEvent &&
+          promptEvent["attributes"] &&
+          promptEvent["attributes"]["gen_ai.prompt"]
+        ) {
+          prompt = promptEvent["attributes"]["gen_ai.prompt"];
+        }
+
+        const responseEvent = events.find(
+          (event: any) => event.name === "gen_ai.content.completion"
+        );
+        if (
+          responseEvent &&
+          responseEvent["attributes"] &&
+          responseEvent["attributes"]["gen_ai.completion"]
+        ) {
+          response = responseEvent["attributes"]["gen_ai.completion"];
+        }
+      }
+      if (attributes["llm.prompts"] && attributes["llm.responses"]) {
+        prompt = attributes["llm.prompts"];
+        response = attributes["llm.responses"];
       }
 
-      if (responses && responses.length > 0) {
-        const lastResponse = responses[responses.length - 1];
-        output =
-          typeof lastResponse === "string"
-            ? lastResponse
-            : JSON.stringify(lastResponse);
-      }
+      const inputData = prompt ? JSON.parse(prompt) : [];
+      const outputData = response ? JSON.parse(response) : [];
+
+      const input = inputData.length > 0 ? inputData[0].content : "";
+      const output = outputData.length > 0 ? outputData[0].content : "";
 
       const checkedData = {
         spanId,
         input,
         output,
       };
-
       setSelectedData((prev) => [...prev, checkedData]);
     }
   }, [span]);
@@ -141,19 +159,19 @@ export function TraceSheet({
                   </Button>
                   <div className="flex gap-2 items-center">
                     <AddtoDataset
-                      className="z-[920]"
                       projectId={project_id}
                       selectedData={selectedData}
-                      disabled={selectedData.length === 0}
+                      disabled={
+                        selectedData.length === 0 ||
+                        !selectedData.every((data) => data.input || data.output)
+                      }
                     />
                     <Button
                       className="w-fit"
                       size={"sm"}
                       variant={"outline"}
                       disabled={spansView === "ATTRIBUTES"}
-                      onClick={() => {
-                        console.log(span), setSpansView("ATTRIBUTES");
-                      }}
+                      onClick={() => setSpansView("ATTRIBUTES")}
                     >
                       <CodeIcon size={16} className="mr-2" />
                       Attributes
