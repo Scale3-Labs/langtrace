@@ -81,6 +81,7 @@ export default function AddApiKey({
                 onAdd();
                 toast.success("API key saved successfully.");
                 setOpenDialog(false);
+                ApiKeyForm.setValue("key", "");
               } catch (e) {
                 toast.error("Failed to save API key.");
               }
