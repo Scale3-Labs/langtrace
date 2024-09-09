@@ -1,6 +1,6 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
-import { generateApiKey, hashApiKey } from "@/lib/utils";
+import { generateApiKey, hashApiKey, authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,6 +9,14 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   const projectId = req.nextUrl.searchParams.get("project_id") as string;
   const teamId = req.nextUrl.searchParams.get("team_id") as string;
+  // if user is generating an api key for their project through the api
+  const projectGenApiKey = req.headers.get("x-api-key");
+  if (projectGenApiKey !== null) {
+    const response = await authApiKey(projectGenApiKey, true);
+    if (response.status !== 200) {
+      return response;
+    }
+  }
 
   if (!projectId && !teamId) {
     return NextResponse.json(
