@@ -199,12 +199,12 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
     output: 0.002,
   },
   "command-r": {
-    input: 0.0005,
-    output: 0.0015,
+    input: 0.00015,
+    output: 0.0006,
   },
   "command-r-plus": {
-    input: 0.003,
-    output: 0.015,
+    input: 0.0025,
+    output: 0.01,
   },
 };
 
