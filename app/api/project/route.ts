@@ -5,6 +5,7 @@ import { authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
+import { captureEvent } from "@/lib/services/posthog";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -85,6 +86,19 @@ export async function POST(req: NextRequest) {
           description: test.description ?? "",
           projectId: project.id,
         },
+      });
+    }
+
+    if (process.env.TELEMETRY_ENABLED !== "true") {
+      const session = await getServerSession(authOptions);
+      const userEmail = session?.user?.email ?? "anonymous";
+      await captureEvent(userEmail, "project_created", {
+        project_id: project.id,
+        project_name: project.name,
+        project_type: projectType,
+        team_id: teamId,
+        created_default_tests: createDefaultTests,
+        userId: userEmail,
       });
     }
   }
