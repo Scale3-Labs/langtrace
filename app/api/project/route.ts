@@ -89,18 +89,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    if (process.env.TELEMETRY_ENABLED !== "true") {
-      const session = await getServerSession(authOptions);
-      const userEmail = session?.user?.email ?? "anonymous";
-      await captureEvent(userEmail, "project_created", {
-        project_id: project.id,
-        project_name: project.name,
-        project_type: projectType,
-        team_id: teamId,
-        created_default_tests: createDefaultTests,
-        userId: userEmail,
-      });
-    }
+    const session = await getServerSession(authOptions);
+    const userEmail = session?.user?.email ?? "anonymous";
+    await captureEvent(userEmail, "project_created", {
+      project_id: project.id,
+      project_name: project.name,
+      project_type: projectType,
+      team_id: teamId,
+      created_default_tests: createDefaultTests,
+      userId: userEmail,
+    });
   }
 
   const { apiKeyHash, ...projectWithoutApiKeyHash } = project;

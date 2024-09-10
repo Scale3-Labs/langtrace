@@ -18,8 +18,7 @@ export default function CustomPostHogProvider({
 
   useEffect(() => {
     async function initializePostHog() {
-      const response = await fetch("/api/telemetry-config");
-      const { enabled } = await response.json();
+      const enabled = process.env.TELEMETRY_ENABLED === "true";
       setTelemetryEnabled(enabled);
 
       if (enabled && typeof window !== "undefined") {
