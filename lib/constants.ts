@@ -199,12 +199,12 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
     output: 0.002,
   },
   "command-r": {
-    input: 0.0005,
-    output: 0.0015,
+    input: 0.00015,
+    output: 0.0006,
   },
   "command-r-plus": {
-    input: 0.003,
-    output: 0.015,
+    input: 0.0025,
+    output: 0.01,
   },
 };
 
@@ -328,6 +328,8 @@ export const SUPPORTED_VENDORS: Record<string, string> = {
   OLLAMA: "Ollama",
   VERTEXAI: "VertexAI",
   GEMINI: "Gemini",
+  EMBEDCHAIN: "Embedchain",
+  VERCEL: "Vercel",
 };
 
 export const jsontheme = {
@@ -349,4 +351,9 @@ export const jsontheme = {
   base0D: "#66d9ef",
   base0E: "#ae81ff",
   base0F: "#cc6633",
+};
+
+export const RECIPE_DOCS = {
+  crewai:
+    "https://github.com/Scale3-Labs/langtrace-recipes/blob/main/integrations/llm-framework/crewai/starter.ipynb",
 };

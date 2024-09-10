@@ -16,16 +16,23 @@ export default async function AppMiddleware(req: NextRequest) {
     email?: string;
     user?: User;
   };
-  if (session && (path === "/login" || path === "/signup")) {
-    const userReq = await fetch(
-      `${process.env.NEXT_PUBLIC_HOST}/api/user?email=${session?.email}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+
+  const userReq = await fetch(
+    `${process.env.NEXT_PUBLIC_HOST}/api/user?email=${session?.email}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  let userExists = true;
+  if (userReq.status === 404) {
+    userExists = false;
+  }
+
+  if (session && userExists && (path === "/login" || path === "/signup")) {
     const response = await userReq.json();
     const user = response.data;
     if (user) {
@@ -48,6 +55,13 @@ export default async function AppMiddleware(req: NextRequest) {
 
     // if there's a session
     return NextResponse.redirect(new URL("/projects", req.url));
+  } else if (
+    session &&
+    !userExists &&
+    path !== "/signup" &&
+    path !== "/login"
+  ) {
+    return NextResponse.redirect(new URL("/signup", req.url));
   } else if (
     !session &&
     path !== "/login" &&

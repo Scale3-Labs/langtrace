@@ -1,3 +1,4 @@
+import { AddtoDataset } from "@/components/shared/add-to-dataset";
 import ConversationView from "@/components/shared/conversation-view";
 import LanggraphView from "@/components/shared/langgraph-view";
 import TraceGraph, { AttributesTabs } from "@/components/traces/trace_graph";
@@ -24,11 +25,19 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+interface CheckedData {
+  input: string;
+  output: string;
+  spanId: string;
+}
+
 export function TraceSheet({
+  project_id,
   trace,
   open,
   setOpen,
 }: {
+  project_id: string;
   trace: Trace;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -46,22 +55,78 @@ export function TraceSheet({
   const [span, setSpan] = useState<any | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
+  const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
 
   useEffect(() => {
     setSelectedTrace(trace.trace_hierarchy);
     setSelectedVendors(trace.vendors);
     if (trace.vendors.includes("langgraph")) setIncludesLanggraph(true);
-    if (!open) setSpansView("SPANS");
+    if (!open) {
+      setSelectedData([]);
+      setSpansView("SPANS");
+    }
   }, [trace, open]);
+
+  useEffect(() => {
+    if (span) {
+      const spanId = span.span_id;
+      const attributes = span?.attributes ? JSON.parse(span.attributes) : {};
+
+      let prompt: string = "";
+      let response: string = "";
+      if (span.events) {
+        const events: any[] = JSON.parse(span.events);
+
+        const promptEvent = events.find(
+          (event: any) => event.name === "gen_ai.content.prompt"
+        );
+        if (
+          promptEvent &&
+          promptEvent["attributes"] &&
+          promptEvent["attributes"]["gen_ai.prompt"]
+        ) {
+          prompt = promptEvent["attributes"]["gen_ai.prompt"];
+        }
+
+        const responseEvent = events.find(
+          (event: any) => event.name === "gen_ai.content.completion"
+        );
+        if (
+          responseEvent &&
+          responseEvent["attributes"] &&
+          responseEvent["attributes"]["gen_ai.completion"]
+        ) {
+          response = responseEvent["attributes"]["gen_ai.completion"];
+        }
+      }
+      if (attributes["llm.prompts"] && attributes["llm.responses"]) {
+        prompt = attributes["llm.prompts"];
+        response = attributes["llm.responses"];
+      }
+
+      const inputData = prompt ? JSON.parse(prompt) : [];
+      const outputData = response ? JSON.parse(response) : [];
+
+      const input = inputData.length > 0 ? inputData[0].content : "";
+      const output = outputData.length > 0 ? outputData[0].content : "";
+
+      const checkedData = {
+        spanId,
+        input,
+        output,
+      };
+      setSelectedData((prev) => [...prev, checkedData]);
+    }
+  }, [span]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetDescription hidden>Trace Debugger</SheetDescription>
-      <SheetContent className="w-3/4">
+      <SheetContent className="w-3/4 z-40">
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
           {spansView === "SPANS" && (
-            <div className="overflow-y-scroll h-[90vh]">
+            <div className="">
               <SpansView
                 trace={trace}
                 selectedTrace={selectedTrace}
@@ -93,6 +158,14 @@ export function TraceSheet({
                     Back
                   </Button>
                   <div className="flex gap-2 items-center">
+                    <AddtoDataset
+                      projectId={project_id}
+                      selectedData={selectedData}
+                      disabled={
+                        selectedData.length === 0 ||
+                        !selectedData.every((data) => data.input || data.output)
+                      }
+                    />
                     <Button
                       className="w-fit"
                       size={"sm"}
@@ -125,7 +198,13 @@ export function TraceSheet({
                     )}
                   </div>
                 </div>
-                <div className="overflow-y-scroll h-[85vh]">
+                <div
+                  className={
+                    spansView === "CONVERSATION"
+                      ? ""
+                      : "overflow-y-scroll h-[85vh]"
+                  }
+                >
                   {spansView === "ATTRIBUTES" && (
                     <AttributesTabs
                       span={span}
@@ -134,7 +213,7 @@ export function TraceSheet({
                     />
                   )}
                   {spansView === "CONVERSATION" && span && (
-                    <ConversationView span={span} />
+                    <ConversationView className="py-6 h-[85vh]" span={span} />
                   )}
                   {spansView === "LANGGRAPH" && (
                     <LanggraphView trace={trace.sorted_trace} />
@@ -173,7 +252,7 @@ function SpansView({
 }) {
   return (
     <>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 pb-3">
         <ul className="flex flex-col gap-2">
           <li className="text-xs font-semibold text-muted-foreground">
             Tip 1: Hover over any span line to see additional attributes and

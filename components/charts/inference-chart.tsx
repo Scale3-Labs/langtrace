@@ -148,7 +148,7 @@ export function AverageCostInferenceChart({
           <div className="flex flex-col items-center">
             <p className="text-7xl text-center w-full">
               {costUsage?.count > 0 && costUsage?.cost > 0
-                ? `$${(costUsage?.cost / costUsage?.count).toFixed(6)}`
+                ? `$${(costUsage.cost / costUsage.count).toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 6 })}`
                 : "$0.00"}
             </p>
             <p className="text-md text-center w-full">Average Inference Cost</p>
@@ -159,7 +159,7 @@ export function AverageCostInferenceChart({
           <div className="flex flex-col items-center">
             <p className="text-7xl text-center w-full">
               {costUsage?.cost > 0
-                ? `$${costUsage?.cost?.toFixed(6)}`
+                ? `$${costUsage.cost.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 6 })}`
                 : "$0.00"}
             </p>
             <p className="text-md text-center w-full">Total Cost</p>

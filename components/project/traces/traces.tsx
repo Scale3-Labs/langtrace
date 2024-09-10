@@ -46,7 +46,6 @@ export default function Traces({ email }: { email: string }) {
     setShowFreshLoading(true);
     setEnableFetch(true);
 
-    // fetch preferences from local storage
     if (typeof window !== "undefined") {
       const utc = window.localStorage.getItem("preferences.timestamp.utc");
       setUtcTime(utc === "true");
@@ -596,6 +595,8 @@ export default function Traces({ email }: { email: string }) {
         fetching={fetchTraces.isFetching}
         paginationLoading={showBottomLoader}
         scrollableDivRef={scrollableDivRef}
+        filters={filters}
+        setFilters={setFilters}
       />
       <TraceFilter
         open={isTraceFilterOpen}

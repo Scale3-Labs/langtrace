@@ -56,10 +56,15 @@ export async function POST(req: NextRequest) {
     }
   }
   const data = await req.json();
-  const { name, description, teamId } = data;
+  const { name, description, teamId, type } = data;
   let createDefaultTests = data.createDefaultTests;
   if (!createDefaultTests) {
     createDefaultTests = true; // default to true
+  }
+
+  let projectType = type;
+  if (!type) {
+    projectType = "default";
   }
 
   const project = await prisma.project.create({
@@ -67,6 +72,7 @@ export async function POST(req: NextRequest) {
       name: name,
       description: description,
       teamId: teamId,
+      type: projectType,
     },
   });
 
@@ -97,7 +103,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const data = await req.json();
-  const { id, name, description, teamId, apiKeyHash } = data;
+  const { id, name, description, teamId, apiKeyHash, type } = data;
 
   const project = await prisma.project.update({
     where: {
@@ -108,6 +114,7 @@ export async function PUT(req: NextRequest) {
       description,
       apiKeyHash: apiKeyHash,
       teamId,
+      type,
     },
   });
 

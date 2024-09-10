@@ -141,23 +141,44 @@ export function CostChart({
           <div className="flex flex-row gap-4 h-12">
             <div className="flex flex-col gap-1">
               <p className="text-sm font-semibold text-start">
-                Input Tokens Cost: ${costUsage?.input?.toFixed(6) || 0}
+                Input Tokens Cost: $
+                {costUsage.input?.toLocaleString(undefined, {
+                  minimumFractionDigits: 6,
+                  maximumFractionDigits: 6,
+                })}
               </p>
               <p className="text-sm font-semibold text-start">
-                Output Tokens Cost: ${costUsage?.output?.toFixed(6) || 0}
+                Output Tokens Cost: $
+                {costUsage.output?.toLocaleString(undefined, {
+                  minimumFractionDigits: 6,
+                  maximumFractionDigits: 6,
+                })}
               </p>
             </div>
             <p className="text-sm font-semibold text-start">
-              Total Cost: ${costUsage?.total?.toFixed(6) || 0}
+              Total Cost: $
+              {costUsage.total?.toLocaleString(undefined, {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6,
+              })}
             </p>
           </div>
           <BarChart
             className="mt-2 h-72"
-            data={costUsage?.cost?.map((data: any) => ({
-              date: data?.date,
-              "Total Cost": data?.total?.toFixed(6) || 0,
-              "Input Tokens Cost": data?.input?.toFixed(6) || 0,
-              "Output Tokens Cost": data?.output?.toFixed(6) || 0,
+            data={costUsage.cost?.map((data: any) => ({
+              date: data.date,
+              "Total Cost": data.total?.toLocaleString(undefined, {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6,
+              }),
+              "Input Tokens Cost": data.input?.toLocaleString(undefined, {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6,
+              }),
+              "Output Tokens Cost": data.output?.toLocaleString(undefined, {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6,
+              }),
             }))}
             index="date"
             categories={[

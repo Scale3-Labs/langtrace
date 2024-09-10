@@ -1,3 +1,4 @@
+import { Info } from "@/components/shared/info";
 import { SetupInstructions } from "@/components/shared/setup-instructions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -18,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { HOW_TO_GROUP_RELATED_OPERATIONS } from "@/lib/constants";
+import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { Trace } from "@/lib/trace_util";
 import { cn } from "@/lib/utils";
 import { ResetIcon } from "@radix-ui/react-icons";
@@ -45,6 +48,8 @@ interface TracesTableProps<TData, TValue> {
   refetch: () => void;
   paginationLoading?: boolean;
   scrollableDivRef?: React.RefObject<HTMLElement>;
+  filters: PropertyFilter[];
+  setFilters: (filters: PropertyFilter[]) => void;
 }
 
 export function TracesTable<TData, TValue>({
@@ -56,6 +61,8 @@ export function TracesTable<TData, TValue>({
   refetch,
   paginationLoading,
   scrollableDivRef,
+  filters,
+  setFilters,
 }: TracesTableProps<TData, TValue>) {
   const [tableState, setTableState] = useState<any>({
     pagination: {
@@ -67,6 +74,42 @@ export function TracesTable<TData, TValue>({
   const [openDropdown, setOpenDropdown] = useState(false);
   const [openSheet, setOpenSheet] = useState(false);
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
+  const [profileMode, setProfileMode] = useState(false);
+
+  useEffect(() => {
+    const newMode = profileMode ? "prompt" : "trace";
+    setColumnVisibility({
+      start_time: true,
+      models: true,
+      inputs: true,
+      outputs: true,
+      status: newMode === "trace",
+      namespace: newMode === "trace",
+      user_ids: newMode === "trace",
+      prompt_ids: newMode === "trace",
+      vendors: newMode === "trace",
+      input_tokens: newMode === "trace",
+      output_tokens: newMode === "trace",
+      total_tokens: newMode === "trace",
+      input_cost: newMode === "trace",
+      output_cost: newMode === "trace",
+      total_cost: newMode === "trace",
+      total_duration: newMode === "trace",
+    });
+    if (newMode === "prompt") {
+      setFilters([
+        ...filters,
+        {
+          key: "langtrace.service.type",
+          operation: "EQUALS",
+          value: "llm",
+          type: "attribute",
+        },
+      ]);
+    } else {
+      setFilters(filters.filter((filter) => filter.value !== "llm"));
+    }
+  }, [profileMode]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -146,7 +189,7 @@ export function TracesTable<TData, TValue>({
   return (
     <>
       {!loading && data && data.length > 0 && (
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center z-99">
           <div className="flex flex-col gap-2">
             <div className="flex gap-3 items-center">
               <Button variant="outline" size={"icon"} onClick={() => refetch()}>
@@ -174,7 +217,32 @@ export function TracesTable<TData, TValue>({
               </Link>
             </div>
           </div>
+
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 rounded-md border border-muted px-2 py-1">
+              <p className="text-sm font-semibold text-orange-600">I am</p>
+              <p
+                className={cn(
+                  "text-sm font-semibold",
+                  !profileMode ? "text-orange-600" : "text-muted"
+                )}
+              >
+                debugging
+              </p>
+              <Switch
+                checked={profileMode}
+                onCheckedChange={(checked) => setProfileMode(checked)}
+                className="relative inline-flex items-center cursor-pointer"
+              />
+              <p
+                className={cn(
+                  "text-sm font-semibold",
+                  profileMode ? "text-orange-600" : "text-muted"
+                )}
+              >
+                prompt engineering
+              </p>
+            </div>
             <Badge variant={"outline"} className="text-sm">
               Project ID: {project_id}
             </Badge>
@@ -237,7 +305,7 @@ export function TracesTable<TData, TValue>({
         )}
         {!loading && data && data.length > 0 && (
           <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
-            <TableHeader className="sticky top-0 bg-secondary">
+            <TableHeader className="sticky top-0 z-50 bg-secondary">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -312,6 +380,7 @@ export function TracesTable<TData, TValue>({
         )}
         {selectedTrace !== null && (
           <TraceSheet
+            project_id={project_id}
             trace={selectedTrace}
             open={openSheet}
             setOpen={setOpenSheet}
