@@ -63,7 +63,7 @@ export function AddtoDataset({
           <PlusIcon className="ml-2 h-4 w-4 shrink-0" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="z-[920] sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add to Dataset</DialogTitle>
           <DialogDescription>
@@ -146,7 +146,7 @@ export default function DatasetCombobox({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-[200px] justify-between"
+            className="w-[200px] z-[920] justify-between"
           >
             {datasetId
               ? fetchDatasets.data?.datasets?.find(
@@ -156,7 +156,7 @@ export default function DatasetCombobox({
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
+        <PopoverContent className="z-[920] w-[200px] p-0">
           <Command>
             <CommandInput placeholder="Search dataset..." />
             <CommandEmpty>No dataset found.</CommandEmpty>

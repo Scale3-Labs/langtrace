@@ -54,7 +54,7 @@ export function CreateDataset({
           Create Dataset <PlusIcon className="ml-2" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="z-[920] sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create Dataset</DialogTitle>
           <DialogDescription>

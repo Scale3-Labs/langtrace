@@ -71,6 +71,9 @@ export default function ApiKeys() {
                       onClick={() => {
                         if (typeof window === "undefined") return null;
                         window.localStorage.removeItem(vendor.value);
+                        setVendorKeys((prevKeys) =>
+                          prevKeys.filter((key) => key.value !== vendor.value)
+                        );
                         toast.success("API Key removed");
                       }}
                       className="text-destructive"
