@@ -58,7 +58,7 @@ Langtrace.init({ api_key: <your_api_key> })
 OR
 
 ```typescript
-import * as Langtrace from '@langtrase/typescript-sdk'; // Must precede any llm module imports
+import * as Langtrace from "@langtrase/typescript-sdk"; // Must precede any llm module imports
 LangTrace.init(); // LANGTRACE_API_KEY as an ENVIRONMENT variable
 ```
 
@@ -117,6 +117,19 @@ docker compose down -v
 ```
 
 `-v` flag is used to delete volumes
+
+## Telemetry
+
+Langtrace collects basic, non-sensitive usage data from self-hosted instances by default, which is sent to a central server (via PostHog).
+
+This data helps us to:
+
+- Understand how the platform is being used to improve key features.
+- Monitor overall usage for internal analysis and reporting.
+
+No sensitive information is gathered, and the data is not shared with third parties.
+
+If you prefer to disable telemetry, you can do so by setting TELEMETRY_ENABLED=false in your configuration.
 
 ---
 
