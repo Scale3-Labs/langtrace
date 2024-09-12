@@ -28,13 +28,6 @@ export default function CustomPostHogProvider({
             if (process.env.NODE_ENV === "development") posthog.debug();
           },
         });
-
-        if (session?.user?.email) {
-          posthog.identify(session.user.email);
-          posthog.people.set({
-            email: session.user.email,
-          });
-        }
       }
     }
 
