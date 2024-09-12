@@ -1,4 +1,3 @@
-import { Info } from "@/components/shared/info";
 import { SetupInstructions } from "@/components/shared/setup-instructions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ import { HOW_TO_GROUP_RELATED_OPERATIONS } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { Trace } from "@/lib/trace_util";
 import { cn } from "@/lib/utils";
+import { CircularProgress } from "@mui/material";
 import { ResetIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
@@ -237,7 +237,7 @@ export function TracesTable<TData, TValue>({
               <p
                 className={cn(
                   "text-sm font-semibold",
-                  profileMode ? "text-orange-600" : "text-muted-foreground"
+                  profileMode ? "text-orange-500" : "text-muted-foreground"
                 )}
               >
                 prompt engineering
@@ -296,10 +296,12 @@ export function TracesTable<TData, TValue>({
         {loading && <TableSkeleton />}
         {!loading && (!data || data.length === 0) && (
           <div className="flex flex-col gap-3 items-center justify-center p-4">
-            <p className="text-muted-foreground text-sm mb-3">
-              No traces available. Get started by setting up Langtrace in your
-              application.
-            </p>
+            <div className="flex gap-2">
+              <CircularProgress size={15} />
+              <p className="text-orange-500 text-sm mb-3">
+                Looking for new traces...
+              </p>
+            </div>
             <SetupInstructions project_id={project_id} />
           </div>
         )}
