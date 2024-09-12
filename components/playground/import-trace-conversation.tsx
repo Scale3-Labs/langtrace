@@ -163,7 +163,19 @@ export default function ImportTraceConversation({
   };
 
   return (
-    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+    <Dialog
+      open={openDialog}
+      onOpenChange={(isOpen) => {
+        setOpenDialog(isOpen);
+        if (isOpen) {
+          setShowLoader(true);
+          setCurrentData([]);
+          setPage(1);
+          setTotalPages(1);
+          setEnableFetch(true);
+        }
+      }}
+    >
       <DialogTrigger>
         <Button
           type="button"
