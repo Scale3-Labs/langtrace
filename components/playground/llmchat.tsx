@@ -116,7 +116,7 @@ export default function LLMChat({
   }, [initialPrompt]);
 
   return (
-    <Card className="w-[450px] h-[600px] p-1 relative group/card">
+    <Card className="w-[530px] h-[600px] p-1 relative group/card">
       <div className="overflow-y-scroll h-[535px]">
         {localLLM.settings.messages.map((message, i) => (
           <Message
@@ -133,11 +133,17 @@ export default function LLMChat({
               );
               setLocalLLM({
                 ...localLLM,
-                settings: { ...localLLM.settings, messages: localNewMessages },
+                settings: {
+                  ...localLLM.settings,
+                  messages: localNewMessages,
+                },
               });
               setLLM({
                 ...localLLM,
-                settings: { ...localLLM.settings, messages: localNewMessages },
+                settings: {
+                  ...localLLM.settings,
+                  messages: localNewMessages,
+                },
               });
             }}
             onRemove={() => {
@@ -204,6 +210,12 @@ export default function LLMChat({
             Add message
           </Button>
           <ImportMessages setMessages={setMessages} className="mt-2" />
+          {(cost || latency) && (
+            <div className="absolute bottom-[10px] right-4 flex flex-col gap-1 bg-muted rounded-md p-1 w-[130px]">
+              <p className="text-xs">{`Cost: ${cost}`}</p>
+              <p className="text-xs break-all">{`Latency: ${latency}ms`}</p>
+            </div>
+          )}
         </div>
       </div>
       <div className="absolute -top-6 -left-3">
@@ -657,12 +669,6 @@ export default function LLMChat({
           )}
           {!busy && <LucideChevronRight className="ml-2 h-4 w-4" />}
         </Button>
-      )}
-      {(cost || latency) && (
-        <div className="absolute bottom-14 right-4 flex flex-col gap-2 bg-primary-foreground rounded-md p-2 w-[115px] shadow-md">
-          <p className="text-xs">{`Cost: ${cost}`}</p>
-          <p className="text-xs break-all">{`Latency: ${latency}ms`}</p>
-        </div>
       )}
     </Card>
   );

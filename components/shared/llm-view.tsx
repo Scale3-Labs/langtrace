@@ -8,60 +8,71 @@ import { v4 as uuidv4 } from "uuid";
 import { Button } from "../ui/button";
 
 export const LLMView = ({
-  prompts,
-  responses,
+  prompts = [],
+  responses = [],
   setMessages,
   Evaluate = () => null,
   doPiiDetection = false,
   importTrace = false,
 }: {
-  prompts: any;
-  responses: any;
+  prompts?: any;
+  responses?: any;
   setMessages?: (messages: any[]) => void;
   Evaluate?: React.FC;
   doPiiDetection?: boolean;
   importTrace?: boolean;
 }) => {
   const [selectedTab, setSelectedTab] = useState(0);
+
+  const hasPrompts = prompts.length > 0;
+  const hasResponses = responses.length > 0;
+
   return (
     <div className="flex flex-col gap-6 p-4 border-[1px] border-muted rounded-lg shadow-md bg-primary-foreground">
       <div className="flex flex-wrap items-center gap-2">
-        {prompts.map((prompt: any, i: number) => (
+        {(hasPrompts ? prompts : responses).map((_: any, i: number) => (
           <Button
             key={i}
             size={"sm"}
             variant={selectedTab === i ? "secondary" : "outline"}
             onClick={() => setSelectedTab(i)}
           >
-            Request {i + 1}
+            {hasPrompts ? `Request ${i + 1}` : `Response ${i + 1}`}
           </Button>
         ))}
-        {importTrace && (
+        {importTrace && (hasPrompts || hasResponses) && (
           <Button
             size={"sm"}
             onClick={() => {
               if (!setMessages) return;
               const messages: any[] = [];
-              JSON.parse(prompts[selectedTab]).forEach((prompt: any) => {
-                const role = prompt?.role
-                  ? prompt?.role?.toLowerCase()
-                  : "user";
-                const content = prompt?.content
-                  ? prompt?.content
-                  : prompt?.function_call
-                  ? prompt?.function_call
-                  : "";
-                messages.push({ role: role, content: content, id: uuidv4() });
-              });
-              JSON.parse(responses[selectedTab]).forEach((response: any) => {
-                const role = response?.role?.toLowerCase() || "assistant";
-                const content =
-                  response?.content ||
-                  response?.message?.content ||
-                  response?.text ||
-                  "";
-                messages.push({ role: role, content: content, id: uuidv4() });
-              });
+
+              if (hasPrompts) {
+                JSON.parse(prompts[selectedTab]).forEach((prompt: any) => {
+                  const role = prompt?.role
+                    ? prompt?.role?.toLowerCase()
+                    : "user";
+                  const content = prompt?.content
+                    ? prompt?.content
+                    : prompt?.function_call
+                      ? prompt?.function_call
+                      : "";
+                  messages.push({ role: role, content: content, id: uuidv4() });
+                });
+              }
+
+              if (hasResponses) {
+                JSON.parse(responses[selectedTab]).forEach((response: any) => {
+                  const role = response?.role?.toLowerCase() || "assistant";
+                  const content =
+                    response?.content ||
+                    response?.message?.content ||
+                    response?.text ||
+                    "";
+                  messages.push({ role: role, content: content, id: uuidv4() });
+                });
+              }
+
               setMessages(messages);
             }}
           >
@@ -70,31 +81,29 @@ export const LLMView = ({
           </Button>
         )}
       </div>
-      {prompts?.length > 0 && typeof JSON.parse(prompts[selectedTab]) === "object" &&
+
+      {/* Render Prompts */}
+      {hasPrompts &&
+        typeof JSON.parse(prompts[selectedTab]) === "object" &&
         JSON.parse(prompts[selectedTab]).map((prompt: any, i: number) => {
           let role;
           let content;
-          // check if prompt is a list
           if (Array.isArray(prompt) && prompt.length > 0) {
             role = prompt[0]?.role ? prompt[0]?.role?.toLowerCase() : "User";
             content = prompt[0]?.content
               ? prompt[0]?.content
               : prompt[0]?.function_call
-              ? prompt[0]?.function_call
-              : "";
+                ? prompt[0]?.function_call
+                : "";
           } else {
             role = prompt?.role ? prompt?.role?.toLowerCase() : "User";
             content = prompt?.content
               ? prompt?.content
               : prompt?.function_call
-              ? prompt?.function_call
-              : "";
+                ? prompt?.function_call
+                : "";
           }
 
-          // will add once edit image wrapper has been added in sdks
-          // const url = prompt?.content?.url;
-          // const b64Json = prompt?.content?.b64_json;
-          // const revisedPrompt = prompt?.content?.revised_prompt;
           return (
             <div
               key={i}
@@ -116,7 +125,10 @@ export const LLMView = ({
             </div>
           );
         })}
-      {responses?.length > 0 && responses[selectedTab] && typeof JSON.parse(responses[selectedTab]) === "object" &&
+
+      {/* Render Responses */}
+      {hasResponses &&
+        typeof JSON.parse(responses[selectedTab]) === "object" &&
         JSON.parse(responses[selectedTab]).map((response: any, i: number) => {
           const role =
             response?.role?.toLowerCase() ||
@@ -131,7 +143,6 @@ export const LLMView = ({
           const url = response?.content?.url;
           const b64Json = response?.content?.b64_json;
           const revisedPrompt = response?.content?.revised_prompt;
-          // const isPicture = url || b64Json;
 
           return (
             <div
