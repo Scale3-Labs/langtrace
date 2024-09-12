@@ -34,6 +34,10 @@ export const TIKTOKEN_MODEL_MAPPING: Record<string, TiktokenEncoding> = {
   "gpt-4o-2024-05-13": "o200k_base",
   "gpt-4o-mini": "o200k_base",
   "gpt-4o-mini-2024-07-18": "o200k_base",
+  "o1-preview": "o200k_base",
+  "o1-mini": "o200k_base",
+  "o1-preview-2024-09-12": "o200k_base",
+  "o1-mini-2024-09-12": "o200k_base",
 };
 
 export type LangTraceAttributes = LLMSpanAttributes &
@@ -53,6 +57,14 @@ export interface CostTableEntry {
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
+  "o1-preview": {
+    input: 0.015,
+    output: 0.06,
+  },
+  "o1-mini": {
+    input: 0.015,
+    output: 0.06,
+  },
   "gpt-4o-mini": {
     input: 0.00015,
     output: 0.0006,
@@ -242,6 +254,14 @@ export const AZURE_PRICING: Record<string, CostTableEntry> = {
   },
   "gpt-4": {
     input: 0.03,
+    output: 0.06,
+  },
+  "o1-preview": {
+    input: 0.015,
+    output: 0.06,
+  },
+  "o1-mini": {
+    input: 0.015,
     output: 0.06,
   },
 };

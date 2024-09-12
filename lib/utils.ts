@@ -528,6 +528,10 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o";
       } else if (model.includes("gpt-4")) {
         correctModel = "gpt-4";
+      } else if (model.includes("o1-preview")) {
+        correctModel = "o1-preview";
+      } else if (model.includes("o1-mini")) {
+        correctModel = "o1-mini";
       }
     }
     costTable = OPENAI_PRICING[correctModel];
@@ -565,6 +569,10 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o";
       } else if (model.includes("gpt-4")) {
         correctModel = "gpt-4";
+      } else if (model.includes("o1-preview")) {
+        correctModel = "o1-preview";
+      } else if (model.includes("o1-mini")) {
+        correctModel = "o1-mini";
       }
     }
     costTable = AZURE_PRICING[correctModel];
@@ -647,7 +655,7 @@ export function estimateTokens(prompt: string): number {
 export function calculateTokens(content: string, model: string): number {
   try {
     let tiktokenModel: TiktokenEncoding = "cl100k_base";
-    if (model.startsWith("gpt-4o")) {
+    if (model.startsWith("gpt-4o") || model.startsWith("o1-")) {
       tiktokenModel = "o200k_base";
     }
     return estimateTokensUsingTikToken(content, tiktokenModel);
@@ -744,7 +752,10 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "gemini";
   } else if (span.name.includes("vercel") || serviceName.includes("vercel")) {
     vendor = "vercel";
-  } else if (span.name.includes("embedchain") || serviceName.includes("embedchain")) {
+  } else if (
+    span.name.includes("embedchain") ||
+    serviceName.includes("embedchain")
+  ) {
     vendor = "embedchain";
   }
   return vendor;
