@@ -72,6 +72,14 @@ export function ExpandingTextArea({
     };
   }, []);
 
+  useEffect(() => {
+    const textarea = textAreaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [value]);
+
   const handleChange = (event: any) => {
     const textarea = event.target;
     onChange(textarea.value);

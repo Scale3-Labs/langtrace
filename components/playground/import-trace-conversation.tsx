@@ -136,14 +136,9 @@ export default function ImportTraceConversation({
             <p className="ml-10 text-xs font-medium">
               Time <span>&#8595;</span> Local
             </p>
-            <p className="text-xs font-medium">Namespace</p>
             <p className="text-xs font-medium">Model</p>
             <p className="text-xs font-medium col-span-2">Input</p>
             <p className="text-xs font-medium col-span-2">Output</p>
-            <p className="text-xs font-medium">User ID</p>
-            <p className="text-xs font-medium">Input / Output / Total Tokens</p>
-            <p className="text-xs font-medium">Token Cost</p>
-            <p className="text-xs font-medium">Duration(ms)</p>
           </div>
           {fetchTraces.isLoading || !fetchTraces?.data || !currentData ? (
             <PageSkeleton />
