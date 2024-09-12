@@ -6,6 +6,10 @@ export interface Conversation {
 }
 
 export enum OpenAIModel {
+  "o1-preview" = "o1-preview",
+  "o1-preview-2024-09-12" = "o1-preview-2024-09-12",
+  "o1-mini" = "o1-mini",
+  "o1-mini-2024-09-12" = "o1-mini-2024-09-12",
   "gpt-4o-mini" = "gpt-4o-mini",
   "gpt-4o-mini-2024-07-18" = "gpt-4o-mini-2024-07-18",
   "gpt-4o" = "gpt-4o",
@@ -34,6 +38,14 @@ export enum AnthropicModel {
 }
 
 export const openAIModels = [
+  {
+    value: "o1-preview",
+    label: "O1 Preview",
+  },
+  {
+    value: "o1-mini",
+    label: "O1 Mini",
+  },
   {
     value: "gpt-4o-mini",
     label: "GPT-4 Omni Mini",
