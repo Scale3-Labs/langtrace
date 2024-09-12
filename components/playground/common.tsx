@@ -89,10 +89,10 @@ export function ExpandingTextArea({
   };
 
   return (
-    <div className="relative w-[290px]">
+    <div className="relative min-w-[350px]">
       <textarea
         disabled={busy}
-        className="rounded-md text-sm w-[290px] bg-background pr-10 pt-5"
+        className="rounded-md text-sm w-[350px] bg-background pr-10 pt-5"
         ref={textAreaRef}
         defaultValue={value}
         onChange={handleChange}
@@ -185,12 +185,12 @@ export function Message({
           </div>
           <div
             onClick={() => setEditing(true)}
-            className="min-w-[290px] min-h-6"
+            className="min-w-[350px] min-h-6"
           >
             {!editing && (
               <p
                 className={cn(
-                  "w-[290px] text-sm break-all",
+                  "w-[350px] text-sm break-all",
                   !message.content && "text-muted-foreground"
                 )}
               >
@@ -198,7 +198,6 @@ export function Message({
               </p>
             )}
             {editing && (
-              <div>
                 <ExpandingTextArea
                   onChange={(value: string) => {
                     setMessage({ ...message, content: value });
@@ -208,7 +207,6 @@ export function Message({
                   saveButtonRef={saveButtonRef}
                   handleSave={setDialogOpen}
                 />
-              </div>
             )}
           </div>
         </div>

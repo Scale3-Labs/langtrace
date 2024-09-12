@@ -51,7 +51,7 @@ export default function ImportTraceConversation({
         pageSize: PAGE_SIZE,
         projectId: project_id,
         filters: {
-          operation: "AND",
+          operation: "OR",
           filters: [
             {
               key: "langtrace.service.type",
