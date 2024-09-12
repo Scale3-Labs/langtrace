@@ -254,7 +254,7 @@ export function AddLLMChat({ onAdd }: { onAdd: (vendor: string) => void }) {
   }, [busy, vendor]);
 
   return (
-    <div className="w-[450px] h-[600px] rounded-lg border border-dashed border-muted-foreground flex flex-col items-center justify-center gap-4">
+    <div className="w-[530px] h-[600px] rounded-lg border border-dashed border-muted-foreground flex flex-col items-center justify-center gap-4">
       <div className="flex items-center gap-2">
         <LLMPicker setVendor={setVendor} />
         <Button

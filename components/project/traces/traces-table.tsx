@@ -224,7 +224,7 @@ export function TracesTable<TData, TValue>({
               <p
                 className={cn(
                   "text-sm font-semibold",
-                  !profileMode ? "text-orange-600" : "text-muted"
+                  !profileMode ? "text-orange-600" : "text-muted-foreground"
                 )}
               >
                 debugging
@@ -237,7 +237,7 @@ export function TracesTable<TData, TValue>({
               <p
                 className={cn(
                   "text-sm font-semibold",
-                  profileMode ? "text-orange-600" : "text-muted"
+                  profileMode ? "text-orange-600" : "text-muted-foreground"
                 )}
               >
                 prompt engineering
