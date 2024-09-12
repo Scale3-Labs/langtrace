@@ -94,7 +94,7 @@ export default function Page() {
           settings page.
         </Link>
       </span>
-      <div className="flex flex-row flex-wrap lg:grid lg:grid-cols-3 gap-8 w-full">
+      <div className="flex flex-row flex-wrap gap-8 w-full">
         {llms.map((llm: ChatInterface) => (
           <LLMChat
             key={llm.id}

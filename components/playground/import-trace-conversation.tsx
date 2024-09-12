@@ -8,9 +8,6 @@ import { useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { ConversationRow } from "../project/traces/conversation-row";
-import TraceRowSkeleton from "../shared/row-skeleton";
-import { SetupInstructions } from "../shared/setup-instructions";
 import { Spinner } from "../shared/spinner";
 import { Button } from "../ui/button";
 
@@ -54,7 +51,7 @@ export default function ImportTraceConversation({
         pageSize: PAGE_SIZE,
         projectId: project_id,
         filters: {
-          operation: "AND",
+          operation: "OR",
           filters: [
             {
               key: "langtrace.service.type",
@@ -91,7 +88,6 @@ export default function ImportTraceConversation({
 
       if (currentData.length > 0) {
         const updatedData = [...currentData, ...newData];
-
         setCurrentData(updatedData);
       } else {
         setCurrentData(newData);
@@ -111,8 +107,75 @@ export default function ImportTraceConversation({
     enabled: enableFetch,
   });
 
+  const parseTraceData = (trace: any) => {
+    let model = "";
+    let promptFinal: string = "";
+    let responseFinal: string = "";
+
+    for (const span of trace) {
+      if (span.attributes) {
+        const attributes = JSON.parse(span.attributes);
+
+        if (span.events) {
+          const events: any[] = JSON.parse(span.events);
+
+          const promptEvent = events.find(
+            (event: any) => event.name === "gen_ai.content.prompt"
+          );
+          if (promptEvent?.attributes?.["gen_ai.prompt"]) {
+            const promptJSONString = promptEvent.attributes["gen_ai.prompt"];
+            const promptsJSON = JSON.parse(promptJSONString);
+            promptFinal = promptsJSON[0].content || "";
+          }
+
+          const responseEvent = events.find(
+            (event: any) => event.name === "gen_ai.content.completion"
+          );
+          if (responseEvent?.attributes?.["gen_ai.completion"]) {
+            const responseJSONString =
+              responseEvent.attributes["gen_ai.completion"];
+            const responseJSON = JSON.parse(responseJSONString);
+            responseFinal = responseJSON[0].content || "";
+          }
+        }
+
+        if (!model) {
+          model =
+            attributes["gen_ai.response.model"] ||
+            attributes["gen_ai.request.model"] ||
+            attributes["llm.model"] ||
+            "";
+        }
+      }
+    }
+
+    return { model, promptFinal, responseFinal };
+  };
+
+  const handleRowClick = (promptFinal: string, responseFinal: string) => {
+    if (promptFinal.length && responseFinal.length) {
+      const inputMessage = { role: "user", content: promptFinal };
+      const outputMessage = { role: "assistant", content: responseFinal };
+
+      setMessages([inputMessage, outputMessage]);
+      setOpenDialog(false);
+    }
+  };
+
   return (
-    <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+    <Dialog
+      open={openDialog}
+      onOpenChange={(isOpen) => {
+        setOpenDialog(isOpen);
+        if (isOpen) {
+          setShowLoader(true);
+          setCurrentData([]);
+          setPage(1);
+          setTotalPages(1);
+          setEnableFetch(true);
+        }
+      }}
+    >
       <DialogTrigger>
         <Button
           type="button"
@@ -132,19 +195,12 @@ export default function ImportTraceConversation({
           <Label htmlFor="name" className="text-left text-lg mb-4">
             Select a conversation to import
           </Label>
-          <div className="grid grid-cols-12 items-center p-3 bg-muted">
-            <p className="ml-10 text-xs font-medium">
-              Time <span>&#8595;</span> Local
-            </p>
-            <p className="text-xs font-medium">Namespace</p>
-            <p className="text-xs font-medium">Model</p>
-            <p className="text-xs font-medium col-span-2">Input</p>
-            <p className="text-xs font-medium col-span-2">Output</p>
-            <p className="text-xs font-medium">User ID</p>
-            <p className="text-xs font-medium">Input / Output / Total Tokens</p>
-            <p className="text-xs font-medium">Token Cost</p>
-            <p className="text-xs font-medium">Duration(ms)</p>
+          <div className="grid grid-cols-13 items-center p-3 bg-muted">
+            <p className="col-span-2 text-xs font-medium">Model</p>
+            <p className="col-span-5 text-xs font-medium">Input</p>
+            <p className="col-span-5 text-xs font-medium">Output</p>
           </div>
+
           {fetchTraces.isLoading || !fetchTraces?.data || !currentData ? (
             <PageSkeleton />
           ) : (
@@ -155,17 +211,23 @@ export default function ImportTraceConversation({
               {!fetchTraces.isLoading &&
                 fetchTraces?.data &&
                 currentData?.map((trace: any, i: number) => {
+                  const { model, promptFinal, responseFinal } =
+                    parseTraceData(trace);
+
                   return (
-                    <div key={i} className="px-3">
-                      <ConversationRow
-                        trace={trace}
-                        utcTime={false}
-                        importTrace={true}
-                        setMessages={(messages: any[]) => {
-                          setMessages(messages);
-                          setOpenDialog(false);
-                        }}
-                      />{" "}
+                    <div
+                      key={i}
+                      className="px-3 py-4 hover:bg-accent cursor-pointer grid grid-cols-12 items-center gap-y-4 gap-x-4"
+                      onClick={() => handleRowClick(promptFinal, responseFinal)}
+                    >
+                      <p className="col-span-2 text-xs">{model}</p>
+
+                      <p className="col-span-4 text-xs overflow-hidden max-h-[3.5rem] line-clamp-3 break-words">
+                        {promptFinal}
+                      </p>
+                      <p className="col-span-5 text-xs overflow-hidden max-h-[3.5rem] line-clamp-3 break-words">
+                        {responseFinal}
+                      </p>
                     </div>
                   );
                 })}
@@ -186,7 +248,6 @@ export default function ImportTraceConversation({
                       No traces available. Get started by setting up Langtrace
                       in your application.
                     </p>
-                    <SetupInstructions project_id={project_id} />
                   </div>
                 )}
             </div>
@@ -201,7 +262,11 @@ function PageSkeleton() {
   return (
     <div className="flex flex-col gap-3 rounded-md border border-muted max-h-screen">
       {Array.from({ length: 3 }).map((_, index) => (
-        <TraceRowSkeleton key={index} />
+        <div key={index} className="px-3 py-2 grid grid-cols-12 items-center">
+          <div className="col-span-3 bg-muted h-4 w-full rounded-sm" />
+          <div className="col-span-4 bg-muted h-4 w-full rounded-sm" />
+          <div className="col-span-5 bg-muted h-4 w-full rounded-sm" />
+        </div>
       ))}
     </div>
   );

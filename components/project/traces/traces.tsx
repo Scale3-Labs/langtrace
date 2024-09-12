@@ -54,7 +54,8 @@ export default function Traces({ email }: { email: string }) {
       setExpandedView(expanded === "true");
 
       const group = window.localStorage.getItem("preferences.group");
-      setGroup(group === "true");
+      // Default group to true if not set
+      setGroup(group === "false" ? false : true);
     }
   }, [filters]);
 
