@@ -91,13 +91,11 @@ export async function POST(req: NextRequest) {
 
     const session = await getServerSession(authOptions);
     const userEmail = session?.user?.email ?? "anonymous";
-    await captureEvent(userEmail, "project_created", {
+    await captureEvent(project.id, "project_created", {
       project_id: project.id,
       project_name: project.name,
       project_type: projectType,
-      team_id: teamId,
       created_default_tests: createDefaultTests,
-      userId: userEmail,
     });
   }
 
