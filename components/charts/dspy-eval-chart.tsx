@@ -44,7 +44,7 @@ export function DspyEvalChart({
         <CardTitle>Evaluated scores across runs</CardTitle>
       </CardHeader>
       <CardContent className="w-full overflow-auto">
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="h-[300px] w-[1500px]">
           <LineChart
             accessibilityLayer
             data={data}
@@ -59,7 +59,7 @@ export function DspyEvalChart({
               tickLine={true}
               axisLine={true}
               tickMargin={8}
-              domain={[0, 100]}
+              domain={[-5, 105]}
             />
             <XAxis
               dataKey="timestamp"

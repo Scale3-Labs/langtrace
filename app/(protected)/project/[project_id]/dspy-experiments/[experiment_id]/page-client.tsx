@@ -3,6 +3,10 @@ import {
   DspyEvalChart,
   DspyEvalChartData,
 } from "@/components/charts/dspy-eval-chart";
+import {
+  AverageCostInferenceChart,
+  CountInferenceChart,
+} from "@/components/charts/inference-chart";
 import { TableSkeleton } from "@/components/project/traces/table-skeleton";
 import { TraceSheet } from "@/components/project/traces/trace-sheet";
 import { GenericHoverCell } from "@/components/shared/hover-cell";
@@ -25,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PAGE_SIZE } from "@/lib/constants";
 import { DspyTrace, processDspyTrace } from "@/lib/dspy_trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
@@ -37,7 +42,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, LineChartIcon, RefreshCwIcon } from "lucide-react";
+import { ChevronDown, RefreshCwIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -528,23 +533,32 @@ export function PageClient({ email }: { email: string }) {
           </Button>
         </div>
       </div>
-      {chartData.length > 0 && (
-        <>
-          <Button
-            className="w-fit"
-            onClick={() => setShowEvalChart(!showEvalChart)}
-          >
-            {showEvalChart ? "Hide" : "Show"} Evaluation Chart{" "}
-            <LineChartIcon className="ml-2 h-4 w-4" />
-          </Button>
-          {showEvalChart && (
+      <Tabs defaultValue="eval" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="eval">Eval Chart</TabsTrigger>
+          <TabsTrigger value="cost">Cost</TabsTrigger>
+        </TabsList>
+        <TabsContent value="eval">
+          {chartData.length > 0 && (
             <DspyEvalChart
               data={chartData}
               isLoading={fetchTraces.isLoading || fetchTraces.isFetching}
             />
           )}
-        </>
-      )}
+        </TabsContent>
+        <TabsContent value="cost">
+          <div className="flex flex-row flex-wrap items-center gap-3">
+            <AverageCostInferenceChart
+              projectId={project_id}
+              experimentId={experimentName}
+            />
+            <CountInferenceChart
+              projectId={project_id}
+              experimentId={experimentName}
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
       <div
         className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
         ref={scrollableDivRef as any}

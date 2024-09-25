@@ -98,12 +98,7 @@ export default function Metrics({ email }: { email: string }) {
             projectId={project_id}
             lastNHours={lastNHours}
           />
-          <AverageCostInferenceChart
-            userId={userId}
-            model={model}
-            projectId={project_id}
-            lastNHours={lastNHours}
-          />
+          <AverageCostInferenceChart projectId={project_id} />
         </div>
       </div>
       <div className="flex flex-row gap-4 w-full">
