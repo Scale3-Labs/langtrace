@@ -3,6 +3,7 @@ import { calculatePriceFromUsage } from "./utils";
 
 export interface DspyTrace {
   id: string;
+  run_id: string;
   experiment_name: string;
   experiment_description: string;
   status: string;
@@ -28,6 +29,7 @@ export interface DspyTrace {
   raw_attributes: any;
   result: any;
   checkpoint: any;
+  evaluated_score?: number;
 }
 
 export function processDspyTrace(trace: any): DspyTrace {
@@ -46,8 +48,10 @@ export function processDspyTrace(trace: any): DspyTrace {
   let cost = { total: 0, input: 0, output: 0 };
   let experiment_name = "default";
   let experiment_description = "";
+  let run_id = "unspecified";
   let spanResult: any = {};
   let checkpoint: any = {};
+  let evaluated_score: number | undefined;
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
@@ -68,6 +72,7 @@ export function processDspyTrace(trace: any): DspyTrace {
         resultContent = attributes["dspy.signature.result"];
       } else if (attributes["dspy.evaluate.result"]) {
         resultContent = attributes["dspy.evaluate.result"];
+        evaluated_score = attributes["dspy.evaluate.result"];
       }
 
       if (resultContent) {
@@ -93,6 +98,11 @@ export function processDspyTrace(trace: any): DspyTrace {
         experiment_name = attributes["experiment"]
           .toLowerCase()
           .replace(/\s/g, "-");
+      }
+
+      // get the run_id from the attributes
+      if (attributes["run_id"]) {
+        run_id = attributes["run_id"].toLowerCase().replace(/\s/g, "-");
       }
 
       // get the experiment description from the attributes
@@ -288,6 +298,7 @@ export function processDspyTrace(trace: any): DspyTrace {
   // construct the response object
   const result: DspyTrace = {
     id: trace[0]?.trace_id,
+    run_id: run_id,
     experiment_name: experiment_name,
     experiment_description: experiment_description,
     status: status,
@@ -313,6 +324,7 @@ export function processDspyTrace(trace: any): DspyTrace {
     raw_attributes: attributes,
     result: spanResult,
     checkpoint: checkpoint,
+    evaluated_score: evaluated_score,
   };
 
   return result;

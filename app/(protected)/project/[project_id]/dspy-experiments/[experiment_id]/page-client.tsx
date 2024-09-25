@@ -1,4 +1,8 @@
 "use client";
+import {
+  DspyEvalChart,
+  DspyEvalChartData,
+} from "@/components/charts/dspy-eval-chart";
 import { TableSkeleton } from "@/components/project/traces/table-skeleton";
 import { TraceSheet } from "@/components/project/traces/trace-sheet";
 import { GenericHoverCell } from "@/components/shared/hover-cell";
@@ -33,7 +37,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, RefreshCwIcon } from "lucide-react";
+import { ChevronDown, LineChartIcon, RefreshCwIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
@@ -56,6 +60,8 @@ export function PageClient({ email }: { email: string }) {
   const [selectedTrace, setSelectedTrace] = useState<DspyTrace | null>(null);
   const [showBottomLoader, setShowBottomLoader] = useState(false);
   const [enableFetch, setEnableFetch] = useState(true);
+  const [chartData, setChartData] = useState<DspyEvalChartData[]>([]);
+  const [showEvalChart, setShowEvalChart] = useState(false);
 
   useEffect(() => {
     const handleFocusChange = () => {
@@ -153,7 +159,7 @@ export function PageClient({ email }: { email: string }) {
         setPage(parseInt(metadata?.page) + 1);
       }
 
-      const transformedNewData = newData.map((trace: any) => {
+      const transformedNewData: DspyTrace[] = newData.map((trace: any) => {
         return processDspyTrace(trace);
       });
 
@@ -167,6 +173,28 @@ export function PageClient({ email }: { email: string }) {
         setData(transformedNewData);
       } else {
         setData((prevData) => [...prevData, ...transformedNewData]);
+      }
+
+      // construct chart data
+      const chartData: DspyEvalChartData[] = [];
+      for (const trace of transformedNewData) {
+        if (trace.evaluated_score) {
+          chartData.push({
+            timestamp: formatDateTime(
+              correctTimestampFormat(trace.start_time.toString()),
+              true
+            ),
+            score: trace.evaluated_score,
+            runId: trace.run_id,
+          });
+        }
+      }
+      // reverse the chart data to show the latest last
+      chartData.reverse();
+      if (page === 1) {
+        setChartData(chartData);
+      } else {
+        setChartData((prevData) => [...chartData, ...prevData]);
       }
 
       setEnableFetch(false);
@@ -194,6 +222,19 @@ export function PageClient({ email }: { email: string }) {
   });
 
   const columns: ColumnDef<DspyTrace>[] = [
+    {
+      accessorKey: "run_id",
+      enableResizing: true,
+      header: "Run ID",
+      cell: ({ row }) => {
+        const id = row.getValue("run_id") as string;
+        return (
+          <div className="text-left text-muted-foreground text-xs font-semibold">
+            {id}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "start_time",
       enableResizing: true,
@@ -487,6 +528,23 @@ export function PageClient({ email }: { email: string }) {
           </Button>
         </div>
       </div>
+      {chartData.length > 0 && (
+        <>
+          <Button
+            className="w-fit"
+            onClick={() => setShowEvalChart(!showEvalChart)}
+          >
+            {showEvalChart ? "Hide" : "Show"} Evaluation Chart{" "}
+            <LineChartIcon className="ml-2 h-4 w-4" />
+          </Button>
+          {showEvalChart && (
+            <DspyEvalChart
+              data={chartData}
+              isLoading={fetchTraces.isLoading || fetchTraces.isFetching}
+            />
+          )}
+        </>
+      )}
       <div
         className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
         ref={scrollableDivRef as any}
