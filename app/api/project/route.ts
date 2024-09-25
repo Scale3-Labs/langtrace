@@ -1,6 +1,7 @@
 import { authOptions } from "@/lib/auth/options";
 import { DEFAULT_TESTS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
+import { captureEvent } from "@/lib/services/posthog";
 import { authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -87,6 +88,13 @@ export async function POST(req: NextRequest) {
         },
       });
     }
+
+    const session = await getServerSession(authOptions);
+    const userEmail = session?.user?.email ?? "anonymous";
+    await captureEvent(project.id, "project_created", {
+      project_name: project.name,
+      project_type: projectType,
+    });
   }
 
   const { apiKeyHash, ...projectWithoutApiKeyHash } = project;
