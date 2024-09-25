@@ -122,6 +122,10 @@ docker compose down -v
 
 Langtrace collects basic, non-sensitive usage data from self-hosted instances by default, which is sent to a central server (via PostHog).
 
+The following telemetry data is collected by us:
+- Project name and type
+- Team name
+
 This data helps us to:
 
 - Understand how the platform is being used to improve key features.
