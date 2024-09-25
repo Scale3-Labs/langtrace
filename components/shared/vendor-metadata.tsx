@@ -62,6 +62,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-red-500";
   }
 
+  if (vendor.includes("litellm")) {
+    return "bg-blue-500";
+  }
+
   return "bg-gray-500";
 }
 
@@ -443,6 +447,22 @@ export function VendorLogo({
         src="/gemini.jpeg"
         width={30}
         height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("litellm")) {
+    const color = vendorColor("litellm");
+    return (
+      <Image
+        alt="LiteLLM Logo"
+        src="/litellm.png"
+        width={50}
+        height={50}
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"

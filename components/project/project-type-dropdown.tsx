@@ -30,7 +30,7 @@ const projectTypes = [
   {
     value: "dspy",
     label: "DSPy",
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     value: "langgraph",

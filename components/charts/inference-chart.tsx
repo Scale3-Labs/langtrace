@@ -12,10 +12,12 @@ export function CountInferenceChart({
   projectId,
   lastNHours = 168,
   userId,
+  experimentId,
   model,
 }: {
   projectId: string;
   lastNHours?: number;
+  experimentId?: string;
   userId?: string;
   model?: string;
 }) {
@@ -32,9 +34,11 @@ export function CountInferenceChart({
       model,
     ],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/metrics/usage/trace?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}&model=${model}&inference=true`
-      );
+      let url = `/api/metrics/usage/trace?projectId=${projectId}&lastNHours=${lastNHours}&userId=${userId}&model=${model}&inference=true`;
+      if (experimentId) {
+        url += `&experimentId=${experimentId}`;
+      }
+      const response = await fetch(url);
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error?.message || "Failed to fetch inference count");
@@ -98,31 +102,24 @@ export function CountInferenceChart({
 
 export function AverageCostInferenceChart({
   projectId,
-  lastNHours = 168,
-  userId,
-  model,
+  experimentId,
 }: {
   projectId: string;
-  lastNHours?: number;
-  userId?: string;
-  model?: string;
+  experimentId?: string;
 }) {
   const {
     data: costUsage,
     isLoading: costUsageLoading,
     error: costUsageError,
   } = useQuery({
-    queryKey: [
-      "fetch-metrics-inference-cost",
-      projectId,
-      lastNHours,
-      userId,
-      model,
-    ],
+    queryKey: ["fetch-metrics-inference-cost", projectId, experimentId],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/metrics/usage/cost/inference?projectId=${projectId}`
-      );
+      let url = `/api/metrics/usage/cost/inference?projectId=${projectId}`;
+      if (experimentId) {
+        url += `&experimentId=${experimentId}`;
+      }
+      const response = await fetch(url);
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(

@@ -194,6 +194,18 @@ function ProjectCard({
                 {project.name}
               </CardTitle>
             )}
+            {project.type === "dspy" && (
+              <CardTitle className="capitalize w-full truncate flex items-center gap-1">
+                <Image
+                  alt="DSPy Logo"
+                  src="/dspy.png"
+                  width={50}
+                  height={50}
+                  className="rounded-md"
+                />
+                {project.name}
+              </CardTitle>
+            )}
             {project.type === "default" && (
               <CardTitle className="capitalize w-full truncate">
                 {project.name}
