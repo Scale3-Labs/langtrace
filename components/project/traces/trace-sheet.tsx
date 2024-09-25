@@ -55,14 +55,14 @@ export function TraceSheet({
   const [span, setSpan] = useState<any | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
-  const [selectedData, setSelectedData] = useState<CheckedData[]>([]);
+  const [selectedData, setSelectedData] = useState<CheckedData | null>(null);
 
   useEffect(() => {
     setSelectedTrace(trace.trace_hierarchy);
     setSelectedVendors(trace.vendors);
     if (trace.vendors.includes("langgraph")) setIncludesLanggraph(true);
     if (!open) {
-      setSelectedData([]);
+      setSelectedData(null);
       setSpansView("SPANS");
     }
   }, [trace, open]);
@@ -115,7 +115,7 @@ export function TraceSheet({
         input,
         output,
       };
-      setSelectedData((prev) => [...prev, checkedData]);
+      setSelectedData(checkedData);
     }
   }, [span]);
 
@@ -160,10 +160,11 @@ export function TraceSheet({
                   <div className="flex gap-2 items-center">
                     <AddtoDataset
                       projectId={project_id}
-                      selectedData={selectedData}
+                      selectedData={selectedData ? [selectedData] : []}
                       disabled={
-                        selectedData.length === 0 ||
-                        !selectedData.every((data) => data.input || data.output)
+                        selectedData === null ||
+                        (selectedData.input === "" &&
+                          selectedData.output === "")
                       }
                     />
                     <Button

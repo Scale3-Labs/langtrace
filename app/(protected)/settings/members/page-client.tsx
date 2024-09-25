@@ -62,6 +62,7 @@ export function InviteMember({ user }: { user: any }) {
   const MemberDetailsForm = useForm({
     resolver: zodResolver(MemberDetailsFormSchema),
   });
+  const { reset } = MemberDetailsForm;
 
   const sendMemberInvitation = async (data: FieldValues) => {
     try {
@@ -92,6 +93,8 @@ export function InviteMember({ user }: { user: any }) {
         description: `Please have the invited person sign up with their ${data.email} email`,
       });
       setOpen(false);
+      MemberDetailsForm.setValue("email", "");
+      MemberDetailsForm.setValue("name", "");
     } catch (error) {
       toast.error(
         "An error occurred while inviting your team member. Please try again later."

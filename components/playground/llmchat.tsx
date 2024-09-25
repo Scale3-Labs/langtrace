@@ -133,11 +133,17 @@ export default function LLMChat({
               );
               setLocalLLM({
                 ...localLLM,
-                settings: { ...localLLM.settings, messages: localNewMessages },
+                settings: {
+                  ...localLLM.settings,
+                  messages: localNewMessages,
+                },
               });
               setLLM({
                 ...localLLM,
-                settings: { ...localLLM.settings, messages: localNewMessages },
+                settings: {
+                  ...localLLM.settings,
+                  messages: localNewMessages,
+                },
               });
             }}
             onRemove={() => {

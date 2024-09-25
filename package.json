@@ -88,6 +88,8 @@
 		"openai": "^4.40.0",
 		"papaparse": "^5.4.1",
 		"pdf-parse": "^1.1.1",
+		"posthog-js": "^1.161.3",
+		"posthog-node": "^4.2.0",
 		"pretty-print-json": "^3.0.0",
 		"prism": "^1.0.0",
 		"prismjs": "^1.29.0",
