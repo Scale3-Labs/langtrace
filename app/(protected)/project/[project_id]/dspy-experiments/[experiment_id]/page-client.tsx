@@ -536,7 +536,7 @@ export function PageClient({ email }: { email: string }) {
       <Tabs defaultValue="eval" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="eval">Eval Chart</TabsTrigger>
-          <TabsTrigger value="cost">Cost</TabsTrigger>
+          <TabsTrigger value="cost">Inference Metrics</TabsTrigger>
         </TabsList>
         <TabsContent value="eval">
           {chartData.length > 0 ? (
