@@ -539,11 +539,17 @@ export function PageClient({ email }: { email: string }) {
           <TabsTrigger value="cost">Cost</TabsTrigger>
         </TabsList>
         <TabsContent value="eval">
-          {chartData.length > 0 && (
+          {chartData.length > 0 ? (
             <DspyEvalChart
               data={chartData}
               isLoading={fetchTraces.isLoading || fetchTraces.isFetching}
             />
+          ) : (
+            <div className="flex flex-col items-center justify-center p-4 border rounded-md">
+              <p className="text-sm m-24">
+                No evaluation data. Run dspy Evaluate() to see scores.
+              </p>
+            </div>
           )}
         </TabsContent>
         <TabsContent value="cost">
