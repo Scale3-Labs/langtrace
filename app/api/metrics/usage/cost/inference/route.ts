@@ -13,9 +13,18 @@ export async function GET(req: NextRequest) {
 
   try {
     const projectId = req.nextUrl.searchParams.get("projectId") as string;
+    const experimentId = req.nextUrl.searchParams.get("experimentId") as string;
+    const experimentFilter: { [key: string]: string } = {};
+
+    if (experimentId) {
+      experimentFilter["experiment"] = experimentId;
+    }
 
     const traceService = new TraceService();
-    const cost = await traceService.GetInferenceCostPerProject(projectId);
+    const cost = await traceService.GetInferenceCostPerProject(
+      projectId,
+      experimentFilter
+    );
     const inferenceCount = await traceService.GetTotalTracesPerProject(
       projectId,
       true

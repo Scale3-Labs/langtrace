@@ -55,6 +55,13 @@ const ProjectNavLinks = (id: string, type = "default") => {
       href: `/project/${id}/crewai-dash`,
     });
   }
+  if (type == "dspy") {
+    // add to the second position
+    result.splice(1, 0, {
+      name: "Experiments",
+      href: `/project/${id}/dspy-experiments`,
+    });
+  }
   return result;
 };
 
