@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
     const existingLivePrompt = await prisma.prompt.findFirst({
       where: {
         live: true,
+        promptsetId,
       },
     });
 
@@ -129,6 +130,7 @@ export async function PUT(req: NextRequest) {
     const existingLivePrompt = await prisma.prompt.findFirst({
       where: {
         live: true,
+        promptsetId,
       },
     });
 
