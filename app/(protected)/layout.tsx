@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { PageSkeleton } from "./projects/page-client";
+import CustomPostHogProvider from "@/components/shared/posthog";
 
 export default async function Layout({
   children,
@@ -19,11 +20,13 @@ export default async function Layout({
 
   return (
     <Suspense fallback={<PageLoading />}>
-      <main className="min-h-screen w-full">
-        <Header email={session?.user?.email as string} />
-        <Separator />
-        {children}
-      </main>
+      <CustomPostHogProvider session={session}>
+        <main className="min-h-screen w-full">
+          <Header email={session?.user?.email as string} />
+          <Separator />
+          {children}
+        </main>
+      </CustomPostHogProvider>
     </Suspense>
   );
 }

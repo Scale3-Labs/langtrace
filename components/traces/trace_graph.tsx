@@ -113,16 +113,15 @@ const SpanItem: React.FC<SpanItemProps> = ({
     serviceName.includes("llamaindex")
   )
     color = "bg-indigo-500";
-  else if (
-    span.name.includes("vercel") ||
-    serviceName.includes("vercel")
-  )
+  else if (span.name.includes("vercel") || serviceName.includes("vercel"))
     color = "bg-gray-500";
   else if (
     span.name.includes("embedchain") ||
     serviceName.includes("embedchain")
   )
     color = "bg-slate-500";
+  else if (span.name.includes("litellm") || serviceName.includes("litellm"))
+    color = "bg-blue-500";
   const fillColor = color.replace("bg-", "fill-");
 
   const vendor = getVendorFromSpan(span as any);

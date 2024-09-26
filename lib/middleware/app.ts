@@ -1,6 +1,7 @@
 import { User } from "@prisma/client";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
+import { captureEvent } from "../services/posthog";
 
 export default async function AppMiddleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
@@ -36,9 +37,10 @@ export default async function AppMiddleware(req: NextRequest) {
     const response = await userReq.json();
     const user = response.data;
     if (user) {
+      let teamName: string | undefined;
       if (!user.teamId) {
         // create a team
-        await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/team`, {
+        const team = await fetch(`${process.env.NEXT_PUBLIC_HOST}/api/team`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -49,6 +51,12 @@ export default async function AppMiddleware(req: NextRequest) {
             role: "owner",
             status: "active",
           }),
+        }).then((res) => res.json());
+        teamName = team?.data?.name;
+      }
+      if (teamName) {
+        await captureEvent(user.id, "team_created", {
+          team_name: teamName,
         });
       }
     }
