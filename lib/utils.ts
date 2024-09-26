@@ -517,8 +517,26 @@ export function calculatePriceFromUsage(
 ): any {
   if (!model) return { total: 0, input: 0, output: 0 };
   let costTable: CostTableEntry | undefined = undefined;
-
-  if (vendor === "litellm") {
+  if (vendor === "ai") {
+    if (model.startsWith("gpt-4") || model.includes("gpt-4")) {
+      vendor = "openai";
+    } else if (model.includes("claude")) {
+      vendor = "anthropic";
+    } else if (model.includes("mistral")) {
+      vendor = "mistral"; // Assuming there is a MISTRAL_PRICING object
+    } else if (model.includes("gemini")) {
+      vendor =
+        model.includes("flash") || model.includes("pro")
+          ? "google generative ai"
+          : "google vertex";
+    } else if (
+      model.includes("llama") ||
+      model.includes("mixtral") ||
+      model.includes("gemma2")
+    ) {
+      vendor = "groq";
+    }
+  } else if (vendor === "litellm") {
     let correctModel = model;
     if (model.includes("gpt") || model.includes("o1")) {
       if (model.includes("gpt-4o-mini")) {
