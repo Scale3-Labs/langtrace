@@ -518,10 +518,46 @@ export function calculatePriceFromUsage(
   if (!model) return { total: 0, input: 0, output: 0 };
   let costTable: CostTableEntry | undefined = undefined;
 
-  if (vendor === "openai") {
+  if (vendor === "litellm") {
+    let correctModel = model;
+    if (model.includes("gpt") || model.includes("o1")) {
+      if (model.includes("gpt-4o-mini")) {
+        correctModel = "gpt-4o-mini";
+      } else if (model.includes("gpt-4o")) {
+        correctModel = "gpt-4o";
+      } else if (model.includes("gpt-4")) {
+        correctModel = "gpt-4";
+      } else if (model.includes("o1-preview")) {
+        correctModel = "o1-preview";
+      } else if (model.includes("o1-mini")) {
+        correctModel = "o1-mini";
+      }
+      costTable = OPENAI_PRICING[correctModel];
+    } else if (model.includes("claude")) {
+      let cmodel = "";
+      if (model.includes("opus")) {
+        cmodel = "claude-3-opus";
+      } else if (model.includes("sonnet")) {
+        cmodel = "claude-3-sonnet";
+      } else if (model.includes("haiku")) {
+        cmodel = "claude-3-haiku";
+      } else if (model.includes("claude-2.1")) {
+        cmodel = "claude-2.1";
+      } else if (model.includes("claude-2.0")) {
+        cmodel = "claude-2.0";
+      } else if (model.includes("instant")) {
+        cmodel = "claude-instant";
+      } else {
+        return 0;
+      }
+      costTable = ANTHROPIC_PRICING[cmodel];
+    } else if (model.includes("command")) {
+      costTable = COHERE_PRICING[model];
+    }
+  } else if (vendor === "openai") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
-    if (!OPENAI_PRICING.hasOwnProperty(model)) {
+    if (model.includes("gpt") || model.includes("o1")) {
       if (model.includes("gpt-4o-mini")) {
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
@@ -757,6 +793,8 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("embedchain")
   ) {
     vendor = "embedchain";
+  } else if (span.name.includes("litellm") || serviceName.includes("litellm")) {
+    vendor = "litellm";
   }
   return vendor;
 }

@@ -15,9 +15,22 @@ export async function GET(req: NextRequest) {
     const lastNHours = parseInt(
       req.nextUrl.searchParams.get("lastNHours") || "168"
     );
-    const userId = req.nextUrl.searchParams.get("userId") || "";
-    const model = req.nextUrl.searchParams.get("model") || "";
-    const inference = req.nextUrl.searchParams.get("inference") || "";
+    const userId =
+      req.nextUrl.searchParams.get("userId") === "undefined"
+        ? undefined
+        : (req.nextUrl.searchParams.get("userId") as string);
+    const model =
+      req.nextUrl.searchParams.get("model") === "undefined"
+        ? undefined
+        : (req.nextUrl.searchParams.get("model") as string);
+    const inference =
+      req.nextUrl.searchParams.get("inference") === "undefined"
+        ? undefined
+        : (req.nextUrl.searchParams.get("inference") as string);
+    const experimentId =
+      req.nextUrl.searchParams.get("experimentId") === "undefined"
+        ? undefined
+        : (req.nextUrl.searchParams.get("experimentId") as string);
 
     if (!projectId) {
       return NextResponse.json(
@@ -33,6 +46,7 @@ export async function GET(req: NextRequest) {
       projectId,
       lastNHours,
       userId,
+      experimentId,
       model,
       inference === "true"
     );

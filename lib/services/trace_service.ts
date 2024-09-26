@@ -18,6 +18,7 @@ export interface ITraceService {
     project_id: string,
     lastNHours?: number,
     userId?: string,
+    experimentId?: string,
     model?: string,
     inference?: boolean
   ) => Promise<number>;
@@ -96,7 +97,10 @@ export interface ITraceService {
   GetUsersInProject: (project_id: string) => Promise<string[]>;
   GetPromptsInProject: (project_id: string) => Promise<string[]>;
   GetModelsInProject: (project_id: string) => Promise<string[]>;
-  GetInferenceCostPerProject: (project_id: string) => Promise<any>;
+  GetInferenceCostPerProject: (
+    project_id: string,
+    attribute_filters?: { [key: string]: string }
+  ) => Promise<any>;
 }
 
 export class TraceService implements ITraceService {
@@ -107,7 +111,10 @@ export class TraceService implements ITraceService {
     this.queryBuilderService = new QueryBuilderService();
   }
 
-  async GetInferenceCostPerProject(project_id: string): Promise<any> {
+  async GetInferenceCostPerProject(
+    project_id: string,
+    attribute_filters: { [key: string]: string } = {}
+  ): Promise<any> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
@@ -119,6 +126,17 @@ export class TraceService implements ITraceService {
           "llm"
         ),
       ];
+
+      if (Object.keys(attribute_filters).length > 0) {
+        Object.keys(attribute_filters).forEach((key) => {
+          conditions.push(
+            sql.eq(
+              `JSONExtractString(attributes, '${key}')`,
+              attribute_filters[key]
+            )
+          );
+        });
+      }
 
       const query = sql
         .select([
@@ -407,6 +425,7 @@ export class TraceService implements ITraceService {
     project_id: string,
     lastNHours = 168,
     userId?: string,
+    experimentId?: string,
     model?: string,
     inference = false
   ): Promise<any> {
@@ -422,6 +441,12 @@ export class TraceService implements ITraceService {
       if (userId) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'user_id')", userId)
+        );
+      }
+
+      if (experimentId) {
+        conditions.push(
+          sql.eq("JSONExtractString(attributes, 'experiment')", experimentId)
         );
       }
 
