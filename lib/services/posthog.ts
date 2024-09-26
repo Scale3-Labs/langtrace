@@ -18,16 +18,20 @@ export async function captureEvent(
   eventName: string,
   properties: Record<string, any> = {}
 ): Promise<void> {
-  if (process.env.TELEMETRY_ENABLED !== "false") {
-    const client = getPostHogClient();
-    await client.capture({
-      distinctId,
-      event: eventName,
-      properties: {
-        ...properties,
-        is_self_hosted: true,
-      },
-    });
-    await client.shutdown();
+  try {
+    if (process.env.TELEMETRY_ENABLED !== "false") {
+      const client = getPostHogClient();
+      await client.capture({
+        distinctId,
+        event: eventName,
+        properties: {
+          ...properties,
+          is_self_hosted: true,
+        },
+      });
+      await client.shutdown();
+    }
+  } catch (error) {
+    console.error("Error capturing telemetry events:", error);
   }
 }
