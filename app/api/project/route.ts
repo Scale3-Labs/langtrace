@@ -89,10 +89,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const session = await getServerSession(authOptions);
-    const userEmail = session?.user?.email ?? "anonymous";
     await captureEvent(project.id, "project_created", {
-      project_name: project.name,
+      project_name: name,
+      project_description: description,
       project_type: projectType,
     });
   }
