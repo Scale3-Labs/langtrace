@@ -75,6 +75,10 @@ export function processDspyTrace(trace: any): DspyTrace {
         evaluated_score = attributes["dspy.evaluate.result"];
       }
 
+      if (attributes["dspy.evaluate.result"]) {
+        evaluated_score = attributes["dspy.evaluate.result"];
+      }
+
       if (resultContent) {
         try {
           spanResult = JSON.parse(resultContent);
