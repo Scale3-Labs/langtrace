@@ -18,6 +18,7 @@ export default function LayoutClient({
 }) {
   const pathname = usePathname();
   const project_id = pathname.split("/")[2];
+  const experiment_id = pathname.split("/")[4];
   const href = `/project/${project_id}/dspy-experiments`;
 
   const [page, setPage] = useState(1);
@@ -96,18 +97,18 @@ export default function LayoutClient({
       setExperiments(newExperiments);
 
       // dedupe navLinks from current and new data
-      const newNavLinks = [];
+      const newNavLinks: any[] = [];
       for (const nav of navs) {
         if (!navLinks.find((n) => n.value === nav.value)) {
           newNavLinks.push(nav);
         }
       }
-      setNavLinks([...navLinks, ...newNavLinks]);
+      setNavLinks((prev) => [...prev, ...newNavLinks]);
 
       // route to first experiment if no experiment is selected
       if (navLinks.length > 0) {
-        const experimentId = navLinks[0].value;
-        if (!pathname.includes(experimentId)) {
+        if (!experiment_id) {
+          const experimentId = navLinks[0].value;
           window.location.href = `${href}/${experimentId}`;
         }
       }
