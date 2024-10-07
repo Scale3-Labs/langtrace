@@ -828,9 +828,3 @@ export function isJsonString(str: string) {
     return false;
   }
 }
-
-export function decodeProtobuf(arrayBuffer: ArrayBuffer) {
-  // Implement the decoding logic here
-  // This is a placeholder and should be replaced with actual decoding logic
-  return arrayBuffer;
-}
