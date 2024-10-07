@@ -266,6 +266,25 @@ export const AZURE_PRICING: Record<string, CostTableEntry> = {
   },
 };
 
+export const GEMINI_PRICING: Record<string, CostTableEntry> = {
+  "gemini-1.5-pro": {
+    input: 0.00125, // $1.25 per 1M tokens = $0.00125 per 1K tokens
+    output: 0.005, // $5.00 per 1M tokens = $0.005 per 1K tokens
+  },
+  "gemini-1.5-flash": {
+    input: 0.000075, // $0.075 per 1M tokens = $0.000075 per 1K tokens
+    output: 0.0003, // $0.30 per 1M tokens = $0.0003 per 1K tokens
+  },
+  "gemini-1.5-flash-8b": {
+    input: 0.0000375, // $0.0375 per 1M tokens = $0.0000375 per 1K tokens
+    output: 0.00015, // $0.15 per 1M tokens = $0.00015 per 1K tokens
+  },
+  "gemini-1.0-pro": {
+    input: 0.0005, // $0.50 per 1M tokens = $0.0005 per 1K tokens
+    output: 0.0015, // $1.50 per 1M tokens = $0.0015 per 1K tokens
+  },
+};
+
 export const PAGE_SIZE = 15;
 
 export const DEFAULT_TESTS: Partial<Test>[] = [

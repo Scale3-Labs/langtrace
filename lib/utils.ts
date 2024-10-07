@@ -12,6 +12,7 @@ import {
   ANTHROPIC_PRICING,
   AZURE_PRICING,
   COHERE_PRICING,
+  GEMINI_PRICING,
   CostTableEntry,
   GROQ_PRICING,
   LangTraceAttributes,
@@ -630,6 +631,8 @@ export function calculatePriceFromUsage(
       }
     }
     costTable = AZURE_PRICING[correctModel];
+  } else if (vendor === "gemini") {
+    costTable = GEMINI_PRICING[model];
   }
   if (costTable) {
     const total =
