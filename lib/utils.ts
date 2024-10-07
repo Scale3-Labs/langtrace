@@ -12,6 +12,7 @@ import {
   ANTHROPIC_PRICING,
   AZURE_PRICING,
   COHERE_PRICING,
+  GEMINI_PRICING,
   CostTableEntry,
   GROQ_PRICING,
   LangTraceAttributes,
@@ -630,6 +631,8 @@ export function calculatePriceFromUsage(
       }
     }
     costTable = AZURE_PRICING[correctModel];
+  } else if (vendor === "gemini") {
+    costTable = GEMINI_PRICING[model];
   }
   if (costTable) {
     const total =
@@ -824,4 +827,10 @@ export function isJsonString(str: string) {
   } catch (e) {
     return false;
   }
+}
+
+export function decodeProtobuf(arrayBuffer: ArrayBuffer) {
+  // Implement the decoding logic here
+  // This is a placeholder and should be replaced with actual decoding logic
+  return arrayBuffer;
 }
