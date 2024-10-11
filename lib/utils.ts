@@ -576,7 +576,7 @@ export function calculatePriceFromUsage(
   } else if (vendor === "openai") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
-    if (model.includes("gpt") || model.includes("o1")) {
+    if (model.includes("gpt") || model.includes("o1") || model.includes("text-embedding")) {
       if (model.includes("gpt-4o-mini")) {
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
