@@ -303,7 +303,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
       const attributes = JSON.stringify(attributesObject, null);
 
       // process event attributes and convert the attributes list to an object
-      const events = inputData.events.map((event: any) => {
+      const events = inputData.events?.map((event: any) => {
         const eventAttributesObject: { [key: string]: any } = {};
 
         event.attributes.forEach(
