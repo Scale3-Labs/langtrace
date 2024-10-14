@@ -204,6 +204,8 @@ export function convertToDateTime64(dateTime: [number, number]): string {
 }
 
 function determineStatusCode(inputData: any): SpanStatusCode {
+  if (!inputData) return "UNSET";
+
   // Check if inputData is a number
   if (typeof inputData === "number") {
     const code = inputData;
@@ -288,7 +290,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
       const end = nanosecondsToDateTimeString(inputData.endTimeUnixNano);
       const attributesObject: { [key: string]: any } = {};
 
-      inputData.attributes.forEach(
+      inputData.attributes?.forEach(
         (attr: {
           value: { stringValue: undefined; intValue: undefined };
           key: string | number;
@@ -325,7 +327,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
           attributes: eventAttributesObject,
         };
       });
-
+      console.log(inputData);
       return {
         name: inputData.name,
         trace_id: inputData.traceId,
@@ -337,7 +339,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
         end_time: end,
         duration: durationBetweenDateTimeStrings(start, end),
         attributes: JSON.parse(attributes as any),
-        status_code: determineStatusCode(inputData.status.code),
+        status_code: determineStatusCode(inputData?.status?.code),
         events: events,
         links: inputData.links,
       };
