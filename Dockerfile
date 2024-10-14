@@ -28,7 +28,10 @@ WORKDIR /app
 
 ARG LANGTRACE_VERSION
 
-RUN POSTHOG_API_KEY=$POSTHOG_API_KEY NEXT_PUBLIC_ENABLE_ADMIN_LOGIN=true NEXT_PUBLIC_LANGTRACE_VERSION=$LANGTRACE_VERSION npm run build
+# if you have telemetry enabled and you have a posthog api key, yuncomment the line below
+# RUN POSTHOG_API_KEY=$POSTHOG_API_KEY
+
+RUN NEXT_PUBLIC_ENABLE_ADMIN_LOGIN=true NEXT_PUBLIC_LANGTRACE_VERSION=$LANGTRACE_VERSION npm run build
 
 # Final release image
 FROM node:21.6-bookworm AS production
