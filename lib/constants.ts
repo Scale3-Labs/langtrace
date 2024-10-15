@@ -130,6 +130,20 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     input: 0.0015,
     output: 0.002,
   },
+  // embedding models
+  "text-embedding-ada-002": {
+    input: 0.0001,
+    output: 0,
+  },
+  "text-embedding-3-small": {
+    input: 0.00002,
+    output: 0,
+  },
+  "text-embedding-3-large": {
+    input: 0.00013,
+    output: 0,
+  },
+
 };
 
 export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
