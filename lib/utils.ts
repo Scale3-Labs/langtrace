@@ -327,7 +327,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
           attributes: eventAttributesObject,
         };
       });
-      console.log(inputData);
+
       return {
         name: inputData.name,
         trace_id: inputData.traceId,
