@@ -2,6 +2,7 @@
 
 import { PathBreadCrumbs } from "@/components/dataset/path-breadcrumbs";
 import { ExpandingTextArea } from "@/components/playground/common";
+import { UploadCsv } from "@/components/project/dataset/upload-csv";
 import { CreateData } from "@/components/project/dataset/create-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
 import { DeleteData } from "@/components/project/dataset/delete-data";
@@ -394,6 +395,7 @@ export default function Dataset() {
           <div className="flex justify-between items-center">
             <div className="flex gap-4 items-center w-fit">
               <CreateData projectId={projectId} datasetId={dataset_id} />
+              <UploadCsv projectId={projectId} datasetId={dataset_id}/>
               <DownloadDataset
                 projectId={projectId}
                 datasetId={dataset_id}

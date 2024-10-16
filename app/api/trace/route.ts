@@ -9,10 +9,20 @@ import {
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
+import protobuf from "protobufjs";
+import path from "path";
 
 export async function POST(req: NextRequest) {
   try {
-    const data = await req.json();
+    const contentType = req.headers.get("content-type");
+
+    let data;
+    if (contentType === "application/x-protobuf") {
+      data = await decodeProtobuf(req);
+    } else {
+      data = await req.json();
+    }
+
     const apiKey = req.headers.get("x-api-key");
     const userAgent = req.headers.get("user-agent");
 
@@ -26,7 +36,8 @@ export async function POST(req: NextRequest) {
 
     // Normalize and prepare data for Clickhouse
     let normalized = [];
-    if (userAgent?.toLowerCase().includes("otel-otlp") ||
+    if (
+      userAgent?.toLowerCase().includes("otel-otlp") ||
       userAgent?.toLowerCase().includes("opentelemetry")
     ) {
       // coming from an OTEL exporter
@@ -135,4 +146,28 @@ export async function GET(req: NextRequest) {
       status: 400,
     });
   }
+}
+
+async function decodeProtobuf(req: NextRequest) {
+  // Load the Protobuf schema
+  const loadProtobuf = async () => {
+    return protobuf.load(path.resolve("app/api/trace", "trace.proto"));
+  };
+
+  // Get raw data from the request body as ArrayBuffer
+  const arrayBuffer = await req.arrayBuffer();
+  const uint8Array = new Uint8Array(arrayBuffer); // Convert to Uint8Array
+
+  // Load and decode the Protobuf schema
+  const root = await loadProtobuf();
+
+  const TracesData = root.lookupType("opentelemetry.proto.trace.v1.TracesData");
+
+  // Decode the Protobuf binary data
+  const decodedData = TracesData.decode(uint8Array);
+
+  // Do something with decoded data (e.g., store in a database)
+
+  const data = JSON.parse(JSON.stringify(decodedData, null, 2));
+  return data;
 }
