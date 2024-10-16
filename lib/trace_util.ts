@@ -122,7 +122,7 @@ export function processTrace(trace: any): Trace {
         cost.input += currentcost.input;
         cost.output += currentcost.output;
       } else if (
-        attributes["gen_ai.usage.input_tokens"] &&
+        attributes["gen_ai.usage.input_tokens"] ||
         attributes["gen_ai.usage.output_tokens"]
       ) {
         tokenCounts = {

@@ -12,6 +12,7 @@ import {
   ANTHROPIC_PRICING,
   AZURE_PRICING,
   COHERE_PRICING,
+  GEMINI_PRICING,
   CostTableEntry,
   GROQ_PRICING,
   LangTraceAttributes,
@@ -203,6 +204,8 @@ export function convertToDateTime64(dateTime: [number, number]): string {
 }
 
 function determineStatusCode(inputData: any): SpanStatusCode {
+  if (!inputData) return "UNSET";
+
   // Check if inputData is a number
   if (typeof inputData === "number") {
     const code = inputData;
@@ -287,7 +290,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
       const end = nanosecondsToDateTimeString(inputData.endTimeUnixNano);
       const attributesObject: { [key: string]: any } = {};
 
-      inputData.attributes.forEach(
+      inputData.attributes?.forEach(
         (attr: {
           value: { stringValue: undefined; intValue: undefined };
           key: string | number;
@@ -302,7 +305,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
       const attributes = JSON.stringify(attributesObject, null);
 
       // process event attributes and convert the attributes list to an object
-      const events = inputData.events.map((event: any) => {
+      const events = inputData.events?.map((event: any) => {
         const eventAttributesObject: { [key: string]: any } = {};
 
         event.attributes.forEach(
@@ -336,7 +339,7 @@ export function normalizeOTELData(inputData: any[]): Normalized[] {
         end_time: end,
         duration: durationBetweenDateTimeStrings(start, end),
         attributes: JSON.parse(attributes as any),
-        status_code: determineStatusCode(inputData.status.code),
+        status_code: determineStatusCode(inputData?.status?.code),
         events: events,
         links: inputData.links,
       };
@@ -517,8 +520,26 @@ export function calculatePriceFromUsage(
 ): any {
   if (!model) return { total: 0, input: 0, output: 0 };
   let costTable: CostTableEntry | undefined = undefined;
-
-  if (vendor === "litellm") {
+  if (vendor === "ai") {
+    if (model.startsWith("gpt-4") || model.includes("gpt-4")) {
+      vendor = "openai";
+    } else if (model.includes("claude")) {
+      vendor = "anthropic";
+    } else if (model.includes("mistral")) {
+      vendor = "mistral"; // Assuming there is a MISTRAL_PRICING object
+    } else if (model.includes("gemini")) {
+      vendor =
+        model.includes("flash") || model.includes("pro")
+          ? "google generative ai"
+          : "google vertex";
+    } else if (
+      model.includes("llama") ||
+      model.includes("mixtral") ||
+      model.includes("gemma2")
+    ) {
+      vendor = "groq";
+    }
+  } else if (vendor === "litellm") {
     let correctModel = model;
     if (model.includes("gpt") || model.includes("o1")) {
       if (model.includes("gpt-4o-mini")) {
@@ -557,7 +578,7 @@ export function calculatePriceFromUsage(
   } else if (vendor === "openai") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
-    if (model.includes("gpt") || model.includes("o1")) {
+    if (model.includes("gpt") || model.includes("o1") || model.includes("text-embedding")) {
       if (model.includes("gpt-4o-mini")) {
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
@@ -612,6 +633,8 @@ export function calculatePriceFromUsage(
       }
     }
     costTable = AZURE_PRICING[correctModel];
+  } else if (vendor === "gemini") {
+    costTable = GEMINI_PRICING[model];
   }
   if (costTable) {
     const total =

@@ -130,6 +130,20 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     input: 0.0015,
     output: 0.002,
   },
+  // embedding models
+  "text-embedding-ada-002": {
+    input: 0.0001,
+    output: 0,
+  },
+  "text-embedding-3-small": {
+    input: 0.00002,
+    output: 0,
+  },
+  "text-embedding-3-large": {
+    input: 0.00013,
+    output: 0,
+  },
+
 };
 
 export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
@@ -263,6 +277,25 @@ export const AZURE_PRICING: Record<string, CostTableEntry> = {
   "o1-mini": {
     input: 0.015,
     output: 0.06,
+  },
+};
+
+export const GEMINI_PRICING: Record<string, CostTableEntry> = {
+  "gemini-1.5-pro": {
+    input: 0.00125, // $1.25 per 1M tokens = $0.00125 per 1K tokens
+    output: 0.005, // $5.00 per 1M tokens = $0.005 per 1K tokens
+  },
+  "gemini-1.5-flash": {
+    input: 0.000075, // $0.075 per 1M tokens = $0.000075 per 1K tokens
+    output: 0.0003, // $0.30 per 1M tokens = $0.0003 per 1K tokens
+  },
+  "gemini-1.5-flash-8b": {
+    input: 0.0000375, // $0.0375 per 1M tokens = $0.0000375 per 1K tokens
+    output: 0.00015, // $0.15 per 1M tokens = $0.00015 per 1K tokens
+  },
+  "gemini-1.0-pro": {
+    input: 0.0005, // $0.50 per 1M tokens = $0.0005 per 1K tokens
+    output: 0.0015, // $1.50 per 1M tokens = $0.0015 per 1K tokens
   },
 };
 
