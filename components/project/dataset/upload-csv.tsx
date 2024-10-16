@@ -1,6 +1,13 @@
 import { Info } from "@/components/shared/info";
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -18,17 +25,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon, UploadIcon } from "@radix-ui/react-icons";
-import { SelectGroup, SelectTrigger } from "@radix-ui/react-select";
+import { Check } from "lucide-react";
 import papa from "papaparse";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
 import { toast } from "sonner";
@@ -50,11 +58,10 @@ export function UploadCsv({
   const [open, setOpen] = useState<boolean>(false);
   const [busy, setBusy] = useState<boolean>(false);
   const [csvFields, setCsvFields] = useState<string[]>([]);
-  const [selectedInputOption, setSelectedInputOption] = useState<string>();
-  const [selectedOutputOption, setSelectedOutputOption] = useState<string>();
-  const [selectedNoteOption, setSelectedNoteOption] = useState<string>("");
   const [myData, setMyData] = useState<any[]>([]);
-
+  const [selectedInputHeader, setSelectedInputHeader] = useState<string>("");
+  const [selectedOutputHeader, setSelectedOutputHeader] = useState<string>("");
+  const [selectedNoteHeader, setSelectedNoteHeader] = useState<string>("");
   const MAX_UPLOAD_SIZE = 1024 * 1024 * 0.5; // 0.5MB = 512KB
   const ACCEPTED_FILE_TYPES = ["text/csv"];
   const schema = z.object({
@@ -66,43 +73,26 @@ export function UploadCsv({
       .refine((file) => file.size <= MAX_UPLOAD_SIZE, {
         message: "Your file is too large, file has to be a max of 512KB",
       }),
-    input: z.string().min(1),
-    output: z.string().min(1),
-    note: z.string().min(1).optional(),
   });
 
   const CreateDataForm = useForm({
     resolver: zodResolver(schema),
   });
 
-  useEffect(() => {
-    if (open == false) {
-      setSelectedInputOption("");
-      setSelectedOutputOption("");
-      setSelectedNoteOption("");
-      setCsvFields(["upload a csv file"]);
-    } else {
-      if (csvFields.length == 0) {
-        setSelectedInputOption("");
-        setCsvFields(["upload a csv file"]);
-      }
-    }
-  }, [open]);
-
-  const fetchParseData = (files: FileList) => {
+  const parseData = (files: FileList) => {
     let file: any = files[0];
     papa.parse(file, {
       skipEmptyLines: true,
       header: true,
-      complete: (result) => {
-        const papa_data: any[] = result.data.map((row) => {
+      complete: (result: any) => {
+        const papa_data: any[] = result.data.map((row: any) => {
           return row;
         });
-        setMyData([...papa_data]);
-        const newFields: string[] = result.meta.fields?.map((field) => {
+        setMyData(papa_data ?? []);
+        const newFields: string[] = result.meta.fields?.map((field: any) => {
           return field;
         })!;
-        setCsvFields([...newFields]);
+        setCsvFields(newFields ?? []);
       },
     });
   };
@@ -125,29 +115,14 @@ export function UploadCsv({
           <form
             onSubmit={CreateDataForm.handleSubmit(async (data) => {
               try {
-                if (typeof data.input === "object") {
-                  data.input = JSON.stringify(data.input);
-                }
-                if (typeof data.output === "object") {
-                  data.output = JSON.stringify(data.output);
-                }
                 setBusy(true);
-
-                let datas = myData.map((d) => {
-                  return {
-                    input: d[selectedInputOption!],
-                    output: d[selectedOutputOption!],
-                    note:
-                      selectedNoteOption !== "" ? d[selectedNoteOption!] : "",
-                  };
-                });
                 await fetch("/api/data", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({
-                    datas: datas,
+                    datas: myData,
                     datasetId,
                     projectId,
                   }),
@@ -175,26 +150,20 @@ export function UploadCsv({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Select a File
+                    Select a CSV File
                     <Info
-                      information="The input data. Ex: user input"
+                      information="Upload a CSV file to create data for the dataset. The CSV file should have the an 'input', 'output' and 'note' columns."
                       className="inline-block ml-2"
                     />
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="file"
-                      placeholder="I'm good, how can I help you?"
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-100 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
                       onChange={(event) => {
-                        setSelectedInputOption("");
-                        setSelectedOutputOption("");
-                        setSelectedNoteOption("");
                         field.onChange(event.target?.files?.[0] ?? undefined);
-                        console.log(event.target.files![0].type);
                         event.target.files!.length > 0 &&
                         event.target.files![0].type == "text/csv"
-                          ? fetchParseData(csvFileRef.current?.files!)
+                          ? parseData(csvFileRef.current?.files!)
                           : setCsvFields([]);
                       }}
                       ref={csvFileRef}
@@ -204,171 +173,60 @@ export function UploadCsv({
                 </FormItem>
               )}
             />
-
-            <FormField
-              disabled={busy}
-              control={CreateDataForm.control}
-              name="input"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Input Column
-                    <Info
-                      information="Expected response to the input data by the LLM."
-                      className="inline-block ml-2"
-                    />
-                  </FormLabel>
-                  <FormControl>
-                    <Select
-                      {...field}
-                      value={selectedInputOption}
-                      onValueChange={(el) => {
-                        setSelectedInputOption(el);
-                        field.onChange(el ?? undefined);
-                      }}
-                    >
-                      <SelectTrigger
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Food"
-                      >
-                        <SelectValue placeholder="Select a column header…" />
-                      </SelectTrigger>
-
-                      <SelectContent className="SelectContent">
-                        <SelectGroup>
-                          {csvFields.map(function (val, index) {
-                            return (
-                              <React.Fragment key={index}>
-                                {" "}
-                                <SelectItem
-                                  disabled={
-                                    val == "upload a csv file" ? true : false
-                                  }
-                                  value={val}
-                                >
-                                  {val}
-                                </SelectItem>{" "}
-                              </React.Fragment>
-                            );
-                          })}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              disabled={busy}
-              control={CreateDataForm.control}
-              name="output"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Expected Output
-                    <Info
-                      information="Expected response to the input data by the LLM."
-                      className="inline-block ml-2"
-                    />
-                  </FormLabel>
-                  <FormControl>
-                    <Select
-                      {...field}
-                      value={selectedOutputOption}
-                      onValueChange={(el) => {
-                        setSelectedOutputOption(el);
-                        field.onChange(el ?? undefined);
-                      }}
-                    >
-                      <SelectTrigger
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Food"
-                      >
-                        <SelectValue placeholder="Select a column header…" />
-                      </SelectTrigger>
-
-                      <SelectContent className="SelectContent">
-                        <SelectGroup>
-                          {csvFields.map(function (val, index) {
-                            return (
-                              <React.Fragment key={index}>
-                                <SelectItem
-                                  disabled={
-                                    val == "upload a csv file" ? true : false
-                                  }
-                                  value={val}
-                                >
-                                  {val}
-                                </SelectItem>{" "}
-                              </React.Fragment>
-                            );
-                          })}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              disabled={busy}
-              control={CreateDataForm.control}
-              name="note"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Note
-                    <Info
-                      information="Expected response to the input data by the LLM."
-                      className="inline-block ml-2"
-                    />
-                  </FormLabel>
-                  <FormControl>
-                    <Select
-                      {...field}
-                      value={selectedNoteOption}
-                      onValueChange={(el) => {
-                        setSelectedNoteOption(el);
-                        field.onChange(el ?? undefined);
-                      }}
-                    >
-                      <SelectTrigger
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Food"
-                      >
-                        <SelectValue placeholder="Select a column header…" />
-                      </SelectTrigger>
-
-                      <SelectContent className="SelectContent">
-                        <SelectGroup>
-                          {csvFields.map(function (val, index) {
-                            return (
-                              <React.Fragment key={index}>
-                                {" "}
-                                <SelectItem
-                                  disabled={
-                                    val == "upload a csv file" ? true : false
-                                  }
-                                  value={val}
-                                >
-                                  {val}
-                                </SelectItem>{" "}
-                              </React.Fragment>
-                            );
-                          })}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Label>Input</Label>
+                <Info
+                  information="The input column is the column that contains the input data."
+                  className="inline-block ml-2"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <HeaderSelect
+                  headers={csvFields}
+                  setSelectedHeader={setSelectedInputHeader}
+                  selectedHeader={selectedInputHeader}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Label>Output</Label>
+                  <Info
+                    information="The output column is the column that contains the output data."
+                    className="inline-block ml-2"
+                  />
+                </div>
+                <HeaderSelect
+                  headers={csvFields}
+                  setSelectedHeader={setSelectedOutputHeader}
+                  selectedHeader={selectedOutputHeader}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Label>Note</Label>
+                  <Info
+                    information="The note column is the column that contains the note data."
+                    className="inline-block ml-2"
+                  />
+                </div>
+                <HeaderSelect
+                  headers={csvFields}
+                  setSelectedHeader={setSelectedNoteHeader}
+                  selectedHeader={selectedNoteHeader}
+                />
+              </div>
+            </div>
             <DialogFooter>
-              <Button type="submit" disabled={busy}>
+              <Button
+                type="submit"
+                disabled={
+                  busy ||
+                  !selectedInputHeader ||
+                  !selectedOutputHeader ||
+                  !selectedNoteHeader
+                }
+              >
                 Create Data
                 <PlusIcon className="h-4 w-4 ml-2" />
               </Button>
@@ -377,5 +235,67 @@ export function UploadCsv({
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export default function HeaderSelect({
+  headers,
+  setSelectedHeader,
+  selectedHeader,
+}: {
+  headers: string[];
+  setSelectedHeader: (header: string) => void;
+  selectedHeader: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full z-[920] justify-between"
+        >
+          {selectedHeader
+            ? headers.length > 0
+              ? headers.find((header: string) => header === selectedHeader)
+              : "No headers found"
+            : "Select header..."}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="z-[920] w-[370px] p-0">
+        <Command>
+          <CommandInput placeholder="Search header..." />
+          <CommandEmpty>No header found.</CommandEmpty>
+          <CommandGroup>
+            {headers.length > 0 ? (
+              headers.map((header: string, index: number) => (
+                <CommandItem
+                  key={index}
+                  value={header}
+                  onSelect={(currentValue) => {
+                    setSelectedHeader(
+                      currentValue === selectedHeader ? "" : currentValue
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedHeader === header ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {header}
+                </CommandItem>
+              ))
+            ) : (
+              <CommandItem>No headers found</CommandItem>
+            )}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
