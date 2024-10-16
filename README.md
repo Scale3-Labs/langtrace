@@ -196,7 +196,7 @@ We welcome contributions to this project. To get started, fork this repository a
 
 ## Security
 
-To report security vulnerabilites, email us at <security@scale3labs.com>. You can read more on security [here](https://github.com/Scale3-Labs/langtrace/blob/development/SECURITY.md).
+To report security vulnerabilities, email us at <security@scale3labs.com>. You can read more on security [here](https://github.com/Scale3-Labs/langtrace/blob/development/SECURITY.md).
 
 ---
 
