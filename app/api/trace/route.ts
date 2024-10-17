@@ -11,6 +11,21 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import protobuf from "protobufjs";
 import path from "path";
+import fs from 'fs';
+
+// Read all necessary Protobuf schemas at build time
+const protoFiles = [
+  'trace.proto',
+  'resource.proto',
+  'common.proto',
+];
+
+const protoRoot = new protobuf.Root();
+
+protoFiles.forEach(file => {
+  const protoContent = fs.readFileSync(path.join(process.cwd(), 'app', 'api', 'trace', file), 'utf8');
+  protobuf.parse(protoContent, protoRoot);
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -56,6 +71,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       {
         error: "Something went wrong while ingesting traces",
@@ -149,19 +165,13 @@ export async function GET(req: NextRequest) {
 }
 
 async function decodeProtobuf(req: NextRequest) {
-  // Load the Protobuf schema
-  const loadProtobuf = async () => {
-    return protobuf.load(path.resolve("app/api/trace", "trace.proto"));
-  };
 
   // Get raw data from the request body as ArrayBuffer
   const arrayBuffer = await req.arrayBuffer();
   const uint8Array = new Uint8Array(arrayBuffer); // Convert to Uint8Array
 
-  // Load and decode the Protobuf schema
-  const root = await loadProtobuf();
 
-  const TracesData = root.lookupType("opentelemetry.proto.trace.v1.TracesData");
+  const TracesData = protoRoot.lookupType("opentelemetry.proto.trace.v1.TracesData");
 
   // Decode the Protobuf binary data
   const decodedData = TracesData.decode(uint8Array);
