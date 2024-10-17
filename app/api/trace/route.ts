@@ -151,7 +151,7 @@ export async function GET(req: NextRequest) {
 async function decodeProtobuf(req: NextRequest) {
   // Load the Protobuf schema
   const loadProtobuf = async () => {
-    return protobuf.load(path.resolve("app/api/trace", "trace.proto"));
+    return protobuf.load(path.resolve("proto", "trace.proto"));
   };
 
   // Get raw data from the request body as ArrayBuffer
