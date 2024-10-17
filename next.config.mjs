@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental:{
+    outputFileTracingIncludes: {
+      "/api/trace": ["./proto/*.proto"],
+    },
+  },
   images: {
     remotePatterns: [
       {
