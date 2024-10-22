@@ -148,6 +148,7 @@ Langtrace automatically captures traces from the following vendors:
 | Anthropic    | LLM             | :white_check_mark: | :white_check_mark:              |
 | Azure OpenAI | LLM             | :white_check_mark: | :white_check_mark:              |
 | Cohere       | LLM             | :white_check_mark: | :white_check_mark:              |
+| xAI          | LLM             | :white_check_mark: | :white_check_mark:              |
 | Groq         | LLM             | :white_check_mark: | :white_check_mark:              |
 | Perplexity   | LLM             | :white_check_mark: | :white_check_mark:              |
 | Gemini       | LLM             | :white_check_mark: | :white_check_mark:              |
