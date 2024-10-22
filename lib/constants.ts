@@ -146,6 +146,13 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
 
 };
 
+export const XAI_PRICING: Record<string, CostTableEntry> = {
+  "grok-beta": {
+    input: 0.005,
+    output: 0.015,
+  },
+};
+
 export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
   "claude-3-haiku": {
     input: 0.00025,

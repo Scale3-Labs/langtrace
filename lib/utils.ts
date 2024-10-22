@@ -19,6 +19,7 @@ import {
   OPENAI_PRICING,
   PERPLEXITY_PRICING,
   SpanStatusCode,
+  XAI_PRICING,
 } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
@@ -527,6 +528,8 @@ export function calculatePriceFromUsage(
       vendor = "anthropic";
     } else if (model.includes("mistral")) {
       vendor = "mistral"; // Assuming there is a MISTRAL_PRICING object
+    } else if (model.includes("grok")) {
+      vendor = "xai";
     } else if (model.includes("gemini")) {
       vendor =
         model.includes("flash") || model.includes("pro")
@@ -635,6 +638,8 @@ export function calculatePriceFromUsage(
     costTable = AZURE_PRICING[correctModel];
   } else if (vendor === "gemini") {
     costTable = GEMINI_PRICING[model];
+  } else if (vendor === "xai") {
+    costTable = XAI_PRICING[model];
   }
   if (costTable) {
     const total =
@@ -756,6 +761,11 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("perplexity")
   ) {
     vendor = "perplexity";
+  } else if (
+    span.name.includes("xai") ||
+    serviceName.includes("xai")
+  ) {
+    vendor = "xai";
   } else if (span.name.includes("openai") || serviceName.includes("openai")) {
     vendor = "openai";
   } else if (
