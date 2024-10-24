@@ -36,19 +36,23 @@ export async function POST(req: NextRequest) {
 
     // Normalize and prepare data for Clickhouse
     let normalized = [];
+    const spans: any[] = [];
     if (
       userAgent?.toLowerCase().includes("otel-otlp") ||
       userAgent?.toLowerCase().includes("opentelemetry")
     ) {
       // coming from an OTEL exporter
+      data.resourceSpans?.[0].scopeSpans.forEach((scopeSpan: any) => {
+        scopeSpan.spans.forEach((span: any) => spans.push(span));
+      });
       normalized = prepareForClickhouse(
-        normalizeOTELData(data.resourceSpans?.[0]?.scopeSpans?.[0]?.spans)
+        normalizeOTELData(spans)
       );
     } else {
       normalized = prepareForClickhouse(normalizeData(data));
     }
     const traceService = new TraceService();
-
+    console.log("NORMALIZED", normalized);
     // Add traces to Clickhouse
     await traceService.AddSpans(normalized, projectData.data.project.id);
     return NextResponse.json(
