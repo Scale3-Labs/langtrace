@@ -922,36 +922,41 @@ export class TraceService implements ITraceService {
             const llmTokenCounts = JSON.parse(
               parsedAttributes["llm.token.counts"]
             );
-            const token_count = llmTokenCounts.total_tokens || 0;
+            const token_count = Number(llmTokenCounts.total_tokens || 0);
             totalTokens += token_count;
 
-            const input_token_count =
+            const input_token_count = Number(
               "input_tokens" in llmTokenCounts
                 ? llmTokenCounts.input_tokens
                 : "prompt_tokens" in llmTokenCounts
                   ? llmTokenCounts.prompt_tokens
-                  : 0;
+                  : 0
+            );
             inputTokens += input_token_count;
 
-            const output_token_count =
+            const output_token_count = Number(
               "output_tokens" in llmTokenCounts
                 ? llmTokenCounts.output_tokens
                 : "completion_tokens" in llmTokenCounts
                   ? llmTokenCounts.completion_tokens
-                  : 0;
+                  : 0
+            );
             outputTokens += output_token_count;
           } else if ("gen_ai.usage.prompt_tokens" in parsedAttributes) {
-            const prompt_tokens =
-              parsedAttributes["gen_ai.usage.prompt_tokens"];
-            const completion_tokens =
-              parsedAttributes["gen_ai.usage.completion_tokens"];
+            const prompt_tokens = Number(
+              parsedAttributes["gen_ai.usage.prompt_tokens"]
+            );
+            const completion_tokens = Number(
+              parsedAttributes["gen_ai.usage.completion_tokens"]
+            );
             inputTokens += prompt_tokens;
             outputTokens += completion_tokens;
             totalTokens += prompt_tokens + completion_tokens;
           } else if ("gen_ai.usage.input_tokens" in parsedAttributes) {
-            const prompt_tokens = parsedAttributes["gen_ai.usage.input_tokens"];
-            const completion_tokens =
-              parsedAttributes["gen_ai.usage.output_tokens"];
+            const prompt_tokens = Number(parsedAttributes["gen_ai.usage.input_tokens"]);
+            const completion_tokens = Number(
+              parsedAttributes["gen_ai.usage.output_tokens"]
+            );
             inputTokens += prompt_tokens;
             outputTokens += completion_tokens;
             totalTokens += prompt_tokens + completion_tokens;
@@ -1066,9 +1071,9 @@ export class TraceService implements ITraceService {
 
       const costPerHour = result.map((row: any) => {
         const llmTokenCounts = {
-          total_tokens: row.total_tokens,
-          input_tokens: row.input_tokens,
-          output_tokens: row.output_tokens,
+          total_tokens: Number(row.total_tokens),
+          input_tokens: Number(row.input_tokens), 
+          output_tokens: Number(row.output_tokens),
         };
         const model = row.model;
         const vendor = row.vendor.toLowerCase();
@@ -1130,9 +1135,9 @@ export class TraceService implements ITraceService {
 
       spans.forEach((span) => {
         const llmTokenCounts = {
-          total_tokens: span.total_tokens,
-          input_tokens: span.input_tokens,
-          output_tokens: span.output_tokens,
+          total_tokens: Number(span.total_tokens || 0),
+          input_tokens: Number(span.input_tokens || 0),
+          output_tokens: Number(span.output_tokens || 0),
         };
         const model = span.model;
         const vendor = span.vendor.toLowerCase();
@@ -1178,15 +1183,17 @@ export class TraceService implements ITraceService {
           typeof parsedAttributes === "string"
             ? JSON.parse(parsedAttributes)
             : parsedAttributes;
-        const token_count = llmTokenCounts.total_tokens || 0;
+        const token_count = Number(llmTokenCounts.total_tokens || 0);
         totalTokens += token_count;
 
-        const input_token_count =
-          llmTokenCounts.input_tokens || llmTokenCounts.prompt_tokens || 0;
+        const input_token_count = Number(
+          llmTokenCounts.input_tokens || llmTokenCounts.prompt_tokens || 0
+        );
         totalInputTokens += input_token_count;
 
-        const output_token_count =
-          llmTokenCounts.output_tokens || llmTokenCounts.completion_tokens || 0;
+        const output_token_count = Number(
+          llmTokenCounts.output_tokens || llmTokenCounts.completion_tokens || 0
+        );
         totalOutputTokens += output_token_count;
       });
       return {
