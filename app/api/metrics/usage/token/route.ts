@@ -35,15 +35,18 @@ export async function GET(req: NextRequest) {
     );
     const total = {
       totalTokens: usage.reduce(
-        (acc: any, curr: { totalTokens: any }) => acc + curr.totalTokens,
+        (acc: any, curr: { totalTokens: any }) =>
+          acc + Number(curr.totalTokens),
         0
       ),
       inputTokens: usage.reduce(
-        (acc: any, curr: { inputTokens: any }) => acc + curr.inputTokens,
+        (acc: any, curr: { inputTokens: any }) =>
+          acc + Number(curr.inputTokens),
         0
       ),
       outputTokens: usage.reduce(
-        (acc: any, curr: { outputTokens: any }) => acc + curr.outputTokens,
+        (acc: any, curr: { outputTokens: any }) =>
+          acc + Number(curr.outputTokens),
         0
       ),
     };
