@@ -19,7 +19,7 @@ export function ApiKeyDialog({
   className = "",
 }: {
   project_id: string;
-  variant?: any;
+  variant?: string;
   className?: string;
 }) {
   const [busy, setBusy] = useState<boolean>(false);
@@ -52,6 +52,7 @@ export function ApiKeyDialog({
                 {apiKey}
               </p>
               <button
+                aria-label="Copy API Key"
                 className="bg-primary-foreground rounded-md"
                 onClick={() => {
                   navigator.clipboard.writeText(apiKey);
@@ -77,6 +78,9 @@ export function ApiKeyDialog({
                     },
                   }
                 );
+                if (!response.ok) {
+                  throw new Error("Failed to generate API key");
+                }
                 const result = await response.json();
                 setApiKey(result.data.apiKey);
                 toast("Copy your API Key!", {
@@ -93,7 +97,7 @@ export function ApiKeyDialog({
             }}
             disabled={busy}
           >
-            Generate API Key
+            {busy ? "Generating..." : "Generate API Key"}
           </Button>
         </DialogFooter>
       </DialogContent>
