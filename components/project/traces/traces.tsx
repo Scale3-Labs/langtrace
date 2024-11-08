@@ -21,6 +21,7 @@ import { Checkbox } from "../../ui/checkbox";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
 import { TracesTable } from "./traces-table";
+import { Input } from "@/components/ui/input";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -38,6 +39,7 @@ export default function Traces({ email }: { email: string }) {
   const [model, setModel] = useState<string>("");
   const [expandedView, setExpandedView] = useState(false);
   const [group, setGroup] = useState(true);
+  const [keyword, setKeyword] = useState<string>("");
 
   useEffect(() => {
     setCurrentData([]);
@@ -361,7 +363,7 @@ export default function Traces({ email }: { email: string }) {
     async (pageNum: number) => {
       const apiEndpoint = "/api/traces";
 
-      const body = {
+      const body: any = {
         page: pageNum,
         pageSize: PAGE_SIZE,
         projectId: project_id,
@@ -371,6 +373,10 @@ export default function Traces({ email }: { email: string }) {
         },
         group: true,
       };
+
+      if (keyword !== "") {
+        body.keyword = keyword;
+      }
 
       const response = await fetch(apiEndpoint, {
         method: "POST",
@@ -594,6 +600,20 @@ export default function Traces({ email }: { email: string }) {
           </div>
         </div>
       </div>
+      <Input
+        className="w-full border-muted-foreground rounded-md"
+        placeholder="Search for anything in your traces (Hit Enter to search)"
+        value={keyword}
+        onChange={(e) => setKeyword(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            // reset everything
+            setPage(1);
+            setFilters([]);
+            setEnableFetch(true);
+        }
+        }}
+      />
       <TracesTable
         project_id={project_id}
         columns={columns}
