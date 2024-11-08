@@ -4,6 +4,7 @@ import { calculatePriceFromUsage } from "./utils";
 export interface Trace {
   id: string;
   status: string;
+  session_id: string;
   namespace: string;
   user_ids: string[];
   prompt_ids: string[];
@@ -30,6 +31,7 @@ export function processTrace(trace: any): Trace {
   const traceHierarchy = convertTracesToHierarchy(trace);
   const totalTime = calculateTotalTime(trace);
   const startTime = trace[0].start_time;
+  let session_id = "";
   let tokenCounts: any = {};
   let models: string[] = [];
   let vendors: string[] = [];
@@ -54,6 +56,11 @@ export function processTrace(trace: any): Trace {
       // parse the attributes of the span
       attributes = JSON.parse(span.attributes);
       let vendor = "";
+
+      // get session.id from the attributes
+      if (attributes["session.id"]) {
+        session_id = attributes["session.id"];
+      }
 
       // get the service name from the attributes
       if (attributes["langtrace.service.name"]) {
@@ -250,6 +257,7 @@ export function processTrace(trace: any): Trace {
   const result: Trace = {
     id: trace[0]?.trace_id,
     status: status,
+    session_id: session_id,
     namespace: traceHierarchy[0].name,
     user_ids: userIds,
     prompt_ids: promptIds,
