@@ -84,6 +84,7 @@ export function TracesTable<TData, TValue>({
       inputs: true,
       outputs: true,
       status: newMode === "trace",
+      session_id: newMode === "trace",
       namespace: newMode === "trace",
       user_ids: newMode === "trace",
       prompt_ids: newMode === "trace",

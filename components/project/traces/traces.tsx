@@ -106,6 +106,18 @@ export default function Traces({ email }: { email: string }) {
       },
     },
     {
+      accessorKey: "session_id",
+      header: "Session ID",
+      cell: ({ row }) => {
+        const session_id = row.getValue("session_id") as string;
+        return (
+          <div className="text-left">
+            <p className="text-xs font-semibold">{session_id}</p>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "namespace",
       header: "Namespace",
       cell: ({ row }) => {
