@@ -4,6 +4,7 @@ import { calculatePriceFromUsage } from "./utils";
 export interface DspyTrace {
   id: string;
   run_id: string;
+  session_id: string;
   experiment_name: string;
   experiment_description: string;
   status: string;
@@ -36,6 +37,7 @@ export function processDspyTrace(trace: any): DspyTrace {
   const traceHierarchy = convertTracesToHierarchy(trace);
   const totalTime = calculateTotalTime(trace);
   const startTime = trace[0].start_time;
+  let session_id = "";
   let tokenCounts: any = {};
   let models: string[] = [];
   let vendors: string[] = [];
@@ -89,6 +91,11 @@ export function processDspyTrace(trace: any): DspyTrace {
 
       if (attributes["dspy.checkpoint"]) {
         checkpoint = JSON.parse(attributes["dspy.checkpoint"]);
+      }
+
+      // get the session_id from the attributes
+      if (attributes["session.id"]) {
+        session_id = attributes["session.id"];
       }
 
       // get the service name from the attributes
@@ -303,6 +310,7 @@ export function processDspyTrace(trace: any): DspyTrace {
   const result: DspyTrace = {
     id: trace[0]?.trace_id,
     run_id: run_id,
+    session_id: session_id,
     experiment_name: experiment_name,
     experiment_description: experiment_description,
     status: status,

@@ -660,7 +660,8 @@ export class TraceService implements ITraceService {
     page: number,
     pageSize: number,
     filters: Filter = { operation: "AND", filters: [] },
-    group: boolean = true
+    group: boolean = true,
+    keyword?: string
   ): Promise<PaginationResult<Span[]>> {
     try {
       // check if the table exists
@@ -678,7 +679,8 @@ export class TraceService implements ITraceService {
       const getTotalTracesPerProjectQuery = sql.select(
         this.queryBuilderService.CountFilteredTraceAttributesQuery(
           project_id,
-          filters
+          filters,
+          keyword
         )
       );
       const result = await this.client.find<any>(getTotalTracesPerProjectQuery);
@@ -699,7 +701,8 @@ export class TraceService implements ITraceService {
           project_id,
           filters,
           pageSize,
-          (page - 1) * pageSize
+          (page - 1) * pageSize,
+          keyword
         )
       );
       const spans: Span[] = await this.client.find<Span[]>(getTraceIdsQuery);
@@ -720,7 +723,8 @@ export class TraceService implements ITraceService {
           this.queryBuilderService.GetFilteredTraceAttributesTraceById(
             project_id,
             span.trace_id,
-            filters
+            filters,
+            keyword
           )
         );
         let trace = await this.client.find<Span[]>(getTraceByIdQuery);
