@@ -18,7 +18,8 @@ export type VendorsLocal = Vendor;
 export const SpanAttributes = extractPropertyNames(
   DatabaseSpanAttributeNames,
   FrameworkSpanAttributeNames,
-  LLMSpanAttributeNames
+  LLMSpanAttributeNames,
+  ["session.id"],
 );
 
 export const TracedFunctionsByVendorsLocal = TracedFunctionsByVendor;

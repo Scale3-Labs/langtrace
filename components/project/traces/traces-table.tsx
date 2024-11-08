@@ -84,6 +84,7 @@ export function TracesTable<TData, TValue>({
       inputs: true,
       outputs: true,
       status: newMode === "trace",
+      session_id: newMode === "trace",
       namespace: newMode === "trace",
       user_ids: newMode === "trace",
       prompt_ids: newMode === "trace",
@@ -306,7 +307,7 @@ export function TracesTable<TData, TValue>({
           </div>
         )}
         {!loading && data && data.length > 0 && (
-          <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
+          <Table style={{ ...columnSizeVars, minWidth: table.getTotalSize() }}>
             <TableHeader className="sticky top-0 z-50 bg-secondary">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
