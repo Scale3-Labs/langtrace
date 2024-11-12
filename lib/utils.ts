@@ -576,6 +576,10 @@ export function calculatePriceFromUsage(
       costTable = ANTHROPIC_PRICING[cmodel];
     } else if (model.includes("command")) {
       costTable = COHERE_PRICING[model];
+    } else if (model.includes("gemini")) {
+      costTable = GEMINI_PRICING[model];
+    } else if (model.includes("grok")) {
+      costTable = XAI_PRICING[model];
     }
   } else if (vendor === "openai") {
     // check if model is present as key in OPENAI_PRICING
@@ -827,6 +831,8 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "embedchain";
   } else if (span.name.includes("litellm") || serviceName.includes("litellm")) {
     vendor = "litellm";
+  } else if (span.name.includes("mongodb") || serviceName.includes("mongodb")) {
+    vendor = "mongodb";
   }
   return vendor;
 }
