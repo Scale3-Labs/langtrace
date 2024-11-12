@@ -146,6 +146,10 @@ export function vendorColor(vendor: string) {
     return "bg-black";
   }
 
+  if (vendor.includes("mongodb")) {
+    return "bg-green-200";
+  }
+
   return "bg-gray-800";
 }
 
@@ -477,6 +481,22 @@ export function VendorLogo({
       <Image
         alt="LiteLLM Logo"
         src="/litellm.png"
+        width={50}
+        height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("mongodb")) {
+    const color = vendorColor("mongodb");
+    return (
+      <Image
+        alt="MongoDB Logo"
+        src="/mongodb.png"
         width={50}
         height={50}
         className={cn(

@@ -122,6 +122,8 @@ const SpanItem: React.FC<SpanItemProps> = ({
     color = "bg-slate-500";
   else if (span.name.includes("litellm") || serviceName.includes("litellm"))
     color = "bg-blue-500";
+  else if (span.name.includes("mongodb") || serviceName.includes("mongodb"))
+    color = "bg-green-500";
   const fillColor = color.replace("bg-", "fill-");
 
   const vendor = getVendorFromSpan(span as any);
