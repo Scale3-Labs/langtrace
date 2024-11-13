@@ -1,6 +1,6 @@
 <div align="center">
   <h1>
-    <img src="/public/langtrace-tracing-ss.png" alt="Langtrace" width="400"/>
+    <img src="https://github.com/Scale3-Labs/langtrace/assets/105607645/6825158c-39bb-4270-b1f9-446c36c066ee" alt="Langtrace" width="400"/>
     <br/>
     <a href="https://www.langtrace.ai">Langtrace</a>
   </h1>
