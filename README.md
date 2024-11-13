@@ -1,23 +1,68 @@
-# [Langtrace](https://www.langtrace.ai)
+<div align="center">
+  <h1>
+    <img src="/public/langtrace-tracing-ss.png" alt="Langtrace" width="400"/>
+    <br/>
+    <a href="https://www.langtrace.ai">Langtrace</a>
+  </h1>
+  <h3>Open Source Observability for LLM Applications</h3>
 
-Open Source Observability for LLM applications
-
-## 🌐 Open Source & Open Telemetry(OTEL) Observability for LLM applications
-
-![Static Badge](https://img.shields.io/badge/License-AGPL--3.0-blue)
-[![NPM Typescript SDK](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat&logo=npm&label=%40langtrase%2Ftypescript-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-typescript-sdk)](https://github.com/Scale3-Labs/langtrace-typescript-sdk)
-[![PyPI Python SDK](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat&logo=python&label=langtrace-python-sdk&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-python-sdk)](https://github.com/Scale3-Labs/langtrace-python-sdk)
-[![Downloads](https://static.pepy.tech/badge/langtrace-python-sdk/month)](https://pepy.tech/project/langtrace-python-sdk)
-[![NPM Trace Attributes](https://img.shields.io/npm/v/%40langtrase%2Ftrace-attributes?style=flat&logo=npm&label=%40langtrase%2Ftrace-attributes&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-trace-attributes)](https://github.com/Scale3-Labs/langtrace-trace-attributes)
-[![PyPI Trace Attributes](https://img.shields.io/pypi/v/trace-attributes?style=flat&logo=python&label=trace-attributes&color=green&link=https%3A%2F%2Fgithub.com%2FScale3-Labs%2Flangtrace-trace-attributes)](https://github.com/Scale3-Labs/langtrace-trace-attributes)
-![Static Badge](https://img.shields.io/badge/Development_status-Active-green)
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/8dNq1c?referralCode=MA2S9H)
+  [![License](https://img.shields.io/badge/License-AGPL--3.0-blue?style=flat-square)](LICENSE)
+  [![NPM SDK](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat-square&logo=npm&label=typescript-sdk&color=green)](https://github.com/Scale3-Labs/langtrace-typescript-sdk)
+  [![PyPI SDK](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat-square&logo=python&label=python-sdk&color=green)](https://github.com/Scale3-Labs/langtrace-python-sdk)
+  [![Downloads](https://static.pepy.tech/badge/langtrace-python-sdk/month)](https://pepy.tech/project/langtrace-python-sdk)
+  [![Deploy](https://railway.app/button.svg)](https://railway.app/template/8dNq1c?referralCode=MA2S9H)
+</div>
 
 ---
+
+## 📚 Table of Contents
+- [✨ Features](#-features)
+- [🚀 Quick Start](#-quick-start)
+- [🔗 Integrations](#-supported-integrations)
+- [🌐 Getting Started](#-getting-started)
+- [🏠 Self Hosting](#-langtrace-self-hosted)
+- [📐 Architecture](#-langtrace-system-architecture)
+- [🤝 Contributing](#-contributions)
+- [🔒 Security](#-security)
+- [❓ FAQ](#-frequently-asked-questions)
+- [📜 License](#-license)
 
 Langtrace is an open source observability software which lets you capture, debug and analyze traces and metrics from all your applications that leverages LLM APIs, Vector Databases and LLM based Frameworks.
 
 ![image](https://github.com/Scale3-Labs/langtrace/assets/105607645/6825158c-39bb-4270-b1f9-446c36c066ee)
+
+## ✨ Features
+
+- 📊 **Open Telemetry Support**: Built on OTEL standards for comprehensive tracing
+- 🔄 **Real-time Monitoring**: Track LLM API calls, vector operations, and framework usage
+- 🎯 **Performance Insights**: Analyze latency, costs, and usage patterns
+- 🔍 **Debug Tools**: Trace and debug your LLM application workflows
+- 📈 **Analytics**: Get detailed metrics and visualizations
+- 🏠 **Self-hosting Option**: Deploy on your own infrastructure
+
+## 🚀 Quick Start
+
+```bash
+# For TypeScript/JavaScript
+npm i @langtrase/typescript-sdk
+
+# For Python
+pip install langtrace-python-sdk
+```
+
+Initialize in your code:
+```typescript
+// TypeScript
+import * as Langtrace from '@langtrase/typescript-sdk'
+Langtrace.init({ api_key: '<your_api_key>' }) // Get your API key at langtrace.ai
+```
+```python
+# Python
+from langtrace_python_sdk import langtrace
+langtrace.init(api_key='<your_api_key>') # Get your API key at langtrace.ai
+```
+
+For detailed setup instructions, see [Getting Started](#-getting-started).
 
 ## 📊 Open Telemetry Support
 
@@ -138,36 +183,45 @@ If you prefer to disable telemetry, you can do so by setting TELEMETRY_ENABLED=f
 
 ---
 
-## 🔗 Supported integrations
+## 🔗 Supported Integrations
 
-Langtrace automatically captures traces from the following vendors:
+Langtrace automatically captures traces from the following vendors and frameworks:
 
-| Vendor       | Type            | Typescript SDK     | Python SDK                      |
-| ------------ | --------------- | ------------------ | ------------------------------- |
-| OpenAI       | LLM             | :white_check_mark: | :white_check_mark:              |
-| Anthropic    | LLM             | :white_check_mark: | :white_check_mark:              |
-| Azure OpenAI | LLM             | :white_check_mark: | :white_check_mark:              |
-| Cohere       | LLM             | :white_check_mark: | :white_check_mark:              |
-| xAI          | LLM             | :white_check_mark: | :white_check_mark:              |
-| Groq         | LLM             | :white_check_mark: | :white_check_mark:              |
-| Perplexity   | LLM             | :white_check_mark: | :white_check_mark:              |
-| Gemini       | LLM             | :white_check_mark: | :white_check_mark:              |
-| AWS Bedrock  | LLM             | :white_check_mark: | :x:                             |
-| Mistral      | LLM             | :x:                | :white_check_mark:              |
-| Langchain    | Framework       | :x:                | :white_check_mark:              |
-| LlamaIndex   | Framework       | :white_check_mark: | :white_check_mark:              |
-| Langgraph    | Framework       | :x:                | :white_check_mark:              |
-| LiteLLM      | Framework       | :x:                | :white_check_mark:              |
-| DSPy         | Framework       | :x:                | :white_check_mark:              |
-| CrewAI       | Framework       | :x:                | :white_check_mark:              |
-| Ollama       | Framework       | :x:                | :white_check_mark:              |
-| VertexAI     | Framework       | :white_check_mark: | :white_check_mark:              |
-| Vercel AI    | Framework       | :white_check_mark: | :x:                             |
-| Pinecone     | Vector Database | :white_check_mark: | :white_check_mark:              |
-| ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark:              |
-| QDrant       | Vector Database | :white_check_mark: | :white_check_mark:              |
-| Weaviate     | Vector Database | :white_check_mark: | :white_check_mark:              |
-| PGVector     | Vector Database | :white_check_mark: | :white_check_mark: (SQLAlchemy) |
+### LLM Providers
+| Provider | TypeScript SDK | Python SDK |
+|----------|:-------------:|:----------:|
+| OpenAI | ✅ | ✅ |
+| Anthropic | ✅ | ✅ |
+| Azure OpenAI | ✅ | ✅ |
+| Cohere | ✅ | ✅ |
+| xAI | ✅ | ✅ |
+| Groq | ✅ | ✅ |
+| Perplexity | ✅ | ✅ |
+| Gemini | ✅ | ✅ |
+| AWS Bedrock | ✅ | ❌ |
+| Mistral | ❌ | ✅ |
+
+### LLM Frameworks
+| Framework | TypeScript SDK | Python SDK |
+|-----------|:-------------:|:----------:|
+| Langchain | ❌ | ✅ |
+| LlamaIndex | ✅ | ✅ |
+| Langgraph | ❌ | ✅ |
+| LiteLLM | ❌ | ✅ |
+| DSPy | ❌ | ✅ |
+| CrewAI | ❌ | ✅ |
+| Ollama | ❌ | ✅ |
+| VertexAI | ✅ | ✅ |
+| Vercel AI | ✅ | ❌ |
+
+### Vector Databases
+| Database | TypeScript SDK | Python SDK |
+|----------|:-------------:|:----------:|
+| Pinecone | ✅ | ✅ |
+| ChromaDB | ✅ | ✅ |
+| QDrant | ✅ | ✅ |
+| Weaviate | ✅ | ✅ |
+| PGVector | ✅ | ✅ (SQLAlchemy) |
 
 ---
 
