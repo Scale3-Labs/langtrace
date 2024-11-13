@@ -7,6 +7,8 @@
   <h3>Open Source Observability for LLM Applications</h3>
 
   [![License](https://img.shields.io/badge/License-AGPL--3.0-blue?style=flat-square)](LICENSE)
+  [![Development Status](https://img.shields.io/badge/Status-Active-success?style=flat-square)](https://github.com/Scale3-Labs/langtrace)
+  [![Pull Requests](https://img.shields.io/github/issues-pr/Scale3-Labs/langtrace?style=flat-square)](https://github.com/Scale3-Labs/langtrace/pulls)
   [![NPM SDK](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat-square&logo=npm&label=typescript-sdk&color=green)](https://github.com/Scale3-Labs/langtrace-typescript-sdk)
   [![NPM Downloads](https://img.shields.io/npm/dm/%40langtrase%2Ftypescript-sdk?style=flat-square&logo=npm)](https://www.npmjs.com/package/@langtrase/typescript-sdk)
   [![PyPI SDK](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat-square&logo=python&label=python-sdk&color=green)](https://github.com/Scale3-Labs/langtrace-python-sdk)
@@ -26,6 +28,7 @@
 - [🤝 Contributing](#-contributions)
 - [🔒 Security](#-security)
 - [❓ FAQ](#-frequently-asked-questions)
+- [👥 Contributors](#-contributors)
 - [📜 License](#-license)
 
 Langtrace is an open source observability software which lets you capture, debug and analyze traces and metrics from all your applications that leverages LLM APIs, Vector Databases and LLM based Frameworks.
@@ -261,6 +264,36 @@ To report security vulnerabilities, email us at <security@scale3labs.com>. You c
 
 - Langtrace application(this repository) is [licensed](https://github.com/Scale3-Labs/langtrace/blob/development/LICENSE) under the AGPL 3.0 License. You can read about this license [here](https://www.gnu.org/licenses/agpl-3.0.en.html).
 - Langtrace SDKs are licensed under the Apache 2.0 License. You can read about this license [here](https://www.apache.org/licenses/LICENSE-2.0).
+
+## 👥 Contributors
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><a href="https://github.com/karthikscale3"><img src="https://github.com/karthikscale3.png" width="100px;" alt="karthikscale3"/><br /><sub><b>karthikscale3</b></sub></a></td>
+      <td align="center"><a href="https://github.com/dylanzuber-scale3"><img src="https://github.com/dylanzuber-scale3.png" width="100px;" alt="dylanzuber-scale3"/><br /><sub><b>dylanzuber-scale3</b></sub></a></td>
+      <td align="center"><a href="https://github.com/darshit-s3"><img src="https://github.com/darshit-s3.png" width="100px;" alt="darshit-s3"/><br /><sub><b>darshit-s3</b></sub></a></td>
+      <td align="center"><a href="https://github.com/rohit-kadhe"><img src="https://github.com/rohit-kadhe.png" width="100px;" alt="rohit-kadhe"/><br /><sub><b>rohit-kadhe</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/yemiadej"><img src="https://github.com/yemiadej.png" width="100px;" alt="yemiadej"/><br /><sub><b>yemiadej</b></sub></a></td>
+      <td align="center"><a href="https://github.com/alizenhom"><img src="https://github.com/alizenhom.png" width="100px;" alt="alizenhom"/><br /><sub><b>alizenhom</b></sub></a></td>
+      <td align="center"><a href="https://github.com/obinnascale3"><img src="https://github.com/obinnascale3.png" width="100px;" alt="obinnascale3"/><br /><sub><b>obinnascale3</b></sub></a></td>
+      <td align="center"><a href="https://github.com/Cruppelt"><img src="https://github.com/Cruppelt.png" width="100px;" alt="Cruppelt"/><br /><sub><b>Cruppelt</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/Dnaynu"><img src="https://github.com/Dnaynu.png" width="100px;" alt="Dnaynu"/><br /><sub><b>Dnaynu</b></sub></a></td>
+      <td align="center"><a href="https://github.com/jatin9823"><img src="https://github.com/jatin9823.png" width="100px;" alt="jatin9823"/><br /><sub><b>jatin9823</b></sub></a></td>
+      <td align="center"><a href="https://github.com/MayuriS24"><img src="https://github.com/MayuriS24.png" width="100px;" alt="MayuriS24"/><br /><sub><b>MayuriS24</b></sub></a></td>
+      <td align="center"><a href="https://github.com/NishantRana07"><img src="https://github.com/NishantRana07.png" width="100px;" alt="NishantRana07"/><br /><sub><b>NishantRana07</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/obinnaokafor"><img src="https://github.com/obinnaokafor.png" width="100px;" alt="obinnaokafor"/><br /><sub><b>obinnaokafor</b></sub></a></td>
+      <td align="center"><a href="https://github.com/heysagnik"><img src="https://github.com/heysagnik.png" width="100px;" alt="heysagnik"/><br /><sub><b>heysagnik</b></sub></a></td>
+      <td align="center"><a href="https://github.com/dabiras3"><img src="https://github.com/dabiras3.png" width="100px;" alt="dabiras3"/><br /><sub><b>dabiras3</b></sub></a></td>
+    </tr>
+  </table>
+</div>
 
 ---
 
