@@ -46,7 +46,9 @@ export default function CreatePromptDialog({
   setOpenDialog,
 }: {
   promptsetId: string;
-  currentPrompt?: Prompt;
+  currentPrompt?: Prompt & {
+    originalZodSchema?: string;
+  };
   passedPrompt?: string;
   version?: number;
   variant?: any;
@@ -68,7 +70,7 @@ export default function CreatePromptDialog({
   const CreatePromptForm = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      prompt: passedPrompt || currentPrompt?.value || "",
+      prompt: currentPrompt?.originalZodSchema || passedPrompt || currentPrompt?.value || "",
       note: currentPrompt?.note || "",
       live: currentPrompt?.live || false,
       model: currentPrompt?.model || "",
@@ -81,15 +83,21 @@ export default function CreatePromptDialog({
     currentPrompt?.variables || []
   );
   const [busy, setBusy] = useState<boolean>(false);
-  const [isZod, setIsZod] = useState<boolean>(false);
-  const [viewFormat, setViewFormat] = useState<"zod" | "json">("json");
+  const [isZod, setIsZod] = useState<boolean>(!!currentPrompt?.originalZodSchema);
+  const [viewFormat, setViewFormat] = useState<"zod" | "json">(
+    currentPrompt?.originalZodSchema ? "zod" : "json"
+  );
 
-  const isZodSchema = (str: string) => {
-    // Basic check to see if the string contains a Zod schema pattern
-    return (
-      /z\./.test(str) &&
-      /z\.(object|string|number|array|discriminatedUnion)/.test(str)
-    );
+  const isZodSchema = (str: string): boolean => {
+    try {
+      return (
+        /z\./.test(str) &&
+        /z\.(object|string|number|array|boolean|enum|union|discriminatedUnion|intersection|tuple|record|map|set|function|lazy|promise|null|undefined|any|unknown|void|never|literal|nan|symbol)/.test(str) &&
+        new Function("z", `return ${str}`)(z) !== undefined
+      );
+    } catch {
+      return false;
+    }
   };
 
   const extractVariables = (prompt: string) => {
@@ -244,7 +252,8 @@ export default function CreatePromptDialog({
                         <FormControl>
                           <CodeEditor
                             defaultValue={
-                              isJsonString(
+                              currentPrompt?.originalZodSchema ||
+                              (isJsonString(
                                 passedPrompt || currentPrompt?.value || ""
                               )
                                 ? JSON.stringify(
@@ -254,30 +263,57 @@ export default function CreatePromptDialog({
                                     null,
                                     2
                                   )
-                                : passedPrompt || currentPrompt?.value || ""
+                                : passedPrompt || currentPrompt?.value || "")
                             }
                             value={
-                              isJsonString(field.value)
-                                ? JSON.stringify(
-                                    JSON.parse(field.value),
-                                    null,
-                                    2
-                                  )
+                              isZod
+                                ? viewFormat === "json"
+                                  ? (() => {
+                                      try {
+                                        const schema = new Function(
+                                          "z",
+                                          `return ${field.value}`
+                                        )(z);
+                                        return JSON.stringify(
+                                          zodToJsonSchema(schema),
+                                          null,
+                                          2
+                                        );
+                                      } catch (e) {
+                                        console.error("Error converting Zod to JSON:", e);
+                                        return "Error: Invalid Zod schema";
+                                      }
+                                    })()
+                                  : field.value
+                                : isJsonString(field.value)
+                                ? JSON.stringify(JSON.parse(field.value), null, 2)
                                 : field.value
                             }
                             onChange={(e) => {
-                              // If the prompt is not a zod schema, extract variables
-                              if (!isZodSchema(e.target.value)) {
-                                setIsZod(false);
-                                const vars = extractVariables(e.target.value);
+                              try {
+                                const newValue = e.target.value;
+                                if (isZodSchema(newValue)) {
+                                  setIsZod(true);
+                                  setViewFormat("zod"); // Switch to Zod view when valid Zod schema is detected
+                                } else {
+                                  setIsZod(false);
+                                  setViewFormat("json");
+                                }
+                                const vars = extractVariables(newValue);
                                 setVariables(vars);
-                              } else {
-                                setIsZod(true);
+                                field.onChange(e);
+                              } catch (error) {
+                                console.error("Error processing input:", error);
+                                // Still update the field value even if there's an error
+                                field.onChange(e);
                               }
-                              field.onChange(e);
                             }}
-                            placeholder="You are a sales assisstant and your name is ${name}. You are well versed in ${topic}."
-                            language="json"
+                            placeholder={
+                              isZod
+                                ? 'z.object({\n  name: z.string(),\n  age: z.number(),\n  email: z.string().email()\n})'
+                                : '{\n  "type": "object",\n  "properties": {\n    "name": { "type": "string" },\n    "age": { "type": "number" }\n  }\n}'
+                            }
+                            language={isZod ? (viewFormat === "json" ? "json" : "typescript") : "json"}
                             padding={15}
                             className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
                             style={{
