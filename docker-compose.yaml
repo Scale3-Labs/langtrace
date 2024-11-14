@@ -12,15 +12,17 @@ services:
     ports:
       - "3000:3000"
     # Uncomment this for development
-    command: npm run dev
-    volumes:
-      - .:/app
+    # command: npm run dev
+    # volumes:
+    #   - .:/app
     restart: on-failure:5
     depends_on:
       postgres-db:
         condition: service_started
+        required: true
       clickhouse-db:
         condition: service_healthy
+        required: true
 
   postgres-db:
     container_name: langtrace-postgres
@@ -47,9 +49,18 @@ services:
       test: wget --no-verbose --tries=1 --spider http://langtrace-clickhouse:8123/ping || exit 1
       retries: 3
       start_period: 30s
+      start_interval: 5s
       interval: 30s
     volumes:
       - clickhouse-data:/var/lib/clickhouse
+
+  langtrace-app-prod:
+    extends:
+      service: langtrace-app
+    build:
+      target: production
+    profiles:
+      - production
 
 volumes:
   postgres-data:
