@@ -113,6 +113,9 @@ export default function CreatePromptDialog({
         ? currentPrompt.originalZodSchema
         : currentPrompt.value;
 
+      // Detect if the current value is a Zod schema
+      const isZodValue = Boolean(isCurrentZod || (promptValue && isZodSchema(promptValue)));
+
       CreatePromptForm.reset({
         prompt: promptValue || "",
         note: currentPrompt.note || "",
@@ -121,8 +124,8 @@ export default function CreatePromptDialog({
         modelSettings: JSON.stringify(currentPrompt.modelSettings) || "",
       });
 
-      setIsZod(isCurrentZod);
-      setViewFormat(isCurrentZod ? "zod" : "json");
+      setIsZod(isZodValue);
+      setViewFormat(isZodValue ? "zod" : "json");
       setVariables(currentPrompt.variables || []);
     }
   }, [currentPrompt]);
@@ -278,7 +281,7 @@ export default function CreatePromptDialog({
                           <CodeEditor
                             defaultValue={
                               isZod
-                                ? currentPrompt?.originalZodSchema || ""
+                                ? currentPrompt?.originalZodSchema || CreatePromptForm.watch("prompt")
                                 : (isJsonString(currentPrompt?.value || "")
                                     ? JSON.stringify(
                                         JSON.parse(currentPrompt?.value || ""),
@@ -303,30 +306,30 @@ export default function CreatePromptDialog({
                                         );
                                       } catch (e) {
                                         console.error("Error converting Zod to JSON:", e);
-                                        return "Error: Invalid Zod schema";
+                                        return CreatePromptForm.watch("prompt"); // Return Zod format on error
                                       }
                                     })()
-                                  : CreatePromptForm.getValues().prompt
-                                : isJsonString(CreatePromptForm.getValues().prompt)
-                                ? JSON.stringify(JSON.parse(CreatePromptForm.getValues().prompt), null, 2)
-                                : CreatePromptForm.getValues().prompt
+                                  : CreatePromptForm.watch("prompt")
+                                : isJsonString(CreatePromptForm.watch("prompt"))
+                                ? JSON.stringify(JSON.parse(CreatePromptForm.watch("prompt")), null, 2)
+                                : CreatePromptForm.watch("prompt")
                             }
                             onChange={(e) => {
                               try {
                                 const newValue = e.target.value;
-                                if (isZodSchema(newValue)) {
-                                  setIsZod(true);
-                                  setViewFormat("zod"); // Switch to Zod view when valid Zod schema is detected
-                                } else {
-                                  setIsZod(false);
-                                  setViewFormat("json");
+                                const isZodValue = isZodSchema(newValue);
+
+                                setIsZod(isZodValue);
+                                // Only update viewFormat if switching between Zod and JSON
+                                if (isZodValue !== isZod) {
+                                  setViewFormat(isZodValue ? "zod" : "json");
                                 }
+
                                 const vars = extractVariables(newValue);
                                 setVariables(vars);
                                 field.onChange(e);
                               } catch (error) {
                                 console.error("Error processing input:", error);
-                                // Still update the field value even if there's an error
                                 field.onChange(e);
                               }
                             }}
