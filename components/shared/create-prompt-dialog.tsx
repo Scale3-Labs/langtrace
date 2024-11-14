@@ -69,11 +69,21 @@ export default function CreatePromptDialog({
 
   const isZodSchema = (str: string): boolean => {
     try {
-      return (
-        /z\./.test(str) &&
-        /z\.(object|string|number|array|boolean|enum|union|discriminatedUnion|intersection|tuple|record|map|set|function|lazy|promise|null|undefined|any|unknown|void|never|literal|nan|symbol)/.test(str) &&
-        new Function("z", `return ${str}`)(z) !== undefined
-      );
+      // Check for basic Zod patterns
+      if (!/z\./.test(str)) return false;
+
+      // Enhanced regex to detect complex Zod schemas with validation rules
+      const zodPatterns = [
+        /z\.(object|string|number|array|boolean|enum|union|discriminatedUnion|intersection|tuple|record|map|set|function|lazy|promise|null|undefined|any|unknown|void|never|literal|nan|symbol)/,
+        /\.(min|max|email|url|uuid|cuid|length|startsWith|endsWith|includes|regex|optional|nullable|array|object)\(/,
+        /z\.object\(\{[\s\S]*\}\)/  // Match object structure
+      ];
+
+      if (!zodPatterns.some(pattern => pattern.test(str))) return false;
+
+      // Validate the schema by evaluating it
+      const schema = new Function("z", `return ${str}`)(z);
+      return schema !== undefined && typeof schema.parse === 'function';
     } catch {
       return false;
     }
