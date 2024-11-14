@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         name: error?.name || 'UnknownError',
-        message: error?.message || 'No error message available',
+        message: error?.message || 'Something went wrong while ingesting traces',
         stack: error?.stack,
         fullError: error instanceof Error 
           ? JSON.stringify(error, Object.getOwnPropertyNames(error))
