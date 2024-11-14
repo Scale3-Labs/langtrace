@@ -86,13 +86,11 @@ export default function CreatePromptDialog({
   const CreatePromptForm = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      prompt: currentPrompt?.originalZodSchema ||
-        (currentPrompt?.value && isZodSchema(currentPrompt.value) ? currentPrompt.value :
-        passedPrompt || currentPrompt?.value || ""),
-      note: currentPrompt?.note || "",
-      live: currentPrompt?.live || false,
-      model: currentPrompt?.model || "",
-      modelSettings: JSON.stringify(currentPrompt?.modelSettings) || "",
+      prompt: "",
+      note: "",
+      live: false,
+      model: "",
+      modelSettings: "",
     },
   });
 
@@ -116,6 +114,7 @@ export default function CreatePromptDialog({
       // Detect if the current value is a Zod schema
       const isZodValue = Boolean(isCurrentZod || (promptValue && isZodSchema(promptValue)));
 
+      // Set form values
       CreatePromptForm.reset({
         prompt: promptValue || "",
         note: currentPrompt.note || "",
@@ -124,6 +123,7 @@ export default function CreatePromptDialog({
         modelSettings: JSON.stringify(currentPrompt.modelSettings) || "",
       });
 
+      // Update state
       setIsZod(isZodValue);
       setViewFormat(isZodValue ? "zod" : "json");
       setVariables(currentPrompt.variables || []);
@@ -279,17 +279,6 @@ export default function CreatePromptDialog({
                         </FormLabel>
                         <FormControl>
                           <CodeEditor
-                            defaultValue={
-                              isZod
-                                ? currentPrompt?.originalZodSchema || CreatePromptForm.watch("prompt")
-                                : (isJsonString(currentPrompt?.value || "")
-                                    ? JSON.stringify(
-                                        JSON.parse(currentPrompt?.value || ""),
-                                        null,
-                                        2
-                                      )
-                                    : currentPrompt?.value || "")
-                            }
                             value={
                               isZod
                                 ? viewFormat === "json"
@@ -306,7 +295,7 @@ export default function CreatePromptDialog({
                                         );
                                       } catch (e) {
                                         console.error("Error converting Zod to JSON:", e);
-                                        return CreatePromptForm.watch("prompt"); // Return Zod format on error
+                                        return CreatePromptForm.watch("prompt");
                                       }
                                     })()
                                   : CreatePromptForm.watch("prompt")
@@ -314,37 +303,45 @@ export default function CreatePromptDialog({
                                 ? JSON.stringify(JSON.parse(CreatePromptForm.watch("prompt")), null, 2)
                                 : CreatePromptForm.watch("prompt")
                             }
-                            onChange={(e) => {
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                               try {
                                 const newValue = e.target.value;
                                 const isZodValue = isZodSchema(newValue);
 
                                 setIsZod(isZodValue);
-                                // Only update viewFormat if switching between Zod and JSON
                                 if (isZodValue !== isZod) {
                                   setViewFormat(isZodValue ? "zod" : "json");
                                 }
 
+                                if (isZodValue) {
+                                  field.onChange(newValue);
+                                } else {
+                                  field.onChange(
+                                    isJsonString(newValue)
+                                      ? JSON.stringify(JSON.parse(newValue), null, 2)
+                                      : newValue
+                                  );
+                                }
+
                                 const vars = extractVariables(newValue);
                                 setVariables(vars);
-                                field.onChange(e);
                               } catch (error) {
                                 console.error("Error processing input:", error);
-                                field.onChange(e);
+                                field.onChange(e.target.value);
                               }
                             }}
                             placeholder={
-                              isZod
+                              viewFormat === "zod"
                                 ? 'z.object({\n  name: z.string(),\n  age: z.number(),\n  email: z.string().email()\n})'
                                 : '{\n  "type": "object",\n  "properties": {\n    "name": { "type": "string" },\n    "age": { "type": "number" }\n  }\n}'
                             }
-                            language={isZod ? (viewFormat === "json" ? "json" : "typescript") : "json"}
+                            language={viewFormat === "json" ? "json" : "typescript"}
                             padding={15}
                             className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
                             style={{
                               fontFamily:
                                 "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-                            }}
+                            } as React.CSSProperties}
                           />
                         </FormControl>
                         <FormMessage />
