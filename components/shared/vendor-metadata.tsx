@@ -18,6 +18,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
+  if (vendor.includes("mistral")) {
+    return "bg-orange-500";
+  }
+
   if (vendor.includes("anthropic")) {
     return "bg-yellow-500";
   }
@@ -86,6 +90,10 @@ export function vendorColor(vendor: string) {
     return "bg-blue-200";
   }
 
+  if (vendor.includes("mistral")) {
+    return "bg-orange-200";
+  }
+
   if (vendor.includes("anthropic")) {
     return "bg-yellow-200";
   }
@@ -147,6 +155,10 @@ export function vendorColor(vendor: string) {
   }
 
   if (vendor.includes("mongodb")) {
+    return "bg-green-200";
+  }
+
+  if (vendor.includes("guardrails")) {
     return "bg-green-200";
   }
 
@@ -491,14 +503,46 @@ export function VendorLogo({
     );
   }
 
+  if (vendor.includes("mistral")) {
+    const color = vendorColor("mistral");
+    return (
+      <Image
+        alt="Mistral Logo"
+        src="/mistral.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
   if (vendor.includes("mongodb")) {
     const color = vendorColor("mongodb");
     return (
       <Image
         alt="MongoDB Logo"
         src="/mongodb.png"
-        width={50}
-        height={50}
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("guardrails")) {
+    const color = vendorColor("guardrails");
+    return (
+      <Image
+        alt="Guardrails Logo"
+        src="/guardrails.png"
+        width={30}
+        height={30}
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
