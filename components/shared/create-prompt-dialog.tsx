@@ -47,7 +47,7 @@ export default function CreatePromptDialog({
 }: {
   promptsetId: string;
   currentPrompt?: Prompt & {
-    originalZodSchema?: string;
+    originalZodSchema: string | null;
   };
   passedPrompt?: string;
   version?: number;
