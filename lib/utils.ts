@@ -835,6 +835,8 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "mongodb";
   } else if (span.name.includes("guard") || serviceName.includes("guard")) {
     vendor = "guardrails";
+  }  else if (span.name.includes("mistral") || serviceName.includes("mistral")) {
+    vendor = "mistral";
   }
   return vendor;
 }
