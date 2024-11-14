@@ -25,7 +25,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
 import { toast } from "sonner";
@@ -67,10 +67,28 @@ export default function CreatePromptDialog({
     modelSettings: z.string().optional(),
   });
 
+  const isZodSchema = (str: string): boolean => {
+    try {
+      return (
+        /z\./.test(str) &&
+        /z\.(object|string|number|array|boolean|enum|union|discriminatedUnion|intersection|tuple|record|map|set|function|lazy|promise|null|undefined|any|unknown|void|never|literal|nan|symbol)/.test(str) &&
+        new Function("z", `return ${str}`)(z) !== undefined
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const [isZod, setIsZod] = useState(
+    currentPrompt?.originalZodSchema !== null && currentPrompt?.originalZodSchema !== undefined
+  );
+
   const CreatePromptForm = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      prompt: currentPrompt?.originalZodSchema || passedPrompt || currentPrompt?.value || "",
+      prompt: currentPrompt?.originalZodSchema ||
+        (currentPrompt?.value && isZodSchema(currentPrompt.value) ? currentPrompt.value :
+        passedPrompt || currentPrompt?.value || ""),
       note: currentPrompt?.note || "",
       live: currentPrompt?.live || false,
       model: currentPrompt?.model || "",
@@ -83,22 +101,31 @@ export default function CreatePromptDialog({
     currentPrompt?.variables || []
   );
   const [busy, setBusy] = useState<boolean>(false);
-  const [isZod, setIsZod] = useState<boolean>(!!currentPrompt?.originalZodSchema);
   const [viewFormat, setViewFormat] = useState<"zod" | "json">(
-    currentPrompt?.originalZodSchema ? "zod" : "json"
+    isZod ? "zod" : "json"
   );
 
-  const isZodSchema = (str: string): boolean => {
-    try {
-      return (
-        /z\./.test(str) &&
-        /z\.(object|string|number|array|boolean|enum|union|discriminatedUnion|intersection|tuple|record|map|set|function|lazy|promise|null|undefined|any|unknown|void|never|literal|nan|symbol)/.test(str) &&
-        new Function("z", `return ${str}`)(z) !== undefined
-      );
-    } catch {
-      return false;
+  // Update form values when currentPrompt changes
+  useEffect(() => {
+    if (currentPrompt) {
+      const isCurrentZod = currentPrompt.originalZodSchema !== null && currentPrompt.originalZodSchema !== undefined;
+      const promptValue = isCurrentZod
+        ? currentPrompt.originalZodSchema
+        : currentPrompt.value;
+
+      CreatePromptForm.reset({
+        prompt: promptValue || "",
+        note: currentPrompt.note || "",
+        live: currentPrompt.live || false,
+        model: currentPrompt.model || "",
+        modelSettings: JSON.stringify(currentPrompt.modelSettings) || "",
+      });
+
+      setIsZod(isCurrentZod);
+      setViewFormat(isCurrentZod ? "zod" : "json");
+      setVariables(currentPrompt.variables || []);
     }
-  };
+  }, [currentPrompt]);
 
   const extractVariables = (prompt: string) => {
     const regex = /\$\{([^}]*)\}/g;
@@ -155,38 +182,36 @@ export default function CreatePromptDialog({
                   onSubmit={CreatePromptForm.handleSubmit(async (data) => {
                     try {
                       setBusy(true);
-
-                      // if the prompt is a zod schema, we serialize it as a string
                       let serializedPrompt;
-                      let originalZodSchema;
+                      let originalZodSchema = null;
+
+                      // Handle Zod schema preservation
                       if (isZod) {
-                        const createSchema = new Function(
-                          "z",
-                          `return ${data.prompt}`
-                        );
-                        const schema = createSchema(z);
-                        serializedPrompt = JSON.stringify(
-                          zodToJsonSchema(schema)
-                        );
                         originalZodSchema = data.prompt;
+                        try {
+                          const schema = new Function("z", `return ${data.prompt}`)(z);
+                          serializedPrompt = JSON.stringify(zodToJsonSchema(schema));
+                        } catch (e) {
+                          console.error("Error converting Zod to JSON:", e);
+                          toast.error("Invalid Zod schema");
+                          return;
+                        }
                       } else {
                         serializedPrompt = data.prompt;
-                        originalZodSchema = null;
                       }
 
                       const payload = {
                         value: serializedPrompt,
-                        originalZodSchema: originalZodSchema,
+                        originalZodSchema,
                         variables: variables,
                         model: data.model || "",
-                        modelSettings: data.modelSettings
-                          ? JSON.parse(data.modelSettings)
-                          : {},
-                        version: currentPrompt ? (version || currentPrompt.version || 1) + 1 : 1,
+                        modelSettings: data.modelSettings ? JSON.parse(data.modelSettings) : {},
+                        version: currentPrompt ? (currentPrompt.version || 0) + 1 : 1,
                         live: data.live || false,
                         note: data.note || "",
                         promptsetId: promptsetId,
                       };
+
                       await fetch("/api/prompt", {
                         method: "POST",
                         headers: {
@@ -252,18 +277,15 @@ export default function CreatePromptDialog({
                         <FormControl>
                           <CodeEditor
                             defaultValue={
-                              currentPrompt?.originalZodSchema ||
-                              (isJsonString(
-                                passedPrompt || currentPrompt?.value || ""
-                              )
-                                ? JSON.stringify(
-                                    JSON.parse(
-                                      passedPrompt || currentPrompt?.value || ""
-                                    ),
-                                    null,
-                                    2
-                                  )
-                                : passedPrompt || currentPrompt?.value || "")
+                              isZod
+                                ? currentPrompt?.originalZodSchema || ""
+                                : (isJsonString(currentPrompt?.value || "")
+                                    ? JSON.stringify(
+                                        JSON.parse(currentPrompt?.value || ""),
+                                        null,
+                                        2
+                                      )
+                                    : currentPrompt?.value || "")
                             }
                             value={
                               isZod
@@ -272,7 +294,7 @@ export default function CreatePromptDialog({
                                       try {
                                         const schema = new Function(
                                           "z",
-                                          `return ${field.value}`
+                                          `return ${CreatePromptForm.watch("prompt")}`
                                         )(z);
                                         return JSON.stringify(
                                           zodToJsonSchema(schema),
@@ -284,10 +306,10 @@ export default function CreatePromptDialog({
                                         return "Error: Invalid Zod schema";
                                       }
                                     })()
-                                  : field.value
-                                : isJsonString(field.value)
-                                ? JSON.stringify(JSON.parse(field.value), null, 2)
-                                : field.value
+                                  : CreatePromptForm.getValues().prompt
+                                : isJsonString(CreatePromptForm.getValues().prompt)
+                                ? JSON.stringify(JSON.parse(CreatePromptForm.getValues().prompt), null, 2)
+                                : CreatePromptForm.getValues().prompt
                             }
                             onChange={(e) => {
                               try {
@@ -443,9 +465,12 @@ export default function CreatePromptDialog({
                     )}
                   />
                   <div className="flex flex-col gap-2">
-                    <Label>New Version</Label>
+                    <Label>Current Version</Label>
                     <p className="text-primary">
-                      {version ? `Version ${version}` : "Version 1"}
+                      {currentPrompt ? `Version ${currentPrompt.version}` : "Version 1"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Creating Version {currentPrompt ? currentPrompt.version + 1 : 1}
                     </p>
                   </div>
                   <AlertDialogFooter>
