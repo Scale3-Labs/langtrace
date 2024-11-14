@@ -192,7 +192,10 @@ export default function CreatePromptDialog({
         onOpenChange={(val) => {
           if (!val) {
             const currentValue = CreatePromptForm.getValues("prompt");
-            const isZodValue = isZodSchema(currentValue);
+            const hasOriginalZod = currentPrompt?.originalZodSchema !== null && currentPrompt?.originalZodSchema !== undefined;
+            const isZodValue = hasOriginalZod || isZodSchema(currentValue);
+
+            // Preserve Zod state and format when closing dialog
             setIsZod(isZodValue);
             setViewFormat(isZodValue ? "zod" : "json");
             setOpen(val);
@@ -227,7 +230,8 @@ export default function CreatePromptDialog({
                       let originalZodSchema = null;
 
                       // Handle Zod schema preservation
-                      if (isZod) {
+                      if (isZod || currentPrompt?.originalZodSchema) {
+                        // Preserve the Zod schema if it's a new Zod schema or we're updating an existing one
                         originalZodSchema = data.prompt;
                         try {
                           const schema = new Function("z", `return ${data.prompt}`)(z);
@@ -300,13 +304,18 @@ export default function CreatePromptDialog({
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {(isZod || isZodSchema(CreatePromptForm.watch("prompt"))) && (
+                            {(isZod || currentPrompt?.originalZodSchema || isZodSchema(CreatePromptForm.watch("prompt"))) && (
                               <>
                                 <Button
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => setViewFormat(viewFormat === "json" ? "zod" : "json")}
+                                  onClick={() => {
+                                    const newFormat = viewFormat === "json" ? "zod" : "json";
+                                    setViewFormat(newFormat);
+                                    // Ensure isZod state is maintained when toggling view
+                                    setIsZod(true);
+                                  }}
                                 >
                                   View as {viewFormat === "json" ? "Zod" : "JSON"}
                                 </Button>
@@ -318,13 +327,14 @@ export default function CreatePromptDialog({
                         <FormControl>
                           <CodeEditor
                             value={
-                              isZod
+                              isZod || currentPrompt?.originalZodSchema
                                 ? viewFormat === "json"
                                   ? (() => {
                                       try {
+                                        const promptValue = CreatePromptForm.watch("prompt");
                                         const schema = new Function(
                                           "z",
-                                          `return ${CreatePromptForm.watch("prompt")}`
+                                          `return ${promptValue}`
                                         )(z);
                                         return JSON.stringify(
                                           zodToJsonSchema(schema),
@@ -336,7 +346,7 @@ export default function CreatePromptDialog({
                                         return CreatePromptForm.watch("prompt");
                                       }
                                     })()
-                                  : CreatePromptForm.watch("prompt")
+                                  : currentPrompt?.originalZodSchema || CreatePromptForm.watch("prompt")
                                 : isJsonString(CreatePromptForm.watch("prompt"))
                                 ? JSON.stringify(JSON.parse(CreatePromptForm.watch("prompt")), null, 2)
                                 : CreatePromptForm.watch("prompt")
@@ -345,13 +355,14 @@ export default function CreatePromptDialog({
                               try {
                                 const newValue = e.target.value;
                                 const isZodValue = isZodSchema(newValue);
+                                const hasOriginalZod = currentPrompt?.originalZodSchema !== null && currentPrompt?.originalZodSchema !== undefined;
 
-                                setIsZod(isZodValue);
-                                if (isZodValue !== isZod) {
-                                  setViewFormat(isZodValue ? "zod" : "json");
+                                setIsZod(isZodValue || hasOriginalZod);
+                                if (isZodValue && viewFormat !== "zod") {
+                                  setViewFormat("zod");
                                 }
 
-                                if (isZodValue) {
+                                if (isZodValue || hasOriginalZod) {
                                   field.onChange(newValue);
                                 } else {
                                   field.onChange(
