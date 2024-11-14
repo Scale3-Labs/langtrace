@@ -129,14 +129,14 @@ export default function CreatePromptDialog({
               disabled={disabled}
               onClick={() => setOpen(true)}
             >
-              {currentPrompt ? "Update Prompt" : "Create Prompt"}
+              {currentPrompt ? "Create New Version" : "Create Prompt"}
             </Button>
           )}
         </AlertDialogTrigger>
         <AlertDialogContent className="min-w-[1000px] h-[80vh] overflow-y-scroll">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {currentPrompt ? "Review and Save" : "Create new prompt"}
+              {currentPrompt ? "Create New Version" : "Create new prompt"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               <Form {...CreatePromptForm}>
@@ -168,7 +168,7 @@ export default function CreatePromptDialog({
                         modelSettings: data.modelSettings
                           ? JSON.parse(data.modelSettings)
                           : {},
-                        version: version || 1,
+                        version: currentPrompt ? (version || currentPrompt.version || 1) + 1 : 1,
                         live: data.live || false,
                         note: data.note || "",
                         promptsetId: promptsetId,
@@ -186,8 +186,10 @@ export default function CreatePromptDialog({
                       // Reset form
                       CreatePromptForm.reset();
 
-                      toast("Prompt added!", {
-                        description: "Your prompt has been added.",
+                      toast(currentPrompt ? "New version created!" : "Prompt created!", {
+                        description: currentPrompt
+                          ? `Version ${payload.version} of your prompt has been created.`
+                          : "Version 1 of your prompt has been created.",
                       });
                       setBusy(false);
                       setOpen(false);
