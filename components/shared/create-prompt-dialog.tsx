@@ -58,6 +58,7 @@ export default function CreatePromptDialog({
 }) {
   const schema = z.object({
     prompt: z.string(),
+    originalZodSchema: z.string().optional(),
     note: z.string().optional(),
     live: z.boolean().optional(),
     model: z.string().optional(),
@@ -81,6 +82,7 @@ export default function CreatePromptDialog({
   );
   const [busy, setBusy] = useState<boolean>(false);
   const [isZod, setIsZod] = useState<boolean>(false);
+  const [viewFormat, setViewFormat] = useState<"zod" | "json">("json");
 
   const isZodSchema = (str: string) => {
     // Basic check to see if the string contains a Zod schema pattern
@@ -148,6 +150,7 @@ export default function CreatePromptDialog({
 
                       // if the prompt is a zod schema, we serialize it as a string
                       let serializedPrompt;
+                      let originalZodSchema;
                       if (isZod) {
                         const createSchema = new Function(
                           "z",
@@ -157,12 +160,15 @@ export default function CreatePromptDialog({
                         serializedPrompt = JSON.stringify(
                           zodToJsonSchema(schema)
                         );
+                        originalZodSchema = data.prompt;
                       } else {
                         serializedPrompt = data.prompt;
+                        originalZodSchema = null;
                       }
 
                       const payload = {
                         value: serializedPrompt,
+                        originalZodSchema: originalZodSchema,
                         variables: variables,
                         model: data.model || "",
                         modelSettings: data.modelSettings
@@ -210,18 +216,30 @@ export default function CreatePromptDialog({
                     name="prompt"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          Prompt{" "}
-                          <span className="text-xs font-normal">
-                            {
-                              "(Variables should be enclosed in curly braces - Ex: ${variable})"
-                            }
-                          </span>
-                          {isZod && (
-                            <Badge className="ml-2" variant="default">
-                              Zod Schema
-                            </Badge>
-                          )}
+                        <FormLabel className="flex items-center justify-between">
+                          <div>
+                            Prompt{" "}
+                            <span className="text-xs font-normal">
+                              {
+                                "(Variables should be enclosed in curly braces - Ex: ${variable})"
+                              }
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {isZod && (
+                              <>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setViewFormat(viewFormat === "json" ? "zod" : "json")}
+                                >
+                                  View as {viewFormat === "json" ? "Zod" : "JSON"}
+                                </Button>
+                                <Badge variant="default">Zod Schema</Badge>
+                              </>
+                            )}
+                          </div>
                         </FormLabel>
                         <FormControl>
                           <CodeEditor
