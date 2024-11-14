@@ -91,14 +91,26 @@ export default function CreatePromptDialog({
 
   const [isZod, setIsZod] = useState(() => {
     const hasOriginalZod = currentPrompt?.originalZodSchema !== null && currentPrompt?.originalZodSchema !== undefined;
-    const currentValueIsZod = currentPrompt?.value && isZodSchema(currentPrompt.value);
+    const currentValueIsZod = currentPrompt?.value && (isZodSchema(currentPrompt.value) || currentPrompt.value.includes("$schema"));
     return hasOriginalZod || currentValueIsZod;
   });
 
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<boolean>(false);
   const [variables, setVariables] = useState<string[]>(currentPrompt?.variables || []);
-  const [viewFormat, setViewFormat] = useState<"json" | "zod">("json");
+  const [viewFormat, setViewFormat] = useState<"json" | "zod">(() => {
+    return isZod ? "zod" : "json";
+  });
+
+  // Initialize and update Zod state when component mounts or currentPrompt changes
+  useEffect(() => {
+    const hasOriginalZod = currentPrompt?.originalZodSchema !== null && currentPrompt?.originalZodSchema !== undefined;
+    const currentValueIsZod = currentPrompt?.value && (isZodSchema(currentPrompt.value) || currentPrompt.value.includes("$schema"));
+    if (hasOriginalZod || currentValueIsZod) {
+      setIsZod(true);
+      setViewFormat("zod");
+    }
+  }, [currentPrompt]);
 
   // Add button for toggling view format
   const ViewFormatButton = () => (
@@ -304,7 +316,13 @@ export default function CreatePromptDialog({
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {(isZod || currentPrompt?.originalZodSchema || isZodSchema(CreatePromptForm.watch("prompt"))) && (
+                            {/* Show button if current value is Zod or was previously Zod */}
+                            {(isZod ||
+                              currentPrompt?.originalZodSchema ||
+                              isZodSchema(currentPrompt?.value || "") ||
+                              isZodSchema(CreatePromptForm.watch("prompt")) ||
+                              (currentPrompt?.value && currentPrompt.value.includes("$schema"))
+                            ) && (
                               <>
                                 <Button
                                   type="button"
@@ -313,8 +331,12 @@ export default function CreatePromptDialog({
                                   onClick={() => {
                                     const newFormat = viewFormat === "json" ? "zod" : "json";
                                     setViewFormat(newFormat);
-                                    // Ensure isZod state is maintained when toggling view
+                                    // Always maintain Zod state
                                     setIsZod(true);
+                                    // Store original Zod schema if not already stored
+                                    if (currentPrompt && !currentPrompt.originalZodSchema && currentPrompt.value) {
+                                      currentPrompt.originalZodSchema = currentPrompt.value;
+                                    }
                                   }}
                                 >
                                   View as {viewFormat === "json" ? "Zod" : "JSON"}

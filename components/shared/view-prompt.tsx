@@ -17,7 +17,19 @@ export default function ViewPrompt({ value, originalZodSchema }: ViewPromptProps
 
   const isZodSchema = (str: string): boolean => {
     try {
-      if (!/z\./.test(str)) return false;
+      // Check for basic Zod patterns
+      if (!/z\./.test(str)) {
+        // If not a Zod pattern, check if it's a JSON schema that was converted from Zod
+        try {
+          const jsonValue = JSON.parse(str);
+          if (jsonValue?.$schema) {
+            return true;
+          }
+        } catch {
+          // Not valid JSON, continue with Zod checks
+        }
+        return false;
+      }
 
       const zodPatterns = [
         /z\.(object|string|number|array|boolean|enum|union|discriminatedUnion|intersection|tuple|record|map|set|function|lazy|promise|null|undefined|any|unknown|void|never|literal|nan|symbol)/,
