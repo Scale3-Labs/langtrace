@@ -89,9 +89,11 @@ export default function CreatePromptDialog({
     }
   };
 
-  const [isZod, setIsZod] = useState(
-    currentPrompt?.originalZodSchema !== null && currentPrompt?.originalZodSchema !== undefined
-  );
+  const [isZod, setIsZod] = useState(() => {
+    const hasOriginalZod = currentPrompt?.originalZodSchema !== null && currentPrompt?.originalZodSchema !== undefined;
+    const currentValueIsZod = currentPrompt?.value && isZodSchema(currentPrompt.value);
+    return hasOriginalZod || currentValueIsZod;
+  });
 
   const CreatePromptForm = useForm({
     resolver: zodResolver(schema),
@@ -121,7 +123,7 @@ export default function CreatePromptDialog({
         ? currentPrompt.originalZodSchema
         : currentPrompt.value;
 
-      // Detect if the current value is a Zod schema
+      // Enhanced Zod detection - check both original schema and current value
       const isZodValue = Boolean(isCurrentZod || (promptValue && isZodSchema(promptValue)));
 
       // Set form values
@@ -133,9 +135,11 @@ export default function CreatePromptDialog({
         modelSettings: JSON.stringify(currentPrompt.modelSettings) || "",
       });
 
-      // Update state
+      // Update state while preserving Zod format when applicable
       setIsZod(isZodValue);
-      setViewFormat(isZodValue ? "zod" : "json");
+      if (isZodValue) {
+        setViewFormat("zod"); // Always default to Zod view for Zod schemas
+      }
       setVariables(currentPrompt.variables || []);
     }
   }, [currentPrompt]);
@@ -167,6 +171,10 @@ export default function CreatePromptDialog({
         open={open}
         onOpenChange={(val) => {
           if (!val) {
+            const currentValue = CreatePromptForm.getValues("prompt");
+            const isZodValue = isZodSchema(currentValue);
+            setIsZod(isZodValue);
+            setViewFormat(isZodValue ? "zod" : "json");
             setOpen(val);
             CreatePromptForm.reset();
           }
@@ -272,7 +280,7 @@ export default function CreatePromptDialog({
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {isZod && (
+                            {(isZod || isZodSchema(CreatePromptForm.watch("prompt"))) && (
                               <>
                                 <Button
                                   type="button"
