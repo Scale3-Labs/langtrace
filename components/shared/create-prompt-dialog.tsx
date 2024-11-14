@@ -95,25 +95,45 @@ export default function CreatePromptDialog({
     return hasOriginalZod || currentValueIsZod;
   });
 
-  const CreatePromptForm = useForm({
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState<boolean>(false);
+  const [variables, setVariables] = useState<string[]>(currentPrompt?.variables || []);
+  const [viewFormat, setViewFormat] = useState<"json" | "zod">("json");
+
+  // Add button for toggling view format
+  const ViewFormatButton = () => (
+    isZod && (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => setViewFormat(viewFormat === "json" ? "zod" : "json")}
+      >
+        View as {viewFormat === "json" ? "Zod" : "JSON"}
+      </Button>
+    )
+  );
+
+  const CreatePromptForm = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      prompt: "",
-      note: "",
-      live: false,
-      model: "",
-      modelSettings: "",
+      prompt: currentPrompt?.value || "",
+      note: currentPrompt?.note || "",
+      modelSettings: JSON.stringify(currentPrompt?.modelSettings || {}),
+      model: currentPrompt?.model || "",
+      live: currentPrompt?.live || false,
     },
   });
 
-  const queryClient = useQueryClient();
-  const [variables, setVariables] = useState<string[]>(
-    currentPrompt?.variables || []
-  );
-  const [busy, setBusy] = useState<boolean>(false);
-  const [viewFormat, setViewFormat] = useState<"zod" | "json">(
-    isZod ? "zod" : "json"
-  );
+  // Initialize isZod state based on current prompt
+  useEffect(() => {
+    const promptValue = currentPrompt?.value || "";
+    const isZodValue = isZodSchema(promptValue);
+    setIsZod(isZodValue);
+    if (isZodValue) {
+      setViewFormat("zod");
+    }
+  }, [currentPrompt]);
 
   // Update form values when currentPrompt changes
   useEffect(() => {
