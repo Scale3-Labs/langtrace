@@ -12,7 +12,8 @@
   [![NPM SDK](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat-square&logo=npm&label=typescript-sdk&color=green)](https://github.com/Scale3-Labs/langtrace-typescript-sdk)
   [![NPM Downloads](https://img.shields.io/npm/dm/%40langtrase%2Ftypescript-sdk?style=flat-square&logo=npm)](https://www.npmjs.com/package/@langtrase/typescript-sdk)
   [![PyPI SDK](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat-square&logo=python&label=python-sdk&color=green)](https://github.com/Scale3-Labs/langtrace-python-sdk)
-  [![Downloads](https://static.pepy.tech/badge/langtrace-python-sdk/month)](https://pepy.tech/project/langtrace-python-sdk)
+  [![PyPI Downloads](https://static.pepy.tech/badge/langtrace-python-sdk/month)](https://pepy.tech/project/langtrace-python-sdk)
+  [![Total PyPI Downloads](https://static.pepy.tech/badge/langtrace-python-sdk)](https://static.pepy.tech/badge/langtrace-python-sdk)
   [![Deploy](https://railway.app/button.svg)](https://railway.app/template/8dNq1c?referralCode=MA2S9H)
 </div>
 
@@ -33,7 +34,7 @@
 
 Langtrace is an open source observability software which lets you capture, debug and analyze traces and metrics from all your applications that leverages LLM APIs, Vector Databases and LLM based Frameworks.
 
-![image](/public/langtrace-tracing-ss.png)
+![image](https://github.com/Scale3-Labs/langtrace/assets/105607645/6825158c-39bb-4270-b1f9-446c36c066ee)
 
 ## ✨ Features
 
@@ -169,7 +170,6 @@ docker compose down -v
 `-v` flag is used to delete volumes
 
 ## Telemetry
-<<<<<<< HEAD
 
 Langtrace collects basic, non-sensitive usage data from self-hosted instances by default, which is sent to a central server (via PostHog).
 
@@ -177,58 +177,6 @@ The following telemetry data is collected by us:
 - Project name and type
 - Team name
 
-This data helps us to:
-
-- Understand how the platform is being used to improve key features.
-- Monitor overall usage for internal analysis and reporting.
-
-No sensitive information is gathered, and the data is not shared with third parties.
-
-If you prefer to disable telemetry, you can do so by setting TELEMETRY_ENABLED=false in your configuration.
-
----
-
-## 🔗 Supported integrations
-=======
-
-Langtrace collects basic, non-sensitive usage data from self-hosted instances by default, which is sent to a central server (via PostHog).
->>>>>>> e893c0f0033578fb851ba7bc8f862dd85b0cb5d3
-
-The following telemetry data is collected by us:
-- Project name and type
-- Team name
-
-<<<<<<< HEAD
-| Vendor       | Type            | Typescript SDK     | Python SDK                      |
-| ------------ | --------------- | ------------------ | ------------------------------- |
-| OpenAI       | LLM             | :white_check_mark: | :white_check_mark:              |
-| Anthropic    | LLM             | :white_check_mark: | :white_check_mark:              |
-| Azure OpenAI | LLM             | :white_check_mark: | :white_check_mark:              |
-| Cohere       | LLM             | :white_check_mark: | :white_check_mark:              |
-| xAI          | LLM             | :white_check_mark: | :white_check_mark:              |
-| Groq         | LLM             | :white_check_mark: | :white_check_mark:              |
-| Perplexity   | LLM             | :white_check_mark: | :white_check_mark:              |
-| Gemini       | LLM             | :white_check_mark: | :white_check_mark:              |
-| AWS Bedrock  | LLM             | :white_check_mark: | :x:                             |
-| Mistral      | LLM             | :x:                | :white_check_mark:              |
-| Langchain    | Framework       | :x:                | :white_check_mark:              |
-| LlamaIndex   | Framework       | :white_check_mark: | :white_check_mark:              |
-| Langgraph    | Framework       | :x:                | :white_check_mark:              |
-| LiteLLM      | Framework       | :x:                | :white_check_mark:              |
-| DSPy         | Framework       | :x:                | :white_check_mark:              |
-| CrewAI       | Framework       | :x:                | :white_check_mark:              |
-| Ollama       | Framework       | :x:                | :white_check_mark:              |
-| VertexAI     | Framework       | :white_check_mark: | :white_check_mark:              |
-| Vercel AI    | Framework       | :white_check_mark: | :x:                             |
-| Pinecone     | Vector Database | :white_check_mark: | :white_check_mark:              |
-| ChromaDB     | Vector Database | :white_check_mark: | :white_check_mark:              |
-| QDrant       | Vector Database | :white_check_mark: | :white_check_mark:              |
-| Weaviate     | Vector Database | :white_check_mark: | :white_check_mark:              |
-| PGVector     | Vector Database | :white_check_mark: | :white_check_mark: (SQLAlchemy) |
-
----
-
-=======
 This data helps us to:
 
 - Understand how the platform is being used to improve key features.
@@ -284,7 +232,6 @@ Langtrace automatically captures traces from the following vendors and framework
 
 ---
 
->>>>>>> e893c0f0033578fb851ba7bc8f862dd85b0cb5d3
 ## 📐 Langtrace System Architecture
 
 ![image](https://github.com/Scale3-Labs/langtrace/assets/105607645/eae180dd-ebf7-4792-b076-23f75d3734a8)
