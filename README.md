@@ -202,7 +202,7 @@ Langtrace automatically captures traces from the following vendors and framework
 | Groq | ✅ | ✅ |
 | Perplexity | ✅ | ✅ |
 | Gemini | ✅ | ✅ |
-| AWS Bedrock | ✅ | ❌ |
+| AWS Bedrock | ✅ | ✅ |
 | Mistral | ❌ | ✅ |
 
 ### LLM Frameworks
@@ -217,6 +217,7 @@ Langtrace automatically captures traces from the following vendors and framework
 | Ollama | ❌ | ✅ |
 | VertexAI | ✅ | ✅ |
 | Vercel AI | ✅ | ❌ |
+| GuardrailsAI | ❌ | ✅ |
 
 ### Vector Databases
 | Database | TypeScript SDK | Python SDK |
@@ -226,6 +227,7 @@ Langtrace automatically captures traces from the following vendors and framework
 | QDrant | ✅ | ✅ |
 | Weaviate | ✅ | ✅ |
 | PGVector | ✅ | ✅ (SQLAlchemy) |
+| MongoDB | ❌ | ✅ |
 
 ---
 
