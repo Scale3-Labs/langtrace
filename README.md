@@ -12,7 +12,8 @@
   [![NPM SDK](https://img.shields.io/npm/v/%40langtrase%2Ftypescript-sdk?style=flat-square&logo=npm&label=typescript-sdk&color=green)](https://github.com/Scale3-Labs/langtrace-typescript-sdk)
   [![NPM Downloads](https://img.shields.io/npm/dm/%40langtrase%2Ftypescript-sdk?style=flat-square&logo=npm)](https://www.npmjs.com/package/@langtrase/typescript-sdk)
   [![PyPI SDK](https://img.shields.io/pypi/v/langtrace-python-sdk?style=flat-square&logo=python&label=python-sdk&color=green)](https://github.com/Scale3-Labs/langtrace-python-sdk)
-  [![Downloads](https://static.pepy.tech/badge/langtrace-python-sdk/month)](https://pepy.tech/project/langtrace-python-sdk)
+  [![PyPI Downloads](https://static.pepy.tech/badge/langtrace-python-sdk/month)](https://pepy.tech/project/langtrace-python-sdk)
+  [![Total PyPI Downloads](https://static.pepy.tech/badge/langtrace-python-sdk)](https://static.pepy.tech/badge/langtrace-python-sdk)
   [![Deploy](https://railway.app/button.svg)](https://railway.app/template/8dNq1c?referralCode=MA2S9H)
 </div>
 
