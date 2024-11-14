@@ -45,6 +45,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/node_modules ./node_modules
 COPY ./entrypoint.sh /app/entrypoint.sh
+COPY ./proto ./proto
 
 RUN chmod +x /app/entrypoint.sh
 
