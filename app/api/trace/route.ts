@@ -59,10 +59,17 @@ export async function POST(req: NextRequest) {
       { message: "Traces added successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (err: unknown) {
+    const error = err as Error;
+
     return NextResponse.json(
       {
-        error: "Something went wrong while ingesting traces",
+        name: error?.name || 'UnknownError',
+        message: error?.message || 'No error message available',
+        stack: error?.stack,
+        fullError: error instanceof Error 
+          ? JSON.stringify(error, Object.getOwnPropertyNames(error))
+          : JSON.stringify(error)
       },
       { status: 404 }
     );
