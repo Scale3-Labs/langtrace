@@ -150,6 +150,10 @@ export function vendorColor(vendor: string) {
     return "bg-green-200";
   }
 
+  if (vendor.includes("guardrails")) {
+    return "bg-green-200";
+  }
+
   return "bg-gray-800";
 }
 
@@ -497,8 +501,24 @@ export function VendorLogo({
       <Image
         alt="MongoDB Logo"
         src="/mongodb.png"
-        width={50}
-        height={50}
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("guardrails")) {
+    const color = vendorColor("guardrails");
+    return (
+      <Image
+        alt="Guardrails Logo"
+        src="/guardrails.png"
+        width={30}
+        height={30}
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
