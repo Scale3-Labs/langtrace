@@ -18,6 +18,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
+  if (vendor.includes("mistral")) {
+    return "bg-orange-500";
+  }
+
   if (vendor.includes("anthropic")) {
     return "bg-yellow-500";
   }
@@ -84,6 +88,10 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("openai")) {
     return "bg-blue-200";
+  }
+
+  if (vendor.includes("mistral")) {
+    return "bg-orange-200";
   }
 
   if (vendor.includes("anthropic")) {
@@ -487,6 +495,22 @@ export function VendorLogo({
         src="/litellm.png"
         width={50}
         height={50}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("mistral")) {
+    const color = vendorColor("mistral");
+    return (
+      <Image
+        alt="Mistral Logo"
+        src="/mistral.png"
+        width={30}
+        height={30}
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
