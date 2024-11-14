@@ -77,10 +77,21 @@ export default function Annotations({ email }: { email: string }) {
                 type: "event",
               },
               {
-                key: "status_code",
-                operation: "EQUALS",
-                value: "STATUS_CODE_OK",
-                type: "property",
+                operation: "OR",
+                filters: [
+                  {
+                    key: "status_code",
+                    operation: "EQUALS",
+                    value: "STATUS_CODE_OK",
+                    type: "property",
+                  },
+                  {
+                    key: "status_code",
+                    operation: "EQUALS",
+                    value: "1",
+                    type: "property",
+                  },
+                ],
               },
             ],
           },
