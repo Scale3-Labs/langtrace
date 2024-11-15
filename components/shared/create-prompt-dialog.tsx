@@ -32,12 +32,15 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { Badge } from "../ui/badge";
+import { useEffect } from "react";
+import { convertJsonSchemaToZod, isJsonZodSchema, zodToString } from "@/lib/json_to_zod";
+import { Spinner } from "./spinner";
 
 export default function CreatePromptDialog({
   promptsetId,
   currentPrompt,
-  version,
   passedPrompt,
+  version,
   variant = "default",
   disabled = false,
   open,
@@ -56,6 +59,31 @@ export default function CreatePromptDialog({
   showButton?: boolean;
   setOpenDialog?: (open: boolean) => void;
 }) {
+  const [convertedPrompt, setConvertedPrompt] = useState<string>(currentPrompt?.value || passedPrompt || "");
+  const [busy, setBusy] = useState<boolean>(false);
+
+  useEffect(() => {
+    const convertPromptIfNeeded = async () => {
+      setBusy(true);
+      const iszod = isJsonZodSchema(currentPrompt?.value || passedPrompt || "");
+      setIsZod(iszod);
+      if (iszod) {
+        try {
+          const parsedPrompt = JSON.parse(currentPrompt?.value || passedPrompt || "");
+          const zodSchema = convertJsonSchemaToZod(parsedPrompt);
+          const converted = zodToString(zodSchema);
+          setConvertedPrompt(converted);
+          CreatePromptForm.setValue('prompt', converted);
+        } catch (error) {
+          console.error('Error converting prompt:', error);
+        }
+      }
+      setBusy(false);
+    };
+
+    convertPromptIfNeeded();
+  }, [currentPrompt?.value, passedPrompt]);
+
   const schema = z.object({
     prompt: z.string(),
     note: z.string().optional(),
@@ -67,7 +95,7 @@ export default function CreatePromptDialog({
   const CreatePromptForm = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      prompt: passedPrompt || currentPrompt?.value || "",
+      prompt: convertedPrompt || "",
       note: currentPrompt?.note || "",
       live: currentPrompt?.live || false,
       model: currentPrompt?.model || "",
@@ -79,7 +107,6 @@ export default function CreatePromptDialog({
   const [variables, setVariables] = useState<string[]>(
     currentPrompt?.variables || []
   );
-  const [busy, setBusy] = useState<boolean>(false);
   const [isZod, setIsZod] = useState<boolean>(false);
 
   const isZodSchema = (str: string) => {
@@ -111,7 +138,17 @@ export default function CreatePromptDialog({
     );
   };
 
-  return (
+  if (busy) {
+    return (
+      <Button
+        variant={variant}
+        disabled={true}
+      >
+        <Spinner />
+      </Button>
+    );
+  } else {
+    return (
     <>
       <AlertDialog
         open={open}
@@ -126,7 +163,7 @@ export default function CreatePromptDialog({
           {showButton && (
             <Button
               variant={variant}
-              disabled={disabled}
+              disabled={disabled || busy}
               onClick={() => setOpen(true)}
             >
               {currentPrompt ? "Update Prompt" : "Create Prompt"}
@@ -225,16 +262,16 @@ export default function CreatePromptDialog({
                           <CodeEditor
                             defaultValue={
                               isJsonString(
-                                passedPrompt || currentPrompt?.value || ""
+                                convertedPrompt || ""
                               )
                                 ? JSON.stringify(
                                     JSON.parse(
-                                      passedPrompt || currentPrompt?.value || ""
+                                      convertedPrompt || ""
                                     ),
                                     null,
                                     2
                                   )
-                                : passedPrompt || currentPrompt?.value || ""
+                                : convertedPrompt || ""
                             }
                             value={
                               isJsonString(field.value)
@@ -404,6 +441,7 @@ export default function CreatePromptDialog({
           </AlertDialogHeader>
         </AlertDialogContent>
       </AlertDialog>
-    </>
-  );
+      </>
+    );
+  }
 }
