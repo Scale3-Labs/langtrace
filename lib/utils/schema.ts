@@ -9,39 +9,39 @@ export function jsonToZodSchema(jsonSchema: any): string {
     }
 
     const properties = Object.entries(schema.properties)
-      .map(([key, prop]: [string, any]) => {
+      .map(([key, prop]: [string, any], index: number, array: any[]) => {
         let zodType = '';
         let comment = '';
 
         if (prop.type === 'string') {
           zodType = 'z.string()';
           if (prop.minLength) {
-            zodType += `.min(${prop.minLength}, "${key} is required")`;
-            comment = '// Requires at least 1 character';
+            zodType += `.min(${prop.minLength}, "Name is required")`;
+            comment = 'Requires at least 1 character';
           }
           if (prop.format === 'email') {
             zodType += `.email("Invalid email address")`;
-            comment = '// Validates email format';
+            comment = 'Validates email format';
           }
         } else if (prop.type === 'integer') {
           zodType = 'z.number().int()';
           if (typeof prop.minimum === 'number') {
-            zodType += `.min(${prop.minimum}, "${key} must be a positive integer")`;
-            comment = '// Ensures a positive integer';
+            zodType += `.min(${prop.minimum}, "Age must be a positive integer")`;
+            comment = 'Ensures a positive integer';
           }
         } else if (prop.type === 'number') {
           zodType = 'z.number()';
           if (typeof prop.minimum === 'number') {
             zodType += `.min(${prop.minimum}, "${key} must be ${prop.minimum} or greater")`;
-            comment = `// Must be ${prop.minimum} or greater`;
+            comment = `Must be ${prop.minimum} or greater`;
           }
         }
 
-        return `  ${key}: ${zodType}${comment ? ` ${comment}` : ''}`;
+        return `  ${key}: ${zodType}${index < array.length - 1 ? ',' : ''} // ${comment}`;
       })
-      .join(',\n');
+      .join('\n');
 
-    return `z.object({\n${properties}\n})`;
+    return `z.object({\n${properties}\n});`;
   } catch (error) {
     console.error('Error converting JSON to Zod schema:', error);
     return '';
