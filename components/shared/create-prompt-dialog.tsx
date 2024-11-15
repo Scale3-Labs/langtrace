@@ -248,18 +248,20 @@ export default function CreatePromptDialog({
                             defaultValue={
                               currentPrompt?.isZodSchema
                                 ? showAsZod
-                                  ? (() => {
+                                  ? currentPrompt.value
+                                  : (() => {
                                       try {
-                                        if (isJsonSchema(currentPrompt.value)) {
-                                          return jsonToZodSchema(currentPrompt.value);
-                                        }
-                                        return currentPrompt.value;
+                                        const createSchema = new Function(
+                                          "z",
+                                          `return ${currentPrompt.value}`
+                                        );
+                                        const schema = createSchema(z);
+                                        return JSON.stringify(zodToJsonSchema(schema), null, 2);
                                       } catch (error) {
-                                        console.error('Error converting JSON to Zod schema:', error);
+                                        console.error('Error converting Zod to JSON schema:', error);
                                         return currentPrompt.value;
                                       }
                                     })()
-                                  : JSON.stringify(JSON.parse(currentPrompt.value), null, 2)
                                 : isJsonString(
                                     passedPrompt || currentPrompt?.value || ""
                                   )
@@ -275,18 +277,20 @@ export default function CreatePromptDialog({
                             value={
                               isZod
                                 ? showAsZod
-                                  ? (() => {
+                                  ? field.value
+                                  : (() => {
                                       try {
-                                        if (isJsonSchema(field.value)) {
-                                          return jsonToZodSchema(field.value);
-                                        }
-                                        return field.value;
+                                        const createSchema = new Function(
+                                          "z",
+                                          `return ${field.value}`
+                                        );
+                                        const schema = createSchema(z);
+                                        return JSON.stringify(zodToJsonSchema(schema), null, 2);
                                       } catch (error) {
-                                        console.error('Error converting JSON to Zod schema:', error);
+                                        console.error('Error converting Zod to JSON schema:', error);
                                         return field.value;
                                       }
                                     })()
-                                  : JSON.stringify(JSON.parse(field.value), null, 2)
                                 : isJsonString(field.value)
                                   ? JSON.stringify(JSON.parse(field.value), null, 2)
                                   : field.value
