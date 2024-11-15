@@ -12,7 +12,7 @@ import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { ChevronLeft, ClipboardIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
 import { jsonToZodSchema } from "@/lib/utils/schema";
@@ -25,6 +25,7 @@ export default function Page() {
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   const [live, setLive] = useState<boolean>(false);
   const [viewAsZod, setViewAsZod] = useState<boolean>(false);
+  const [editedContent, setEditedContent] = useState<string>('');
   const queryClient = useQueryClient();
 
   const { isLoading: promptsLoading, error: promptsError } = useQuery({
@@ -54,6 +55,50 @@ export default function Page() {
       });
     },
   });
+
+  const handleSavePrompt = async () => {
+    try {
+      const payload = {
+        ...selectedPrompt,
+        value: editedContent,
+      };
+      const response = await fetch("/api/prompt", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update prompt");
+      }
+      await queryClient.invalidateQueries({
+        queryKey: ["fetch-prompts-query", promptsetId],
+      });
+      toast.success("Prompt updated successfully");
+    } catch (error) {
+      toast.error("Failed to update prompt", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (selectedPrompt) {
+      const content = selectedPrompt.isZodSchema && !viewAsZod
+        ? (() => {
+            try {
+              const schema = JSON.parse(selectedPrompt.value);
+              return jsonToZodSchema(schema) || JSON.stringify(schema, null, 2);
+            } catch (e) {
+              console.error('Failed to parse JSON:', e);
+              return selectedPrompt.value;
+            }
+          })()
+        : selectedPrompt.value;
+      setEditedContent(content);
+    }
+  }, [selectedPrompt, viewAsZod]);
 
   if (promptsLoading) return <PageLoading />;
 
@@ -224,42 +269,35 @@ export default function Page() {
               <div className="flex justify-between items-center">
                 <Label>Prompt</Label>
                 {selectedPrompt?.isZodSchema && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setViewAsZod(!viewAsZod)}
-                  >
-                    View as {viewAsZod ? "JSON" : "Zod"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setViewAsZod(!viewAsZod)}
+                    >
+                      View as {!viewAsZod ? "JSON" : "Zod"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSavePrompt}
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
                 )}
               </div>
               <CodeEditor
-                readOnly
-                value={
-                  selectedPrompt?.isZodSchema
-                    ? viewAsZod
-                      ? selectedPrompt.value
-                      : (() => {
-                          try {
-                            const schema = JSON.parse(selectedPrompt.value);
-                            return jsonToZodSchema(schema) || JSON.stringify(schema, null, 2);
-                          } catch (e) {
-                            console.error('Failed to parse JSON:', e);
-                            return selectedPrompt.value;
-                          }
-                        })()
-                    : selectedPrompt.value
-                }
-                language={selectedPrompt?.isZodSchema && viewAsZod ? "typescript" : "json"}
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                language={selectedPrompt?.isZodSchema && !viewAsZod ? "typescript" : "json"}
                 padding={15}
                 className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
                 style={{
-                  fontFamily:
-                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                  fontFamily: "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
                 }}
               />
             </div>
-
             <div className="flex flex-col gap-2">
               <Label>Variables</Label>
               <div className="flex flex-wrap gap-2 p-4 border-2 border-muted rounded-md">
@@ -288,8 +326,7 @@ export default function Page() {
                 padding={15}
                 className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
                 style={{
-                  fontFamily:
-                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                  fontFamily: "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
                 }}
               />
             </div>
