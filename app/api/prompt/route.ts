@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     live,
     note,
     promptsetId,
+    isZodSchema,
   } = data;
   const dataToAdd: any = {
     value,
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
     live,
     note,
     promptsetId,
+    isZodSchema,
   };
 
   if (data.spanId) {
@@ -110,6 +112,7 @@ export async function PUT(req: NextRequest) {
     live,
     note,
     promptsetId,
+    isZodSchema,
   } = data;
   const dataToUpdate: any = {
     value,
@@ -120,6 +123,7 @@ export async function PUT(req: NextRequest) {
     live,
     note,
     promptsetId,
+    isZodSchema,
   };
 
   if (data.spanId) {
