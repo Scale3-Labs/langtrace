@@ -96,7 +96,7 @@ export default function Page() {
           </Button>
           {prompts.length > 0 ? (
             <CreatePromptDialog
-              currentPrompt={prompts[0]}
+              currentPrompt={selectedPrompt}
               promptsetId={promptsetId}
               version={prompts.length + 1}
               open={createDialogOpen}
