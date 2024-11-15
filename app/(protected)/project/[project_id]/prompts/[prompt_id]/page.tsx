@@ -23,6 +23,7 @@ export default function Page() {
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt>();
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   const [live, setLive] = useState<boolean>(false);
+  const [viewAsZod, setViewAsZod] = useState<boolean>(false);
   const queryClient = useQueryClient();
 
   const { isLoading: promptsLoading, error: promptsError } = useQuery({
@@ -38,8 +39,11 @@ export default function Page() {
       const result = await response.json();
       setPrompts(result?.promptsets?.prompts || []);
       if (result?.promptsets?.prompts.length > 0) {
-        setSelectedPrompt(result?.promptsets?.prompts[0]);
-        setLive(result?.promptsets?.prompts[0].live);
+        const latestPrompt = result.promptsets.prompts.reduce((latest, current) =>
+          current.version > latest.version ? current : latest
+        );
+        setSelectedPrompt(latestPrompt);
+        setLive(latestPrompt.live);
       }
       return result;
     },
@@ -96,7 +100,7 @@ export default function Page() {
           </Button>
           {prompts.length > 0 ? (
             <CreatePromptDialog
-              currentPrompt={prompts[0]}
+              currentPrompt={selectedPrompt}
               promptsetId={promptsetId}
               version={prompts.length + 1}
               open={createDialogOpen}
@@ -216,15 +220,28 @@ export default function Page() {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Prompt</Label>
+              <div className="flex justify-between items-center">
+                <Label>Prompt</Label>
+                {selectedPrompt?.isZodSchema && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setViewAsZod(!viewAsZod)}
+                  >
+                    View as {viewAsZod ? "JSON" : "Zod"}
+                  </Button>
+                )}
+              </div>
               <CodeEditor
                 readOnly
                 value={
-                  isJsonString(selectedPrompt.value)
-                    ? JSON.stringify(JSON.parse(selectedPrompt.value), null, 2)
+                  selectedPrompt?.isZodSchema
+                    ? viewAsZod
+                      ? selectedPrompt.value
+                      : JSON.stringify(JSON.parse(selectedPrompt.value), null, 2)
                     : selectedPrompt.value
                 }
-                language="json"
+                language={selectedPrompt?.isZodSchema && viewAsZod ? "typescript" : "json"}
                 padding={15}
                 className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
                 style={{

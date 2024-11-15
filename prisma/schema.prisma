@@ -121,6 +121,7 @@ model Prompt {
   tags          String[]  @default([])
   spanId        String?
   note          String?
+  isZodSchema   Boolean   @default(false)
   promptsetId   String
   promptset     Promptset @relation(fields: [promptsetId], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())

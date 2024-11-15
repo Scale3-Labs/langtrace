@@ -172,6 +172,7 @@ export default function CreatePromptDialog({
                         live: data.live || false,
                         note: data.note || "",
                         promptsetId: promptsetId,
+                        isZodSchema: isZod
                       };
                       await fetch("/api/prompt", {
                         method: "POST",
@@ -224,9 +225,11 @@ export default function CreatePromptDialog({
                         <FormControl>
                           <CodeEditor
                             defaultValue={
-                              isJsonString(
-                                passedPrompt || currentPrompt?.value || ""
-                              )
+                              currentPrompt?.isZodSchema
+                                ? currentPrompt.value
+                                : isJsonString(
+                                    passedPrompt || currentPrompt?.value || ""
+                                  )
                                 ? JSON.stringify(
                                     JSON.parse(
                                       passedPrompt || currentPrompt?.value || ""
@@ -237,7 +240,9 @@ export default function CreatePromptDialog({
                                 : passedPrompt || currentPrompt?.value || ""
                             }
                             value={
-                              isJsonString(field.value)
+                              isZod
+                                ? field.value
+                                : isJsonString(field.value)
                                 ? JSON.stringify(
                                     JSON.parse(field.value),
                                     null,
@@ -257,7 +262,7 @@ export default function CreatePromptDialog({
                               field.onChange(e);
                             }}
                             placeholder="You are a sales assisstant and your name is ${name}. You are well versed in ${topic}."
-                            language="json"
+                            language={isZod ? "typescript" : "json"}
                             padding={15}
                             className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
                             style={{
