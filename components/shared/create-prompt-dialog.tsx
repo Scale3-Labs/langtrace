@@ -1,3 +1,6 @@
+"use client";
+
+import * as React from "react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -8,11 +11,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -22,16 +29,19 @@ import { Input, InputLarge } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn, isJsonString } from "@/lib/utils";
 import { jsonToZodSchema, isJsonSchema } from "@/lib/utils/schema";
-import { zodResolver } from "@hookform/resolvers/zod";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { X } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { useQueryClient } from "react-query";
 import { toast } from "sonner";
-import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { Badge } from "../ui/badge";
+import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { usePromptStore } from "@/lib/store/prompt";
+import { useProjectStore } from "@/lib/store/project";
+import { usePromptVersionStore } from "@/lib/store/prompt-version";
+import { usePromptRegistryStore } from "@/lib/store/prompt-registry";
+import { useState, useEffect } from "react";
 
 export default function CreatePromptDialog({
   promptsetId,
@@ -244,81 +254,85 @@ export default function CreatePromptDialog({
                           )}
                         </FormLabel>
                         <FormControl>
-                          <CodeEditor
-                            defaultValue={
-                              currentPrompt?.isZodSchema
-                                ? showAsZod
-                                  ? currentPrompt.value
-                                  : (() => {
-                                      try {
-                                        const createSchema = new Function(
-                                          "z",
-                                          `return ${currentPrompt.value}`
-                                        );
-                                        const schema = createSchema(z);
-                                        return JSON.stringify(zodToJsonSchema(schema), null, 2);
-                                      } catch (error) {
-                                        console.error('Error converting Zod to JSON schema:', error);
-                                        return currentPrompt.value;
-                                      }
-                                    })()
-                                : isJsonString(
-                                    passedPrompt || currentPrompt?.value || ""
-                                  )
-                                ? JSON.stringify(
-                                    JSON.parse(
-                                      passedPrompt || currentPrompt?.value || ""
-                                    ),
-                                    null,
-                                    2
-                                  )
-                                : passedPrompt || currentPrompt?.value || ""
-                            }
-                            value={
-                              isZod
-                                ? showAsZod
-                                  ? field.value
-                                  : (() => {
-                                      try {
-                                        const createSchema = new Function(
-                                          "z",
-                                          `return ${field.value}`
-                                        );
-                                        const schema = createSchema(z);
-                                        return JSON.stringify(zodToJsonSchema(schema), null, 2);
-                                      } catch (error) {
-                                        console.error('Error converting Zod to JSON schema:', error);
-                                        return field.value;
-                                      }
-                                    })()
-                                : isJsonString(field.value)
-                                  ? JSON.stringify(JSON.parse(field.value), null, 2)
-                                  : field.value
-                            }
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              if (isZodSchema(newValue)) {
+                          {(() => {
+                            const [originalZodSchema, setOriginalZodSchema] = React.useState<string>(
+                              currentPrompt?.isZodSchema ? currentPrompt.value : ''
+                            );
+
+                            React.useEffect(() => {
+                              if (isZodSchema(field.value) || (currentPrompt?.isZodSchema && !originalZodSchema)) {
+                                setOriginalZodSchema(field.value);
                                 setIsZod(true);
-                                setShowAsZod(true);
-                                field.onChange(newValue);
-                              } else if (isJsonString(newValue) && !showAsZod) {
-                                field.onChange(newValue);
-                              } else {
-                                setIsZod(false);
-                                const vars = extractVariables(newValue);
-                                setVariables(vars);
-                                field.onChange(newValue);
                               }
-                            }}
-                            placeholder="You are a sales assisstant and your name is ${name}. You are well versed in ${topic}."
-                            language={isZod ? (showAsZod ? "typescript" : "json") : "json"}
-                            padding={15}
-                            className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
-                            style={{
-                              fontFamily:
-                                "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
-                            }}
-                          />
+                            }, [field.value, currentPrompt?.isZodSchema]);
+
+                            return (
+                              <CodeEditor
+                                value={
+                                  isZod
+                                    ? showAsZod
+                                      ? originalZodSchema || field.value
+                                      : (() => {
+                                          try {
+                                            if (!field.value) return "";
+                                            const cleanSchema = field.value
+                                              .replace(/\/\/[^\n]*\n/g, '\n')
+                                              .replace(/\/\*[\s\S]*?\*\//g, '')
+                                              .replace(/\s+/g, ' ')
+                                              .trim();
+
+                                            const schemaEval = Function('z', `
+                                              "use strict";
+                                              try {
+                                                const schema = ${cleanSchema};
+                                                return schema;
+                                              } catch (e) {
+                                                console.error('Schema evaluation error:', e);
+                                                return null;
+                                              }
+                                            `);
+
+                                            const schema = schemaEval(z);
+                                            if (!schema) return field.value;
+
+                                            const jsonSchema = zodToJsonSchema(schema);
+                                            return JSON.stringify(jsonSchema, null, 2);
+                                          } catch (error) {
+                                            console.error('Error converting Zod to JSON schema:', error);
+                                            return field.value;
+                                          }
+                                        })()
+                                    : isJsonString(field.value)
+                                      ? JSON.stringify(JSON.parse(field.value), null, 2)
+                                      : field.value
+                                }
+                                onChange={(e) => {
+                                  const newValue = e.target.value;
+                                  if (isZodSchema(newValue)) {
+                                    setIsZod(true);
+                                    setShowAsZod(true);
+                                    setOriginalZodSchema(newValue);
+                                    field.onChange(newValue);
+                                  } else if (isJsonString(newValue) && !showAsZod) {
+                                    field.onChange(newValue);
+                                  } else {
+                                    setIsZod(false);
+                                    const vars = extractVariables(newValue);
+                                    setVariables(vars);
+                                    field.onChange(newValue);
+                                  }
+                                }}
+                                placeholder="You are a sales assisstant and your name is ${name}. You are well versed in ${topic}."
+                                language={isZod ? (showAsZod ? "typescript" : "json") : "json"}
+                                padding={15}
+                                className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
+                                style={{
+                                  fontFamily:
+                                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                                }}
+                              />
+                            );
+                          })()}
                         </FormControl>
                         <FormMessage />
                       </FormItem>
