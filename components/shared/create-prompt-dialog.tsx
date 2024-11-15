@@ -271,10 +271,39 @@ export default function CreatePromptDialog({
                                 value={
                                   isZod
                                     ? showAsZod
-                                      ? originalZodSchema || field.value
+                                      ? (() => {
+                                          try {
+                                            if (!field.value) return "";
+                                            const cleanSchema = field.value
+                                              .replace(/\/\/[^\n]*\n/g, '\n')
+                                              .replace(/\/\*[\s\S]*?\*\//g, '')
+                                              .replace(/\s+/g, ' ')
+                                              .trim();
+
+                                            const schemaEval = Function('z', `
+                                              "use strict";
+                                              try {
+                                                const schema = ${cleanSchema};
+                                                return schema;
+                                              } catch (e) {
+                                                console.error('Schema evaluation error:', e);
+                                                return null;
+                                              }
+                                            `);
+
+                                            const schema = schemaEval(z);
+                                            if (!schema) return field.value;
+
+                                            return originalZodSchema || field.value;
+                                          } catch (error) {
+                                            console.error('Error displaying Zod schema:', error);
+                                            return field.value;
+                                          }
+                                        })()
                                       : (() => {
                                           try {
                                             if (!field.value) return "";
+                                            // Try to parse as Zod and convert to JSON
                                             const cleanSchema = field.value
                                               .replace(/\/\/[^\n]*\n/g, '\n')
                                               .replace(/\/\*[\s\S]*?\*\//g, '')
