@@ -52,9 +52,11 @@ services:
       - clickhouse-data:/var/lib/clickhouse
 
   langtrace-app-prod:
-    extends:
-      service: langtrace-app
+    container_name: langtrace-prod
+    image: scale3labs/langtrace-client:latest
     build:
+      context: .
+      dockerfile: Dockerfile
       target: production
     profiles:
       - production
