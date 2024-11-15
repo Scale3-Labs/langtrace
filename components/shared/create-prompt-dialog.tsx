@@ -22,7 +22,6 @@ import { Input, InputLarge } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn, isJsonString } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Prompt } from "@prisma/client";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { X } from "lucide-react";
 import { useState } from "react";
@@ -36,7 +35,6 @@ import { Badge } from "../ui/badge";
 export default function CreatePromptDialog({
   promptsetId,
   currentPrompt,
-  version,
   passedPrompt,
   variant = "default",
   disabled = false,
@@ -46,9 +44,19 @@ export default function CreatePromptDialog({
   setOpenDialog,
 }: {
   promptsetId: string;
-  currentPrompt?: Prompt;
+  currentPrompt?: {
+    id: string;
+    value: string;
+    isZodSchema?: boolean;
+    name?: string;
+    note?: string;
+    live?: boolean;
+    model?: string;
+    modelSettings?: Record<string, any>;
+    variables?: string[];
+    version?: number;
+  };
   passedPrompt?: string;
-  version?: number;
   variant?: any;
   disabled?: boolean;
   open: boolean;
@@ -80,7 +88,7 @@ export default function CreatePromptDialog({
     currentPrompt?.variables || []
   );
   const [busy, setBusy] = useState<boolean>(false);
-  const [isZod, setIsZod] = useState<boolean>(false);
+  const [isZod, setIsZod] = useState<boolean>(currentPrompt?.isZodSchema || false);
 
   const isZodSchema = (str: string) => {
     // Basic check to see if the string contains a Zod schema pattern
@@ -168,7 +176,7 @@ export default function CreatePromptDialog({
                         modelSettings: data.modelSettings
                           ? JSON.parse(data.modelSettings)
                           : {},
-                        version: version || 1,
+                        version: currentPrompt?.version ? currentPrompt.version + 1 : 1,
                         live: data.live || false,
                         note: data.note || "",
                         promptsetId: promptsetId,
@@ -394,7 +402,9 @@ export default function CreatePromptDialog({
                   <div className="flex flex-col gap-2">
                     <Label>New Version</Label>
                     <p className="text-primary">
-                      {version ? `Version ${version}` : "Version 1"}
+                      {currentPrompt?.version
+                        ? `Version ${currentPrompt.version + 1}`
+                        : "Version 1"}
                     </p>
                   </div>
                   <AlertDialogFooter>
