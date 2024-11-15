@@ -15,6 +15,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
+import { jsonToZodSchema } from "@/lib/utils/schema";
 
 export default function Page() {
   const promptsetId = useParams()?.prompt_id as string;
@@ -240,7 +241,8 @@ export default function Page() {
                       ? selectedPrompt.value
                       : (() => {
                           try {
-                            return JSON.stringify(JSON.parse(selectedPrompt.value), null, 2);
+                            const schema = JSON.parse(selectedPrompt.value);
+                            return jsonToZodSchema(schema) || JSON.stringify(schema, null, 2);
                           } catch (e) {
                             console.error('Failed to parse JSON:', e);
                             return selectedPrompt.value;
