@@ -25,7 +25,6 @@ export default function Page() {
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   const [live, setLive] = useState<boolean>(false);
   const [viewAsZod, setViewAsZod] = useState<boolean>(false);
-  const [editedContent, setEditedContent] = useState<string>('');
   const queryClient = useQueryClient();
 
   const { isLoading: promptsLoading, error: promptsError } = useQuery({
@@ -56,47 +55,19 @@ export default function Page() {
     },
   });
 
-  const handleSavePrompt = async () => {
-    try {
-      const payload = {
-        ...selectedPrompt,
-        value: editedContent,
-      };
-      const response = await fetch("/api/prompt", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to update prompt");
-      }
-      await queryClient.invalidateQueries({
-        queryKey: ["fetch-prompts-query", promptsetId],
-      });
-      toast.success("Prompt updated successfully");
-    } catch (error) {
-      toast.error("Failed to update prompt", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-    }
-  };
+
 
   useEffect(() => {
-    if (selectedPrompt) {
-      const content = selectedPrompt.isZodSchema && !viewAsZod
-        ? (() => {
-            try {
-              const schema = JSON.parse(selectedPrompt.value);
-              return jsonToZodSchema(schema) || JSON.stringify(schema, null, 2);
-            } catch (e) {
-              console.error('Failed to parse JSON:', e);
-              return selectedPrompt.value;
-            }
-          })()
-        : selectedPrompt.value;
-      setEditedContent(content);
+    if (selectedPrompt?.isZodSchema && !viewAsZod) {
+      try {
+        const schema = JSON.parse(selectedPrompt.value);
+        const zodSchema = jsonToZodSchema(schema);
+        if (!zodSchema) {
+          console.error('Failed to convert JSON to Zod schema');
+        }
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+      }
     }
   }, [selectedPrompt, viewAsZod]);
 
@@ -275,26 +246,26 @@ export default function Page() {
                       size="sm"
                       onClick={() => setViewAsZod(!viewAsZod)}
                     >
-                      View as {!viewAsZod ? "JSON" : "Zod"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSavePrompt}
-                    >
-                      Save Changes
+                      View as {!viewAsZod ? "Zod" : "JSON"}
                     </Button>
                   </div>
                 )}
               </div>
               <CodeEditor
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
+                value={
+                  selectedPrompt?.isZodSchema
+                    ? viewAsZod
+                      ? selectedPrompt.value
+                      : JSON.stringify(JSON.parse(selectedPrompt.value), null, 2)
+                    : selectedPrompt.value
+                }
+                readOnly={true}
                 language={selectedPrompt?.isZodSchema && !viewAsZod ? "typescript" : "json"}
                 padding={15}
                 className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
                 style={{
-                  fontFamily: "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+                  fontFamily:
+                    "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
                 }}
               />
             </div>
