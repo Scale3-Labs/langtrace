@@ -7,7 +7,7 @@
     "run-migrations": "npx prisma migrate deploy",
     "seed-db": "npx prisma db seed",
     "create-clickhouse-db": "npx tsx scripts/create-clickhouse-db.ts",
-    "predev": "npm run run-migrations && npm run create-clickhouse-db",
+    "predev": "node scripts/conditional-setup.js",
     "dev": "next dev --turbo",
     "create-migration": "npx prisma migrate dev --create-only",
     "migration": "npx prisma migrate dev",
