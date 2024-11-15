@@ -13,7 +13,8 @@
     "migration": "npx prisma migrate dev",
     "prestart": "npm run run-migrations && npm run create-clickhouse-db",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.8",
@@ -122,9 +123,10 @@
     "@tailwindcss/forms": "^0.5.7",
     "@types/diff": "^5.2.0",
     "@types/formidable": "^3.4.5",
+    "@types/jest": "^29.5.14",
     "@types/json2csv": "^5.0.7",
     "@types/markdown-it": "^13.0.7",
-    "@types/node": "^20.11.10",
+    "@types/node": "^20.17.6",
     "@types/node-fetch": "^2.6.11",
     "@types/papaparse": "^5.3.14",
     "@types/qs": "^6.9.15",
@@ -137,11 +139,13 @@
     "dotenv": "^16.4.5",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
+    "jest": "^29.7.0",
     "postcss": "^8.4.33",
     "prisma": "^5.13.0",
     "tailwindcss": "^3.4.1",
+    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5",
+    "typescript": "^5.6.3",
     "webpack": "^5.91.0"
   },
   "browser": {
