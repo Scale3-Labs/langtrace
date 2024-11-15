@@ -238,7 +238,14 @@ export default function Page() {
                   selectedPrompt?.isZodSchema
                     ? viewAsZod
                       ? selectedPrompt.value
-                      : JSON.stringify(JSON.parse(selectedPrompt.value), null, 2)
+                      : (() => {
+                          try {
+                            return JSON.stringify(JSON.parse(selectedPrompt.value), null, 2);
+                          } catch (e) {
+                            console.error('Failed to parse JSON:', e);
+                            return selectedPrompt.value;
+                          }
+                        })()
                     : selectedPrompt.value
                 }
                 language={selectedPrompt?.isZodSchema && viewAsZod ? "typescript" : "json"}
