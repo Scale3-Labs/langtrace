@@ -21,6 +21,7 @@ import {
 import { Input, InputLarge } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn, isJsonString } from "@/lib/utils";
+import { jsonToZodSchema, isJsonSchema } from "@/lib/utils/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 import { X } from "lucide-react";
@@ -89,9 +90,9 @@ export default function CreatePromptDialog({
   );
   const [busy, setBusy] = useState<boolean>(false);
   const [isZod, setIsZod] = useState<boolean>(currentPrompt?.isZodSchema || false);
+  const [showAsZod, setShowAsZod] = useState<boolean>(currentPrompt?.isZodSchema || false);
 
   const isZodSchema = (str: string) => {
-    // Basic check to see if the string contains a Zod schema pattern
     return (
       /z\./.test(str) &&
       /z\.(object|string|number|array|discriminatedUnion)/.test(str)
@@ -220,21 +221,45 @@ export default function CreatePromptDialog({
                         <FormLabel>
                           Prompt{" "}
                           <span className="text-xs font-normal">
-                            {
-                              "(Variables should be enclosed in curly braces - Ex: ${variable})"
+                            {isZod
+                              ? "(Enter Zod schema or toggle to view as JSON)"
+                              : "(Variables should be enclosed in curly braces - Ex: ${variable})"
                             }
                           </span>
                           {isZod && (
-                            <Badge className="ml-2" variant="default">
-                              Zod Schema
-                            </Badge>
+                            <>
+                              <Badge className="ml-2" variant="default">
+                                Zod Schema
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="ml-2"
+                                onClick={() => setShowAsZod(!showAsZod)}
+                              >
+                                View as {showAsZod ? "JSON" : "Zod"}
+                              </Button>
+                            </>
                           )}
                         </FormLabel>
                         <FormControl>
                           <CodeEditor
                             defaultValue={
                               currentPrompt?.isZodSchema
-                                ? currentPrompt.value
+                                ? showAsZod
+                                  ? (() => {
+                                      try {
+                                        if (isJsonSchema(currentPrompt.value)) {
+                                          return jsonToZodSchema(currentPrompt.value);
+                                        }
+                                        return currentPrompt.value;
+                                      } catch (error) {
+                                        console.error('Error converting JSON to Zod schema:', error);
+                                        return currentPrompt.value;
+                                      }
+                                    })()
+                                  : JSON.stringify(JSON.parse(currentPrompt.value), null, 2)
                                 : isJsonString(
                                     passedPrompt || currentPrompt?.value || ""
                                   )
@@ -249,28 +274,40 @@ export default function CreatePromptDialog({
                             }
                             value={
                               isZod
-                                ? field.value
+                                ? showAsZod
+                                  ? (() => {
+                                      try {
+                                        if (isJsonSchema(field.value)) {
+                                          return jsonToZodSchema(field.value);
+                                        }
+                                        return field.value;
+                                      } catch (error) {
+                                        console.error('Error converting JSON to Zod schema:', error);
+                                        return field.value;
+                                      }
+                                    })()
+                                  : JSON.stringify(JSON.parse(field.value), null, 2)
                                 : isJsonString(field.value)
-                                ? JSON.stringify(
-                                    JSON.parse(field.value),
-                                    null,
-                                    2
-                                  )
-                                : field.value
+                                  ? JSON.stringify(JSON.parse(field.value), null, 2)
+                                  : field.value
                             }
                             onChange={(e) => {
-                              // If the prompt is not a zod schema, extract variables
-                              if (!isZodSchema(e.target.value)) {
-                                setIsZod(false);
-                                const vars = extractVariables(e.target.value);
-                                setVariables(vars);
-                              } else {
+                              const newValue = e.target.value;
+                              if (isZodSchema(newValue)) {
                                 setIsZod(true);
+                                setShowAsZod(true);
+                                field.onChange(newValue);
+                              } else if (isJsonString(newValue) && !showAsZod) {
+                                field.onChange(newValue);
+                              } else {
+                                setIsZod(false);
+                                const vars = extractVariables(newValue);
+                                setVariables(vars);
+                                field.onChange(newValue);
                               }
-                              field.onChange(e);
                             }}
                             placeholder="You are a sales assisstant and your name is ${name}. You are well versed in ${topic}."
-                            language={isZod ? "typescript" : "json"}
+                            language={isZod ? (showAsZod ? "typescript" : "json") : "json"}
                             padding={15}
                             className="rounded-md bg-background dark:bg-background border border-muted text-primary dark:text-primary"
                             style={{
