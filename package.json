@@ -134,6 +134,7 @@
     "@types/react-window": "^1.8.8",
     "@types/stream-to-array": "^2.3.3",
     "autoprefixer": "^10.4.17",
+    "dotenv": "^16.4.5",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
     "postcss": "^8.4.33",

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { execSync } = require('child_process');
 
 // Always run migrations
