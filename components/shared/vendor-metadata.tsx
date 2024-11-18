@@ -22,6 +22,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-orange-500";
   }
 
+  if (vendor.includes("milvus")) {
+    return "bg-blue-500";
+  }
+
   if (vendor.includes("anthropic")) {
     return "bg-yellow-500";
   }
@@ -80,6 +84,10 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("crewai")) {
     return "bg-red-200";
+  }
+
+  if (vendor.includes("milvus")) {
+    return "bg-blue-200";
   }
 
   if (vendor.includes("perplexity")) {
@@ -509,6 +517,22 @@ export function VendorLogo({
       <Image
         alt="Mistral Logo"
         src="/mistral.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("milvus")) {
+    const color = vendorColor("milvus");
+    return (
+      <Image
+        alt="Milvus Logo"
+        src="/milvus.png"
         width={30}
         height={30}
         className={cn(
