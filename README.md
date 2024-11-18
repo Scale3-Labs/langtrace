@@ -231,57 +231,6 @@ Langtrace automatically captures traces from the following vendors and framework
 | MongoDB | ❌ | ✅ |
 | Milvus | ❌ | ✅ |
 
-#### Milvus Integration
-The Python SDK includes full support for [Milvus](https://milvus.io/), an open-source vector database built for scalable similarity search. Milvus integration is implemented through our instrumentation framework, which automatically captures and traces all vector database operations.
-
-The integration supports the following operations:
-- Insert vectors and their metadata
-- Query and search operations
-- Collection management
-- Delete operations
-- Upsert capabilities
-
-Each operation is automatically instrumented to provide detailed telemetry:
-- Span attributes include database system ("milvus") and operation type
-- Automatic capture of operation parameters and results
-- Integration with OpenTelemetry tracing standards
-
-To use Milvus with Langtrace Python SDK:
-```python
-# Install required dependencies
-pip install langtrace-python-sdk pymilvus>=2.4.1
-
-# Initialize Langtrace
-from langtrace_python_sdk import langtrace
-langtrace.init(api_key='<your_api_key>')
-
-# Your Milvus operations will be automatically traced
-from pymilvus import MilvusClient
-client = MilvusClient("your_connection_string")
-```
-
-#### Milvus Integration
-The Python SDK includes full support for [Milvus](https://milvus.io/), an open-source vector database built for scalable similarity search. The integration supports the following operations:
-- Insert vectors and their metadata
-- Query and search operations
-- Collection management
-- Delete operations
-- Upsert capabilities
-
-To use Milvus with Langtrace Python SDK:
-```python
-# Install required dependencies
-pip install langtrace-python-sdk pymilvus>=2.4.1
-
-# Initialize Langtrace
-from langtrace_python_sdk import langtrace
-langtrace.init(api_key='<your_api_key>')
-
-# Your Milvus operations will be automatically traced
-from pymilvus import MilvusClient
-client = MilvusClient("your_connection_string")
-```
-
 ---
 
 ## 📐 Langtrace System Architecture
