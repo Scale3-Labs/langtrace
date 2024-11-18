@@ -379,6 +379,7 @@ export const SUPPORTED_VENDORS: Record<string, string> = {
   LANGCHAIN_CORE: "Langchain Core",
   LANGGRAPH: "Langgraph",
   LLAMAINDEX: "LlamaIndex",
+  MILVUS: "Milvus",
   OPENAI: "OpenAI",
   PINECONE: "Pinecone",
   COHERE: "Cohere",
