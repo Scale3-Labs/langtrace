@@ -229,6 +229,7 @@ Langtrace automatically captures traces from the following vendors and framework
 | Weaviate | ✅ | ✅ |
 | PGVector | ✅ | ✅ (SQLAlchemy) |
 | MongoDB | ❌ | ✅ |
+| Milvus | ❌ | ✅ |
 
 ---
 
