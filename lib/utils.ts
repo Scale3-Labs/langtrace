@@ -520,6 +520,7 @@ export function calculatePriceFromUsage(
 ): any {
   if (!model) return { total: 0, input: 0, output: 0 };
   let costTable: CostTableEntry | undefined = undefined;
+  // set vendor correctly if vendor is ai
   if (vendor === "ai") {
     if (model.startsWith("gpt-4") || model.includes("gpt-4")) {
       vendor = "openai";
@@ -541,7 +542,9 @@ export function calculatePriceFromUsage(
     ) {
       vendor = "groq";
     }
-  } else if (vendor === "litellm") {
+  }
+
+  if (vendor === "litellm" || vendor.includes("bedrock")) {
     let correctModel = model;
     if (model.includes("gpt") || model.includes("o1")) {
       if (model.includes("gpt-4o-mini")) {
@@ -558,18 +561,16 @@ export function calculatePriceFromUsage(
       costTable = OPENAI_PRICING[correctModel];
     } else if (model.includes("claude")) {
       let cmodel = "";
-      if (model.includes("opus")) {
+      if (model.includes("3-opus")) {
         cmodel = "claude-3-opus";
-      } else if (model.includes("sonnet")) {
+      } else if (model.includes("3-sonnet")) {
         cmodel = "claude-3-sonnet";
-      } else if (model.includes("haiku")) {
+      } else if (model.includes("3-haiku")) {
         cmodel = "claude-3-haiku";
-      } else if (model.includes("claude-2.1")) {
-        cmodel = "claude-2.1";
-      } else if (model.includes("claude-2.0")) {
-        cmodel = "claude-2.0";
-      } else if (model.includes("instant")) {
-        cmodel = "claude-instant";
+      } else if (model.includes("3-5-sonnet")) {
+        cmodel = "claude-3-5-sonnet";
+      } else if (model.includes("3-5-haiku")) {
+        cmodel = "claude-3-5-haiku";
       } else {
         return 0;
       }
@@ -600,18 +601,16 @@ export function calculatePriceFromUsage(
     costTable = OPENAI_PRICING[correctModel];
   } else if (vendor === "anthropic") {
     let cmodel = "";
-    if (model.includes("opus")) {
+    if (model.includes("3-opus")) {
       cmodel = "claude-3-opus";
-    } else if (model.includes("sonnet")) {
+    } else if (model.includes("3-sonnet")) {
       cmodel = "claude-3-sonnet";
-    } else if (model.includes("haiku")) {
+    } else if (model.includes("3-haiku")) {
       cmodel = "claude-3-haiku";
-    } else if (model.includes("claude-2.1")) {
-      cmodel = "claude-2.1";
-    } else if (model.includes("claude-2.0")) {
-      cmodel = "claude-2.0";
-    } else if (model.includes("instant")) {
-      cmodel = "claude-instant";
+    } else if (model.includes("3-5-sonnet")) {
+      cmodel = "claude-3-5-sonnet";
+    } else if (model.includes("3-5-haiku")) {
+      cmodel = "claude-3-5-haiku";
     } else {
       return 0;
     }
