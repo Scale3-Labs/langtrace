@@ -154,6 +154,14 @@ export const XAI_PRICING: Record<string, CostTableEntry> = {
 };
 
 export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
+  "claude-3-5-sonnet": {
+    input: 0.003,
+    output: 0.015,
+  },
+  "claude-3-5-haiku": {
+    input: 0.001,
+    output: 0.005,
+  },
   "claude-3-haiku": {
     input: 0.00025,
     output: 0.00125,
@@ -165,18 +173,6 @@ export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
   "claude-3-opus": {
     input: 0.015,
     output: 0.075,
-  },
-  "claude-2.1": {
-    input: 0.008,
-    output: 0.024,
-  },
-  "claude-2.0": {
-    input: 0.008,
-    output: 0.024,
-  },
-  "claude-instant": {
-    input: 0.0008,
-    output: 0.0024,
   },
 };
 
@@ -379,6 +375,7 @@ export const SUPPORTED_VENDORS: Record<string, string> = {
   LANGCHAIN_CORE: "Langchain Core",
   LANGGRAPH: "Langgraph",
   LLAMAINDEX: "LlamaIndex",
+  MILVUS: "Milvus",
   OPENAI: "OpenAI",
   PINECONE: "Pinecone",
   COHERE: "Cohere",
