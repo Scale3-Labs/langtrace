@@ -85,7 +85,7 @@ export default function ConversationView({
                 )}
               </div>
               <div
-                className="text-sm bg-muted rounded-md px-2 py-4"
+                className="text-sm bg-muted rounded-md px-2 py-4 whitespace-pre-wrap"
                 dangerouslySetInnerHTML={{
                   __html: content,
                 }}
@@ -120,7 +120,7 @@ export default function ConversationView({
                 <p className="font-semibold text-md capitalize">{role}</p>
               </div>
               <div
-                className="text-sm bg-muted rounded-md px-2 py-4 break-all"
+                className="text-sm bg-muted rounded-md px-2 py-4 break-all whitespace-pre-wrap"
                 dangerouslySetInnerHTML={{
                   __html: content,
                 }}
