@@ -1,0 +1,70 @@
+name: Close Inactive Issues
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
+  workflow_dispatch:      # Allow manual triggering
+
+jobs:
+  close-inactive:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Close inactive issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const daysUntilClose = 14
+            const warningLabel = 'stale'
+            const warningMessage = 'This issue has been automatically marked as stale due to inactivity. It will be closed in 3 days if no further activity occurs.'
+
+            const now = new Date()
+            const timeAgo = new Date(now.getTime() - (daysUntilClose * 24 * 60 * 60 * 1000))
+
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              sort: 'updated',
+              direction: 'asc'
+            })
+
+            for (const issue of issues.data) {
+              const lastUpdated = new Date(issue.updated_at)
+
+              if (lastUpdated < timeAgo) {
+                // Check if issue has warning label
+                if (issue.labels.find(label => label.name === warningLabel)) {
+                  // Close issue
+                  await github.rest.issues.update({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    state: 'closed',
+                    state_reason: 'not_planned'
+                  })
+
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    body: 'This issue has been automatically closed due to inactivity.'
+                  })
+                } else {
+                  // Add warning label and comment
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    labels: [warningLabel]
+                  })
+
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    body: warningMessage
+                  })
+                }
+              }
+            }

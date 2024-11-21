@@ -367,6 +367,8 @@ export function VendorLogo({
     );
   }
 
+
+
   if (vendor.includes("xai")) {
     const color = vendorColor("vercel");
     return (
