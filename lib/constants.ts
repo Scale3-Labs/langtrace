@@ -381,10 +381,6 @@ export const LLM_VENDOR_APIS = [
     value: "PERPLEXITY_API_KEY",
     label: "Perplexity",
   },
-  {
-    value: "MISTRAL_API_KEY",
-    label: "Mistral",
-  },
 ];
 
 export const LLM_VENDORS = [
@@ -407,10 +403,6 @@ export const LLM_VENDORS = [
   {
     value: "perplexity",
     label: "Perplexity",
-  },
-  {
-    value: "mistral",
-    label: "Mistral",
   },
 ];
 
