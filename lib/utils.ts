@@ -527,7 +527,7 @@ export function calculatePriceFromUsage(
       vendor = "openai";
     } else if (model.includes("claude")) {
       vendor = "anthropic";
-    } else if (model.includes("mistral")) {
+    } else if (model.includes("tral")) {
       vendor = "mistral";
     } else if (model.includes("grok")) {
       vendor = "xai";
