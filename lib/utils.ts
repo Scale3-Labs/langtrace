@@ -16,6 +16,7 @@ import {
   CostTableEntry,
   GROQ_PRICING,
   LangTraceAttributes,
+  MISTRAL_PRICING,
   OPENAI_PRICING,
   PERPLEXITY_PRICING,
   SpanStatusCode,
@@ -527,7 +528,7 @@ export function calculatePriceFromUsage(
     } else if (model.includes("claude")) {
       vendor = "anthropic";
     } else if (model.includes("mistral")) {
-      vendor = "mistral"; // Assuming there is a MISTRAL_PRICING object
+      vendor = "mistral";
     } else if (model.includes("grok")) {
       vendor = "xai";
     } else if (model.includes("gemini")) {
@@ -642,6 +643,8 @@ export function calculatePriceFromUsage(
     costTable = GEMINI_PRICING[model];
   } else if (vendor === "xai") {
     costTable = XAI_PRICING[model];
+  } else if (vendor === "mistral") {
+    costTable = MISTRAL_PRICING[model];
   }
   if (costTable) {
     const total =
