@@ -367,6 +367,22 @@ export function VendorLogo({
     );
   }
 
+  if (vendor.includes("mistral")) {
+    const color = vendorColor("mistral");
+    return (
+      <Image
+        alt="Mistral Logo"
+        src="/mistral.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
   if (vendor.includes("xai")) {
     const color = vendorColor("vercel");
     return (
