@@ -582,6 +582,8 @@ export function calculatePriceFromUsage(
       costTable = GEMINI_PRICING[model];
     } else if (model.includes("grok")) {
       costTable = XAI_PRICING[model];
+    } else if (model.includes("mistral")) {
+      costTable = MISTRAL_PRICING[model];
     }
   } else if (vendor === "openai") {
     // check if model is present as key in OPENAI_PRICING

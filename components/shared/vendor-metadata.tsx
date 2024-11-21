@@ -367,21 +367,7 @@ export function VendorLogo({
     );
   }
 
-  if (vendor.includes("xai")) {
-    const color = vendorColor("vercel");
-    return (
-      <Image
-        alt="XAI Logo"
-        src="/vercel.png"
-        width={60}
-        height={30}
-        className={cn(
-          `${color} p-[3px]`,
-          variant === "circular" ? "rounded-full" : "rounded-md"
-        )}
-      />
-    );
-  }
+
 
   if (vendor.includes("xai")) {
     const color = vendorColor("vercel");
