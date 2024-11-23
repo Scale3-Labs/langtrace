@@ -40,6 +40,7 @@ export default function Traces({ email }: { email: string }) {
   const [expandedView, setExpandedView] = useState(false);
   const [group, setGroup] = useState(true);
   const [keyword, setKeyword] = useState<string>("");
+  const [pageSize, setPageSize] = useState<string>(PAGE_SIZE.toString());
 
   useEffect(() => {
     setCurrentData([]);
@@ -58,6 +59,9 @@ export default function Traces({ email }: { email: string }) {
       const group = window.localStorage.getItem("preferences.group");
       // Default group to true if not set
       setGroup(group === "false" ? false : true);
+
+      const pageSize = window.localStorage.getItem("preferences.traces.page-size");
+      setPageSize(pageSize || PAGE_SIZE.toString());
     }
   }, [filters]);
 
@@ -365,7 +369,7 @@ export default function Traces({ email }: { email: string }) {
 
       const body: any = {
         page: pageNum,
-        pageSize: PAGE_SIZE,
+        pageSize: parseInt(pageSize),
         projectId: project_id,
         filters: {
           filters: filters,
@@ -615,6 +619,8 @@ export default function Traces({ email }: { email: string }) {
         }}
       />
       <TracesTable
+        pageSize={pageSize}
+        setPageSize={setPageSize}
         project_id={project_id}
         columns={columns}
         data={currentData}
