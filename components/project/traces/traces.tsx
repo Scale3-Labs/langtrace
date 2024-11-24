@@ -205,14 +205,24 @@ export default function Traces({ email }: { email: string }) {
       header: "Models",
       cell: ({ row }) => {
         const models = row.getValue("models") as string[];
+        // deduplicate models
+        const uniqueModels = Array.from(
+          new Set(models.map((model) => model.toLowerCase()).filter((model) => model !== ""))
+        );
+        const length = uniqueModels.length;
+        const firstModel = uniqueModels.find((model) => model !== "");
         return (
           <div className="flex flex-col gap-3">
-            {models &&
-              models.map((model, i) => (
-                <Badge key={i} variant="secondary" className="lowercase">
-                  {model}
-                </Badge>
-              ))}
+            {firstModel && (
+              <Badge variant="secondary" className="lowercase">
+                {firstModel}
+              </Badge>
+            )}
+            {length > 1 && (
+              <p className="text-xs font-semibold mt-2">
+                {length - 1} more...
+              </p>
+            )}
           </div>
         );
       },
@@ -243,7 +253,7 @@ export default function Traces({ email }: { email: string }) {
                   />
                 ))
               : null}
-            {length > 0 && (
+            {length - (firstMessage?.prompts?.length || 0) > 0 && (
               <p className="text-xs font-semibold mt-2">
                 {length - (firstMessage?.prompts?.length || 0)} more...
               </p>
@@ -277,7 +287,7 @@ export default function Traces({ email }: { email: string }) {
                     />
                   ))
                 : null}
-            {length > 0 && (
+            {length - (firstMessage?.responses?.length || 0) > 0 && (
               <p className="text-xs font-semibold mt-2">
                 {length - (firstMessage?.responses?.length || 0)} more...
               </p>
