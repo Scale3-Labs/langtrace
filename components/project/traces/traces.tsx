@@ -253,7 +253,7 @@ export default function Traces({ email }: { email: string }) {
                   />
                 ))
               : null}
-            {length > 0 && (
+            {length - (firstMessage?.prompts?.length || 0) > 0 && (
               <p className="text-xs font-semibold mt-2">
                 {length - (firstMessage?.prompts?.length || 0)} more...
               </p>
@@ -287,7 +287,7 @@ export default function Traces({ email }: { email: string }) {
                     />
                   ))
                 : null}
-            {length > 0 && (
+            {length - (firstMessage?.responses?.length || 0) > 0 && (
               <p className="text-xs font-semibold mt-2">
                 {length - (firstMessage?.responses?.length || 0)} more...
               </p>
