@@ -219,6 +219,13 @@ export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
   },
 };
 
+export const DEEPSEEK_PRICING: Record<string, CostTableEntry> = {
+  "deepseek-coder": {
+    input: 0.00014,
+    output: 0.00028,
+  },
+};
+
 // https://docs.perplexity.ai/docs/pricing --> slightly unclear
 // https://docs.perplexity.ai/changelog/api-updates-february-2024 --> diff prices
 export const PERPLEXITY_PRICING: Record<string, CostTableEntry> = {
@@ -411,6 +418,7 @@ export const SUPPORTED_VENDORS: Record<string, string> = {
   AZURE: "Azure",
   CHROMA: "Chroma",
   CREWAI: "CrewAI",
+  DEEPSEEK: "DeepSeek",
   DSPY: "DSPy",
   GROQ: "Groq",
   LANGCHAIN: "Langchain",
