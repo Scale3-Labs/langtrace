@@ -12,6 +12,7 @@ import {
   ANTHROPIC_PRICING,
   AZURE_PRICING,
   COHERE_PRICING,
+  DEEPSEEK_PRICING,
   GEMINI_PRICING,
   CostTableEntry,
   GROQ_PRICING,
@@ -542,6 +543,8 @@ export function calculatePriceFromUsage(
       model.includes("gemma2")
     ) {
       vendor = "groq";
+    } else if (model.includes("deepseek")) {
+      vendor = "deepseek";
     }
   }
 
@@ -584,6 +587,8 @@ export function calculatePriceFromUsage(
       costTable = XAI_PRICING[model];
     } else if (model.includes("tral")) {
       costTable = MISTRAL_PRICING[model];
+    } else if (model.includes("deepseek")) {
+      costTable = DEEPSEEK_PRICING[model];
     }
   } else if (vendor === "openai") {
     // check if model is present as key in OPENAI_PRICING
@@ -647,6 +652,8 @@ export function calculatePriceFromUsage(
     costTable = XAI_PRICING[model];
   } else if (vendor === "mistral") {
     costTable = MISTRAL_PRICING[model];
+  } else if (vendor === "deepseek") {
+    costTable = DEEPSEEK_PRICING[model];
   }
   if (costTable) {
     const total =
@@ -843,6 +850,11 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "mistral";
   } else if (span.name.includes("milvus") || serviceName.includes("milvus")) {
     vendor = "milvus";
+  } else if (
+    span.name.includes("deepseek") ||
+    serviceName.includes("deepseek")
+  ) {
+    vendor = "deepseek";
   }
   return vendor;
 }

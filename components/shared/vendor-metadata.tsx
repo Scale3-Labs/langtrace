@@ -74,6 +74,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
+  if (vendor.includes("deepseek")) {
+    return "bg-blue-500";
+  }
+
   return "bg-gray-500";
 }
 
@@ -168,6 +172,10 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("guardrails")) {
     return "bg-green-200";
+  }
+
+  if (vendor.includes("deepseek")) {
+    return "bg-blue-200";
   }
 
   return "bg-gray-800";
@@ -567,6 +575,22 @@ export function VendorLogo({
       <Image
         alt="Guardrails Logo"
         src="/guardrails.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("deepseek")) {
+    const color = vendorColor("deepseek");
+    return (
+      <Image
+        alt="DeepSeek Logo"
+        src="/deepseek.jpeg"
         width={30}
         height={30}
         className={cn(
