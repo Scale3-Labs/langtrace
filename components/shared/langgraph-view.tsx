@@ -26,7 +26,7 @@ const CustomEdge = ({ id, data, ...props }: any) => {
             fontWeight: 700,
             color: "#ffffff",
           }}
-          className="nodrag nopan"
+          className='nodrag nopan'
         >
           {data.label}
         </div>
@@ -79,6 +79,7 @@ export default function LanggraphView({ trace }: { trace: Span[] }) {
                   source: pEdge?.source || "source",
                   target: pathMap[k] || "destination",
                   type: "custom",
+                  animated: true,
                 });
               }
             }
