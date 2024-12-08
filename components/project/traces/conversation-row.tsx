@@ -86,12 +86,12 @@ export const ConversationRow = ({
         attributes["gen_ai.usage.completion_tokens"]
       ) {
         tokenCounts = {
-          input_tokens: tokenCounts.prompt_tokens
-            ? tokenCounts.prompt_tokens +
+          input_tokens: tokenCounts.input_tokens
+            ? tokenCounts.input_tokens +
               attributes["gen_ai.usage.prompt_tokens"]
             : attributes["gen_ai.usage.prompt_tokens"],
-          output_tokens: tokenCounts.completion_tokens
-            ? tokenCounts.completion_tokens +
+          output_tokens: tokenCounts.output_tokens
+            ? tokenCounts.output_tokens +
               attributes["gen_ai.usage.completion_tokens"]
             : attributes["gen_ai.usage.completion_tokens"],
           total_tokens: tokenCounts.total_tokens
@@ -111,12 +111,12 @@ export const ConversationRow = ({
         attributes["gen_ai.usage.output_tokens"]
       ) {
         tokenCounts = {
-          input_tokens: tokenCounts.prompt_tokens
-            ? tokenCounts.prompt_tokens +
+          input_tokens: tokenCounts.input_tokens
+            ? tokenCounts.input_tokens +
               attributes["gen_ai.usage.input_tokens"]
             : attributes["gen_ai.usage.input_tokens"],
-          output_tokens: tokenCounts.completion_tokens
-            ? tokenCounts.completion_tokens +
+          output_tokens: tokenCounts.output_tokens
+            ? tokenCounts.output_tokens +
               attributes["gen_ai.usage.output_tokens"]
             : attributes["gen_ai.usage.output_tokens"],
           total_tokens: tokenCounts.total_tokens
