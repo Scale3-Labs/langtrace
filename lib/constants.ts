@@ -261,7 +261,20 @@ export const PERPLEXITY_PRICING: Record<string, CostTableEntry> = {
 
 export const COHERE_PRICING: Record<string, CostTableEntry> = {
   "command-light": {
-    input: 0.002,
+    input: 0.0003,
+    output: 0.0006,
+  },
+  "command-light-nightly": {
+    input: 0.0003,
+    output: 0.0006,
+  },
+  // prettier-ignore
+  "command": {
+    input: 0.001,
+    output: 0.002,
+  },
+  "command-nightly": {
+    input: 0.001,
     output: 0.002,
   },
   "command-r": {
