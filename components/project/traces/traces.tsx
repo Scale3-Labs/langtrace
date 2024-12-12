@@ -60,7 +60,9 @@ export default function Traces({ email }: { email: string }) {
       // Default group to true if not set
       setGroup(group === "false" ? false : true);
 
-      const pageSize = window.localStorage.getItem("preferences.traces.page-size");
+      const pageSize = window.localStorage.getItem(
+        "preferences.traces.page-size"
+      );
       setPageSize(pageSize || PAGE_SIZE.toString());
     }
   }, [filters]);
@@ -207,7 +209,11 @@ export default function Traces({ email }: { email: string }) {
         const models = row.getValue("models") as string[];
         // deduplicate models
         const uniqueModels = Array.from(
-          new Set(models.map((model) => model.toLowerCase()).filter((model) => model !== ""))
+          new Set(
+            models
+              .map((model) => model.toLowerCase())
+              .filter((model) => model !== "")
+          )
         );
         const length = uniqueModels.length;
         const firstModel = uniqueModels.find((model) => model !== "");
@@ -219,9 +225,7 @@ export default function Traces({ email }: { email: string }) {
               </Badge>
             )}
             {length > 1 && (
-              <p className="text-xs font-semibold mt-2">
-                {length - 1} more...
-              </p>
+              <p className="text-xs font-semibold mt-2">{length - 1} more...</p>
             )}
           </div>
         );
@@ -239,8 +243,8 @@ export default function Traces({ email }: { email: string }) {
         }
         const length = messages.length;
         // get the first message with a prompt
-        const firstMessage = messages.find((message) =>
-          message.prompts && message.prompts.length > 0
+        const firstMessage = messages.find(
+          (message) => message.prompts && message.prompts.length > 0
         );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
@@ -273,20 +277,20 @@ export default function Traces({ email }: { email: string }) {
           return null;
         }
         // get the first message with a response
-        const firstMessage = messages.find((message) =>
-          message.responses && message.responses.length > 0
+        const firstMessage = messages.find(
+          (message) => message.responses && message.responses.length > 0
         );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
             {firstMessage
               ? firstMessage.responses.map((response, j) => (
-                    <HoverCell
-                      key={j}
-                      values={JSON.parse(response)}
-                      expand={expandedView}
-                    />
-                  ))
-                : null}
+                  <HoverCell
+                    key={j}
+                    values={JSON.parse(response)}
+                    expand={expandedView}
+                  />
+                ))
+              : null}
             {length - (firstMessage?.responses?.length || 0) > 0 && (
               <p className="text-xs font-semibold mt-2">
                 {length - (firstMessage?.responses?.length || 0)} more...
@@ -429,7 +433,6 @@ export default function Traces({ email }: { email: string }) {
     onSuccess: (data) => {
       const newData = data?.traces?.result || [];
       const metadata = data?.traces?.metadata || {};
-
       setTotalPages(parseInt(metadata?.total_pages) || 1);
       if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
         setPage(parseInt(metadata?.page) + 1);
@@ -640,7 +643,7 @@ export default function Traces({ email }: { email: string }) {
             setPage(1);
             setFilters([]);
             setEnableFetch(true);
-        }
+          }
         }}
       />
       <TracesTable

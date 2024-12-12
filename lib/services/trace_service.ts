@@ -73,7 +73,7 @@ export interface ITraceService {
     page: number,
     pageSize: number,
     filters?: Filter,
-    group?: boolean
+    keyword?: string
   ) => Promise<PaginationResult<Span[]>>;
   GetTokensUsedPerProject: (project_id: string) => Promise<any>;
   GetTokensUsedPerAccount: (project_ids: string[]) => Promise<number>;
@@ -660,7 +660,6 @@ export class TraceService implements ITraceService {
     page: number,
     pageSize: number,
     filters: Filter = { operation: "AND", filters: [] },
-    group: boolean = true,
     keyword?: string
   ): Promise<PaginationResult<Span[]>> {
     try {
@@ -672,8 +671,6 @@ export class TraceService implements ITraceService {
           metadata: { page, page_size: pageSize, total_pages: 1 },
         };
       }
-
-      // Query strategy: get page offset, get trace ids, get the traces
 
       // build the pagination metadata
       const getTotalTracesPerProjectQuery = sql.select(
@@ -695,53 +692,19 @@ export class TraceService implements ITraceService {
         page = totalPages;
       }
 
-      // get all span IDs grouped by trace_id and sort by start_time in descending order
-      const getTraceIdsQuery = sql.select(
-        this.queryBuilderService.GetFilteredTraceAttributesQuery(
-          project_id,
-          filters,
-          pageSize,
-          (page - 1) * pageSize,
-          keyword
-        )
+      // get the traces with filters for the page
+      const queryStr = this.queryBuilderService.GetTracesWithFilters(
+        project_id,
+        filters,
+        pageSize,
+        (page - 1) * pageSize,
+        keyword
       );
-      const spans: Span[] = await this.client.find<Span[]>(getTraceIdsQuery);
+      const query = sql.select("*").from(`(${queryStr})`);
+      const results = await this.client.find<any>(query);
 
-      // get all traces
-      const traces: Span[][] = [];
-      for (const span of spans) {
-        if (group && filters.filters.length > 0) {
-          filters.filters.push({
-            key: "parent_id",
-            operation: "EQUALS",
-            value: "",
-            type: "property",
-          } as any);
-        }
-
-        const getTraceByIdQuery = sql.select(
-          this.queryBuilderService.GetFilteredTraceAttributesTraceById(
-            project_id,
-            span.trace_id,
-            filters,
-            keyword
-          )
-        );
-        let trace = await this.client.find<Span[]>(getTraceByIdQuery);
-        // if group is false, remove the span with span_id equal to the parent_id of all the other spans
-        if (!group) {
-          // find the parent_id from one of the spans where the parent_id is not ""
-          const parent_id = trace.find((s) => s.parent_id !== "")?.parent_id;
-
-          // remove the span with span_id equal to the parent_id
-          if (parent_id !== undefined) {
-            trace = trace.filter((s) => s.span_id !== parent_id);
-          }
-        }
-        if (trace.length > 0) {
-          traces.push(trace);
-        }
-      }
+      // Extract the arrays and remove all wrapping
+      const traces: Span[][] = results.map((r: any) => r.result);
       return { result: traces, metadata: md };
     } catch (error) {
       throw new Error(
@@ -957,7 +920,9 @@ export class TraceService implements ITraceService {
             outputTokens += completion_tokens;
             totalTokens += prompt_tokens + completion_tokens;
           } else if ("gen_ai.usage.input_tokens" in parsedAttributes) {
-            const prompt_tokens = Number(parsedAttributes["gen_ai.usage.input_tokens"]);
+            const prompt_tokens = Number(
+              parsedAttributes["gen_ai.usage.input_tokens"]
+            );
             const completion_tokens = Number(
               parsedAttributes["gen_ai.usage.output_tokens"]
             );
@@ -1076,7 +1041,7 @@ export class TraceService implements ITraceService {
       const costPerHour = result.map((row: any) => {
         const llmTokenCounts = {
           total_tokens: Number(row.total_tokens),
-          input_tokens: Number(row.input_tokens), 
+          input_tokens: Number(row.input_tokens),
           output_tokens: Number(row.output_tokens),
         };
         const model = row.model;
