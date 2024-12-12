@@ -278,13 +278,29 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
     output: 0.002,
   },
   "command-r": {
-    input: 0.00015,
-    output: 0.0006,
+    input: 0.0005,
+    output: 0.0015,
+  },
+  "command-r-08-2024": {
+    input: 0.0005,
+    output: 0.0015,
+  },
+  "command-r-03-2024": {
+    input: 0.0005,
+    output: 0.0015,
   },
   "command-r-plus": {
-    input: 0.0025,
-    output: 0.01,
+    input: 0.003,
+    output: 0.015,
   },
+  "command-r-plus-08-2024": {
+    input: 0.003,
+    output: 0.015,
+  },
+  "command-r-plus-04-2024": {
+    input: 0.003,
+    output: 0.015,
+  }
 };
 
 export const GROQ_PRICING: Record<string, CostTableEntry> = {
