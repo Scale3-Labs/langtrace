@@ -205,14 +205,24 @@ export default function Traces({ email }: { email: string }) {
       header: "Models",
       cell: ({ row }) => {
         const models = row.getValue("models") as string[];
+        // deduplicate models
+        const uniqueModels = Array.from(
+          new Set(models.map((model) => model.toLowerCase()).filter((model) => model !== ""))
+        );
+        const length = uniqueModels.length;
+        const firstModel = uniqueModels.find((model) => model !== "");
         return (
           <div className="flex flex-col gap-3">
-            {models &&
-              models.map((model, i) => (
-                <Badge key={i} variant="secondary" className="lowercase">
-                  {model}
-                </Badge>
-              ))}
+            {firstModel && (
+              <Badge variant="secondary" className="lowercase">
+                {firstModel}
+              </Badge>
+            )}
+            {length > 1 && (
+              <p className="text-xs font-semibold mt-2">
+                {length - 1} more...
+              </p>
+            )}
           </div>
         );
       },
@@ -227,18 +237,26 @@ export default function Traces({ email }: { email: string }) {
         if (!messages || messages.length === 0) {
           return null;
         }
+        const length = messages.length;
+        // get the first message with a prompt
+        const firstMessage = messages.find((message) =>
+          message.prompts && message.prompts.length > 0
+        );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
-            {messages.map((message, i) =>
-              message.prompts && message.prompts.length > 0
-                ? message.prompts.map((prompt, j) => (
-                    <HoverCell
-                      key={j}
-                      values={JSON.parse(prompt)}
-                      expand={expandedView}
-                    />
-                  ))
-                : null
+            {firstMessage
+              ? firstMessage.prompts.map((prompt, j) => (
+                  <HoverCell
+                    key={j}
+                    values={JSON.parse(prompt)}
+                    expand={expandedView}
+                  />
+                ))
+              : null}
+            {length - (firstMessage?.prompts?.length || 0) > 0 && (
+              <p className="text-xs font-semibold mt-2">
+                {length - (firstMessage?.prompts?.length || 0)} more...
+              </p>
             )}
           </div>
         );
@@ -254,18 +272,25 @@ export default function Traces({ email }: { email: string }) {
         if (!messages || messages.length === 0) {
           return null;
         }
+        // get the first message with a response
+        const firstMessage = messages.find((message) =>
+          message.responses && message.responses.length > 0
+        );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
-            {messages.map((message, i) =>
-              message.responses && message.responses.length > 0
-                ? message.responses.map((response, j) => (
+            {firstMessage
+              ? firstMessage.responses.map((response, j) => (
                     <HoverCell
                       key={j}
                       values={JSON.parse(response)}
                       expand={expandedView}
                     />
                   ))
-                : null
+                : null}
+            {length - (firstMessage?.responses?.length || 0) > 0 && (
+              <p className="text-xs font-semibold mt-2">
+                {length - (firstMessage?.responses?.length || 0)} more...
+              </p>
             )}
           </div>
         );
