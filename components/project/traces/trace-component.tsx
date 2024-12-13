@@ -12,8 +12,15 @@ import {
 import { cn, getVendorFromSpan } from "@/lib/utils";
 import { CodeIcon, MessageCircle, NetworkIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { EvaluateSession } from "./evaluate-session";
 
-export function TraceComponent({ trace }: { trace: CrewAITrace }) {
+export function TraceComponent({
+  trace,
+  project_id,
+}: {
+  trace: CrewAITrace;
+  project_id: string;
+}) {
   const [selectedTrace, setSelectedTrace] = useState<any[]>(
     trace.trace_hierarchy
   );
@@ -46,19 +53,18 @@ export function TraceComponent({ trace }: { trace: CrewAITrace }) {
         )}
       >
         <p className="text-xl font-semibold mb-2">Session Drilldown</p>
-        <div>
-          <SpansView
-            trace={trace}
-            selectedTrace={selectedTrace}
-            setSelectedTrace={setSelectedTrace}
-            selectedVendors={selectedVendors}
-            setSelectedVendors={setSelectedVendors}
-            setSpansView={setSpansView}
-            setSpan={setSpan}
-            setAttributes={setAttributes}
-            setEvents={setEvents}
-          />
-        </div>
+        <SpansView
+          trace={trace}
+          selectedTrace={selectedTrace}
+          setSelectedTrace={setSelectedTrace}
+          selectedVendors={selectedVendors}
+          setSelectedVendors={setSelectedVendors}
+          setSpansView={setSpansView}
+          setSpan={setSpan}
+          setAttributes={setAttributes}
+          setEvents={setEvents}
+          project_id={project_id}
+        />
       </div>
       {(spansView === "ATTRIBUTES" ||
         spansView === "CONVERSATION" ||
@@ -98,6 +104,11 @@ export function TraceComponent({ trace }: { trace: CrewAITrace }) {
                   Langgraph
                 </Button>
               )}
+              <EvaluateSession
+                span={span}
+                projectId={project_id}
+                sessionName={span?.name || ""}
+              />
               <Button
                 className="w-fit"
                 size={"sm"}
@@ -145,6 +156,7 @@ function SpansView({
   setSpan,
   setAttributes,
   setEvents,
+  project_id,
 }: {
   trace: Trace;
   selectedTrace: any[];
@@ -157,20 +169,29 @@ function SpansView({
   setSpan: (span: any) => void;
   setAttributes: (attributes: any) => void;
   setEvents: (events: any) => void;
+  project_id: string;
 }) {
   return (
     <>
       <div className="flex flex-col gap-3 pb-3">
-        <ul className="flex flex-col gap-2">
-          <li className="text-xs font-semibold text-muted-foreground">
-            Tip 1: Hover over any span line to see additional attributes and
-            events. Attributes contain the request parameters and events contain
-            logs and errors.
-          </li>
-          <li className="text-xs font-semibold text-muted-foreground">
-            Tip 2: Click on attributes or events to copy them to your clipboard.
-          </li>
-        </ul>
+        <div className="flex  justify-between">
+          <ul className="flex flex-col gap-2">
+            <li className="text-xs font-semibold text-muted-foreground">
+              Tip 1: Hover over any span line to see additional attributes and
+              events. Attributes contain the request parameters and events
+              contain logs and errors.
+            </li>
+            <li className="text-xs font-semibold text-muted-foreground">
+              Tip 2: Click on attributes or events to copy them to your
+              clipboard.
+            </li>
+          </ul>
+          <EvaluateSession
+            span={trace.sorted_trace[0]}
+            projectId={project_id}
+            sessionName={"Session"}
+          />
+        </div>
         <div className="flex gap-2 items-center flex-wrap">
           {trace.vendors.map((vendor, i) => (
             <div className="flex items-center space-x-2 py-3" key={i}>

@@ -325,10 +325,10 @@ export default function Annotations({ email }: { email: string }) {
     const spanId = row.original.span_id;
     const testId = test.id;
     const { isError, isLoading, data } = useQuery({
-      queryKey: ["fetch-evaluation-query", spanId],
+      queryKey: ["fetch-feedback-query", spanId],
       queryFn: async () => {
         const response = await fetch(
-          `/api/evaluation?spanId=${spanId}&projectId=${projectId}&includeTest=true`
+          `/api/feedback?spanId=${spanId}&projectId=${projectId}`
         );
         const result = await response.json();
         const evaluations =

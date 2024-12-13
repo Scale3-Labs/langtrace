@@ -1,4 +1,5 @@
 export interface LLMSpan {
+  name: string;
   span_id: string;
   trace_id: string;
   start_time: string;
@@ -68,6 +69,7 @@ export function processLLMSpan(span: any) {
   const raw_span = span;
 
   const result: LLMSpan = {
+    name: span?.name || "",
     trace_id,
     span_id,
     start_time,

@@ -22,6 +22,8 @@ export const OTEL_GENAI_EVENTS =
   "https://opentelemetry.io/docs/specs/semconv/gen-ai/llm-spans/#events";
 export const OTEL_GENAI_ATTRIBUTES =
   "https://opentelemetry.io/docs/specs/semconv/gen-ai/llm-spans/#llm-request-attributes";
+export const USER_FEEDBACK_LINK =
+  "https://docs.langtrace.ai/tracing/trace_user_feedback#example-user-score";
 
 // TODO: Add more models
 // https://github.com/dqbd/tiktoken/blob/74c147e19584a3a1acea0c8e0da4d39415cd33e0/wasm/src/lib.rs#L328
@@ -143,7 +145,6 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     input: 0.00013,
     output: 0,
   },
-
 };
 
 export const MISTRAL_PRICING: Record<string, CostTableEntry> = {
@@ -300,7 +301,7 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
   "command-r-plus-04-2024": {
     input: 0.003,
     output: 0.015,
-  }
+  },
 };
 
 export const GROQ_PRICING: Record<string, CostTableEntry> = {

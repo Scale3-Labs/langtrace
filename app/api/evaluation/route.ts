@@ -238,20 +238,14 @@ export async function GET(req: NextRequest) {
           },
         });
       } else {
-        const traceService = await new TraceService();
-        const tempSpanId = await traceService.GetSpanById(spanId, projectId);
-        // if spanId is not found in the trace, return an empty array
-        // this often happens when spanId is being stored and send user feedback call is simultaneously made
-        if (tempSpanId) {
-          evaluations = await prisma.evaluation.findMany({
-            where: {
-              traceId: tempSpanId.trace_id,
-            },
-            include: {
-              Test: includeTest,
-            },
-          });
-        }
+        evaluations = await prisma.evaluation.findMany({
+          where: {
+            spanId,
+          },
+          include: {
+            Test: includeTest,
+          },
+        });
       }
       if (!evaluations) {
         return NextResponse.json({
