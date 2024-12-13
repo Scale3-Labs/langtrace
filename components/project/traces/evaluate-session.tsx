@@ -2,6 +2,7 @@ import { CreateTest } from "@/components/annotations/create-test";
 import { EditTest } from "@/components/annotations/edit-test";
 import { ScaleType } from "@/components/annotations/eval-scale-picker";
 import { RangeScale } from "@/components/annotations/range-scale";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -12,10 +13,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { USER_FEEDBACK_LINK } from "@/lib/constants";
 import { LLMSpan } from "@/lib/llm_span_util";
 import { Evaluation, Test } from "@prisma/client";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { ProgressCircle } from "@tremor/react";
-import { FlagIcon, ThumbsUp } from "lucide-react";
+import { DotsHorizontalIcon, ThumbsDown, ThumbsUp } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { toast } from "sonner";
@@ -81,6 +85,28 @@ export function EvaluateSession({
     },
   });
 
+  const {
+    isLoading: feedbackLoading,
+    data: feedback,
+    isError: feedbackError,
+  } = useQuery({
+    queryKey: ["fetch-feedback-query", span?.span_id],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/feedback?spanId=${span?.span_id}&projectId=${projectId}`
+      );
+      const result = await response.json();
+      const evaluations =
+        result.evaluations.length > 0 ? result.evaluations : [];
+      return evaluations as Evaluation[];
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch evaluations", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -93,7 +119,7 @@ export function EvaluateSession({
         <SheetHeader>
           <SheetTitle>Evaluate {span?.name}</SheetTitle>
           <SheetDescription>
-            Evaluate the session to see if it is a good session or not.
+            Evaluate {span?.name} on the following tests.
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-6 mt-8">
@@ -101,12 +127,62 @@ export function EvaluateSession({
             <CreateTest projectId={projectId} className="w-fit" />
             {testsLoading || testsError || !tests || tests?.length === 0 ? (
               <Button variant="outline" size={"icon"} disabled={true}>
-                <FlagIcon />
+                <DotsHorizontalIcon />
               </Button>
             ) : (
               <EditTest tests={tests} projectId={projectId} className="w-fit" />
             )}
           </div>
+          {feedbackLoading || feedbackError || !feedback ? (
+            <Skeleton className="h-20" />
+          ) : (
+            <div className="flex flex-col gap-6">
+              {feedback?.length === 0 ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-lg font-semibold">User Feedback</p>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      No user feedback found
+                    </p>
+                    <Link
+                      href={USER_FEEDBACK_LINK}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="secondary" size={"sm"} className="w-fit">
+                        Pass User Feedback
+                        <ArrowTopRightIcon className="ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                feedback?.map((f: Evaluation, i) => {
+                  return (
+                    <div key={i} className="flex flex-col gap-2">
+                      <p className="text-lg font-semibold">User Feedback</p>
+                      <div className="flex gap-2">
+                        <Badge variant="secondary">User ID</Badge>
+                        <p>{f.userId}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Badge variant="secondary">Rating</Badge>
+                        {f.userScore === 1 && (
+                          <ThumbsUp className="text-green-500" size={16} />
+                        )}
+                        {f.userScore === -1 && (
+                          <ThumbsDown className="text-red-500" size={16} />
+                        )}
+                        {f.userScore !== 1 && f.userScore !== -1 && (
+                          <p>{f.userScore}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
           {testsLoading || isLoading || isError || testsError ? (
             <Skeleton className="h-20" />
           ) : (
