@@ -133,71 +133,77 @@ export function EvaluateSession({
               <EditTest tests={tests} projectId={projectId} className="w-fit" />
             )}
           </div>
-          {feedbackLoading || feedbackError || !feedback ? (
-            <Skeleton className="h-20" />
-          ) : (
-            <div className="flex flex-col gap-6">
-              {feedback?.length === 0 ? (
-                <div className="flex flex-col gap-2">
-                  <p className="text-lg font-semibold">User Feedback</p>
+          <div className="flex flex-col gap-8 overflow-y-auto max-h-[700px] pb-12">
+            {feedbackLoading || feedbackError || !feedback ? (
+              <Skeleton className="h-20" />
+            ) : (
+              <div className="flex flex-col gap-6">
+                {feedback?.length === 0 ? (
                   <div className="flex flex-col gap-2">
-                    <p className="text-sm text-muted-foreground">
-                      No user feedback found
-                    </p>
-                    <Link
-                      href={USER_FEEDBACK_LINK}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button variant="secondary" size={"sm"} className="w-fit">
-                        Pass User Feedback
-                        <ArrowTopRightIcon className="ml-2" />
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                feedback?.map((f: Evaluation, i) => {
-                  return (
-                    <div key={i} className="flex flex-col gap-2">
-                      <p className="text-lg font-semibold">User Feedback</p>
-                      <div className="flex gap-2">
-                        <Badge variant="secondary">User ID</Badge>
-                        <p>{f.userId}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Badge variant="secondary">Rating</Badge>
-                        {f.userScore === 1 && (
-                          <ThumbsUp className="text-green-500" size={16} />
-                        )}
-                        {f.userScore === -1 && (
-                          <ThumbsDown className="text-red-500" size={16} />
-                        )}
-                        {f.userScore !== 1 && f.userScore !== -1 && (
-                          <p>{f.userScore}</p>
-                        )}
-                      </div>
+                    <p className="text-lg font-semibold">User Feedback</p>
+                    <div className="flex flex-col gap-2">
+                      <p className="text-sm text-muted-foreground">
+                        No user feedback found
+                      </p>
+                      <Link
+                        href={USER_FEEDBACK_LINK}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button
+                          variant="secondary"
+                          size={"sm"}
+                          className="w-fit"
+                        >
+                          Pass User Feedback
+                          <ArrowTopRightIcon className="ml-2" />
+                        </Button>
+                      </Link>
                     </div>
-                  );
-                })
-              )}
-            </div>
-          )}
-          {testsLoading || isLoading || isError || testsError ? (
-            <Skeleton className="h-20" />
-          ) : (
-            tests?.map((test: Test, i) => {
-              return (
-                <EvaluateTest
-                  key={i}
-                  test={test}
-                  span={span}
-                  projectId={projectId}
-                  evaluations={evaluations}
-                />
-              );
-            })
-          )}
+                  </div>
+                ) : (
+                  feedback?.map((f: Evaluation, i) => {
+                    return (
+                      <div key={i} className="flex flex-col gap-2">
+                        <p className="text-lg font-semibold">User Feedback</p>
+                        <div className="flex gap-2">
+                          <Badge variant="secondary">User ID</Badge>
+                          <p>{f.userId}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant="secondary">Rating</Badge>
+                          {f.userScore === 1 && (
+                            <ThumbsUp className="text-green-500" size={16} />
+                          )}
+                          {f.userScore === -1 && (
+                            <ThumbsDown className="text-red-500" size={16} />
+                          )}
+                          {f.userScore !== 1 && f.userScore !== -1 && (
+                            <p>{f.userScore}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+            {testsLoading || isLoading || isError || testsError ? (
+              <Skeleton className="h-20" />
+            ) : (
+              tests?.map((test: Test, i) => {
+                return (
+                  <EvaluateTest
+                    key={i}
+                    test={test}
+                    span={span}
+                    projectId={projectId}
+                    evaluations={evaluations}
+                  />
+                );
+              })
+            )}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
