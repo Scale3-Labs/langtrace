@@ -871,45 +871,33 @@ export class TraceService implements ITraceService {
       const query = sql
         .select([
           "toDate(parseDateTimeBestEffort(start_time)) AS date",
-          `sum(
-            CASE
-              WHEN JSONHas(attributes, 'llm.token.counts')
-              THEN toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'))
-              WHEN JSONHas(attributes, 'gen_ai.usage.prompt_tokens')
-              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.prompt_tokens')) +
-                   toInt64(JSONExtractString(attributes, 'gen_ai.usage.completion_tokens'))
-              WHEN JSONHas(attributes, 'gen_ai.usage.input_tokens')
-              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.input_tokens')) +
-                   toInt64(JSONExtractString(attributes, 'gen_ai.usage.output_tokens'))
-              ELSE 0
-            END
-          ) AS totalTokens`,
-          `sum(
-            CASE
-              WHEN JSONHas(attributes, 'llm.token.counts')
-              THEN if(JSONHas(JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'),
-                     toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens')),
-                     toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'prompt_tokens')))
-              WHEN JSONHas(attributes, 'gen_ai.usage.prompt_tokens')
-              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.prompt_tokens'))
-              WHEN JSONHas(attributes, 'gen_ai.usage.input_tokens')
-              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.input_tokens'))
-              ELSE 0
-            END
-          ) AS inputTokens`,
-          `sum(
-            CASE
-              WHEN JSONHas(attributes, 'llm.token.counts')
-              THEN if(JSONHas(JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'),
-                     toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens')),
-                     toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'completion_tokens')))
-              WHEN JSONHas(attributes, 'gen_ai.usage.completion_tokens')
-              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.completion_tokens'))
-              WHEN JSONHas(attributes, 'gen_ai.usage.output_tokens')
-              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.output_tokens'))
-              ELSE 0
-            END
-          ) AS outputTokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.total_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.request.total_tokens'), 0
+          )
+        ) AS totalTokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.input_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.prompt_tokens'), 0
+          )
+        ) AS inputTokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.output_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
+          )
+        ) AS outputTokens`,
         ])
         .from(project_id)
         .where(...conditions)
