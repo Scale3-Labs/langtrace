@@ -23,9 +23,11 @@ import { toast } from "sonner";
 export function EvaluateSession({
   span,
   projectId,
+  sessionName,
 }: {
   span: LLMSpan;
   projectId: string;
+  sessionName: string;
 }) {
   const {
     data: tests,
@@ -84,12 +86,12 @@ export function EvaluateSession({
       <SheetTrigger asChild>
         <Button size={"sm"}>
           <ThumbsUp size={16} className="mr-2" />
-          Evaluate Session
+          Evaluate {sessionName}
         </Button>
       </SheetTrigger>
       <SheetContent className="w-[500px]">
         <SheetHeader>
-          <SheetTitle>Evaluate Session</SheetTitle>
+          <SheetTitle>Evaluate {span?.name}</SheetTitle>
           <SheetDescription>
             Evaluate the session to see if it is a good session or not.
           </SheetDescription>

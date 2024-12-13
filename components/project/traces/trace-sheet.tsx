@@ -197,6 +197,11 @@ export function TraceSheet({
                         Langgraph
                       </Button>
                     )}
+                    <EvaluateSession
+                      span={span}
+                      projectId={project_id}
+                      sessionName={span.name}
+                    />
                   </div>
                 </div>
                 <div
@@ -268,7 +273,11 @@ function SpansView({
               clipboard.
             </li>
           </ul>
-          <EvaluateSession span={selectedTrace[0]} projectId={project_id} />
+          <EvaluateSession
+            span={selectedTrace[0]}
+            projectId={project_id}
+            sessionName={"Session"}
+          />
         </div>
         <div className="flex gap-2 items-center flex-wrap">
           {trace.vendors.map((vendor, i) => (
