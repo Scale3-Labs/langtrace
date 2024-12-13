@@ -837,14 +837,16 @@ export class TraceService implements ITraceService {
       }
 
       const nHoursAgo = getFormattedTime(lastNHours);
+
+      // Build conditions array
       const conditions = [
         sql.or(
-          sql.like("attributes", "%total_tokens%"),
           sql.like("attributes", "%gen_ai.usage.input_tokens%"),
           sql.like("attributes", "%gen_ai.usage.prompt_tokens%")
         ),
         sql.gte("start_time", nHoursAgo),
       ];
+
       if (userId) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'user_id')", userId)
@@ -854,7 +856,6 @@ export class TraceService implements ITraceService {
       if (model) {
         conditions.push(
           sql.or(
-            sql.eq("JSONExtractString(attributes, 'llm.model')", model),
             sql.eq(
               "JSONExtractString(attributes, 'gen_ai.response.model')",
               model
@@ -869,77 +870,54 @@ export class TraceService implements ITraceService {
 
       const query = sql
         .select([
-          `toDate(parseDateTimeBestEffort(start_time)) AS date`,
-          `groupArray(attributes) AS attributes_list`,
+          "toDate(parseDateTimeBestEffort(start_time)) AS date",
+          `sum(
+            CASE
+              WHEN JSONHas(attributes, 'llm.token.counts')
+              THEN toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'))
+              WHEN JSONHas(attributes, 'gen_ai.usage.prompt_tokens')
+              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.prompt_tokens')) +
+                   toInt64(JSONExtractString(attributes, 'gen_ai.usage.completion_tokens'))
+              WHEN JSONHas(attributes, 'gen_ai.usage.input_tokens')
+              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.input_tokens')) +
+                   toInt64(JSONExtractString(attributes, 'gen_ai.usage.output_tokens'))
+              ELSE 0
+            END
+          ) AS totalTokens`,
+          `sum(
+            CASE
+              WHEN JSONHas(attributes, 'llm.token.counts')
+              THEN if(JSONHas(JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'),
+                     toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens')),
+                     toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'prompt_tokens')))
+              WHEN JSONHas(attributes, 'gen_ai.usage.prompt_tokens')
+              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.prompt_tokens'))
+              WHEN JSONHas(attributes, 'gen_ai.usage.input_tokens')
+              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.input_tokens'))
+              ELSE 0
+            END
+          ) AS inputTokens`,
+          `sum(
+            CASE
+              WHEN JSONHas(attributes, 'llm.token.counts')
+              THEN if(JSONHas(JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'),
+                     toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens')),
+                     toInt64(JSONExtractString(JSONExtractString(attributes, 'llm.token.counts'), 'completion_tokens')))
+              WHEN JSONHas(attributes, 'gen_ai.usage.completion_tokens')
+              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.completion_tokens'))
+              WHEN JSONHas(attributes, 'gen_ai.usage.output_tokens')
+              THEN toInt64(JSONExtractString(attributes, 'gen_ai.usage.output_tokens'))
+              ELSE 0
+            END
+          ) AS outputTokens`,
         ])
         .from(project_id)
         .where(...conditions)
         .groupBy("date")
         .orderBy("date");
+
       const result = await this.client.find<any>(query);
-
-      // calculate total tokens used per day
-      const tokensUsedPerHour = result.map((row: any) => {
-        let totalTokens = 0;
-        let inputTokens = 0;
-        let outputTokens = 0;
-        row.attributes_list.forEach((attributes: any) => {
-          const parsedAttributes = JSON.parse(attributes);
-          if ("llm.token.counts" in parsedAttributes) {
-            const llmTokenCounts = JSON.parse(
-              parsedAttributes["llm.token.counts"]
-            );
-            const token_count = Number(llmTokenCounts.total_tokens || 0);
-            totalTokens += token_count;
-
-            const input_token_count = Number(
-              "input_tokens" in llmTokenCounts
-                ? llmTokenCounts.input_tokens
-                : "prompt_tokens" in llmTokenCounts
-                  ? llmTokenCounts.prompt_tokens
-                  : 0
-            );
-            inputTokens += input_token_count;
-
-            const output_token_count = Number(
-              "output_tokens" in llmTokenCounts
-                ? llmTokenCounts.output_tokens
-                : "completion_tokens" in llmTokenCounts
-                  ? llmTokenCounts.completion_tokens
-                  : 0
-            );
-            outputTokens += output_token_count;
-          } else if ("gen_ai.usage.prompt_tokens" in parsedAttributes) {
-            const prompt_tokens = Number(
-              parsedAttributes["gen_ai.usage.prompt_tokens"]
-            );
-            const completion_tokens = Number(
-              parsedAttributes["gen_ai.usage.completion_tokens"]
-            );
-            inputTokens += prompt_tokens;
-            outputTokens += completion_tokens;
-            totalTokens += prompt_tokens + completion_tokens;
-          } else if ("gen_ai.usage.input_tokens" in parsedAttributes) {
-            const prompt_tokens = Number(
-              parsedAttributes["gen_ai.usage.input_tokens"]
-            );
-            const completion_tokens = Number(
-              parsedAttributes["gen_ai.usage.output_tokens"]
-            );
-            inputTokens += prompt_tokens;
-            outputTokens += completion_tokens;
-            totalTokens += prompt_tokens + completion_tokens;
-          }
-        });
-        return {
-          date: row.date,
-          totalTokens,
-          inputTokens,
-          outputTokens,
-        };
-      });
-
-      return tokensUsedPerHour;
+      return result;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
