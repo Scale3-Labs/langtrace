@@ -87,7 +87,7 @@ export function EditTest({
     >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size={"icon"}>
+          <Button size={"icon"} variant={"secondary"}>
             <DotsHorizontalIcon />
           </Button>
         </DropdownMenuTrigger>
@@ -318,7 +318,7 @@ function TestsDropdown({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[370px] p-0">
+      <PopoverContent className="w-[370px] p-0 z-50">
         <Command>
           <CommandInput placeholder="Search test..." />
           <CommandList>

@@ -34,13 +34,11 @@ export function CreateTest({
   disabled = false,
   variant = "default",
   className = "",
-  email,
 }: {
   projectId: string;
   disabled?: boolean;
   variant?: any;
   className?: string;
-  email?: string;
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState<boolean>(false);

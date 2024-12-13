@@ -24,6 +24,7 @@ import {
   NetworkIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { EvaluateSession } from "./evaluate-session";
 
 interface CheckedData {
   input: string;
@@ -126,19 +127,18 @@ export function TraceSheet({
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
           {spansView === "SPANS" && (
-            <div className="">
-              <SpansView
-                trace={trace}
-                selectedTrace={selectedTrace}
-                setSelectedTrace={setSelectedTrace}
-                selectedVendors={selectedVendors}
-                setSelectedVendors={setSelectedVendors}
-                setSpansView={setSpansView}
-                setSpan={setSpan}
-                setAttributes={setAttributes}
-                setEvents={setEvents}
-              />
-            </div>
+            <SpansView
+              project_id={project_id}
+              trace={trace}
+              selectedTrace={selectedTrace}
+              setSelectedTrace={setSelectedTrace}
+              selectedVendors={selectedVendors}
+              setSelectedVendors={setSelectedVendors}
+              setSpansView={setSpansView}
+              setSpan={setSpan}
+              setAttributes={setAttributes}
+              setEvents={setEvents}
+            />
           )}
           {(spansView === "ATTRIBUTES" ||
             spansView === "CONVERSATION" ||
@@ -229,6 +229,7 @@ export function TraceSheet({
 }
 
 function SpansView({
+  project_id,
   trace,
   selectedTrace,
   setSelectedTrace,
@@ -239,6 +240,7 @@ function SpansView({
   setAttributes,
   setEvents,
 }: {
+  project_id: string;
   trace: Trace;
   selectedTrace: any[];
   setSelectedTrace: (trace: any[]) => void;
@@ -254,16 +256,20 @@ function SpansView({
   return (
     <>
       <div className="flex flex-col gap-3 pb-3">
-        <ul className="flex flex-col gap-2">
-          <li className="text-xs font-semibold text-muted-foreground">
-            Tip 1: Hover over any span line to see additional attributes and
-            events. Attributes contain the request parameters and events contain
-            logs and errors.
-          </li>
-          <li className="text-xs font-semibold text-muted-foreground">
-            Tip 2: Click on attributes or events to copy them to your clipboard.
-          </li>
-        </ul>
+        <div className="flex justify-between items-center">
+          <ul className="flex flex-col gap-2">
+            <li className="text-xs font-semibold text-muted-foreground">
+              Tip 1: Hover over any span line to see additional attributes and
+              events. Attributes contain the request parameters and events
+              contain logs and errors.
+            </li>
+            <li className="text-xs font-semibold text-muted-foreground">
+              Tip 2: Click on attributes or events to copy them to your
+              clipboard.
+            </li>
+          </ul>
+          <EvaluateSession span={selectedTrace[0]} projectId={project_id} />
+        </div>
         <div className="flex gap-2 items-center flex-wrap">
           {trace.vendors.map((vendor, i) => (
             <div className="flex items-center space-x-2 py-3" key={i}>
