@@ -26,7 +26,7 @@ const CustomEdge = ({ id, data, ...props }: any) => {
             fontWeight: 700,
             color: "#ffffff",
           }}
-          className="nodrag nopan"
+          className='nodrag nopan'
         >
           {data.label}
         </div>
@@ -52,14 +52,12 @@ export default function LanggraphView({ trace }: { trace: Span[] }) {
         const edge = attributes["langgraph.edge"];
         const task = attributes["langgraph.task.name"];
         if (vendor === "langgraph" && node) {
-          x += 200;
           y += 200;
           const pNode = JSON.parse(node);
           nodes.push({
             id: pNode?.name || span.span_id,
             data: {
-              label:
-                `${pNode?.name} (action: ${pNode.action})}` || span.span_id,
+              label: `${pNode?.name} (action: ${pNode.action})` || span.span_id,
             },
             position: { x, y },
           });
@@ -70,7 +68,9 @@ export default function LanggraphView({ trace }: { trace: Span[] }) {
           if (task === "add_conditional_edges") {
             const pathMap = pEdge?.path_map;
             if (pathMap) {
-              for (const k of Object.keys(pathMap)) {
+              Object.keys(pathMap).forEach((k, idx) => {
+                let node = nodes.find((n) => n.id === pathMap[k]);
+                if (node) node.position = { x: (x + 400) * idx, y: y };
                 edges.push({
                   id: `${pEdge?.source || "source"}-${
                     pathMap[k] || "destination"
@@ -79,8 +79,9 @@ export default function LanggraphView({ trace }: { trace: Span[] }) {
                   source: pEdge?.source || "source",
                   target: pathMap[k] || "destination",
                   type: "custom",
+                  animated: true,
                 });
-              }
+              });
             }
           } else {
             edges.push({
@@ -101,7 +102,7 @@ export default function LanggraphView({ trace }: { trace: Span[] }) {
   nodes.push({
     id: "__end__",
     data: { label: "End" },
-    position: { x: 0, y: y + 200 },
+    position: { x: -400, y: y + 200 },
   });
 
   return (
@@ -113,6 +114,7 @@ export default function LanggraphView({ trace }: { trace: Span[] }) {
           custom: CustomEdge,
         }}
         draggable={true}
+        fitView
       >
         <Background />
         <Controls />
