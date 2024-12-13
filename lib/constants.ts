@@ -146,6 +146,49 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
 
 };
 
+export const MISTRAL_PRICING: Record<string, CostTableEntry> = {
+  "mistral-large-latest": {
+    input: 0.002,
+    output: 0.006,
+  },
+  "pixtral-large-latest": {
+    input: 0.002,
+    output: 0.006,
+  },
+  "mistral-small-latest": {
+    input: 0.0002,
+    output: 0.0006,
+  },
+  "codestral-latest": {
+    input: 0.0002,
+    output: 0.0006,
+  },
+  "ministral-8b-latest": {
+    input: 0.0001,
+    output: 0.0001,
+  },
+  "ministral-3b-latest": {
+    input: 0.00004,
+    output: 0.00004,
+  },
+  "mistral-embed": {
+    input: 0.0001,
+    output: 0,
+  },
+  "open-mistral-7b": {
+    input: 0.00025,
+    output: 0.00025,
+  },
+  "open-mixtral-8x7b": {
+    input: 0.0007,
+    output: 0.0007,
+  },
+  "open-mixtral-8x22b": {
+    input: 0.002,
+    output: 0.006,
+  },
+};
+
 export const XAI_PRICING: Record<string, CostTableEntry> = {
   "grok-beta": {
     input: 0.005,
