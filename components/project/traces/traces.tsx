@@ -4,12 +4,14 @@ import { HoverCell } from "@/components/shared/hover-cell";
 import { Info } from "@/components/shared/info";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import { formatDateTime } from "@/lib/utils";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -21,7 +23,6 @@ import { Checkbox } from "../../ui/checkbox";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
 import { TracesTable } from "./traces-table";
-import { Input } from "@/components/ui/input";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -632,20 +633,23 @@ export default function Traces({ email }: { email: string }) {
           </div>
         </div>
       </div>
-      <Input
-        className="w-full border-muted-foreground rounded-md"
-        placeholder="Search for anything in your traces (Hit Enter to search)"
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            // reset everything
-            setPage(1);
-            setFilters([]);
-            setEnableFetch(true);
-          }
-        }}
-      />
+      <div className="relative">
+        <MagnifyingGlassIcon className="absolute top-2 left-2 text-muted-foreground h-5 w-5" />
+        <Input
+          className="w-full border-muted rounded-md pl-8"
+          placeholder="Search for anything in your traces (Hit Enter to search)"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              // reset everything
+              setPage(1);
+              setFilters([]);
+              setEnableFetch(true);
+            }
+          }}
+        />
+      </div>
       <TracesTable
         pageSize={pageSize}
         setPageSize={setPageSize}
