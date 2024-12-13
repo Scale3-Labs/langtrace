@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Normalize and prepare data for Clickhouse
     let normalized = [];
-    let spans: any = []
+    let spans: any = [];
     if (
       userAgent?.toLowerCase().includes("otel-otlp") ||
       userAgent?.toLowerCase().includes("opentelemetry")
@@ -45,9 +45,7 @@ export async function POST(req: NextRequest) {
       data.resourceSpans?.[0].scopeSpans.forEach((scopeSpan: any) => {
         scopeSpan.spans.forEach((span: any) => spans.push(span));
       });
-      normalized = prepareForClickhouse(
-        normalizeOTELData(spans)
-      );
+      normalized = prepareForClickhouse(normalizeOTELData(spans));
     } else {
       normalized = prepareForClickhouse(normalizeData(data));
     }
@@ -64,12 +62,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        name: error?.name || 'UnknownError',
-        message: error?.message || 'Something went wrong while ingesting traces',
+        name: error?.name || "UnknownError",
+        message:
+          error?.message || "Something went wrong while ingesting traces",
         stack: error?.stack,
-        fullError: error instanceof Error 
-          ? JSON.stringify(error, Object.getOwnPropertyNames(error))
-          : JSON.stringify(error)
+        fullError:
+          error instanceof Error
+            ? JSON.stringify(error, Object.getOwnPropertyNames(error))
+            : JSON.stringify(error),
       },
       { status: 404 }
     );

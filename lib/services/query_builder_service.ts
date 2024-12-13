@@ -31,28 +31,16 @@ export interface IQueryBuilderService {
     lastNHours?: number,
     keyword?: string
   ) => string;
-  GetFilteredSpanAttributesSpanById: (
-    tableName: string,
-    spanId: string,
-    filters: Filter,
-    keyword?: string
-  ) => string;
   CountFilteredTraceAttributesQuery: (
     tableName: string,
     filters: Filter,
     keyword?: string
   ) => string;
-  GetFilteredTraceAttributesQuery: (
+  GetTracesWithFilters: (
     tableName: string,
     filters: Filter,
     pageSize: number,
     offset: number,
-    keyword?: string
-  ) => string;
-  GetFilteredTraceAttributesTraceById: (
-    tableName: string,
-    traceId: string,
-    filters: Filter,
     keyword?: string
   ) => string;
 }
@@ -243,23 +231,22 @@ export class QueryBuilderService implements IQueryBuilderService {
     return baseQuery;
   }
 
-  GetFilteredTraceAttributesQuery(
+  GetTracesWithFilters(
     tableName: string,
     filters: Filter,
     pageSize: number,
     offset: number,
     keyword?: string
   ): string {
-    let baseQuery = `trace_id, MIN(start_time) AS earliest_start_time FROM ${tableName}`;
-    let whereConditions: string[] = [];
+    // Build the filter conditions
+    const whereConditions: string[] = [];
     keyword = keyword?.toLowerCase();
+
     filters.filters.forEach((filter) => {
-      // if it's a property filter
       if ("key" in filter) {
         whereConditions.push(`(${this.constructCondition(filter)})`);
       } else {
-        // if it's a filter item
-        let subConditions: string[] = [];
+        const subConditions: string[] = [];
         filter.filters.forEach((subFilter) => {
           subConditions.push(
             `(${this.constructCondition(subFilter as PropertyFilter)})`
@@ -271,103 +258,68 @@ export class QueryBuilderService implements IQueryBuilderService {
       }
     });
 
+    // Construct the base query with filters
+    let filterClause = "";
     if (whereConditions.length > 0) {
-      baseQuery += ` WHERE (${whereConditions.join(` ${filters.operation} `)})`;
+      filterClause = ` WHERE (${whereConditions.join(` ${filters.operation} `)})`;
     }
 
-    if (keyword !== "" && keyword !== undefined) {
-      if (baseQuery.includes("WHERE")) {
-        baseQuery += ` AND (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      } else {
-        baseQuery += ` WHERE (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      }
+    // Add keyword search if provided
+    if (keyword && keyword !== "") {
+      filterClause += filterClause.includes("WHERE")
+        ? ` AND (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`
+        : ` WHERE (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
     }
 
-    baseQuery += ` GROUP BY trace_id ORDER BY earliest_start_time DESC LIMIT ${pageSize} OFFSET ${offset}`;
-    return baseQuery;
-  }
+    const rawQuery = `
+      WITH latest_traces AS (
+        SELECT DISTINCT trace_id
+        FROM ${tableName}
+        ${filterClause}
+        GROUP BY trace_id
+        ORDER BY min(start_time) DESC
+        LIMIT ${pageSize}
+        OFFSET ${offset}
+      )
+      SELECT groupArray(
+        map(
+          'name', name,
+          'trace_id', trace_id,
+          'span_id', span_id,
+          'trace_state', trace_state,
+          'kind', toString(kind),
+          'parent_id', parent_id,
+          'start_time', start_time,
+          'end_time', end_time,
+          'attributes', attributes,
+          'status_code', status_code,
+          'events', events,
+          'links', links,
+          'duration', toString(duration)
+        )
+      ) AS result
+      FROM (
+        SELECT 
+          s.name,
+          s.trace_id,
+          s.span_id,
+          s.trace_state,
+          s.kind,
+          s.parent_id,
+          s.start_time,
+          s.end_time,
+          s.attributes,
+          s.status_code,
+          s.events,
+          s.links,
+          s.duration
+        FROM ${tableName} s
+        INNER JOIN latest_traces lt ON s.trace_id = lt.trace_id
+        ORDER BY s.trace_id, s.start_time ASC
+      )
+      GROUP BY trace_id
+      ORDER BY max(end_time) DESC`;
 
-  GetFilteredSpanAttributesSpanById(
-    tableName: string,
-    spanId: string,
-    filters: Filter,
-    keyword?: string
-  ): string {
-    let baseQuery = `* FROM ${tableName} WHERE span_id = '${spanId}'`;
-    let whereConditions: string[] = [];
-    keyword = keyword?.toLowerCase();
-    filters.filters.forEach((filter) => {
-      // if it's a property filter
-      if ("key" in filter) {
-        whereConditions.push(`(${this.constructCondition(filter)})`);
-      } else {
-        // if it's a filter item
-        let subConditions: string[] = [];
-        filter.filters.forEach((subFilter) => {
-          subConditions.push(
-            `(${this.constructCondition(subFilter as PropertyFilter)})`
-          );
-        });
-        whereConditions.push(
-          `(${subConditions.join(` ${filter.operation} `)})`
-        );
-      }
-    });
-
-    if (whereConditions.length > 0) {
-      baseQuery += ` AND (${whereConditions.join(` ${filters.operation} `)})`;
-    }
-
-    if (keyword !== "" && keyword !== undefined) {
-      if (baseQuery.includes("WHERE")) {
-        baseQuery += ` AND (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      } else {
-        baseQuery += ` WHERE (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      }
-    }
-
-    return baseQuery;
-  }
-
-  GetFilteredTraceAttributesTraceById(
-    tableName: string,
-    traceId: string,
-    filters: Filter,
-    keyword?: string
-  ): string {
-    let baseQuery = `* FROM ${tableName} WHERE trace_id = '${traceId}'`;
-    let whereConditions: string[] = [];
-    keyword = keyword?.toLowerCase();
-    filters.filters.forEach((filter) => {
-      // if it's a property filter
-      if ("key" in filter) {
-        whereConditions.push(`(${this.constructCondition(filter)})`);
-      } else {
-        // if it's a filter item
-        let subConditions: string[] = [];
-        filter.filters.forEach((subFilter) => {
-          subConditions.push(
-            `(${this.constructCondition(subFilter as PropertyFilter)})`
-          );
-        });
-        whereConditions.push(
-          `(${subConditions.join(` ${filter.operation} `)})`
-        );
-      }
-    });
-
-    if (whereConditions.length > 0) {
-      baseQuery += ` AND (${whereConditions.join(` ${filters.operation} `)})`;
-    }
-
-    if (keyword !== "" && keyword !== undefined) {
-      if (baseQuery.includes("WHERE")) {
-        baseQuery += ` AND (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      } else {
-        baseQuery += ` WHERE (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      }
-    }
-
-    return baseQuery;
+    return rawQuery;
   }
 }

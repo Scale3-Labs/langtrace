@@ -4,12 +4,14 @@ import { HoverCell } from "@/components/shared/hover-cell";
 import { Info } from "@/components/shared/info";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import { formatDateTime } from "@/lib/utils";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -21,7 +23,6 @@ import { Checkbox } from "../../ui/checkbox";
 import { Switch } from "../../ui/switch";
 import TraceFilter from "./trace-filter";
 import { TracesTable } from "./traces-table";
-import { Input } from "@/components/ui/input";
 
 export default function Traces({ email }: { email: string }) {
   const project_id = useParams()?.project_id as string;
@@ -60,7 +61,9 @@ export default function Traces({ email }: { email: string }) {
       // Default group to true if not set
       setGroup(group === "false" ? false : true);
 
-      const pageSize = window.localStorage.getItem("preferences.traces.page-size");
+      const pageSize = window.localStorage.getItem(
+        "preferences.traces.page-size"
+      );
       setPageSize(pageSize || PAGE_SIZE.toString());
     }
   }, [filters]);
@@ -207,7 +210,11 @@ export default function Traces({ email }: { email: string }) {
         const models = row.getValue("models") as string[];
         // deduplicate models
         const uniqueModels = Array.from(
-          new Set(models.map((model) => model.toLowerCase()).filter((model) => model !== ""))
+          new Set(
+            models
+              .map((model) => model.toLowerCase())
+              .filter((model) => model !== "")
+          )
         );
         const length = uniqueModels.length;
         const firstModel = uniqueModels.find((model) => model !== "");
@@ -219,9 +226,7 @@ export default function Traces({ email }: { email: string }) {
               </Badge>
             )}
             {length > 1 && (
-              <p className="text-xs font-semibold mt-2">
-                {length - 1} more...
-              </p>
+              <p className="text-xs font-semibold mt-2">{length - 1} more...</p>
             )}
           </div>
         );
@@ -239,8 +244,8 @@ export default function Traces({ email }: { email: string }) {
         }
         const length = messages.length;
         // get the first message with a prompt
-        const firstMessage = messages.find((message) =>
-          message.prompts && message.prompts.length > 0
+        const firstMessage = messages.find(
+          (message) => message.prompts && message.prompts.length > 0
         );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
@@ -273,20 +278,20 @@ export default function Traces({ email }: { email: string }) {
           return null;
         }
         // get the first message with a response
-        const firstMessage = messages.find((message) =>
-          message.responses && message.responses.length > 0
+        const firstMessage = messages.find(
+          (message) => message.responses && message.responses.length > 0
         );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
             {firstMessage
               ? firstMessage.responses.map((response, j) => (
-                    <HoverCell
-                      key={j}
-                      values={JSON.parse(response)}
-                      expand={expandedView}
-                    />
-                  ))
-                : null}
+                  <HoverCell
+                    key={j}
+                    values={JSON.parse(response)}
+                    expand={expandedView}
+                  />
+                ))
+              : null}
             {length - (firstMessage?.responses?.length || 0) > 0 && (
               <p className="text-xs font-semibold mt-2">
                 {length - (firstMessage?.responses?.length || 0)} more...
@@ -429,7 +434,6 @@ export default function Traces({ email }: { email: string }) {
     onSuccess: (data) => {
       const newData = data?.traces?.result || [];
       const metadata = data?.traces?.metadata || {};
-
       setTotalPages(parseInt(metadata?.total_pages) || 1);
       if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
         setPage(parseInt(metadata?.page) + 1);
@@ -629,20 +633,23 @@ export default function Traces({ email }: { email: string }) {
           </div>
         </div>
       </div>
-      <Input
-        className="w-full border-muted-foreground rounded-md"
-        placeholder="Search for anything in your traces (Hit Enter to search)"
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            // reset everything
-            setPage(1);
-            setFilters([]);
-            setEnableFetch(true);
-        }
-        }}
-      />
+      <div className="relative">
+        <MagnifyingGlassIcon className="absolute top-2 left-2 text-muted-foreground h-5 w-5" />
+        <Input
+          className="w-full border-muted rounded-md pl-8"
+          placeholder="Search for anything in your traces (Hit Enter to search)"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              // reset everything
+              setPage(1);
+              setFilters([]);
+              setEnableFetch(true);
+            }
+          }}
+        />
+      </div>
       <TracesTable
         pageSize={pageSize}
         setPageSize={setPageSize}
