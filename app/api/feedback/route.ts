@@ -75,6 +75,9 @@ export async function GET(req: NextRequest) {
       evaluations = await prisma.evaluation.findMany({
         where: {
           traceId: span.trace_id,
+          userScore: {
+            not: null,
+          },
         },
       });
     }
