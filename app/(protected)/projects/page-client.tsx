@@ -71,7 +71,7 @@ export default function PageClient({ email }: { email: string }) {
   if (projectsError || userError) {
     return (
       <div className="w-full flex flex-col">
-        <div className="md:px-52 px-12 py-12 flex justify-between bg-muted">
+        <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
           <h1 className="text-3xl font-semibold">Projects</h1>
           <Create teamId={user?.data?.Team?.id} />
         </div>
@@ -92,13 +92,13 @@ export default function PageClient({ email }: { email: string }) {
 
   return (
     <div className="w-full flex flex-col">
-      <div className="md:px-52 px-12 py-12 flex justify-between bg-muted">
+      <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Projects</h1>
         <Create teamId={user?.data?.Team?.id} />
       </div>
       <div
         className={cn(
-          "md:px-52 px-12 py-12 flex md:flex-row flex-col gap-2 items-center",
+          "md:px-24 px-12 py-12 flex md:flex-row flex-col gap-2 items-center",
           projects?.projects?.length === 0
             ? "md:items-center"
             : "md:items-start"
@@ -180,7 +180,7 @@ function ProjectCard({
         <Edit teamId={teamId} project={project} />
       </div>
       <Link href={`/project/${project.id}/traces`}>
-        <Card className="w-full md:w-[325px] h-[190px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
+        <Card className="w-full md:w-[380px] h-[190px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border hover:shadow-lg">
           <CardHeader>
             {project.type === "crewai" && (
               <CardTitle className="capitalize w-full truncate flex items-center gap-1">
@@ -264,13 +264,13 @@ function ProjectCard({
 export function PageSkeleton() {
   return (
     <div className="w-full flex flex-col">
-      <div className="md:px-52 px-12 py-12 flex justify-between bg-muted">
+      <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Projects</h1>
         <Create disabled={true} />
       </div>
       <div
         className={cn(
-          "md:px-52 px-12 py-12 flex md:flex-row flex-col gap-2 items-center md:items-start"
+          "md:px-24 px-12 py-12 flex md:flex-row flex-col gap-2 items-center md:items-start"
         )}
       >
         <div
