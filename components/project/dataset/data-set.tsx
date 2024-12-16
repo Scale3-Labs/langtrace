@@ -1,6 +1,6 @@
 "use client";
 
-import CardLoading from "@/components/shared/card-skeleton";
+import CardSkeleton from "@/components/shared/card-skeleton";
 import {
   Card,
   CardDescription,
@@ -77,7 +77,7 @@ export default function DataSet({ email }: { email: string }) {
               <Link
                 href={`/project/${projectId}/datasets/dataset/${dataset?.dataset?.id}`}
               >
-                <Card className="w-full md:w-[325px] h-[150px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
+                <Card className="w-full md:w-[380px] h-[190px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
                   <CardHeader>
                     <CardTitle>{dataset?.dataset?.name}</CardTitle>
                     <CardDescription>
@@ -111,7 +111,7 @@ function PageLoading() {
         )}
       >
         {Array.from({ length: 3 }).map((_, index) => (
-          <CardLoading key={index} />
+          <CardSkeleton key={index} />
         ))}
       </div>
     </div>

@@ -158,15 +158,6 @@ export function TraceSheet({
                     Back
                   </Button>
                   <div className="flex gap-2 items-center">
-                    <AddtoDataset
-                      projectId={project_id}
-                      selectedData={selectedData ? [selectedData] : []}
-                      disabled={
-                        selectedData === null ||
-                        (selectedData.input === "" &&
-                          selectedData.output === "")
-                      }
-                    />
                     <Button
                       className="w-fit"
                       size={"sm"}
@@ -197,6 +188,15 @@ export function TraceSheet({
                         Langgraph
                       </Button>
                     )}
+                    <AddtoDataset
+                      projectId={project_id}
+                      selectedData={selectedData ? [selectedData] : []}
+                      disabled={
+                        selectedData === null ||
+                        (selectedData.input === "" &&
+                          selectedData.output === "")
+                      }
+                    />
                     <EvaluateSession
                       span={span}
                       projectId={project_id}
