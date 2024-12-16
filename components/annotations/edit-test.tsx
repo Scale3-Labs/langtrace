@@ -87,7 +87,7 @@ export function EditTest({
     >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size={"icon"} variant={"secondary"}>
+          <Button size={"icon"} variant={"outline"}>
             <DotsHorizontalIcon />
           </Button>
         </DropdownMenuTrigger>
