@@ -37,6 +37,7 @@ import {
 import { cn } from "@/lib/utils";
 import ClearIcon from "@mui/icons-material/Clear";
 import {
+  Check,
   ChevronDown,
   ListFilterIcon,
   MinusCircle,
@@ -103,6 +104,7 @@ export function FilterSheet({
   setModel: (model: string) => void;
 }) {
   const [showFunctionFilters, setShowFunctionFilters] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleFilterChange = (
     filter: PropertyFilter,
@@ -181,10 +183,11 @@ export function FilterSheet({
     }
 
     setFilters(f);
+    setOpen(false);
   };
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" size="icon">
           <ListFilterIcon className="w-4 h-4" />
@@ -648,12 +651,13 @@ export function FilterSheet({
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <div className="sticky bottom-0 py-2 flex gap-4 mt-4">
+        <div className="sticky bottom-0 py-2 flex justify-end gap-4 mt-4">
           <Button
             variant={"default"}
             onClick={applyFilters}
             className="bg-blue-700 text-white hover:bg-blue-800"
           >
+            <Check className="w-4 h-4 mr-2" />
             Apply Filters
           </Button>
           {(filters.length > 0 ||
