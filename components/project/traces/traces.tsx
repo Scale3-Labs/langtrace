@@ -1,7 +1,6 @@
 "use client";
 
 import { HoverCell } from "@/components/shared/hover-cell";
-import { Info } from "@/components/shared/info";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,6 @@ import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import { formatDateTime } from "@/lib/utils";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
@@ -19,12 +17,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { Checkbox } from "../../ui/checkbox";
-import { Switch } from "../../ui/switch";
-import TraceFilter from "./trace-filter";
+import { FilterSheet } from "./filter-sheet";
 import { TracesTable } from "./traces-table";
 
-export default function Traces({ email }: { email: string }) {
+export default function Traces() {
   const project_id = useParams()?.project_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -475,180 +471,60 @@ export default function Traces({ email }: { email: string }) {
     enabled: enableFetch,
   });
 
-  const FILTERS: { key: string; value: string; info: string }[] = [
-    {
-      key: "llm",
-      value: "LLM Requests",
-      info: "Requests made to a LLM. This includes requests like text embedding, text generation, text completion, etc.",
-    },
-    {
-      key: "vectordb",
-      value: "VectorDB Requests",
-      info: "Requests made to a VectorDB. This includes requests like vector search, vector similarity, etc.",
-    },
-    {
-      key: "framework",
-      value: "Framework Requests",
-      info: "This includes traces from Framework calls like langchain, CrewAI, DSPy etc.",
-    },
-  ];
-
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
-      <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
-        <div className="flex gap-8 items-center">
-          {FILTERS.map((item, i) => (
-            <div key={i} className="flex items-center space-x-2">
-              <Checkbox
-                disabled={showBottomLoader}
-                id={item.key}
-                checked={filters.some((filter) => filter.value === item.key)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setFilters([
-                      ...filters,
-                      {
-                        key: "langtrace.service.type",
-                        operation: "EQUALS",
-                        value: item.key,
-                        type: "attribute",
-                      },
-                    ]);
-                  } else {
-                    setFilters(
-                      filters.filter((filter) => filter.value !== item.key)
-                    );
-                  }
-                }}
-              />
-              <label htmlFor={item.key} className="text-xs font-semibold">
-                {item.value}
-              </label>
-              <Info information={item.info} />
-            </div>
-          ))}
-          <div className="flex items-center gap-1">
-            <Button
-              variant={"outline"}
-              size={"icon"}
-              onClick={() => setIsTraceFilterOpen(true)}
-            >
-              <FilterListIcon className="cursor-pointer" />
-            </Button>
-            <p className="text-xs font-semibold">Advanced Filters</p>
-          </div>
-          {filters.length > 0 && (
-            <Button
-              size={"sm"}
-              variant={"destructive"}
-              onClick={() => {
-                setFilters([]);
-                setUserId("");
-                setPromptId("");
-                setModel("");
-              }}
-            >
-              <XIcon className="w-4 h-4 mr-1" />
-              Clear All
-            </Button>
-          )}
-        </div>
-        <div className="flex flex-col gap-2">
-          <p className="text-xs text-muted-foreground font-semibold">
-            Preferences
-          </p>
-          <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Local time</p>
-            <Switch
-              className="text-start"
-              id="timestamp"
-              checked={utcTime}
-              onCheckedChange={(check) => {
-                setUtcTime(check);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.timestamp.utc",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">UTC</p>
-              <Info information="By default all the spans are recorded in UTC timezone for the sake of standardization. By toggling this setting, you can visualize the spans in your local timezone." />
-            </div>
-          </div>
-          <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Compress</p>
-            <Switch
-              className="text-start"
-              id="expanded"
-              checked={expandedView}
-              onCheckedChange={(check) => {
-                setExpandedView(check);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.expanded",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">Expand</p>
-              <Info information="By default, the input and output messages are compressed to fit the table. By toggling this setting, you can expand the input and output messages to view the complete content." />
-            </div>
-          </div>
-          <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Don&apos;t group</p>
-            <Switch
-              className="text-start"
-              id="group"
-              checked={group}
-              onCheckedChange={(check) => {
-                setGroup(check);
-                setPage(1);
-                setEnableFetch(true);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.group",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">Group</p>
-              <Info information="By default, the spans are grouped if they are part of a single trace with a common parent. By toggling this setting, you can view spans individually without any relationships." />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="relative">
-        <MagnifyingGlassIcon className="absolute top-2 left-2 text-muted-foreground h-5 w-5" />
-        <Input
-          className="w-full border-muted rounded-md pl-8"
-          placeholder="Search for anything in your traces (Hit Enter to search)"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              // reset everything
-              setPage(1);
-              setFilters([]);
-              setEnableFetch(true);
-            }
-          }}
+      <div className="flex gap-2 items-center w-full">
+        <FilterSheet
+          utcTime={utcTime}
+          setUtcTime={setUtcTime}
+          expandedView={expandedView}
+          setExpandedView={setExpandedView}
+          group={group}
+          setGroup={setGroup}
+          setPage={setPage}
+          setEnableFetch={setEnableFetch}
+          filters={filters}
+          setFilters={setFilters}
+          showBottomLoader={showBottomLoader}
+          userId={userId}
+          setUserId={setUserId}
+          promptId={promptId}
+          setPromptId={setPromptId}
+          model={model}
+          setModel={setModel}
         />
+        {filters.length > 0 && (
+          <Button
+            size={"sm"}
+            variant={"destructive"}
+            onClick={() => {
+              setFilters([]);
+              setUserId("");
+              setPromptId("");
+              setModel("");
+            }}
+          >
+            <XIcon className="w-4 h-4 mr-1" />
+            Clear All
+          </Button>
+        )}
+        <div className="relative w-full">
+          <MagnifyingGlassIcon className="absolute top-2 left-2 text-muted-foreground h-5 w-5" />
+          <Input
+            className="w-full border-muted rounded-md pl-8"
+            placeholder="Search for anything in your traces (Hit Enter to search)"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                // reset everything
+                setPage(1);
+                setFilters([]);
+                setEnableFetch(true);
+              }
+            }}
+          />
+        </div>
       </div>
       <TracesTable
         pageSize={pageSize}
@@ -668,18 +544,6 @@ export default function Traces({ email }: { email: string }) {
         scrollableDivRef={scrollableDivRef}
         filters={filters}
         setFilters={setFilters}
-      />
-      <TraceFilter
-        open={isTraceFilterOpen}
-        onClose={() => setIsTraceFilterOpen(false)}
-        filters={filters}
-        setFilters={setFilters}
-        userId={userId}
-        setUserId={setUserId}
-        promptId={promptId}
-        setPromptId={setPromptId}
-        model={model}
-        setModel={setModel}
       />
     </div>
   );

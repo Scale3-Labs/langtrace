@@ -18,7 +18,7 @@ export default async function Page() {
 
   return (
     <>
-      <Traces email={user.email as string} />
+      <Traces />
     </>
   );
 }
