@@ -32,6 +32,7 @@ export function TraceComponent({
     "SPANS" | "ATTRIBUTES" | "CONVERSATION" | "LANGGRAPH"
   >("SPANS");
   const [span, setSpan] = useState<any | null>(null);
+  const [type, setType] = useState<string | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
 
@@ -40,7 +41,17 @@ export function TraceComponent({
     setSelectedVendors(trace.vendors);
     if (trace.vendors.includes("langgraph")) setIncludesLanggraph(true);
     if (!open) setSpansView("SPANS");
-  }, [trace, open]);
+    if (span) {
+      const attributes = span.attributes ? JSON.parse(span.attributes) : {};
+      if (attributes["langtrace.service.type"]) {
+        setType(attributes["langtrace.service.type"]);
+      } else {
+        setType(null);
+      }
+    } else {
+      setType(null);
+    }
+  }, [trace, open, span]);
 
   return (
     <div className="flex md:flex-row flex-col items-stretch w-full">
@@ -108,6 +119,7 @@ export function TraceComponent({
                 span={span}
                 projectId={project_id}
                 sessionName={span?.name || ""}
+                type={type}
               />
               <Button
                 className="w-fit"
@@ -189,7 +201,8 @@ function SpansView({
           <EvaluateSession
             span={trace.sorted_trace[0]}
             projectId={project_id}
-            sessionName={"Session"}
+            sessionName="Session"
+            type="session"
           />
         </div>
         <div className="flex gap-2 items-center flex-wrap">

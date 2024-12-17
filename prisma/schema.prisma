@@ -84,6 +84,7 @@ model Evaluation {
   userId      String?
   userScore   Int?
   reason      String?
+  type        String?  @default("llm") // llm, vectordb, framework, session
   projectId   String
   testId      String?
   dataId      String?

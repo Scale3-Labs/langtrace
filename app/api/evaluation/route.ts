@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       const projectData = await response.json();
       const projectId = projectData.data.project.id;
       const data = await req.json();
-      let { traceId, spanId, userScore, userId, reason, dataId } = data;
+      let { traceId, spanId, userScore, userId, reason, dataId, type } = data;
 
       const traceService = await new TraceService();
 
@@ -50,6 +50,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      const evaluationType = type || "llm";
+
       const payload: any = {
         spanId,
         traceId,
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
         userId,
         userScore,
         reason: reason || "",
+        type: evaluationType,
       };
 
       if (dataId) {
@@ -111,6 +114,7 @@ export async function POST(req: NextRequest) {
         testId,
         reason,
         dataId,
+        type,
       } = data;
 
       // check if this user has access to this project
@@ -130,6 +134,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      const evaluationType = type || "llm";
+
       const payload: any = {
         spanId,
         traceId,
@@ -138,6 +144,7 @@ export async function POST(req: NextRequest) {
         ltUserScore,
         testId,
         reason: reason || "",
+        type: evaluationType,
       };
 
       if (dataId) {
@@ -182,6 +189,7 @@ export async function GET(req: NextRequest) {
     const spanId = req.nextUrl.searchParams.get("spanId") as string;
     const testId = req.nextUrl.searchParams.get("testId") as string;
     const includeTest = req.nextUrl.searchParams.get("includeTest") === "true";
+    const type = req.nextUrl.searchParams.get("type") as string;
 
     if (!projectId && !spanId) {
       return NextResponse.json(
@@ -225,43 +233,24 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (spanId) {
-      let evaluations: any;
-      if (testId) {
-        evaluations = await prisma.evaluation.findFirst({
-          where: {
-            spanId,
-            testId,
-          },
-          include: {
-            Test: includeTest,
-          },
-        });
-      } else {
-        evaluations = await prisma.evaluation.findMany({
-          where: {
-            spanId,
-          },
-          include: {
-            Test: includeTest,
-          },
-        });
-      }
-      if (!evaluations) {
-        return NextResponse.json({
-          evaluations: [],
-        });
-      }
+    const whereClause: any = {
+      projectId,
+    };
 
-      return NextResponse.json({
-        evaluations: Array.isArray(evaluations) ? evaluations : [evaluations],
-      });
+    if (spanId) {
+      whereClause.spanId = spanId;
+    }
+
+    if (testId) {
+      whereClause.testId = testId;
+    }
+
+    if (type) {
+      whereClause.type = type;
     }
 
     const evaluations = await prisma.evaluation.findMany({
-      where: {
-        projectId,
-      },
+      where: whereClause,
       include: {
         Test: includeTest,
       },

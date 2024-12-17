@@ -54,6 +54,7 @@ export function TraceSheet({
     "SPANS" | "ATTRIBUTES" | "CONVERSATION" | "LANGGRAPH"
   >("SPANS");
   const [span, setSpan] = useState<any | null>(null);
+  const [type, setType] = useState<string | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
   const [selectedData, setSelectedData] = useState<CheckedData | null>(null);
@@ -105,18 +106,35 @@ export function TraceSheet({
         response = attributes["llm.responses"];
       }
 
+      if (attributes["langtrace.service.type"]) {
+        setType(attributes["langtrace.service.type"]);
+      } else {
+        setType(null);
+      }
+
       const inputData = prompt ? JSON.parse(prompt) : [];
       const outputData = response ? JSON.parse(response) : [];
 
       const input = inputData.length > 0 ? inputData[0].content : "";
       const output = outputData.length > 0 ? outputData[0].content : "";
 
-      const checkedData = {
-        spanId,
-        input,
-        output,
-      };
-      setSelectedData(checkedData);
+      if (input && output) {
+        const checkedData = {
+          spanId,
+          input,
+          output,
+        };
+        setSelectedData(checkedData);
+      } else {
+        setSelectedData(null);
+      }
+    } else {
+      setSelectedData(null);
+      setType(null);
+      setEvents(null);
+      setAttributes(null);
+      setSpansView("SPANS");
+      setSpan(null);
     }
   }, [span]);
 
@@ -147,7 +165,7 @@ export function TraceSheet({
             attributes &&
             events && (
               <div className="flex flex-col gap-3">
-                <div className="flex gap-2 items-center justify-between w-full">
+                <div className="flex gap-2 items-center justify-between w-full flex-wrap">
                   <Button
                     className="w-fit"
                     size={"sm"}
@@ -157,7 +175,7 @@ export function TraceSheet({
                     <ChevronLeft size={16} className="mr-2" />
                     Back
                   </Button>
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-2 items-center flex-wrap">
                     <Button
                       className="w-fit"
                       size={"sm"}
@@ -201,6 +219,7 @@ export function TraceSheet({
                       span={span}
                       projectId={project_id}
                       sessionName={span.name}
+                      type={type}
                     />
                   </div>
                 </div>
@@ -276,7 +295,8 @@ function SpansView({
           <EvaluateSession
             span={selectedTrace[0]}
             projectId={project_id}
-            sessionName={"Session"}
+            sessionName="Session"
+            type="session"
           />
         </div>
         <div className="flex gap-2 items-center flex-wrap">
