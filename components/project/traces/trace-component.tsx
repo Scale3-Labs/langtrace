@@ -8,9 +8,8 @@ import { Trace } from "@/lib/trace_util";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
-  correctTimestampFormat,
 } from "@/lib/trace_utils";
-import { cn, formatDateTime, getVendorFromSpan } from "@/lib/utils";
+import { cn, getVendorFromSpan } from "@/lib/utils";
 import { CodeIcon, MessageCircle, NetworkIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { EvaluateSession } from "./evaluate-session";
@@ -127,11 +126,6 @@ export function TraceComponent({
                 projectId={project_id}
                 sessionName={span?.name || ""}
                 type={type}
-                spanDate={
-                  spanDate
-                    ? formatDateTime(correctTimestampFormat(spanDate), true)
-                    : null
-                }
               />
               <Button
                 className="w-fit"
@@ -217,11 +211,6 @@ function SpansView({
             projectId={project_id}
             sessionName="Session"
             type="session"
-            spanDate={
-              spanDate
-                ? formatDateTime(correctTimestampFormat(spanDate), true)
-                : null
-            }
           />
         </div>
         <div className="flex gap-2 items-center flex-wrap">

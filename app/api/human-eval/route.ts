@@ -61,6 +61,9 @@ export async function GET(req: NextRequest) {
       where: {
         projectId,
         type,
+        Test: {
+          isNot: null,
+        },
       },
       select: {
         Test: {
@@ -71,6 +74,8 @@ export async function GET(req: NextRequest) {
         },
         ltUserScore: true,
         spanDate: true,
+        spanId: true,
+        type: true,
       },
       orderBy: {
         spanDate: "asc",

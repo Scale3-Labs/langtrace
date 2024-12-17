@@ -16,19 +16,7 @@ export async function POST(req: NextRequest) {
       const projectData = await response.json();
       const projectId = projectData.data.project.id;
       const data = await req.json();
-      let {
-        traceId,
-        spanId,
-        userScore,
-        userId,
-        reason,
-        dataId,
-        type,
-        spanDate,
-      } = data;
-
-      // convert spanDate to a date object
-      const spanDateObj = new Date(spanDate);
+      let { traceId, spanId, userScore, userId, reason, dataId } = data;
 
       const traceService = await new TraceService();
 
@@ -62,8 +50,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const evaluationType = type || "llm";
-
       const payload: any = {
         spanId,
         traceId,
@@ -71,8 +57,8 @@ export async function POST(req: NextRequest) {
         userId,
         userScore,
         reason: reason || "",
-        type: evaluationType,
-        spanDate,
+        type: "llm", // users can only evaluate llm spans
+        spanDate: new Date().toISOString(),
       };
 
       if (dataId) {
@@ -131,9 +117,6 @@ export async function POST(req: NextRequest) {
         spanDate,
       } = data;
 
-      // convert spanDate to a date object
-      const spanDateObj = new Date(spanDate);
-
       // check if this user has access to this project
       const project = await prisma.project.findFirst({
         where: {
@@ -156,13 +139,13 @@ export async function POST(req: NextRequest) {
       const payload: any = {
         spanId,
         traceId,
-        ltUserId: user.id,
+        spanDate,
         projectId,
-        ltUserScore,
         testId,
-        reason: reason || "",
+        ltUserId: user.id,
+        ltUserScore,
         type: evaluationType,
-        spanDate: spanDateObj,
+        reason: reason || "",
       };
 
       if (dataId) {
@@ -403,19 +386,29 @@ export async function PUT(req: NextRequest) {
       }
 
       const data = await req.json();
-      const { id, ltUserScore, testId, reason, spanDate } = data;
-      // convert spanDate to a date object
-      const spanDateObj = new Date(spanDate);
+      const {
+        id,
+        spanId,
+        traceId,
+        spanDate,
+        ltUserScore,
+        testId,
+        type,
+        reason,
+      } = data;
       const evaluation = await prisma.evaluation.update({
         where: {
           id,
         },
         data: {
+          spanId,
+          traceId,
+          spanDate,
           ltUserId: user.id,
           ltUserScore,
           testId,
+          type,
           reason: reason || "",
-          spanDate: spanDateObj,
         },
       });
 

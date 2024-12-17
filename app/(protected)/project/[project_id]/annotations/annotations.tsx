@@ -73,7 +73,7 @@ export default function Annotations() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="p-6 flex justify-between bg-muted">
+      <div className="px-10 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Human Eval Metrics</h1>
         <div className="flex gap-2">
           <CreateTest projectId={projectId} variant={"outline"} />
@@ -91,7 +91,7 @@ export default function Annotations() {
           <TestScore />
         </div>
       ) : (
-        <div className="md:px-12 p-6 flex flex-col gap-2 items-center justify-center">
+        <div className="px-10 py-12 flex flex-col gap-2 items-center justify-center">
           <p className="text-sm text-muted-foreground font-semibold">
             Start evaluating your traces from the traces tab.
           </p>

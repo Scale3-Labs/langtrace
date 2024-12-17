@@ -231,7 +231,6 @@ export function TraceSheet({
                       projectId={project_id}
                       sessionName={span.name}
                       type={type}
-                      spanDate={spanDate}
                     />
                   </div>
                 </div>
@@ -309,10 +308,6 @@ function SpansView({
             projectId={project_id}
             sessionName="Session"
             type="session"
-            spanDate={formatDateTime(
-              correctTimestampFormat(selectedTrace[0].start_time.toString()),
-              true
-            )}
           />
         </div>
         <div className="flex gap-2 items-center flex-wrap">
