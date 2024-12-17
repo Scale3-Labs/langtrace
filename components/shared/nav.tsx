@@ -35,10 +35,11 @@ const ProjectNavLinks = (id: string, type = "default") => {
       name: "Datasets",
       href: `/project/${id}/datasets`,
     },
-    {
-      name: "Playground",
-      href: `/project/${id}/playground`,
-    },
+    // TODO(Karthik): Deactivating this feature for now
+    // {
+    //   name: "Playground",
+    //   href: `/project/${id}/playground`,
+    // },
     {
       name: "Prompts",
       href: `/project/${id}/prompts`,

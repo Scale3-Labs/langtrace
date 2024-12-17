@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SCHEDULE_CALL_LINK } from "@/lib/constants";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { FileIcon, LogOutIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -23,14 +22,6 @@ import { ProjectSwitcher } from "./project-switcher";
 
 export function Header({ email }: { email: string }) {
   const pathname = usePathname();
-  const fetchAccountStats = useQuery({
-    queryKey: ["fetch-account-stats", email],
-    queryFn: async () => {
-      const response = await fetch(`/api/stats/account?email=${email}`);
-      const result = await response.json();
-      return result;
-    },
-  });
 
   const fetchUser = useQuery({
     queryKey: ["fetch-user-query"],

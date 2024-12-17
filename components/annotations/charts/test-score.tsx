@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useQuery } from "react-query";
@@ -32,16 +33,17 @@ import { useQuery } from "react-query";
 export function TestScore() {
   const projectId = useParams()?.project_id as string;
   const [timeRange, setTimeRange] = React.useState("365d");
+  const [entityType, setEntityType] = React.useState("session");
   const [filteredData, setFilteredData] = React.useState([]);
   const {
     data: chartData,
     isLoading: chartDataLoading,
     error: chartDataError,
   } = useQuery({
-    queryKey: ["fetch-evals-chart-data-query", projectId],
+    queryKey: ["fetch-evals-chart-data-query", projectId, entityType],
     queryFn: async () => {
       const response = await fetch(
-        `/api/human-eval?projectId=${projectId}&type=llm`
+        `/api/human-eval?projectId=${projectId}&type=${entityType}`
       );
       if (!response.ok) {
         const error = await response.json();
@@ -71,8 +73,6 @@ export function TestScore() {
         },
       };
     }, {});
-
-    console.log(newChartConfig);
 
     setChartConfig(newChartConfig);
   }, [chartData]);
@@ -104,15 +104,33 @@ export function TestScore() {
   }, [chartData, timeRange]);
 
   if (chartDataLoading || chartDataError) {
-    return <div>Loading...</div>;
+    return <Skeleton className="h-[380px] w-full" />;
   }
+
+  const timeRangeOptions = [
+    { value: "365d", label: "Last 12 months" },
+    { value: "180d", label: "Last 6 months" },
+    { value: "90d", label: "Last 3 months" },
+    { value: "30d", label: "Last 30 days" },
+    { value: "14d", label: "Last 14 days" },
+    { value: "7d", label: "Last 7 days" },
+  ];
+
+  const entityTypes = [
+    { value: "session", label: "Session" },
+    { value: "llm", label: "LLM Inference" },
+    { value: "vectordb", label: "VectorDB Retrieval" },
+    { value: "framework", label: "Framework API" },
+  ];
 
   return (
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Test Score</CardTitle>
-          <CardDescription>Showing the score of the tests</CardDescription>
+          <CardTitle>Metrics Score</CardTitle>
+          <CardDescription>
+            Showing the score of the metrics evaluated
+          </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger
@@ -122,24 +140,34 @@ export function TestScore() {
             <SelectValue placeholder="Last 12 months" />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
-            <SelectItem value="365d" className="rounded-lg">
-              Last 12 months
-            </SelectItem>
-            <SelectItem value="180d" className="rounded-lg">
-              Last 6 months
-            </SelectItem>
-            <SelectItem value="90d" className="rounded-lg">
-              Last 3 months
-            </SelectItem>
-            <SelectItem value="30d" className="rounded-lg">
-              Last 30 days
-            </SelectItem>
-            <SelectItem value="14d" className="rounded-lg">
-              Last 14 days
-            </SelectItem>
-            <SelectItem value="7d" className="rounded-lg">
-              Last 7 days
-            </SelectItem>
+            {timeRangeOptions.map((option, index) => (
+              <SelectItem
+                key={index}
+                value={option.value}
+                className="rounded-lg"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={entityType} onValueChange={setEntityType}>
+          <SelectTrigger
+            className="w-[160px] rounded-lg sm:ml-auto"
+            aria-label="Select a value"
+          >
+            <SelectValue placeholder="Session" />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl">
+            {entityTypes.map((option, index) => (
+              <SelectItem
+                key={index}
+                value={option.value}
+                className="rounded-lg"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </CardHeader>

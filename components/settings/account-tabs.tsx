@@ -19,11 +19,12 @@ export default function SettingsTabs({ role }: { role: "member" | "owner" }) {
       value: "members",
       href: "/settings/members",
     },
-    {
-      name: "API Keys",
-      value: "keys",
-      href: "/settings/keys",
-    },
+    // TODO(Karthik): Deactivating this feature for now
+    // {
+    //   name: "API Keys",
+    //   value: "keys",
+    //   href: "/settings/keys",
+    // },
   ];
 
   return <Tabs tabs={tabs} />;
