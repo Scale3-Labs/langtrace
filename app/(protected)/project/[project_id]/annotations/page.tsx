@@ -16,5 +16,5 @@ export default async function Page() {
   }
   const user = session?.user;
 
-  return <Annotations email={user.email as string} />;
+  return <Annotations />;
 }
