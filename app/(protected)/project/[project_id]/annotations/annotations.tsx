@@ -74,7 +74,7 @@ export default function Annotations() {
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="px-10 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Human Eval Metrics</h1>
+        <h1 className="text-3xl font-semibold">Human Evaluation Metrics</h1>
         <div className="flex gap-2">
           <CreateTest projectId={projectId} variant={"outline"} />
           {tests && tests?.length > 0 && (
