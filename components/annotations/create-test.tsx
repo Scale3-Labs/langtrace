@@ -298,7 +298,7 @@ export function CreateTest({
             )}
             <DialogFooter>
               <Button type="submit" disabled={busy}>
-                Create Test
+                Save Metric
                 <PlusIcon className="h-4 w-4 ml-2" />
               </Button>
             </DialogFooter>
