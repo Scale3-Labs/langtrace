@@ -1,8 +1,8 @@
 "use client";
 
-import { TestScore } from "@/components/annotations/charts/test-score";
-import { CreateTest } from "@/components/annotations/create-test";
-import { EditTest } from "@/components/annotations/edit-test";
+import { TestScore } from "@/components/human-evaluations/charts/test-score";
+import { CreateTest } from "@/components/human-evaluations/create-test";
+import { EditTest } from "@/components/human-evaluations/edit-test";
 import { TableSkeleton } from "@/components/project/traces/table-skeleton";
 import { Test } from "@prisma/client";
 import { RabbitIcon } from "lucide-react";

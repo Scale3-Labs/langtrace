@@ -1,7 +1,7 @@
-import { CreateTest } from "@/components/annotations/create-test";
-import { EditTest } from "@/components/annotations/edit-test";
-import { ScaleType } from "@/components/annotations/eval-scale-picker";
-import { RangeScale } from "@/components/annotations/range-scale";
+import { CreateTest } from "@/components/human-evaluations/create-test";
+import { EditTest } from "@/components/human-evaluations/edit-test";
+import { ScaleType } from "@/components/human-evaluations/eval-scale-picker";
+import { RangeScale } from "@/components/human-evaluations/range-scale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

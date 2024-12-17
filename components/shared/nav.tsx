@@ -28,8 +28,8 @@ const ProjectNavLinks = (id: string, type = "default") => {
       href: `/project/${id}/traces`,
     },
     {
-      name: "Annotations",
-      href: `/project/${id}/annotations`,
+      name: "Human Evaluations",
+      href: `/project/${id}/human-evaluations`,
     },
     {
       name: "Datasets",
