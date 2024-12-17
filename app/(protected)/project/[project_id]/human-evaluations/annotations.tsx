@@ -1,17 +1,44 @@
 "use client";
 
-import { TestScore } from "@/components/human-evaluations/charts/test-score";
+import { MetricAverage } from "@/components/human-evaluations/charts/metric-average";
+import { MetricsTrend } from "@/components/human-evaluations/charts/metrics-trend";
 import { CreateTest } from "@/components/human-evaluations/create-test";
 import { EditTest } from "@/components/human-evaluations/edit-test";
 import { TableSkeleton } from "@/components/project/traces/table-skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Test } from "@prisma/client";
 import { RabbitIcon } from "lucide-react";
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
 export default function Annotations() {
   const projectId = useParams()?.project_id as string;
+  const [timeRange, setTimeRange] = useState("365d");
+  const [entityType, setEntityType] = useState("session");
+
+  const timeRangeOptions = [
+    { value: "365d", label: "Last 12 months" },
+    { value: "180d", label: "Last 6 months" },
+    { value: "90d", label: "Last 3 months" },
+    { value: "30d", label: "Last 30 days" },
+    { value: "14d", label: "Last 14 days" },
+    { value: "7d", label: "Last 7 days" },
+  ];
+
+  const entityTypes = [
+    { value: "session", label: "Session" },
+    { value: "llm", label: "LLM Inference" },
+    { value: "vectordb", label: "VectorDB Retrieval" },
+    { value: "framework", label: "Framework API" },
+  ];
 
   const {
     data: tests,
@@ -87,8 +114,63 @@ export default function Annotations() {
           <TableSkeleton />
         </div>
       ) : tests?.length > 0 ? (
-        <div className="flex flex-col gap-6 top-[16rem] w-full px-6 mb-24">
-          <TestScore />
+        <div className="flex flex-col gap-2 top-[16rem] w-full px-6 mb-24">
+          <h2 className="text-md text-muted-foreground">
+            Showing metrics for{" "}
+            {entityTypes.find((type) => type.value === entityType)?.label}s over
+            the last {timeRange}
+          </h2>
+          <div className="flex flex-row gap-4 self-end">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger
+                className="w-[160px] rounded-lg sm:ml-auto"
+                aria-label="Select a value"
+              >
+                <SelectValue placeholder="Last 12 months" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                {timeRangeOptions.map((option, index) => (
+                  <SelectItem
+                    key={index}
+                    value={option.value}
+                    className="rounded-lg"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={entityType} onValueChange={setEntityType}>
+              <SelectTrigger
+                className="w-[160px] rounded-lg sm:ml-auto"
+                aria-label="Select a value"
+              >
+                <SelectValue placeholder="Session" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                {entityTypes.map((option, index) => (
+                  <SelectItem
+                    key={index}
+                    value={option.value}
+                    className="rounded-lg"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <MetricAverage
+            timeRange={timeRange}
+            entityType={entityType}
+            metric="average"
+          />
+          <MetricAverage
+            timeRange={timeRange}
+            entityType={entityType}
+            metric="median"
+          />
+          <MetricsTrend timeRange={timeRange} entityType={entityType} />
         </div>
       ) : (
         <div className="px-10 py-12 flex flex-col gap-2 items-center justify-center">
