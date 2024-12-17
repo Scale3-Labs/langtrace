@@ -1,6 +1,7 @@
 "use client";
 
 import { MetricAverage } from "@/components/human-evaluations/charts/metric-average";
+import { MetricConfidence } from "@/components/human-evaluations/charts/metric-confidence";
 import { MetricsTrend } from "@/components/human-evaluations/charts/metrics-trend";
 import { CreateTest } from "@/components/human-evaluations/create-test";
 import { EditTest } from "@/components/human-evaluations/edit-test";
@@ -154,6 +155,7 @@ export default function Annotations() {
             </SelectContent>
           </Select>
         </div>
+        <MetricConfidence timeRange={timeRange} entityType={entityType} />
         <MetricAverage
           timeRange={timeRange}
           entityType={entityType}

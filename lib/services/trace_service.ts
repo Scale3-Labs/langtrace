@@ -101,6 +101,11 @@ export interface ITraceService {
     project_id: string,
     attribute_filters?: { [key: string]: string }
   ) => Promise<any>;
+  GetTotalSpansOfTypeInLastXDays: (
+    project_id: string,
+    type: string,
+    lastXDays: string
+  ) => Promise<number>;
 }
 
 export class TraceService implements ITraceService {
@@ -1217,6 +1222,62 @@ export class TraceService implements ITraceService {
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the span latency per model ${error}`
+      );
+    }
+  }
+
+  async GetTotalSpansOfTypeInLastXDays(
+    project_id: string,
+    type: string,
+    lastXDays: string
+  ): Promise<number> {
+    try {
+      // check if the table exists
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return 0;
+      }
+
+      if (type !== "session") {
+        const getSpanCountQuery = sql.select(
+          this.queryBuilderService.CountFilteredSpanAttributesQuery(
+            project_id,
+            {
+              filters: [
+                {
+                  key: "langtrace.service.type",
+                  operation: "EQUALS",
+                  type: "attribute",
+                  value: type,
+                },
+              ],
+              operation: "OR",
+            },
+            "",
+            lastXDays
+          )
+        );
+        const result = await this.client.find<any>(getSpanCountQuery);
+        const totalLen = parseInt(result[0]["total_spans"], 10);
+        return totalLen;
+      }
+      const getTraceCountQuery = sql.select(
+        this.queryBuilderService.CountFilteredTraceAttributesQuery(
+          project_id,
+          {
+            filters: [],
+            operation: "OR",
+          },
+          "",
+          lastXDays
+        )
+      );
+      const result = await this.client.find<any>(getTraceCountQuery);
+      const totalLen = parseInt(result[0]["total_traces"], 10);
+      return totalLen;
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the total spans ${error}`
       );
     }
   }

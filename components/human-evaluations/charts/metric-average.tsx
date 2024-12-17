@@ -174,7 +174,7 @@ export function MetricAverage({
                                     y={viewBox.cy}
                                     className="fill-foreground text-4xl font-bold"
                                   >
-                                    {value.toLocaleString()}
+                                    {value.toLocaleString()}%
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}

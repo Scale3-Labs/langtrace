@@ -21,7 +21,8 @@ export interface IQueryBuilderService {
   CountFilteredSpanAttributesQuery: (
     tableName: string,
     filters: Filter,
-    keyword?: string
+    keyword?: string,
+    lastXDays?: string
   ) => string;
   GetFilteredSpansAttributesQuery: (
     tableName: string,
@@ -34,7 +35,8 @@ export interface IQueryBuilderService {
   CountFilteredTraceAttributesQuery: (
     tableName: string,
     filters: Filter,
-    keyword?: string
+    keyword?: string,
+    lastXDays?: string
   ) => string;
   GetTracesWithFilters: (
     tableName: string,
@@ -99,7 +101,8 @@ export class QueryBuilderService implements IQueryBuilderService {
   CountFilteredSpanAttributesQuery(
     tableName: string,
     filters: Filter,
-    keyword?: string
+    keyword?: string,
+    lastXDays?: string
   ): string {
     let baseQuery = `COUNT(DISTINCT span_id) AS total_spans FROM ${tableName}`;
     let whereConditions: string[] = [];
@@ -135,13 +138,27 @@ export class QueryBuilderService implements IQueryBuilderService {
       }
     }
 
+    if (lastXDays) {
+      // convert lastXDays to lastNHours
+      const lastNHours = Number(lastXDays) * 24;
+      const startTime = getFormattedTime(lastNHours);
+      if (baseQuery.includes("WHERE")) {
+        baseQuery += ` AND start_time >= '${startTime}'`;
+      } else {
+        baseQuery += ` WHERE start_time >= '${startTime}'`;
+      }
+    }
+
+    console.log(baseQuery);
+
     return baseQuery;
   }
 
   CountFilteredTraceAttributesQuery(
     tableName: string,
     filters: Filter,
-    keyword?: string
+    keyword?: string,
+    lastXDays?: string
   ): string {
     let baseQuery = `COUNT(DISTINCT trace_id) AS total_traces FROM ${tableName}`;
     let whereConditions: string[] = [];
@@ -173,6 +190,17 @@ export class QueryBuilderService implements IQueryBuilderService {
         baseQuery += ` AND (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
       } else {
         baseQuery += ` WHERE (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
+      }
+    }
+
+    if (lastXDays) {
+      // convert lastXDays to lastNHours
+      const lastNHours = Number(lastXDays) * 24;
+      const startTime = getFormattedTime(lastNHours);
+      if (baseQuery.includes("WHERE")) {
+        baseQuery += ` AND start_time >= '${startTime}'`;
+      } else {
+        baseQuery += ` WHERE start_time >= '${startTime}'`;
       }
     }
 
