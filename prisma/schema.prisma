@@ -88,6 +88,7 @@ model Evaluation {
   projectId   String
   testId      String?
   dataId      String?
+  spanDate    DateTime @default(now())
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   data        Data?    @relation(fields: [dataId], references: [id], onDelete: Cascade)

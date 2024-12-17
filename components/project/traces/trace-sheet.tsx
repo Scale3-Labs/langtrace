@@ -15,8 +15,9 @@ import { Trace } from "@/lib/trace_util";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
+  correctTimestampFormat,
 } from "@/lib/trace_utils";
-import { getVendorFromSpan } from "@/lib/utils";
+import { formatDateTime, getVendorFromSpan } from "@/lib/utils";
 import {
   ChevronLeft,
   CodeIcon,
@@ -54,6 +55,7 @@ export function TraceSheet({
     "SPANS" | "ATTRIBUTES" | "CONVERSATION" | "LANGGRAPH"
   >("SPANS");
   const [span, setSpan] = useState<any | null>(null);
+  const [spanDate, setSpanDate] = useState<string | null>(null);
   const [type, setType] = useState<string | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
@@ -112,6 +114,14 @@ export function TraceSheet({
         setType(null);
       }
 
+      if (span.start_time) {
+        setSpanDate(
+          formatDateTime(correctTimestampFormat(span.start_time), true)
+        );
+      } else {
+        setSpanDate(null);
+      }
+
       const inputData = prompt ? JSON.parse(prompt) : [];
       const outputData = response ? JSON.parse(response) : [];
 
@@ -135,6 +145,7 @@ export function TraceSheet({
       setAttributes(null);
       setSpansView("SPANS");
       setSpan(null);
+      setSpanDate(null);
     }
   }, [span]);
 
@@ -220,6 +231,7 @@ export function TraceSheet({
                       projectId={project_id}
                       sessionName={span.name}
                       type={type}
+                      spanDate={spanDate}
                     />
                   </div>
                 </div>
@@ -297,6 +309,10 @@ function SpansView({
             projectId={project_id}
             sessionName="Session"
             type="session"
+            spanDate={formatDateTime(
+              correctTimestampFormat(selectedTrace[0].start_time.toString()),
+              true
+            )}
           />
         </div>
         <div className="flex gap-2 items-center flex-wrap">

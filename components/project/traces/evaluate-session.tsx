@@ -29,11 +29,13 @@ export function EvaluateSession({
   projectId,
   sessionName,
   type,
+  spanDate,
 }: {
   span: LLMSpan;
   projectId: string;
   sessionName: string;
   type: string | null;
+  spanDate: string | null;
 }) {
   const {
     data: tests,
@@ -202,6 +204,7 @@ export function EvaluateSession({
                     projectId={projectId}
                     evaluations={evaluations}
                     type={type || ""}
+                    spanDate={spanDate}
                   />
                 );
               })
@@ -219,12 +222,14 @@ function EvaluateTest({
   projectId,
   evaluations,
   type,
+  spanDate,
 }: {
   test: Test;
   projectId: string;
   span: LLMSpan;
   evaluations?: Evaluation[];
   type: string;
+  spanDate: string | null;
 }) {
   const [score, setScore] = useState(0);
   const [evaluation, setEvaluation] = useState<Evaluation>();
@@ -291,6 +296,7 @@ function EvaluateTest({
             id: evaluation.id,
             ltUserScore: value,
             testId: test.id,
+            spanDate: spanDate,
           }),
         });
         await queryClient.invalidateQueries({
@@ -310,6 +316,7 @@ function EvaluateTest({
             ltUserScore: value,
             testId: test.id,
             type: type,
+            spanDate: spanDate,
           }),
         });
         await queryClient.invalidateQueries({

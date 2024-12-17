@@ -8,8 +8,9 @@ import { Trace } from "@/lib/trace_util";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
+  correctTimestampFormat,
 } from "@/lib/trace_utils";
-import { cn, getVendorFromSpan } from "@/lib/utils";
+import { cn, formatDateTime, getVendorFromSpan } from "@/lib/utils";
 import { CodeIcon, MessageCircle, NetworkIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { EvaluateSession } from "./evaluate-session";
@@ -35,7 +36,7 @@ export function TraceComponent({
   const [type, setType] = useState<string | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
-
+  const [spanDate, setSpanDate] = useState<string | null>(null);
   useEffect(() => {
     setSelectedTrace(trace.trace_hierarchy);
     setSelectedVendors(trace.vendors);
@@ -47,6 +48,11 @@ export function TraceComponent({
         setType(attributes["langtrace.service.type"]);
       } else {
         setType(null);
+      }
+      if (span.span_date) {
+        setSpanDate(span.span_date);
+      } else {
+        setSpanDate(null);
       }
     } else {
       setType(null);
@@ -75,6 +81,7 @@ export function TraceComponent({
           setAttributes={setAttributes}
           setEvents={setEvents}
           project_id={project_id}
+          spanDate={spanDate}
         />
       </div>
       {(spansView === "ATTRIBUTES" ||
@@ -120,6 +127,11 @@ export function TraceComponent({
                 projectId={project_id}
                 sessionName={span?.name || ""}
                 type={type}
+                spanDate={
+                  spanDate
+                    ? formatDateTime(correctTimestampFormat(spanDate), true)
+                    : null
+                }
               />
               <Button
                 className="w-fit"
@@ -169,6 +181,7 @@ function SpansView({
   setAttributes,
   setEvents,
   project_id,
+  spanDate,
 }: {
   trace: Trace;
   selectedTrace: any[];
@@ -182,6 +195,7 @@ function SpansView({
   setAttributes: (attributes: any) => void;
   setEvents: (events: any) => void;
   project_id: string;
+  spanDate: string | null;
 }) {
   return (
     <>
@@ -203,6 +217,11 @@ function SpansView({
             projectId={project_id}
             sessionName="Session"
             type="session"
+            spanDate={
+              spanDate
+                ? formatDateTime(correctTimestampFormat(spanDate), true)
+                : null
+            }
           />
         </div>
         <div className="flex gap-2 items-center flex-wrap">

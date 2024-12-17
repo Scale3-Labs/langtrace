@@ -16,7 +16,19 @@ export async function POST(req: NextRequest) {
       const projectData = await response.json();
       const projectId = projectData.data.project.id;
       const data = await req.json();
-      let { traceId, spanId, userScore, userId, reason, dataId, type } = data;
+      let {
+        traceId,
+        spanId,
+        userScore,
+        userId,
+        reason,
+        dataId,
+        type,
+        spanDate,
+      } = data;
+
+      // convert spanDate to a date object
+      const spanDateObj = new Date(spanDate);
 
       const traceService = await new TraceService();
 
@@ -60,6 +72,7 @@ export async function POST(req: NextRequest) {
         userScore,
         reason: reason || "",
         type: evaluationType,
+        spanDate,
       };
 
       if (dataId) {
@@ -115,7 +128,11 @@ export async function POST(req: NextRequest) {
         reason,
         dataId,
         type,
+        spanDate,
       } = data;
+
+      // convert spanDate to a date object
+      const spanDateObj = new Date(spanDate);
 
       // check if this user has access to this project
       const project = await prisma.project.findFirst({
@@ -145,6 +162,7 @@ export async function POST(req: NextRequest) {
         testId,
         reason: reason || "",
         type: evaluationType,
+        spanDate: spanDateObj,
       };
 
       if (dataId) {
@@ -385,7 +403,9 @@ export async function PUT(req: NextRequest) {
       }
 
       const data = await req.json();
-      const { id, ltUserScore, testId, reason } = data;
+      const { id, ltUserScore, testId, reason, spanDate } = data;
+      // convert spanDate to a date object
+      const spanDateObj = new Date(spanDate);
       const evaluation = await prisma.evaluation.update({
         where: {
           id,
@@ -395,6 +415,7 @@ export async function PUT(req: NextRequest) {
           ltUserScore,
           testId,
           reason: reason || "",
+          spanDate: spanDateObj,
         },
       });
 
