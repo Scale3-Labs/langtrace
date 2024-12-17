@@ -4,7 +4,6 @@ import { MetricAverage } from "@/components/human-evaluations/charts/metric-aver
 import { MetricsTrend } from "@/components/human-evaluations/charts/metrics-trend";
 import { CreateTest } from "@/components/human-evaluations/create-test";
 import { EditTest } from "@/components/human-evaluations/edit-test";
-import { TableSkeleton } from "@/components/project/traces/table-skeleton";
 import {
   Select,
   SelectContent,
@@ -109,76 +108,64 @@ export default function Annotations() {
           )}
         </div>
       </div>
-      {testsLoading || !tests ? (
-        <div className="flex flex-col gap-6 top-[16rem] w-full px-6 mb-24">
-          <TableSkeleton />
+      <div className="flex flex-col gap-2 top-[16rem] w-full px-6 mb-24">
+        <h2 className="text-md text-muted-foreground">
+          Showing metrics for{" "}
+          {entityTypes.find((type) => type.value === entityType)?.label}s over
+          the last {timeRange}
+        </h2>
+        <div className="flex flex-row gap-4 self-end">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              className="w-[160px] rounded-lg sm:ml-auto"
+              aria-label="Select a value"
+            >
+              <SelectValue placeholder="Last 12 months" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              {timeRangeOptions.map((option, index) => (
+                <SelectItem
+                  key={index}
+                  value={option.value}
+                  className="rounded-lg"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={entityType} onValueChange={setEntityType}>
+            <SelectTrigger
+              className="w-[160px] rounded-lg sm:ml-auto"
+              aria-label="Select a value"
+            >
+              <SelectValue placeholder="Session" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              {entityTypes.map((option, index) => (
+                <SelectItem
+                  key={index}
+                  value={option.value}
+                  className="rounded-lg"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      ) : tests?.length > 0 ? (
-        <div className="flex flex-col gap-2 top-[16rem] w-full px-6 mb-24">
-          <h2 className="text-md text-muted-foreground">
-            Showing metrics for{" "}
-            {entityTypes.find((type) => type.value === entityType)?.label}s over
-            the last {timeRange}
-          </h2>
-          <div className="flex flex-row gap-4 self-end">
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger
-                className="w-[160px] rounded-lg sm:ml-auto"
-                aria-label="Select a value"
-              >
-                <SelectValue placeholder="Last 12 months" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                {timeRangeOptions.map((option, index) => (
-                  <SelectItem
-                    key={index}
-                    value={option.value}
-                    className="rounded-lg"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={entityType} onValueChange={setEntityType}>
-              <SelectTrigger
-                className="w-[160px] rounded-lg sm:ml-auto"
-                aria-label="Select a value"
-              >
-                <SelectValue placeholder="Session" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl">
-                {entityTypes.map((option, index) => (
-                  <SelectItem
-                    key={index}
-                    value={option.value}
-                    className="rounded-lg"
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <MetricAverage
-            timeRange={timeRange}
-            entityType={entityType}
-            metric="average"
-          />
-          <MetricAverage
-            timeRange={timeRange}
-            entityType={entityType}
-            metric="median"
-          />
-          <MetricsTrend timeRange={timeRange} entityType={entityType} />
-        </div>
-      ) : (
-        <div className="px-10 py-12 flex flex-col gap-2 items-center justify-center">
-          <p className="text-sm text-muted-foreground font-semibold">
-            Start evaluating your traces from the traces tab.
-          </p>
-        </div>
-      )}
+        <MetricAverage
+          timeRange={timeRange}
+          entityType={entityType}
+          metric="average"
+        />
+        <MetricAverage
+          timeRange={timeRange}
+          entityType={entityType}
+          metric="median"
+        />
+        <MetricsTrend timeRange={timeRange} entityType={entityType} />
+      </div>
     </div>
   );
 }
