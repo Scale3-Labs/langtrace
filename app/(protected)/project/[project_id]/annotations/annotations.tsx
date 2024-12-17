@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartTabs } from "@/components/annotations/chart-tabs";
+import { TestScore } from "@/components/annotations/charts/test-score";
 import { CreateTest } from "@/components/annotations/create-test";
 import { EditTest } from "@/components/annotations/edit-test";
 import { TableSkeleton } from "@/components/project/traces/table-skeleton";
@@ -73,7 +73,7 @@ export default function Annotations() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="px-12 py-12 flex justify-between bg-muted">
+      <div className="p-6 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Human Eval Metrics</h1>
         <div className="flex gap-2">
           <CreateTest projectId={projectId} variant={"outline"} />
@@ -83,15 +83,15 @@ export default function Annotations() {
         </div>
       </div>
       {testsLoading || !tests ? (
-        <div className="flex flex-col gap-6 top-[16rem] w-full px-12 mb-24">
+        <div className="flex flex-col gap-6 top-[16rem] w-full px-6 mb-24">
           <TableSkeleton />
         </div>
       ) : tests?.length > 0 ? (
-        <div className="flex flex-col gap-6 top-[16rem] w-full px-12 mb-24">
-          <ChartTabs projectId={projectId} tests={tests as Test[]} />
+        <div className="flex flex-col gap-6 top-[16rem] w-full px-6 mb-24">
+          <TestScore />
         </div>
       ) : (
-        <div className="md:px-52 px-12 py-12 flex flex-col gap-2 items-center justify-center">
+        <div className="md:px-12 p-6 flex flex-col gap-2 items-center justify-center">
           <p className="text-sm text-muted-foreground font-semibold">
             Start evaluating your traces from the traces tab.
           </p>

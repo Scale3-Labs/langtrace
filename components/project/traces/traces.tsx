@@ -30,7 +30,6 @@ export default function Traces() {
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(false);
-  const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
   const [userId, setUserId] = useState<string>("");
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");

@@ -2,7 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { jsontheme } from "@/lib/constants";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import { cn, getVendorFromSpan } from "@/lib/utils";
-import { ChevronDown, ChevronRight, MessageCircleIcon } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTheme } from "next-themes";
 import React, { useState } from "react";
 import { JSONTree } from "react-json-tree";
@@ -124,11 +124,13 @@ const SpanItem: React.FC<SpanItemProps> = ({
     color = "bg-blue-500";
   else if (span.name.includes("mongodb") || serviceName.includes("mongodb"))
     color = "bg-green-500";
-  else if (span.name.includes("guardrails") || serviceName.includes("guardrails"))
+  else if (
+    span.name.includes("guardrails") ||
+    serviceName.includes("guardrails")
+  )
     color = "bg-green-500";
   else if (span.name.includes("mistral") || serviceName.includes("mistral"))
     color = "bg-orange-500";
-  const fillColor = color.replace("bg-", "fill-");
 
   const vendor = getVendorFromSpan(span as any);
 
@@ -136,7 +138,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
     <div className="flex flex-col gap-1 w-full mt-2">
       <div className="flex items-center">
         <div
-          className="z-10 flex gap-2 items-center sticky left-4 bg-primary-foreground rounded-md pr-2"
+          className="z-10 flex gap-2 items-center sticky left-4 bg-muted rounded-md pr-2"
           style={{ marginLeft: `${level * 10}px` }}
         >
           {span.children && span.children.length > 0 && (
@@ -150,7 +152,7 @@ const SpanItem: React.FC<SpanItemProps> = ({
           )}
           {!span.children ||
             (span.children.length === 0 && (
-              <div className="border-b-2 border-l-2 border-muted-foreground rounded-bl-md w-3 h-3 ml-2 mb-2" />
+              <div className="px-2 py-1 border-b-2 border-l-2 border-muted-foreground rounded-bl-sm w-3 h-3 ml-4 mb-2" />
             ))}
           <VendorLogo vendor={vendor} />
           <span
@@ -182,20 +184,12 @@ const SpanItem: React.FC<SpanItemProps> = ({
                 setEvents(events);
               }}
               className={cn(
-                "h-4 rounded-sm absolute ml-[500px] flex items-center justify-center z-0 cursor-pointer",
+                "h-4 absolute ml-[500px] flex items-center justify-center z-0 cursor-pointer",
                 span.status_code === "ERROR" ? "bg-destructive" : color
               )}
               style={{ left: `${startX}px`, width: `${spanLength}px` }}
             >
-              {isLlm && (
-                <MessageCircleIcon
-                  className={cn(
-                    "h-4 w-4 absolute -top-4 z-50 animate-pulse",
-                    fillColor
-                  )}
-                />
-              )}
-              <span className="text-xs text-primary font-semibold">
+              <span className="absolute text-[10px] text-muted-foreground font-semibold -bottom-4">
                 {(
                   new Date(correctTimestampFormat(span.end_time)).getTime() -
                   new Date(correctTimestampFormat(span.start_time)).getTime()
