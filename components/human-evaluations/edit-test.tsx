@@ -240,7 +240,7 @@ export function EditTest({
       {openDelete && (
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Delete Eval Metric</DialogTitle>
+            <DialogTitle>Delete {test?.name}</DialogTitle>
             <DialogDescription>
               {test
                 ? `Are you sure you want to delete ${test?.name} ?`
@@ -284,7 +284,7 @@ export function EditTest({
               }}
               disabled={busy}
             >
-              Delete Test
+              Delete Metric
             </Button>
           </DialogFooter>
         </DialogContent>
