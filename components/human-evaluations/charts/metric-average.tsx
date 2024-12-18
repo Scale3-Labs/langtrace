@@ -188,8 +188,8 @@ export function MetricAverage({
                     {difference === 0
                       ? " The Average score is equal to the Median score which means the distribution is symmetric."
                       : difference > 0
-                        ? "The Average score is higher than the Median score which means the distribution is skewed to the right implying there are outliers with higher scores."
-                        : "The Average score is lower than the Median score which means the distribution is skewed to the left implying there are outliers with lower scores."}
+                        ? " The Average score is higher than the Median score which means the distribution is skewed to the right implying there are outliers with higher scores."
+                        : " The Average score is lower than the Median score which means the distribution is skewed to the left implying there are outliers with lower scores."}
                   </p>
                 </CardFooter>
               </Card>
