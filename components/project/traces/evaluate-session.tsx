@@ -1,7 +1,7 @@
-import { CreateTest } from "@/components/annotations/create-test";
-import { EditTest } from "@/components/annotations/edit-test";
-import { ScaleType } from "@/components/annotations/eval-scale-picker";
-import { RangeScale } from "@/components/annotations/range-scale";
+import { CreateTest } from "@/components/human-evaluations/create-test";
+import { EditTest } from "@/components/human-evaluations/edit-test";
+import { ScaleType } from "@/components/human-evaluations/eval-scale-picker";
+import { RangeScale } from "@/components/human-evaluations/range-scale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,10 +28,12 @@ export function EvaluateSession({
   span,
   projectId,
   sessionName,
+  type,
 }: {
   span: LLMSpan;
   projectId: string;
   sessionName: string;
+  type: string | null;
 }) {
   const {
     data: tests,
@@ -110,16 +112,16 @@ export function EvaluateSession({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button size={"sm"}>
+        <Button size={"sm"} disabled={!type}>
           <ThumbsUp size={16} className="mr-2" />
-          Evaluate {sessionName}
+          Evaluate {type === "session" ? sessionName : type + " call"}
         </Button>
       </SheetTrigger>
       <SheetContent className="w-[500px]">
         <SheetHeader>
-          <SheetTitle>Evaluate {span?.name}</SheetTitle>
+          <SheetTitle>Evaluate {sessionName}</SheetTitle>
           <SheetDescription>
-            Evaluate {span?.name} on the following tests.
+            Evaluate {sessionName} on the following tests.
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-6 mt-8">
@@ -199,6 +201,7 @@ export function EvaluateSession({
                     span={span}
                     projectId={projectId}
                     evaluations={evaluations}
+                    type={type || ""}
                   />
                 );
               })
@@ -215,11 +218,13 @@ function EvaluateTest({
   span,
   projectId,
   evaluations,
+  type,
 }: {
   test: Test;
   projectId: string;
   span: LLMSpan;
   evaluations?: Evaluation[];
+  type: string;
 }) {
   const [score, setScore] = useState(0);
   const [evaluation, setEvaluation] = useState<Evaluation>();
@@ -270,6 +275,7 @@ function EvaluateTest({
   };
 
   const evaluate = async (value: number) => {
+    if (!span?.start_time) return;
     try {
       // Check if an evaluation already exists
       if (evaluation) {
@@ -286,6 +292,10 @@ function EvaluateTest({
             id: evaluation.id,
             ltUserScore: value,
             testId: test.id,
+            spanDate: new Date(span.start_time).toISOString(),
+            spanId: span.span_id,
+            traceId: span.trace_id,
+            type: type,
           }),
         });
         await queryClient.invalidateQueries({
@@ -304,6 +314,8 @@ function EvaluateTest({
             traceId: span.trace_id,
             ltUserScore: value,
             testId: test.id,
+            type: type,
+            spanDate: new Date(span.start_time).toISOString(),
           }),
         });
         await queryClient.invalidateQueries({

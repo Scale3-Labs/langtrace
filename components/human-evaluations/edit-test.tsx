@@ -87,11 +87,11 @@ export function EditTest({
     >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size={"icon"} variant={"secondary"}>
+          <Button size={"icon"} variant={"outline"}>
             <DotsHorizontalIcon />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56">
+        <DropdownMenuContent className="w-56 mr-10">
           <DropdownMenuItem>
             <DialogTrigger asChild>
               <button
@@ -105,7 +105,7 @@ export function EditTest({
                 }}
               >
                 <EditIcon className="h-4 w-4 mr-2" />
-                Edit Test
+                Edit Metric
               </button>
             </DialogTrigger>
           </DropdownMenuItem>
@@ -122,7 +122,7 @@ export function EditTest({
                 }}
               >
                 <TrashIcon className="h-4 w-4 mr-2" />
-                Delete Test
+                Delete Metric
               </button>
             </DialogTrigger>
           </DropdownMenuItem>
@@ -131,9 +131,9 @@ export function EditTest({
       {openEdit && (
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Test</DialogTitle>
+            <DialogTitle>Edit Eval Metric</DialogTitle>
             <DialogDescription>
-              Edit the test by filling out the form below.
+              Edit the metric by filling out the form below.
             </DialogDescription>
           </DialogHeader>
           <Form {...EditTestForm}>
@@ -240,11 +240,11 @@ export function EditTest({
       {openDelete && (
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Delete Test</DialogTitle>
+            <DialogTitle>Delete Eval Metric</DialogTitle>
             <DialogDescription>
               {test
                 ? `Are you sure you want to delete ${test?.name} ?`
-                : "Select a test to delete."}
+                : "Select a metric to delete."}
             </DialogDescription>
             {!test && <TestsDropdown tests={tests} onSelect={setTest} />}
           </DialogHeader>
@@ -314,15 +314,15 @@ function TestsDropdown({
         >
           {value
             ? tests.find((test) => test.id === value)?.name
-            : "Select test..."}
+            : "Select metric..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[370px] p-0 z-50">
         <Command>
-          <CommandInput placeholder="Search test..." />
+          <CommandInput placeholder="Search metric..." />
           <CommandList>
-            <CommandEmpty>No test found.</CommandEmpty>
+            <CommandEmpty>No metric found.</CommandEmpty>
             <CommandGroup>
               {tests.map((test) => (
                 <CommandItem

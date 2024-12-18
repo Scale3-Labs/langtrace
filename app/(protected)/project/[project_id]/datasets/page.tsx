@@ -16,9 +16,5 @@ export default async function Page() {
   }
   const user = session?.user;
 
-  return (
-    <>
-      <DataSet email={user.email as string} />
-    </>
-  );
+  return <DataSet email={user.email as string} />;
 }

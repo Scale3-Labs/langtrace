@@ -78,14 +78,14 @@ export function CreateTest({
     >
       <DialogTrigger asChild>
         <Button disabled={disabled} variant={variant} className={className}>
-          Create Test <PlusIcon className="ml-2" />
+          Create Eval Metric <PlusIcon className="ml-2" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Test</DialogTitle>
+          <DialogTitle>Create Eval Metric</DialogTitle>
           <DialogDescription>
-            Create a new test to evaluate your model.
+            Create a new metric to evaluate your model.
           </DialogDescription>
         </DialogHeader>
         <Form {...CreateTestForm}>
@@ -298,7 +298,7 @@ export function CreateTest({
             )}
             <DialogFooter>
               <Button type="submit" disabled={busy}>
-                Create Test
+                Save Metric
                 <PlusIcon className="h-4 w-4 ml-2" />
               </Button>
             </DialogFooter>

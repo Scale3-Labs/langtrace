@@ -14,11 +14,6 @@ export default async function Page() {
   if (!session || !session.user) {
     redirect("/login");
   }
-  const user = session?.user;
 
-  return (
-    <>
-      <Traces email={user.email as string} />
-    </>
-  );
+  return <Traces />;
 }
