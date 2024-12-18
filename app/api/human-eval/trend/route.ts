@@ -70,6 +70,8 @@ export async function GET(req: NextRequest) {
           select: {
             name: true,
             id: true,
+            min: true,
+            max: true,
           },
         },
         ltUserScore: true,
@@ -82,30 +84,57 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Group evaluations by date and test name, summing scores for same test on same date
+    // Group evaluations by date and test name, tracking sum and count for averaging
     const groupedData = humanEvals.reduce(
-      (acc: Record<string, Record<string, number>>, evaluation) => {
-        if (!evaluation.Test) return acc; // Skip if no Test data
+      (
+        acc: Record<
+          string,
+          Record<
+            string,
+            { sum: number; count: number; min: number; max: number }
+          >
+        >,
+        evaluation
+      ) => {
+        if (!evaluation.Test) return acc;
 
         const date = evaluation.spanDate.toISOString().split("T")[0];
         if (!acc[date]) {
           acc[date] = {};
         }
+
         const name = evaluation.Test.name.replace(/\s+/g, "-");
         const score = evaluation.ltUserScore ?? 0;
+        const minScore = evaluation.Test.min ?? 0;
+        const maxScore = evaluation.Test.max ?? 100;
 
-        // Sum up scores for the same test on the same date
-        acc[date][name] = (acc[date][name] || 0) + score;
+        if (!acc[date][name]) {
+          acc[date][name] = { sum: 0, count: 0, min: minScore, max: maxScore };
+        }
+
+        acc[date][name].sum += score;
+        acc[date][name].count += 1;
         return acc;
       },
       {}
     );
 
-    // Convert to array format
-    const chartData = Object.entries(groupedData).map(([date, scores]) => ({
-      date,
-      ...scores,
-    }));
+    // Convert to array format with normalized averages
+    const chartData = Object.entries(groupedData).map(([date, scores]) => {
+      const normalizedScores: Record<string, number> = {};
+
+      Object.entries(scores).forEach(([testName, data]) => {
+        const average = data.sum / data.count;
+        // Normalize to 0-100 scale
+        const normalized = ((average - data.min) / (data.max - data.min)) * 100;
+        normalizedScores[testName] = Number(normalized.toFixed(2));
+      });
+
+      return {
+        date,
+        ...normalizedScores,
+      };
+    });
 
     return NextResponse.json(chartData);
   } catch (error) {
