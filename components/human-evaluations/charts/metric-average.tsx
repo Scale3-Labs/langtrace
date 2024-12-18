@@ -75,6 +75,10 @@ export function MetricAverage({
       label: "Median",
       color: "hsl(var(--chart-2))",
     },
+    other: {
+      label: "Other",
+      color: "hsl(var(--background))",
+    },
   } as ChartConfig;
 
   if (
