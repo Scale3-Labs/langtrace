@@ -172,9 +172,9 @@ export function MetricConfidence({
               </ChartContainer>
             </CardContent>
             <CardFooter className="flex-col gap-2 text-sm">
-              <div className="leading-none text-muted-foreground">
-                Showing the confidence score for {entityType} type in the last{" "}
-                {timeRange.split("d")[0]} days.
+              <div className="text-muted-foreground text-center">
+                Tip: Evaluate more traces to increase the overall confidence. A
+                target confidence of 50% or higher is recommended.
               </div>
             </CardFooter>
           </Card>
