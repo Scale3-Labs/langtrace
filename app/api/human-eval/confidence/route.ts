@@ -58,22 +58,28 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Get count of human evaluations for the project and type
-    const count = await prisma.evaluation.count({
-      where: {
-        projectId,
-        type,
-        Test: {
-          isNot: null,
+    // Get count of unique spanIds for human evaluations
+    const count = await prisma.evaluation
+      .findMany({
+        where: {
+          projectId,
+          type,
+          Test: {
+            isNot: null,
+          },
+          spanDate: {
+            gte: new Date(Date.now() - Number(lastXDays) * 24 * 60 * 60 * 1000),
+          },
         },
-        spanDate: {
-          gte: new Date(Date.now() - Number(lastXDays) * 24 * 60 * 60 * 1000),
+        distinct: ["spanId"],
+        select: {
+          spanId: true,
         },
-      },
-    });
+      })
+      .then((results) => results.length);
 
     // get the total number of traces for this project
-    const traceService = await new TraceService();
+    const traceService = new TraceService();
     const totalSpans = await traceService.GetTotalSpansOfTypeInLastXDays(
       projectId,
       type,

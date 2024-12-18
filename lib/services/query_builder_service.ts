@@ -149,8 +149,6 @@ export class QueryBuilderService implements IQueryBuilderService {
       }
     }
 
-    console.log(baseQuery);
-
     return baseQuery;
   }
 

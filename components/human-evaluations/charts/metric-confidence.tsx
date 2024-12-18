@@ -99,9 +99,14 @@ export function MetricConfidence({
             <CardHeader className="items-center pb-0">
               <CardTitle>Confidence</CardTitle>
               <CardDescription className="text-center">
-                This represents the percentage of evaluations that were
-                completed by a human evaluator for all traces of {entityType}{" "}
-                type in the last {timeRange.split("d")[0]} days.
+                The percentage of evaluations that were completed by a human
+                evaluator for all traces of {entityType} type in the last{" "}
+                {timeRange.split("d")[0]} days.
+                <br />
+                <pre className="text-xs mt-2">
+                  = (evaluated {entityType} traces/total {entityType} traces) x
+                  100
+                </pre>
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
