@@ -8,20 +8,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PieChartIcon, TrendingDown, TrendingUp } from "lucide-react";
+import { PieChartIcon } from "lucide-react";
 import { useParams } from "next/navigation";
-import * as React from "react";
 import { useQuery } from "react-query";
-import {
-  Label,
-  PolarGrid,
-  PolarRadiusAxis,
-  RadialBar,
-  RadialBarChart,
-} from "recharts";
+import { PolarGrid, RadialBar, RadialBarChart } from "recharts";
 
 export function MetricAverage({
   timeRange,
@@ -53,31 +51,31 @@ export function MetricAverage({
         throw new Error(error?.message || "Failed to fetch tests");
       }
       const result = await response.json();
+      // add a new key called "other" with value 100 for each item in the result
+      result.forEach((item: any) => {
+        item.push({
+          stat: "other",
+          value: 100,
+          fill: "var(--color-other)",
+        });
+      });
       return result;
     },
   });
 
-  const [chartConfig, setChartConfig] = React.useState<ChartConfig>({});
-
-  React.useEffect(() => {
-    if (!chartData || chartData.length === 0) return;
-
-    const newChartConfig = chartData.reduce(
-      (config: any, metric: any, index: number) => {
-        return {
-          ...config,
-          [metric.name]: {
-            label: metric.name
-              .replace(/-/g, " ")
-              .replace(/\b\w/g, (char: string) => char.toUpperCase()),
-            color: `hsl(var(--chart-${index + 1}))`,
-          },
-        };
-      },
-      {}
-    );
-    setChartConfig(newChartConfig);
-  }, [chartData]);
+  const chartConfig = {
+    value: {
+      label: "Value",
+    },
+    average: {
+      label: "Average",
+      color: "hsl(var(--chart-1))",
+    },
+    median: {
+      label: "Median",
+      color: "hsl(var(--chart-2))",
+    },
+  } as ChartConfig;
 
   if (
     chartDataLoading ||
@@ -113,22 +111,26 @@ export function MetricAverage({
       ) : (
         <div className="flex flex-row gap-4 flex-wrap">
           {chartData.map((item: any, index: number) => {
-            const value =
-              metric === "average"
-                ? item.average
-                : metric === "median"
-                  ? item.median
-                  : item.average;
-            const color = chartConfig[item.name]?.color;
-            const startAngle = 90;
-            const endAngle = 90 - (360 * value) / 100;
+            let average = 0;
+            let median = 0;
+            // Simplify the data preparation
+            item.forEach((dataPoint: any) => {
+              dataPoint.fill = `var(--color-${dataPoint["stat"]})`;
+              if (dataPoint["stat"] === "average") {
+                average = dataPoint["value"];
+              } else if (dataPoint["stat"] === "median") {
+                median = dataPoint["value"];
+              }
+            });
+            const difference = average - median;
+
             return (
-              <Card key={index} className="flex flex-col">
+              <Card className="flex flex-col" key={index}>
                 <CardHeader className="items-center pb-0">
                   <CardTitle>
-                    {item.name
-                      .replace(/-/g, " ")
-                      .replace(/\b\w/g, (char: string) => char?.toUpperCase())}
+                    {item[0]?.metric
+                      ?.replace(/-/g, " ")
+                      ?.replace(/\b\w/g, (char: string) => char?.toUpperCase())}
                   </CardTitle>
                   <CardDescription>
                     {timeRange.split("d")[0]} days
@@ -140,78 +142,55 @@ export function MetricAverage({
                     className="mx-auto aspect-square max-h-[250px]"
                   >
                     <RadialBarChart
-                      data={[item]}
-                      endAngle={endAngle}
-                      startAngle={startAngle}
-                      innerRadius={80}
-                      outerRadius={140}
+                      data={item}
+                      innerRadius={75}
+                      outerRadius={150}
+                      startAngle={90}
+                      endAngle={-270}
                     >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
+                      <ChartTooltip
+                        cursor={false}
+                        content={
+                          <ChartTooltipContent hideLabel nameKey="stat" />
+                        }
                       />
-                      <RadialBar dataKey={metric} background fill={color} />
-                      <PolarRadiusAxis
-                        tick={false}
-                        tickLine={false}
-                        axisLine={false}
+
+                      <PolarGrid gridType="circle" />
+                      <RadialBar dataKey="value" />
+                      <text
+                        x="50%"
+                        y="50%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
                       >
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
-                                  >
-                                    {value.toLocaleString()}%
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
-                                  >
-                                    {metric}
-                                  </tspan>
-                                </text>
-                              );
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
+                        <tspan
+                          x="50%"
+                          y="50%"
+                          className="fill-foreground text-4xl font-bold"
+                        >
+                          {average.toLocaleString()}%
+                        </tspan>
+                        <tspan
+                          x="50%"
+                          y="60%"
+                          className="fill-muted-foreground"
+                        >
+                          Average
+                        </tspan>
+                      </text>
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
                 <CardFooter className="flex-col gap-2 text-sm">
-                  <div className="flex items-center gap-2 font-medium leading-none">
-                    Trending{" "}
-                    {item.average === item.median
-                      ? "neutral"
-                      : item.average > item.median
-                        ? "up"
-                        : "down"}{" "}
-                    by {item.average - item.median}% this month{" "}
-                    {item.average > item.median && (
-                      <TrendingUp className="h-4 w-4" />
-                    )}
-                    {item.average < item.median && (
-                      <TrendingDown className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div className="leading-none text-muted-foreground">
-                    Showing the {metric} score for the last{" "}
-                    {timeRange.split("d")[0]} days
-                  </div>
+                  <p className="text-sm text-muted-foreground w-[350px]">
+                    The Average score is {average}. The Median score is {median}
+                    .
+                    {difference === 0
+                      ? " The Average score is equal to the Median score which means the distribution is symmetric."
+                      : difference > 0
+                        ? " The Average score is higher than the Median score which means the distribution is skewed to the right implying there are outliers with higher scores."
+                        : " The Average score is lower than the Median score which means the distribution is skewed to the left implying there are outliers with lower scores."}
+                  </p>
                 </CardFooter>
               </Card>
             );

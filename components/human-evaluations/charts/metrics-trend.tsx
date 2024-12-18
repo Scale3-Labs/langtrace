@@ -125,11 +125,12 @@ export function MetricsTrend({
           <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
             <div className="grid flex-1 gap-1 text-center sm:text-left">
               <CardTitle>Metrics Trend</CardTitle>
-              <CardDescription>
-                Showing the trend of the metrics evaluated. Each data point
-                represents the sum of all scores for that day. For example, if a
-                session has 3 metrics, and the scores are 1, 2, and 3, the data
-                point for that day will be 6.
+              <CardDescription className="w-3/4">
+                Showing the average trend of the metrics evaluated. Each data
+                point represents the average of all scores for that day. For
+                example, if a date has 3 evaluations with scores -1, 1, and 1 on
+                a scale with min = -1 and max = 1, the average score is
+                normalized on a 0-100 scale and calculated as 66.67%.
               </CardDescription>
             </div>
           </CardHeader>

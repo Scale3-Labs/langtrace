@@ -240,7 +240,7 @@ export function EditTest({
       {openDelete && (
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Delete Eval Metric</DialogTitle>
+            <DialogTitle>Delete {test?.name}</DialogTitle>
             <DialogDescription>
               {test
                 ? `Are you sure you want to delete ${test?.name} ?`
@@ -284,7 +284,7 @@ export function EditTest({
               }}
               disabled={busy}
             >
-              Delete Test
+              Delete Metric
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -318,7 +318,7 @@ function TestsDropdown({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[370px] p-0 z-50">
+      <PopoverContent className="w-[370px] p-0 z-[1000]">
         <Command>
           <CommandInput placeholder="Search metric..." />
           <CommandList>

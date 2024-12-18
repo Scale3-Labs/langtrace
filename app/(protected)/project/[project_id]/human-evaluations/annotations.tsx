@@ -156,16 +156,7 @@ export default function Annotations() {
           </Select>
         </div>
         <MetricConfidence timeRange={timeRange} entityType={entityType} />
-        <MetricAverage
-          timeRange={timeRange}
-          entityType={entityType}
-          metric="average"
-        />
-        <MetricAverage
-          timeRange={timeRange}
-          entityType={entityType}
-          metric="median"
-        />
+        <MetricAverage timeRange={timeRange} entityType={entityType} />
         <MetricsTrend timeRange={timeRange} entityType={entityType} />
       </div>
     </div>

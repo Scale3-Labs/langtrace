@@ -130,12 +130,10 @@ export async function GET(req: NextRequest) {
         (score) => ((score - scaleMin) / range) * 100
       );
 
-      // Calculate average
+      // Calculate average and median
       const average =
         normalizedScores.reduce((sum, score) => sum + score, 0) /
         normalizedScores.length;
-
-      // Calculate median
       const sortedScores = [...normalizedScores].sort((a, b) => a - b);
       const middle = Math.floor(sortedScores.length / 2);
       const median =
@@ -143,11 +141,10 @@ export async function GET(req: NextRequest) {
           ? (sortedScores[middle - 1] + sortedScores[middle]) / 2
           : sortedScores[middle];
 
-      return {
-        name,
-        average: Math.round(average),
-        median: Math.round(median),
-      };
+      return [
+        { stat: "average", value: Math.round(average), metric: name },
+        { stat: "median", value: Math.round(median), metric: name },
+      ];
     });
 
     return NextResponse.json(statistics);
