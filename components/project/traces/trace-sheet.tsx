@@ -78,6 +78,7 @@ export function TraceSheet({
 
       let prompt: string = "";
       let response: string = "";
+      let model: string = "";
       if (span.events) {
         const events: any[] = JSON.parse(span.events);
 
@@ -122,6 +123,18 @@ export function TraceSheet({
         setSpanDate(null);
       }
 
+      if (
+        attributes["gen_ai.response.model"] ||
+        attributes["llm.model"] ||
+        attributes["gen_ai.request.model"]
+      ) {
+        model =
+          attributes["gen_ai.response.model"] ||
+          attributes["llm.model"] ||
+          attributes["gen_ai.request.model"] ||
+          "";
+      }
+
       const inputData = prompt ? JSON.parse(prompt) : [];
       const outputData = response ? JSON.parse(response) : [];
 
@@ -133,6 +146,7 @@ export function TraceSheet({
           spanId,
           input,
           output,
+          model,
         };
         setSelectedData(checkedData);
       } else {
