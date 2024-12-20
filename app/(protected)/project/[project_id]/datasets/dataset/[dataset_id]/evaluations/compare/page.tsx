@@ -111,7 +111,7 @@ export default function Compare() {
   const columns: ColumnDef<RunView>[] = [
     {
       accessorKey: "input",
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: "Input",
       cell: ({ row }) => {
@@ -121,7 +121,7 @@ export default function Compare() {
     },
     {
       accessorKey: "target",
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: "Target",
       cell: ({ row }) => {
@@ -131,7 +131,7 @@ export default function Compare() {
     },
     ...runs.map((run, i) => ({
       accessorKey: `output-${i}`,
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: `Output - (${run.model})`,
       cell: ({ row }: any) => {
