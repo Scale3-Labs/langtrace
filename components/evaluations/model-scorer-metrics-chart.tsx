@@ -58,13 +58,13 @@ export default function ModelScorerMetricsChart({
             <CardTitle>
               {`${d?.scorer} - ${Object.keys(d?.config)[0]}`}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="w-full text-center">
               {`Model comparison for ${d?.scorer} - ${Object.keys(d?.config)[0]} (sum of scores)`}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {chartType === "radar" && (
-              <ChartContainer config={d.config} className="w-[500px]">
+              <ChartContainer config={d.config} className="w-[450px]">
                 <RadarChart data={d.data}>
                   <ChartTooltip
                     cursor={false}
@@ -85,7 +85,7 @@ export default function ModelScorerMetricsChart({
               </ChartContainer>
             )}
             {chartType === "bar" && (
-              <ChartContainer config={d.config} className="w-[500px]">
+              <ChartContainer config={d.config} className="w-[450px]">
                 <BarChart
                   accessibilityLayer
                   data={d.data}

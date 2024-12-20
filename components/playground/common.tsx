@@ -43,6 +43,7 @@ export function ExpandingTextArea({
   saveButtonLabel = "Save to Registry",
   busy = false,
   handleSave,
+  className,
 }: {
   value: string;
   busy?: boolean;
@@ -51,6 +52,7 @@ export function ExpandingTextArea({
   saveButtonRef: React.RefObject<HTMLButtonElement>;
   saveButtonLabel?: string;
   handleSave: (open: boolean) => void;
+  className?: string;
 }) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -89,7 +91,7 @@ export function ExpandingTextArea({
   };
 
   return (
-    <div className="relative min-w-[350px]">
+    <div className={cn("relative min-w-[350px]", className)}>
       <textarea
         disabled={busy}
         className="rounded-md text-sm w-[350px] bg-background pr-10 pt-5"
@@ -198,15 +200,15 @@ export function Message({
               </p>
             )}
             {editing && (
-                <ExpandingTextArea
-                  onChange={(value: string) => {
-                    setMessage({ ...message, content: value });
-                  }}
-                  value={message.content}
-                  setFocusing={setEditing}
-                  saveButtonRef={saveButtonRef}
-                  handleSave={setDialogOpen}
-                />
+              <ExpandingTextArea
+                onChange={(value: string) => {
+                  setMessage({ ...message, content: value });
+                }}
+                value={message.content}
+                setFocusing={setEditing}
+                saveButtonRef={saveButtonRef}
+                handleSave={setDialogOpen}
+              />
             )}
           </div>
         </div>

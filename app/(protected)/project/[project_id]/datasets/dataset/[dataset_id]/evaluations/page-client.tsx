@@ -1,6 +1,5 @@
 "use client";
 
-import { PathBreadCrumbs } from "@/components/dataset/path-breadcrumbs";
 import ModelEvalMetricsChart from "@/components/evaluations/model-eval-metrics-chart";
 import ModelScorerMetricsChart from "@/components/evaluations/model-scorer-metrics-chart";
 import { ChartTypesDropDown } from "@/components/shared/chart-types";
@@ -406,41 +405,9 @@ export default function Evaluations() {
   }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      <div className="px-12 py-12 flex justify-between bg-muted">
-        <h1 className="text-3xl font-semibold">Evaluations</h1>
-        <div className="flex gap-2">
-          <Button
-            variant={currentData.length > 0 ? "default" : "outline"}
-            disabled={comparisonRunIds.length < 2}
-            onClick={() => {
-              // append comparisonRunIds to query params. & only from the second run id
-              const query = comparisonRunIds
-                .map((runId, i) => (i === 0 ? "" : "&") + "run_id=" + runId)
-                .join("");
-              router.push(
-                `/project/${projectId}/datasets/dataset/${datasetId}/evaluations/compare?${query}`
-              );
-            }}
-          >
-            Compare
-          </Button>
-          <Link href={EVALUATIONS_DOCS_URL} target="_blank">
-            <Button variant={currentData.length > 0 ? "outline" : "default"}>
-              New Evaluation
-              <FlaskConical className="ml-1 h-4 w-4" />
-              <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-      </div>
+    <div>
       {!fetchExperiments.isLoading && (
         <div className="flex flex-col gap-12 w-full px-12">
-          <div className="flex items-center gap-2">
-            {datasetId && (
-              <PathBreadCrumbs projectId={projectId} datasetId={datasetId} />
-            )}
-          </div>
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
@@ -455,6 +422,23 @@ export default function Evaluations() {
                   }}
                 >
                   <RefreshCwIcon className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={currentData.length > 0 ? "default" : "outline"}
+                  disabled={comparisonRunIds.length < 2}
+                  onClick={() => {
+                    // append comparisonRunIds to query params. & only from the second run id
+                    const query = comparisonRunIds
+                      .map(
+                        (runId, i) => (i === 0 ? "" : "&") + "run_id=" + runId
+                      )
+                      .join("");
+                    router.push(
+                      `/project/${projectId}/datasets/dataset/${datasetId}/evaluations/compare?${query}`
+                    );
+                  }}
+                >
+                  Compare
                 </Button>
                 <Button
                   disabled={
@@ -529,29 +513,27 @@ export default function Evaluations() {
               </div>
             </div>
             {viewMetrics && (
-              <div className="flex gap-4 flex-col w-full border rounded-md p-2">
+              <div className="flex gap-4 flex-col w-full">
                 <div className="flex gap-4 items-center overflow-x-scroll">
                   <ChartTypesDropDown
                     chartType={chartType}
                     setChartType={setChartType}
                   />
                 </div>
-                {!fetchEvalMetrics.isLoading && (
-                  <div className="flex flex-row gap-4 pb-6 overflow-x-scroll">
+                <div className="flex flex-row gap-4 flex-wrap">
+                  {!fetchEvalMetrics.isLoading && (
                     <ModelScorerMetricsChart
                       chartType={chartType}
                       data={fetchEvalMetrics?.data?.scorer_metrics || {}}
                     />
-                  </div>
-                )}
-                {!fetchEvalMetrics.isLoading && (
-                  <div className="flex flex-row gap-4 pb-12">
+                  )}
+                  {!fetchEvalMetrics.isLoading && (
                     <ModelEvalMetricsChart
                       chartType={chartType}
                       data={fetchEvalMetrics?.data?.eval_metrics || {}}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </div>

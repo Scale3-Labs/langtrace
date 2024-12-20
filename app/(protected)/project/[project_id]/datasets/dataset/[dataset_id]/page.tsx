@@ -1,11 +1,10 @@
 "use client";
 
-import { PathBreadCrumbs } from "@/components/dataset/path-breadcrumbs";
 import { ExpandingTextArea } from "@/components/playground/common";
-import { UploadCsv } from "@/components/project/dataset/upload-csv";
 import { CreateData } from "@/components/project/dataset/create-data";
 import DatasetRowSkeleton from "@/components/project/dataset/dataset-row-skeleton";
 import { DeleteData } from "@/components/project/dataset/delete-data";
+import { UploadCsv } from "@/components/project/dataset/upload-csv";
 import { DownloadDataset } from "@/components/shared/download-dataset";
 import RowSkeleton from "@/components/shared/row-skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -177,10 +176,10 @@ export default function Dataset() {
     const saveButtonRef = useRef<HTMLButtonElement>(null);
     const queryClient = useQueryClient();
     return (
-      <div className="flex flex-col gap-2">
+      <div className="relative">
         {!editMode && !expandedView && value && (
           <MoveDiagonal
-            className="self-end h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground"
+            className="absolute top-0 right-0 h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground"
             onClick={(e) => {
               e.stopPropagation();
               setExpandedView(!expandedView);
@@ -189,7 +188,7 @@ export default function Dataset() {
         )}
         {!editMode && expandedView && value && (
           <X
-            className="self-end h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground"
+            className="absolute top-0 right-0 h-4 w-4 hover:bg-primary-foreground hover:text-primary cursor-pointer text-muted-foreground"
             onClick={(e) => {
               e.stopPropagation();
               setExpandedView(!expandedView);
@@ -238,7 +237,7 @@ export default function Dataset() {
           <p
             onClick={() => editable && setEditMode(true)}
             className={cn(
-              expandedView ? "" : "h-20",
+              expandedView ? "" : "h-10",
               "text-sm overflow-y-scroll"
             )}
           >
@@ -262,7 +261,7 @@ export default function Dataset() {
       },
     },
     {
-      size: 500,
+      size: 300,
       accessorKey: "input",
       enableResizing: true,
       header: "Input",
@@ -272,7 +271,7 @@ export default function Dataset() {
       },
     },
     {
-      size: 500,
+      size: 300,
       accessorKey: "output",
       enableResizing: true,
       header: "Output",
@@ -282,7 +281,7 @@ export default function Dataset() {
       },
     },
     {
-      size: 500,
+      size: 300,
       accessorKey: "expectedOutput",
       enableResizing: true,
       header: "Expected Output",
@@ -300,7 +299,7 @@ export default function Dataset() {
       },
     },
     {
-      size: 100,
+      size: 150,
       accessorKey: "model",
       enableResizing: true,
       header: "Model",
@@ -310,7 +309,7 @@ export default function Dataset() {
       },
     },
     {
-      size: 300,
+      size: 200,
       accessorKey: "note",
       enableResizing: true,
       header: "Note",
@@ -386,157 +385,147 @@ export default function Dataset() {
     return <PageSkeleton />;
   } else {
     return (
-      <div className="w-full flex flex-col gap-4">
-        <div className="px-12 py-12 flex justify-between bg-muted">
-          <h1 className="text-3xl font-semibold">Dataset</h1>
-        </div>
-        <div className="flex flex-col gap-12 w-full px-12 mb-6">
-          <PathBreadCrumbs projectId={projectId} datasetId={dataset_id} />
-          <div className="flex justify-between items-center">
-            <div className="flex gap-4 items-center w-fit">
-              <CreateData projectId={projectId} datasetId={dataset_id} />
-              <UploadCsv projectId={projectId} datasetId={dataset_id}/>
-              <DownloadDataset
-                projectId={projectId}
-                datasetId={dataset_id}
-                disabled={fetchDataset.isLoading || currentData?.length === 0}
-              />
-            </div>
-            <div className="flex gap-4 items-center w-fit">
-              <Badge variant={"outline"} className="text-sm">
-                Dataset ID: {dataset_id}
-              </Badge>
-              <Link href={EVALUATIONS_DOCS_URL} target="_blank">
-                <Button variant="outline">
-                  Run Evaluation
-                  <FlaskConical className="ml-1 h-4 w-4" />
-                  <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-                </Button>
-              </Link>
-              <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="ml-auto">
-                    Columns
-                    <ChevronDown size={16} className="ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="h-40 overflow-y-visible">
-                  {table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => {
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onSelect={() => setOpenDropdown(true)}
-                          onCheckedChange={(value) =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {column.columnDef.header?.toString()}
-                        </DropdownMenuCheckboxItem>
-                      );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                size={"icon"}
-                variant={"destructive"}
-                onClick={() => {
-                  setColumnVisibility({});
-                  setTableState({});
-                  localStorage.removeItem("preferences.dataset.table-view");
-                }}
-              >
-                <ResetIcon className="w-4 h-4" />
+      <div className="flex flex-col gap-6 w-full">
+        <div className="flex justify-between items-center">
+          <div className="flex gap-4 items-center w-fit">
+            <CreateData projectId={projectId} datasetId={dataset_id} />
+            <UploadCsv projectId={projectId} datasetId={dataset_id} />
+            <DownloadDataset
+              projectId={projectId}
+              datasetId={dataset_id}
+              disabled={fetchDataset.isLoading || currentData?.length === 0}
+            />
+          </div>
+          <div className="flex gap-4 items-center w-fit">
+            <Badge variant={"outline"} className="text-sm">
+              Dataset ID: {dataset_id}
+            </Badge>
+            <Link href={EVALUATIONS_DOCS_URL} target="_blank">
+              <Button variant="outline">
+                Run Evaluation
+                <FlaskConical className="ml-1 h-4 w-4" />
+                <ArrowTopRightIcon className="ml-1 h-4 w-4" />
               </Button>
-            </div>
-          </div>
-          <div
-            className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
-            ref={scrollableDivRef as any}
-          >
-            {!fetchDataset.isLoading && currentData.length === 0 && (
-              <div className="flex items-center justify-center mt-24">
-                <p className="text-muted-foreground">
-                  No data found in this dataset
-                </p>
-              </div>
-            )}
-            {!fetchDataset.isLoading &&
-              currentData &&
-              currentData?.length > 0 && (
-                <Table
-                  style={{ ...columnSizeVars, width: table.getTotalSize() }}
-                >
-                  <TableHeader className="sticky top-0 bg-secondary">
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <TableHead
-                            key={header.id}
-                            style={{
-                              width: `calc(var(--header-${header.id}-size) * 1px)`,
-                              position: "relative",
-                            }}
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                            <div
-                              onDoubleClick={() => header.column.resetSize()}
-                              onMouseDown={header.getResizeHandler()}
-                              onTouchStart={header.getResizeHandler()}
-                              className={`bg-muted-foreground resizer ${
-                                header.column.getIsResizing()
-                                  ? "isResizing"
-                                  : ""
-                              }`}
-                            />
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        className="cursor-pointer"
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
+            </Link>
+            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns
+                  <ChevronDown size={16} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="h-40 overflow-y-visible">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onSelect={() => setOpenDropdown(true)}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
                       >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell
-                            key={cell.id}
-                            style={{
-                              width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
-                            }}
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            {showBottomLoader && (
-              <div className="flex flex-col gap-3">
-                <Separator />
-                {Array.from({ length: 2 }).map((_, index) => (
-                  <RowSkeleton key={index} />
-                ))}
-              </div>
-            )}
+                        {column.columnDef.header?.toString()}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              size={"icon"}
+              variant={"destructive"}
+              onClick={() => {
+                setColumnVisibility({});
+                setTableState({});
+                localStorage.removeItem("preferences.dataset.table-view");
+              }}
+            >
+              <ResetIcon className="w-4 h-4" />
+            </Button>
           </div>
+        </div>
+        <div
+          className="rounded-md border flex flex-col relative h-[75vh] overflow-y-scroll"
+          ref={scrollableDivRef as any}
+        >
+          {!fetchDataset.isLoading && currentData.length === 0 && (
+            <div className="flex items-center justify-center mt-24">
+              <p className="text-muted-foreground">
+                No data found in this dataset
+              </p>
+            </div>
+          )}
+          {!fetchDataset.isLoading &&
+            currentData &&
+            currentData?.length > 0 && (
+              <Table style={{ ...columnSizeVars, width: table.getTotalSize() }}>
+                <TableHeader className="sticky top-0 bg-secondary">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          style={{
+                            width: `calc(var(--header-${header.id}-size) * 1px)`,
+                            position: "relative",
+                          }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          <div
+                            onDoubleClick={() => header.column.resetSize()}
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={`bg-muted-foreground resizer ${
+                              header.column.getIsResizing() ? "isResizing" : ""
+                            }`}
+                          />
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      className="cursor-pointer"
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          style={{
+                            width: `calc(var(--col-${cell.column.id}-size) * 1px)`,
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          {showBottomLoader && (
+            <div className="flex flex-col gap-3">
+              <Separator />
+              {Array.from({ length: 2 }).map((_, index) => (
+                <RowSkeleton key={index} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -545,7 +534,7 @@ export default function Dataset() {
 
 function PageSkeleton() {
   return (
-    <div className="w-full py-6 px-6 flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-4">
       <div className="flex gap-4 items-center w-fit">
         <CreateData disabled={true} />
       </div>

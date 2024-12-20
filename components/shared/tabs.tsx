@@ -11,10 +11,12 @@ export interface Tab {
 
 export default function Tabs({
   tabs,
+  exactMatch = false,
   paginationLoading = false,
   scrollableDivRef,
 }: {
   tabs: Tab[];
+  exactMatch?: boolean;
   paginationLoading?: boolean;
   scrollableDivRef?: React.RefObject<HTMLDivElement>;
 }) {
@@ -30,9 +32,13 @@ export default function Tabs({
           href={tab.href}
           key={idx}
           className={`flex items-start rounded-md p-2 text-sm hover:bg-secondary hover:text-primary capitalize ${
-            pathname.includes(tab.value)
-              ? "bg-muted hover:bg-muted"
-              : "hover:bg-secondary hover:underline"
+            exactMatch
+              ? pathname === tab.href
+                ? "bg-muted hover:bg-muted"
+                : "hover:bg-secondary hover:underline"
+              : pathname.includes(tab.value)
+                ? "bg-muted hover:bg-muted"
+                : "hover:bg-secondary hover:underline"
           }`}
         >
           {tab.name}
