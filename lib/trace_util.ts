@@ -96,7 +96,9 @@ export function processTrace(trace: any): Trace {
           attributes["gen_ai.response.model"] ||
           attributes["llm.model"] ||
           attributes["gen_ai.request.model"];
-        models.push(model);
+        if (!models.includes(model)) {
+          models.push(model);
+        }
       }
       // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
       if (attributes["llm.prompts"] && attributes["llm.responses"]) {
