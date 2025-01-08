@@ -28,17 +28,18 @@ const ProjectNavLinks = (id: string, type = "default") => {
       href: `/project/${id}/traces`,
     },
     {
-      name: "Annotations",
-      href: `/project/${id}/annotations`,
+      name: "Human Evaluations",
+      href: `/project/${id}/human-evaluations`,
     },
     {
       name: "Datasets",
       href: `/project/${id}/datasets`,
     },
-    {
-      name: "Playground",
-      href: `/project/${id}/playground`,
-    },
+    // TODO(Karthik): Deactivating this feature for now
+    // {
+    //   name: "Playground",
+    //   href: `/project/${id}/playground`,
+    // },
     {
       name: "Prompts",
       href: `/project/${id}/prompts`,

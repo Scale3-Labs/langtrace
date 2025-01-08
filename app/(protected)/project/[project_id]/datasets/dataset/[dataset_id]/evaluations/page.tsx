@@ -15,9 +15,5 @@ export default async function Page() {
     redirect("/login");
   }
 
-  return (
-    <>
-      <Experiments />
-    </>
-  );
+  return <Experiments />;
 }

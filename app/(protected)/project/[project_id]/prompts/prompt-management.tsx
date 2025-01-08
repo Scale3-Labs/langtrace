@@ -79,7 +79,7 @@ export default function PromptManagement({ email }: { email: string }) {
                 <EditPromptSet promptset={promptset} projectId={projectId} />
               </div>
               <Link href={`/project/${projectId}/prompts/${promptset?.id}`}>
-                <Card className="w-full md:w-[325px] h-[150px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
+                <Card className="w-full md:w-[380px] h-[190px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border-2 hover:shadow-lg hover:bg-muted">
                   <CardHeader>
                     <CardTitle>{promptset?.name}</CardTitle>
                     <CardDescription>

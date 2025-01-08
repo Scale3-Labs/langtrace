@@ -3,6 +3,7 @@ import { calculatePriceFromUsage } from "./utils";
 
 export interface DspyTrace {
   id: string;
+  type: string;
   run_id: string;
   session_id: string;
   experiment_name: string;
@@ -54,6 +55,7 @@ export function processDspyTrace(trace: any): DspyTrace {
   let spanResult: any = {};
   let checkpoint: any = {};
   let evaluated_score: number | undefined;
+  let type: string = "session";
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
@@ -68,6 +70,11 @@ export function processDspyTrace(trace: any): DspyTrace {
       // parse the attributes of the span
       attributes = JSON.parse(span.attributes);
       let vendor = "";
+
+      // get the type of the span
+      if (attributes["langtrace.service.type"]) {
+        type = attributes["langtrace.service.type"];
+      }
 
       let resultContent = "";
       if (attributes["dspy.signature.result"]) {
@@ -309,6 +316,7 @@ export function processDspyTrace(trace: any): DspyTrace {
   // construct the response object
   const result: DspyTrace = {
     id: trace[0]?.trace_id,
+    type: type,
     run_id: run_id,
     session_id: session_id,
     experiment_name: experiment_name,

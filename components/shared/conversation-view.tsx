@@ -41,11 +41,6 @@ export default function ConversationView({
       responses = responseEvent["attributes"]["gen_ai.completion"];
     }
   }
-  if (attributes["llm.prompts"] && attributes["llm.responses"]) {
-    // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
-    prompts = attributes["llm.prompts"];
-    responses = attributes["llm.responses"];
-  }
 
   if (!prompts && !responses) return <p className="text-md">No data found</p>;
 

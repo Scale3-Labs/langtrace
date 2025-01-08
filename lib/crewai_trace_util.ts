@@ -7,6 +7,7 @@ import { calculatePriceFromUsage, formatDateTime } from "./utils";
 
 export interface CrewAITrace {
   id: string;
+  type: string;
   session_id: string;
   status: string;
   crew: CrewAICrew;
@@ -124,6 +125,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
   let tasks: CrewAITask[] = [];
   let crewTools: CrewAITool[] = [];
   const memory: CrewAIMemory[] = [];
+  let type: string = "session";
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
@@ -139,6 +141,11 @@ export function processCrewAITrace(trace: any): CrewAITrace {
       attributes = JSON.parse(span.attributes);
       let vendor = "";
       let vendorVersion = "";
+
+      // get the type of the span
+      if (attributes["langtrace.service.type"]) {
+        type = attributes["langtrace.service.type"];
+      }
 
       // get the service name from the attributes
       if (attributes["langtrace.service.name"]) {
@@ -253,7 +260,8 @@ export function processCrewAITrace(trace: any): CrewAITrace {
       if (attributes["crewai.memory.storage.rag_storage.inputs"]) {
         const memo: CrewAIMemory = {
           inputs: attributes["crewai.memory.storage.rag_storage.inputs"],
-          outputs: attributes["crewai.memory.storage.rag_storage.outputs"] || "",
+          outputs:
+            attributes["crewai.memory.storage.rag_storage.outputs"] || "",
         };
         memo.inputs = memo.inputs.replace(/\\n/g, "\n");
         memo.outputs = memo.outputs.replace(/\\n/g, "\n");
@@ -448,6 +456,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
   // construct the response object
   const result: CrewAITrace = {
     id: trace[0]?.trace_id,
+    type: type,
     session_id: session_id,
     status: status,
     namespace: traceHierarchy[0].name,

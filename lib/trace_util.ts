@@ -5,6 +5,7 @@ export interface Trace {
   id: string;
   status: string;
   session_id: string;
+  type: string;
   namespace: string;
   user_ids: string[];
   prompt_ids: string[];
@@ -42,6 +43,7 @@ export function processTrace(trace: any): Trace {
   let allEvents: any[] = [];
   let attributes: any = {};
   let cost = { total: 0, input: 0, output: 0 };
+  let type: string = "session";
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
@@ -56,6 +58,11 @@ export function processTrace(trace: any): Trace {
       // parse the attributes of the span
       attributes = JSON.parse(span.attributes);
       let vendor = "";
+
+      // get the type of the span
+      if (attributes["langtrace.service.type"]) {
+        type = attributes["langtrace.service.type"];
+      }
 
       // get session.id from the attributes
       if (attributes["session.id"]) {
@@ -89,7 +96,9 @@ export function processTrace(trace: any): Trace {
           attributes["gen_ai.response.model"] ||
           attributes["llm.model"] ||
           attributes["gen_ai.request.model"];
-        models.push(model);
+        if (!models.includes(model)) {
+          models.push(model);
+        }
       }
       // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
       if (attributes["llm.prompts"] && attributes["llm.responses"]) {
@@ -256,6 +265,7 @@ export function processTrace(trace: any): Trace {
   // construct the response object
   const result: Trace = {
     id: trace[0]?.trace_id,
+    type: type,
     status: status,
     session_id: session_id,
     namespace: traceHierarchy[0].name,
