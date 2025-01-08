@@ -12,6 +12,7 @@ import {
   ANTHROPIC_PRICING,
   AZURE_PRICING,
   COHERE_PRICING,
+  DEEPSEEK_PRICING,
   GEMINI_PRICING,
   CostTableEntry,
   GROQ_PRICING,
@@ -206,28 +207,29 @@ export function convertToDateTime64(dateTime: [number, number]): string {
 }
 
 function determineStatusCode(inputData: any): SpanStatusCode {
-
-  // Check if inputData is a number
-  if (typeof inputData === "number") {
-    const code = inputData;
-
-    if (code === 0) return "UNSET";
-    if (code === 1) return "OK";
-    if (code === 2) return "ERROR";
-
-    return "UNSET";
+  // Handle direct input
+  if (typeof inputData === "number" || typeof inputData === "string") {
+    if (inputData === 1 || inputData === "1" || inputData === "OK") return "OK";
+    if (inputData === 2 || inputData === "2" || inputData === "ERROR")
+      return "ERROR";
+    if (inputData === "UNSET" || inputData === 0 || inputData === "0")
+      return "UNSET";
+    return (inputData as SpanStatusCode) || "UNSET";
   }
 
-  // Existing logic if inputData is not a number
-  const code = inputData.status?.code;
-  const statusCode = inputData.status?.status_code || inputData.status?.code;
-  if (statusCode) return statusCode;
+  // Extract status code from object
+  const statusCode = inputData?.status?.status_code || inputData?.status?.code;
+  if (!statusCode) return "UNSET";
 
-  if (code === 0) return "UNSET";
-  if (code === 1) return "OK";
-  if (code === 2) return "ERROR";
+  // Handle extracted status
+  if (statusCode === 1 || statusCode === "1" || statusCode === "OK")
+    return "OK";
+  if (statusCode === 2 || statusCode === "2" || statusCode === "ERROR")
+    return "ERROR";
+  if (statusCode === "UNSET" || statusCode === 0 || statusCode === "0")
+    return "UNSET";
 
-  return "UNSET";
+  return (statusCode as SpanStatusCode) || "UNSET";
 }
 
 function getDurationInMicroseconds(startTime: string, endTime: string): number {
@@ -542,6 +544,8 @@ export function calculatePriceFromUsage(
       model.includes("gemma2")
     ) {
       vendor = "groq";
+    } else if (model.includes("deepseek")) {
+      vendor = "deepseek";
     }
   }
 
@@ -584,11 +588,17 @@ export function calculatePriceFromUsage(
       costTable = XAI_PRICING[model];
     } else if (model.includes("tral")) {
       costTable = MISTRAL_PRICING[model];
+    } else if (model.includes("deepseek")) {
+      costTable = DEEPSEEK_PRICING[model];
     }
   } else if (vendor === "openai") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
-    if (model.includes("gpt") || model.includes("o1") || model.includes("text-embedding")) {
+    if (
+      model.includes("gpt") ||
+      model.includes("o1") ||
+      model.includes("text-embedding")
+    ) {
       if (model.includes("gpt-4o-mini")) {
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
@@ -647,6 +657,8 @@ export function calculatePriceFromUsage(
     costTable = XAI_PRICING[model];
   } else if (vendor === "mistral") {
     costTable = MISTRAL_PRICING[model];
+  } else if (vendor === "deepseek") {
+    costTable = DEEPSEEK_PRICING[model];
   }
   if (costTable) {
     const total =
@@ -768,10 +780,7 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("perplexity")
   ) {
     vendor = "perplexity";
-  } else if (
-    span.name.includes("xai") ||
-    serviceName.includes("xai")
-  ) {
+  } else if (span.name.includes("xai") || serviceName.includes("xai")) {
     vendor = "xai";
   } else if (span.name.includes("openai") || serviceName.includes("openai")) {
     vendor = "openai";
@@ -843,6 +852,11 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "mistral";
   } else if (span.name.includes("milvus") || serviceName.includes("milvus")) {
     vendor = "milvus";
+  } else if (
+    span.name.includes("deepseek") ||
+    serviceName.includes("deepseek")
+  ) {
+    vendor = "deepseek";
   }
   return vendor;
 }

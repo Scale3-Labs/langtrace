@@ -54,22 +54,6 @@ export function Header({ email }: { email: string }) {
           {pathname.includes("/project/") && <ProjectSwitcher email={email} />}
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex flex-col">
-            <p className="text-sm text-muted-foreground">
-              Total Spans Ingested
-            </p>
-            <p className="text-sm font-semibold">
-              {fetchAccountStats.data?.totalSpans} out of 50,000 per month
-            </p>
-            <Link
-              className="underline text-blue-600 flex items-center"
-              href={SCHEDULE_CALL_LINK}
-              target="_blank"
-            >
-              Book a call
-              <ArrowTopRightIcon className="h-4 w-4 ml-1" />
-            </Link>
-          </div>
           <Link href={"https://docs.langtrace.ai/introduction"} target="_blank">
             <Button variant={"secondary"} size={"sm"}>
               <FileIcon className="mr-2 h-4 w-4" />

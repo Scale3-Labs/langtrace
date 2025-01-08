@@ -199,6 +199,7 @@ Langtrace automatically captures traces from the following vendors and framework
 | Anthropic | ✅ | ✅ |
 | Azure OpenAI | ✅ | ✅ |
 | Cohere | ✅ | ✅ |
+| DeepSeek | ✅ | ✅ |
 | xAI | ✅ | ✅ |
 | Groq | ✅ | ✅ |
 | Perplexity | ✅ | ✅ |

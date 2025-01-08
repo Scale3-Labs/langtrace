@@ -105,14 +105,14 @@ export function processTrace(trace: any): Trace {
         attributes["gen_ai.usage.completion_tokens"]
       ) {
         tokenCounts = {
-          input_tokens: tokenCounts.prompt_tokens
-            ? Number(tokenCounts.prompt_tokens) +
+          input_tokens: tokenCounts.input_tokens
+            ? Number(tokenCounts.input_tokens) +
               Number(attributes["gen_ai.usage.prompt_tokens"])
             : Number(attributes["gen_ai.usage.prompt_tokens"]),
-          output_tokens: tokenCounts.completion_tokens
-            ? Number(tokenCounts.completion_tokens) +
+          output_tokens: tokenCounts.output_tokens
+            ? Number(tokenCounts.output_tokens) +
               Number(attributes["gen_ai.usage.completion_tokens"])
-            : Number(attributes["gen_ai.usage.completion_tokens"]), 
+            : Number(attributes["gen_ai.usage.completion_tokens"]),
           total_tokens: tokenCounts.total_tokens
             ? Number(tokenCounts.total_tokens) +
               Number(attributes["gen_ai.usage.prompt_tokens"]) +
@@ -133,12 +133,12 @@ export function processTrace(trace: any): Trace {
         attributes["gen_ai.usage.output_tokens"]
       ) {
         tokenCounts = {
-          input_tokens: tokenCounts.prompt_tokens
-            ? Number(tokenCounts.prompt_tokens) +
+          input_tokens: tokenCounts.input_tokens
+            ? Number(tokenCounts.input_tokens) +
               Number(attributes["gen_ai.usage.input_tokens"])
             : Number(attributes["gen_ai.usage.input_tokens"]),
-          output_tokens: tokenCounts.completion_tokens
-            ? Number(tokenCounts.completion_tokens) +
+          output_tokens: tokenCounts.output_tokens
+            ? Number(tokenCounts.output_tokens) +
               Number(attributes["gen_ai.usage.output_tokens"])
             : Number(attributes["gen_ai.usage.output_tokens"]),
           total_tokens: tokenCounts.total_tokens
