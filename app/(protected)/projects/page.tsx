@@ -16,9 +16,5 @@ export default async function Page() {
   }
   const email = session?.user?.email as string;
 
-  return (
-    <>
-      <PageClient email={email} />
-    </>
-  );
+  return <PageClient email={email} />;
 }
