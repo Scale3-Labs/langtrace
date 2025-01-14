@@ -239,6 +239,22 @@ export function VendorLogo({
     );
   }
 
+  if (vendor.includes("arch")) {
+    const color = vendorColor("perplexity");
+    return (
+      <Image
+        alt="Arch Logo"
+        src="/arch-icon.png"
+        width={20}
+        height={20}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
   if (vendor.includes("openai")) {
     const color = vendorColor("openai");
     return (
