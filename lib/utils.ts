@@ -782,6 +782,8 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "perplexity";
   } else if (span.name.includes("xai") || serviceName.includes("xai")) {
     vendor = "xai";
+  } else if (span.name.includes("arch") || serviceName.includes("arch")) {
+    vendor = "arch";
   } else if (span.name.includes("openai") || serviceName.includes("openai")) {
     vendor = "openai";
   } else if (

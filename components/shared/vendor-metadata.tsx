@@ -78,6 +78,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
+  if (vendor.includes("arch")) {
+    return "bg-white";
+  }
+
   return "bg-gray-500";
 }
 
@@ -96,6 +100,10 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("perplexity")) {
     return "bg-slate-200";
+  }
+
+  if (vendor.includes("arch")) {
+    return "bg-green-200";
   }
 
   if (vendor.includes("openai")) {
@@ -240,17 +248,17 @@ export function VendorLogo({
   }
 
   if (vendor.includes("arch")) {
-    const color = vendorColor("perplexity");
+    const color = vendorColor("arch");
     return (
       <Image
         alt="Arch Logo"
         src="/arch-icon.png"
-        width={20}
-        height={20}
+        width={30}
+        height={30}
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
-        )}
+        )}    
       />
     );
   }

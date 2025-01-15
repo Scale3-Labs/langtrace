@@ -432,6 +432,7 @@ export const LLM_VENDORS = [
 
 export const SUPPORTED_VENDORS: Record<string, string> = {
   ANTHROPIC: "Anthropic",
+  ARCH: "Arch",
   AZURE: "Azure",
   CHROMA: "Chroma",
   CREWAI: "CrewAI",
