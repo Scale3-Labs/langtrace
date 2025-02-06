@@ -173,6 +173,9 @@ export class TraceService implements ITraceService {
             JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
           )
         ) AS output_tokens`,
+          `SUM(
+          JSONExtractInt(attributes, 'gen_ai.usage.cached_tokens')
+        ) AS cached_input_tokens`,
         ])
         .from(project_id)
         .where(...conditions)
@@ -903,6 +906,9 @@ export class TraceService implements ITraceService {
             JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
           )
         ) AS outputTokens`,
+          `SUM(
+          JSONExtractInt(attributes, 'gen_ai.usage.cached_tokens')
+        ) AS cachedTokens`,
         ])
         .from(project_id)
         .where(...conditions)
@@ -1001,6 +1007,9 @@ export class TraceService implements ITraceService {
             JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
           )
         ) AS output_tokens`,
+          `SUM(
+          JSONExtractInt(attributes, 'gen_ai.usage.cached_tokens')
+        ) AS cached_input_tokens`,
         ])
         .from(project_id)
         .where(...conditions)
@@ -1014,6 +1023,7 @@ export class TraceService implements ITraceService {
           total_tokens: Number(row.total_tokens),
           input_tokens: Number(row.input_tokens),
           output_tokens: Number(row.output_tokens),
+          cached_input_tokens: Number(row.cached_input_tokens),
         };
         const model = row.model;
         const vendor = row.vendor.toLowerCase();
@@ -1023,6 +1033,7 @@ export class TraceService implements ITraceService {
           total: cost.total,
           input: cost.input,
           output: cost.output,
+          cached_input: cost.cached_input,
         };
       });
 

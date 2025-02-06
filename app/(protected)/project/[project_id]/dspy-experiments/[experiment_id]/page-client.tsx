@@ -343,6 +343,14 @@ export function PageClient({ email }: { email: string }) {
       },
     },
     {
+      accessorKey: "cached_input_tokens",
+      header: "Cached Input Tokens",
+      cell: ({ row }) => {
+        const count = row.getValue("cached_input_tokens") as number;
+        return <p className="text-xs font-semibold">{count}</p>;
+      },
+    },
+    {
       accessorKey: "output_tokens",
       header: "Output Tokens",
       cell: ({ row }) => {
@@ -363,6 +371,21 @@ export function PageClient({ email }: { email: string }) {
       header: "Input Cost",
       cell: ({ row }) => {
         const cost = row.getValue("input_cost") as number;
+        if (!cost) {
+          return null;
+        }
+        return (
+          <p className="text-xs font-semibold">
+            {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
+          </p>
+        );
+      },
+    },
+    {
+      accessorKey: "cached_input_cost",
+      header: "Cached Input Cost",
+      cell: ({ row }) => {
+        const cost = row.getValue("cached_input_cost") as number;
         if (!cost) {
           return null;
         }
