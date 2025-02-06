@@ -28,6 +28,15 @@ export interface Trace {
   raw_attributes: any;
 }
 
+export interface TraceRetentionPolicy {
+  projectId: string;
+  retentionDays: number;
+  enabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  lastRunJob: Date;
+}
+
 export function processTrace(trace: any): Trace {
   const traceHierarchy = convertTracesToHierarchy(trace);
   const totalTime = calculateTotalTime(trace);

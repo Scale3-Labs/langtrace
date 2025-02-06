@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RabbitIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -64,6 +65,27 @@ export default function ProjectView() {
     },
   });
 
+  const TracesRetentionPolicyFormSchema = z.object({
+    enabled: z.boolean().default(false),
+    days: z.number({
+      required_error: "Retention days is required",
+      invalid_type_error: "Retention days must be a number",
+    }),
+  }).refine(schema => {
+    if (schema.enabled && (schema.days <= 0 || !schema.days)) {
+      return false;
+    }
+    return true;
+  });
+
+  const TracesRetentionPolicyForm = useForm({
+    resolver: zodResolver(TracesRetentionPolicyFormSchema),
+    defaultValues: {
+      enabled: false,
+      days: 30,
+    },
+  });
+
   const saveProjectDetails = async (data: FieldValues) => {
     try {
       setBusy(true);
@@ -87,6 +109,60 @@ export default function ProjectView() {
       setBusy(false);
     }
   };
+
+  const handleDeleteTracesRetentionPolicy = async () => {
+    if (!projectRetentionPolicy || !projectRetentionPolicy.data) {
+      return;
+    }
+    try {
+      setBusy(true);
+      const res = await fetch(`/api/traces/cleanup?project_id=${project.project.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Error occured while updating traces retention policy");
+      } else {
+        toast.success("Traces retention policy updated successfully");
+        TracesRetentionPolicyForm.reset({
+          enabled: false,
+          days: 30,
+        });
+      }
+    } catch (error) {
+      toast.error("Error occured while updating traces retention policy");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const handleTracesRetentionPolicy = async (data: FieldValues) => {
+    try {
+      setBusy(true);
+      const res = await fetch("/api/traces/cleanup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          retention_days: data.enabled ? data.days : 0,
+          enabled: data.enabled,
+          project_id: project.project.id,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Error occured while updating traces retention policy");
+      } else {
+        toast.success("Traces retention policy updated successfully");
+      }
+    } catch (error) {
+      toast.error("Error occured while updating traces retention policy");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const deleteProject = async () => {
     try {
@@ -137,6 +213,26 @@ export default function ProjectView() {
     },
   });
 
+  const {
+    data: projectRetentionPolicy,
+  } = useQuery({
+    queryKey: ["fetch-project-retention-policy-query", projectId],
+    queryFn: async () => {
+      const response = await fetch(`/api/traces/cleanup?project_id=${projectId}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch project traces retention settings");
+      }
+      const result = await response.json();
+      return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch project traces retention settings", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+  });
+
   useEffect(() => {
     if (project) {
       ProjectDetailsForm.reset({
@@ -147,7 +243,14 @@ export default function ProjectView() {
         type: project.project.type ? project.project.type : "default",
       });
     }
-  }, [project, ProjectDetailsForm]);
+
+    if (projectRetentionPolicy && projectRetentionPolicy.data) {
+      TracesRetentionPolicyForm.reset({
+        enabled: projectRetentionPolicy.data.enabled,
+        days: projectRetentionPolicy.data.retentionDays,
+      });
+    }
+  }, [project, ProjectDetailsForm, projectRetentionPolicy, TracesRetentionPolicyForm]);
 
   if (projectLoading) {
     return <PageSkeleton />;
@@ -171,7 +274,7 @@ export default function ProjectView() {
               <form className="flex w-full flex-col gap-4">
                 <FormLabel>Project ID</FormLabel>
                 <div className="flex items-center bg-muted p-2 rounded-md justify-between">
-                  <p
+                  <div
                     onClick={() => {
                       navigator.clipboard.writeText(project.project.id);
                       toast.success("Copied to clipboard");
@@ -179,7 +282,7 @@ export default function ProjectView() {
                     className="text-sm select-all dark:selection:bg-orange-600 selection:bg-orange-300"
                   >
                     {project.project.id}
-                  </p>
+                  </div>
                 </div>
                 <FormField
                   control={ProjectDetailsForm.control}
@@ -249,6 +352,86 @@ export default function ProjectView() {
             </Form>
           </CardContent>
         </Card>
+        {projectRetentionPolicy && !projectRetentionPolicy.error &&
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Traces</CardTitle>
+              <CardDescription>Automatically delete traces older than a set retention period</CardDescription>
+            </CardHeader>
+            <CardContent className="w-full">
+              <Form {...TracesRetentionPolicyForm}>
+                <form className="flex w-full flex-col gap-4">
+                  <FormField
+                    control={TracesRetentionPolicyForm.control}
+                    name="enabled"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-2 mt-1">
+                        <FormLabel>
+                          Enable Old Traces Cleanup
+                          <Info
+                            information="Enable or disable automatic trace cleanup."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={async (checked) => {
+                            if (!checked) {
+                              await handleDeleteTracesRetentionPolicy();
+                            }
+                            TracesRetentionPolicyForm.setValue("enabled", checked);
+                          }}
+                          className="relative inline-flex items-center cursor-pointer"
+                        />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {TracesRetentionPolicyForm.watch("enabled") && (
+                    <>
+                      <FormField
+                        disabled={busy}
+                        control={TracesRetentionPolicyForm.control}
+                        name="days"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col gap-2 mt-1">
+                            <FormLabel>
+                              Retention Days
+                              <Info
+                                information="The number of days to keep traces for."
+                                className="inline-block ml-2"
+                              />
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                onChange={(e) => {
+                                  field.onChange(e.target.valueAsNumber);
+                                }}
+                                className="w-40"
+                                value={field.value}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        disabled={busy}
+                        onClick={TracesRetentionPolicyForm.handleSubmit(handleTracesRetentionPolicy)}
+                        className="w-fit"
+                      >
+                        Save
+                      </Button>
+                    </>
+                  )}
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        }
         <div className="py-2">
           <Card className="border-red-200 dark:border-red-900">
             <CardHeader>

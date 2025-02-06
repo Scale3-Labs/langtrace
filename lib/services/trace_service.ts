@@ -106,6 +106,10 @@ export interface ITraceService {
     type: string,
     lastXDays: string
   ) => Promise<number>;
+  DeleteTracesOlderThanXDays: (
+    project_id: string,
+    retention_days: number
+  ) => Promise<void>;
 }
 
 export class TraceService implements ITraceService {
@@ -1278,6 +1282,47 @@ export class TraceService implements ITraceService {
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the total spans ${error}`
+      );
+    }
+  }
+
+  async DeleteTracesOlderThanXDays(
+    project_id: string,
+    retention_days: number
+  ): Promise<void> {
+    try {
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        console.log(`No table found for project ${project_id}`);
+        return;
+      }
+      const TIME_COLUMN = "start_time";
+
+      const endTime = new Date();
+      const startTime = new Date(endTime);
+      startTime.setDate(endTime.getDate() - retention_days);
+
+      const countQuery = sql
+        .select("count()")
+        .from(project_id)
+        .where(sql.lte(TIME_COLUMN, startTime.toISOString()));
+
+      const result = await this.client.find<any>(countQuery);
+
+      const rowsAffected = parseInt(result[0]["count()"], 10);
+
+      if (rowsAffected === 0) {
+        console.log(`No rows to delete for project ${project_id}`);
+        return;
+      }
+      console.log(
+        `Deleting ${rowsAffected} old spans for project ${project_id}`
+      );
+      const deleteQuery = `ALTER TABLE ${project_id} DELETE WHERE ${TIME_COLUMN} <= '${startTime.toISOString()}'`;
+      console.log(`Deleting traces older than ${startTime.toISOString()}`);
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to delete old traces ${error}`
       );
     }
   }
