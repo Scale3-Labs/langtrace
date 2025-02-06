@@ -36,6 +36,7 @@ export const TIKTOKEN_MODEL_MAPPING: Record<string, TiktokenEncoding> = {
   "gpt-4o-2024-05-13": "o200k_base",
   "gpt-4o-mini": "o200k_base",
   "gpt-4o-mini-2024-07-18": "o200k_base",
+  "o3-mini": "o200k_base",
   "o1-preview": "o200k_base",
   "o1-mini": "o200k_base",
   "o1-preview-2024-09-12": "o200k_base",
@@ -55,36 +56,49 @@ export const CLICK_HOUSE_CONSTANTS = {
 export interface CostTableEntry {
   input: number;
   output: number;
+  cached_input?: number;
 }
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
+  "o3-mini": {
+    input: 0.0011,
+    cached_input: 0.00055,
+    output: 0.0044,
+  },
   "o1-preview": {
     input: 0.015,
+    cached_input: 0.0075,
     output: 0.06,
   },
   "o1-mini": {
-    input: 0.015,
-    output: 0.06,
+    input: 0.0011,
+    cached_input: 0.00055,
+    output: 0.0044,
   },
   "gpt-4o-mini": {
     input: 0.00015,
+    cached_input: 0.000075,
     output: 0.0006,
   },
   "gpt-4o-mini-2024-07-18": {
     input: 0.00015,
+    cached_input: 0.000075,
     output: 0.0006,
   },
   "gpt-4o": {
-    input: 0.005,
-    output: 0.015,
+    input: 0.0025,
+    cached_input: 0.000125,
+    output: 0.01,
   },
   "gpt-4o-2024-05-13": {
-    input: 0.005,
-    output: 0.015,
+    input: 0.0025,
+    cached_input: 0.000125,
+    output: 0.01,
   },
   "gpt-4o-2024-08-06": {
     input: 0.0025,
+    cached_input: 0.000125,
     output: 0.01,
   },
   "gpt-4-turbo": {

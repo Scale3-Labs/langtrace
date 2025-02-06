@@ -49,6 +49,11 @@ export async function GET(req: NextRequest) {
           acc + Number(curr.outputTokens),
         0
       ),
+      cachedTokens: usage.reduce(
+        (acc: any, curr: { cachedTokens: any }) =>
+          acc + Number(curr.cachedTokens),
+        0
+      ),
     };
     return NextResponse.json(
       {
