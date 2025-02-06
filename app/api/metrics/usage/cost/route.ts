@@ -35,12 +35,14 @@ export async function GET(req: NextRequest) {
         existing.total += c.total;
         existing.input += c.input;
         existing.output += c.output;
+        existing.cached_input += c.cached_input;
       } else {
         costPerDate.push({
           date,
           total: c.total,
           input: c.input,
           output: c.output,
+          cached_input: c.cached_input,
         });
       }
     }
@@ -56,6 +58,10 @@ export async function GET(req: NextRequest) {
       ),
       output: cost.reduce(
         (acc: any, curr: { output: any }) => acc + curr.output,
+        0
+      ),
+      cached_input: cost.reduce(
+        (acc: any, curr: { cached_input: any }) => acc + curr.cached_input,
         0
       ),
     };

@@ -519,9 +519,10 @@ export function calculatePriceFromUsage(
   usage: {
     input_tokens: number;
     output_tokens: number;
+    cached_input_tokens?: number;
   }
 ): any {
-  if (!model) return { total: 0, input: 0, output: 0 };
+  if (!model) return { total: 0, input: 0, output: 0, cached_input: 0 };
   let costTable: CostTableEntry | undefined = undefined;
   // set vendor correctly if vendor is ai
   if (vendor === "ai") {
@@ -663,13 +664,17 @@ export function calculatePriceFromUsage(
   if (costTable) {
     const total =
       (costTable.input * usage?.input_tokens +
-        costTable.output * usage?.output_tokens) /
+        costTable.output * usage?.output_tokens +
+        (costTable?.cached_input || 0) * (usage?.cached_input_tokens || 0)) /
       1000;
     const input = (costTable.input * usage?.input_tokens) / 1000;
     const output = (costTable.output * usage?.output_tokens) / 1000;
-    return { total, input, output };
+    const cached_input =
+      ((costTable?.cached_input || 0) * (usage?.cached_input_tokens || 0)) /
+      1000;
+    return { total, input, output, cached_input };
   }
-  return { total: 0, input: 0, output: 0 };
+  return { total: 0, input: 0, output: 0, cached_input: 0 };
 }
 
 export function extractSystemPromptFromLlmInputs(inputs: any[]): string {
@@ -782,6 +787,8 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "perplexity";
   } else if (span.name.includes("xai") || serviceName.includes("xai")) {
     vendor = "xai";
+  } else if (span.name.includes("arch") || serviceName.includes("arch")) {
+    vendor = "arch";
   } else if (span.name.includes("openai") || serviceName.includes("openai")) {
     vendor = "openai";
   } else if (
