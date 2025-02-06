@@ -12,8 +12,15 @@ import {
 import { cn, getVendorFromSpan } from "@/lib/utils";
 import { CodeIcon, MessageCircle, NetworkIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { EvaluateSession } from "./evaluate-session";
 
-export function TraceComponent({ trace }: { trace: CrewAITrace }) {
+export function TraceComponent({
+  trace,
+  project_id,
+}: {
+  trace: CrewAITrace;
+  project_id: string;
+}) {
   const [selectedTrace, setSelectedTrace] = useState<any[]>(
     trace.trace_hierarchy
   );
@@ -25,15 +32,31 @@ export function TraceComponent({ trace }: { trace: CrewAITrace }) {
     "SPANS" | "ATTRIBUTES" | "CONVERSATION" | "LANGGRAPH"
   >("SPANS");
   const [span, setSpan] = useState<any | null>(null);
+  const [type, setType] = useState<string | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
-
+  const [spanDate, setSpanDate] = useState<string | null>(null);
   useEffect(() => {
     setSelectedTrace(trace.trace_hierarchy);
     setSelectedVendors(trace.vendors);
     if (trace.vendors.includes("langgraph")) setIncludesLanggraph(true);
     if (!open) setSpansView("SPANS");
-  }, [trace, open]);
+    if (span) {
+      const attributes = span.attributes ? JSON.parse(span.attributes) : {};
+      if (attributes["langtrace.service.type"]) {
+        setType(attributes["langtrace.service.type"]);
+      } else {
+        setType(null);
+      }
+      if (span.span_date) {
+        setSpanDate(span.span_date);
+      } else {
+        setSpanDate(null);
+      }
+    } else {
+      setType(null);
+    }
+  }, [trace, open, span]);
 
   return (
     <div className="flex md:flex-row flex-col items-stretch w-full">
@@ -46,19 +69,19 @@ export function TraceComponent({ trace }: { trace: CrewAITrace }) {
         )}
       >
         <p className="text-xl font-semibold mb-2">Session Drilldown</p>
-        <div>
-          <SpansView
-            trace={trace}
-            selectedTrace={selectedTrace}
-            setSelectedTrace={setSelectedTrace}
-            selectedVendors={selectedVendors}
-            setSelectedVendors={setSelectedVendors}
-            setSpansView={setSpansView}
-            setSpan={setSpan}
-            setAttributes={setAttributes}
-            setEvents={setEvents}
-          />
-        </div>
+        <SpansView
+          trace={trace}
+          selectedTrace={selectedTrace}
+          setSelectedTrace={setSelectedTrace}
+          selectedVendors={selectedVendors}
+          setSelectedVendors={setSelectedVendors}
+          setSpansView={setSpansView}
+          setSpan={setSpan}
+          setAttributes={setAttributes}
+          setEvents={setEvents}
+          project_id={project_id}
+          spanDate={spanDate}
+        />
       </div>
       {(spansView === "ATTRIBUTES" ||
         spansView === "CONVERSATION" ||
@@ -98,6 +121,12 @@ export function TraceComponent({ trace }: { trace: CrewAITrace }) {
                   Langgraph
                 </Button>
               )}
+              <EvaluateSession
+                span={span}
+                projectId={project_id}
+                sessionName={span?.name || ""}
+                type={type}
+              />
               <Button
                 className="w-fit"
                 size={"sm"}
@@ -145,6 +174,8 @@ function SpansView({
   setSpan,
   setAttributes,
   setEvents,
+  project_id,
+  spanDate,
 }: {
   trace: Trace;
   selectedTrace: any[];
@@ -157,20 +188,31 @@ function SpansView({
   setSpan: (span: any) => void;
   setAttributes: (attributes: any) => void;
   setEvents: (events: any) => void;
+  project_id: string;
+  spanDate: string | null;
 }) {
   return (
     <>
       <div className="flex flex-col gap-3 pb-3">
-        <ul className="flex flex-col gap-2">
-          <li className="text-xs font-semibold text-muted-foreground">
-            Tip 1: Hover over any span line to see additional attributes and
-            events. Attributes contain the request parameters and events contain
-            logs and errors.
-          </li>
-          <li className="text-xs font-semibold text-muted-foreground">
-            Tip 2: Click on attributes or events to copy them to your clipboard.
-          </li>
-        </ul>
+        <div className="flex  justify-between">
+          <ul className="flex flex-col gap-2">
+            <li className="text-xs font-semibold text-muted-foreground">
+              Tip 1: Hover over any span line to see additional attributes and
+              events. Attributes contain the request parameters and events
+              contain logs and errors.
+            </li>
+            <li className="text-xs font-semibold text-muted-foreground">
+              Tip 2: Click on attributes or events to copy them to your
+              clipboard.
+            </li>
+          </ul>
+          <EvaluateSession
+            span={trace.sorted_trace[0]}
+            projectId={project_id}
+            sessionName="Session"
+            type="session"
+          />
+        </div>
         <div className="flex gap-2 items-center flex-wrap">
           {trace.vendors.map((vendor, i) => (
             <div className="flex items-center space-x-2 py-3" key={i}>

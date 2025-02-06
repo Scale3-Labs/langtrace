@@ -50,8 +50,6 @@ export default function Compare() {
   });
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [openDropdown, setOpenDropdown] = useState(false);
-  const [openSheet, setOpenSheet] = useState(false);
-  const [rowIndex, setRowIndex] = useState<number>(-1);
 
   const { isLoading: experimentsLoading, error: experimentsError } = useQuery({
     queryKey: ["fetch-runs-query", projectId, ...runIds],
@@ -113,27 +111,27 @@ export default function Compare() {
   const columns: ColumnDef<RunView>[] = [
     {
       accessorKey: "input",
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: "Input",
       cell: ({ row }) => {
         const input = row.original.samples[0].input;
-        return <p className="text-sm font-semibold">{input}</p>;
+        return <p className="text-sm">{input}</p>;
       },
     },
     {
       accessorKey: "target",
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: "Target",
       cell: ({ row }) => {
         const target = row.original.samples[0].target;
-        return <p className="text-sm font-semibold">{target}</p>;
+        return <p className="text-sm">{target}</p>;
       },
     },
     ...runs.map((run, i) => ({
       accessorKey: `output-${i}`,
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: `Output - (${run.model})`,
       cell: ({ row }: any) => {
@@ -201,16 +199,16 @@ export default function Compare() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="px-12 py-12 flex flex-col gap-2 bg-muted">
+      <Button variant="outline" className="w-fit" onClick={() => router.back()}>
+        <ChevronLeft className="text-muted-foreground" size={20} />
+        Back
+      </Button>
+      <div className="flex flex-col gap-2">
         <h1 className="text-md font-semibold">Comparing Runs</h1>
         <p className="text-sm w-1/2">{runIds.join(", ")}</p>
       </div>
-      <div className="flex flex-col gap-12 w-full px-12">
+      <div className="flex flex-col gap-6 w-full">
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => router.back()}>
-            <ChevronLeft className="text-muted-foreground" size={20} />
-            Back
-          </Button>
           <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">

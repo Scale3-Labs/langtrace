@@ -250,11 +250,13 @@ console.log(prompt)
             }}
           >
             {`import * as Langtrace from "@langtrase/typescript-sdk";
+
 // Paste this code after your langtrace init function
 const response = await Langtrace.getPromptFromRegistry('${id}')
-// for json prompts (ex: tool calling)
-// const prompt = JSON.parse(response.value)
+
+// const prompt = JSON.parse(response.value) // for json prompts (ex: tool calling)
 const prompt = response.value
+
 console.log(prompt)
 `}
           </pre>
@@ -279,12 +281,13 @@ print(prompt)
           >
             {`import json
 from langtrace_python_sdk import get_prompt_from_registry
+
 # Paste this code after your langtrace init function
 response = get_prompt_from_registry('${id}')
 
-# for json prompts (ex: tool calling)
-# prompt = json.loads(prompt)
+# prompt = json.loads(prompt) # for json prompts (ex: tool calling)
 prompt = response['value']
+
 print(prompt)
 `}
           </pre>

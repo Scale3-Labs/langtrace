@@ -1,4 +1,5 @@
 export interface LLMSpan {
+  name: string;
   span_id: string;
   trace_id: string;
   start_time: string;
@@ -7,6 +8,7 @@ export interface LLMSpan {
   output: any;
   model: string;
   raw_span: any;
+  type: string;
 }
 
 export function processLLMSpan(span: any) {
@@ -58,6 +60,10 @@ export function processLLMSpan(span: any) {
     attributes["llm.model"] ||
     "";
 
+  // extract the type
+  let type = "";
+  type = attributes["langtrace.service.type"] || "session";
+
   // extract the user_id and prompt_id if available
   const prompt_id = attributes["prompt_id"] || "";
 
@@ -68,6 +74,7 @@ export function processLLMSpan(span: any) {
   const raw_span = span;
 
   const result: LLMSpan = {
+    name: span?.name || "",
     trace_id,
     span_id,
     start_time,
@@ -76,6 +83,7 @@ export function processLLMSpan(span: any) {
     model,
     prompt_id,
     raw_span,
+    type,
   };
 
   return result;

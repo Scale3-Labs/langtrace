@@ -178,6 +178,14 @@ export function vendorColor(vendor: string) {
     return "bg-blue-200";
   }
 
+  if (vendor.includes("xai")) {
+    return "bg-blue-200";
+  }
+
+  if (vendor.includes("litellm")) {
+    return "bg-blue-100";
+  }
+
   return "bg-gray-800";
 }
 
@@ -374,8 +382,6 @@ export function VendorLogo({
       />
     );
   }
-
-
 
   if (vendor.includes("xai")) {
     const color = vendorColor("vercel");
