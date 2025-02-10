@@ -32,14 +32,18 @@ export async function GET(req: NextRequest) {
       where: { enabled: true },
     });
 
+    let deletedTraces = 0;
+
     for (const policy of policies) {
-      await traceService.DeleteTracesOlderThanXDays(
+      const deleted = await traceService.DeleteTracesOlderThanXDays(
         policy.projectId,
         policy.retentionDays
       );
+
+      deletedTraces += deleted;
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: `Deleted ${deletedTraces} traces` });
   } catch (error) {
     console.error('Error deleting old traces:', error);
   }

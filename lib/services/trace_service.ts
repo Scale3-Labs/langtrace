@@ -109,7 +109,7 @@ export interface ITraceService {
   DeleteTracesOlderThanXDays: (
     project_id: string,
     retention_days: number
-  ) => Promise<void>;
+  ) => Promise<number>;
 }
 
 export class TraceService implements ITraceService {
@@ -1289,12 +1289,12 @@ export class TraceService implements ITraceService {
   async DeleteTracesOlderThanXDays(
     project_id: string,
     retention_days: number
-  ): Promise<void> {
+  ): Promise<number> {
     try {
       const tableExists = await this.client.checkTableExists(project_id);
       if (!tableExists) {
         console.log(`No table found for project ${project_id}`);
-        return;
+        return 0;
       }
       const TIME_COLUMN = "start_time";
 
@@ -1313,13 +1313,16 @@ export class TraceService implements ITraceService {
 
       if (rowsAffected === 0) {
         console.log(`No rows to delete for project ${project_id}`);
-        return;
+        return 0;
       }
       console.log(
         `Deleting ${rowsAffected} old spans for project ${project_id}`
       );
       const deleteQuery = `ALTER TABLE ${project_id} DELETE WHERE ${TIME_COLUMN} <= '${startTime.toISOString()}'`;
       console.log(`Deleting traces older than ${startTime.toISOString()}`);
+
+      await this.client.delete(deleteQuery);
+      return rowsAffected;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to delete old traces ${error}`

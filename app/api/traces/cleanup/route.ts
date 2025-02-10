@@ -39,7 +39,6 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await req.json();
-  console.log({ data })
   const { project_id, enabled, retention_days } = data;
 
   const projectRetentionPolicy = await prisma.projectRetentionPolicy.upsert({
