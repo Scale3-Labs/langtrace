@@ -147,6 +147,10 @@ export class ClickhouseBaseClient implements IBaseChClient {
     return (await this.client.query({ query })).query_id;
   }
 
+  async delete(query: string): Promise<string> {
+    return (await this.client.query({ query })).query_id;
+  }
+
   async checkTableExists(table: string): Promise<boolean> {
     const query = `SELECT name FROM system.tables WHERE name = '${table}'`;
     const res = await this.client.query({ query, format: "JSONEachRow" });

@@ -197,6 +197,21 @@ model Project {
   Test        Test[]
   Data        Data[]
   Run         Run[]
+  projectRetentionPolicy  ProjectRetentionPolicy?
+}
+
+model ProjectRetentionPolicy {
+  id            String   @id @default(cuid())
+  projectId     String   @unique
+  retentionDays Int
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime?
+  lastRunJob    DateTime?
+
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId], name: "projectRetentionPolicy_projectId_idx")
 }
 
 model TeamInvite {
