@@ -142,6 +142,10 @@ export function vendorColor(vendor: string) {
     return "bg-grey-200";
   }
 
+  if (vendor.includes("graphlit")) {
+    return "bg-white";
+  }
+
   if (vendor.includes("groq")) {
     return "bg-slate-200";
   }
@@ -525,6 +529,22 @@ export function VendorLogo({
       <Image
         alt="Gemini Logo"
         src="/gemini.jpeg"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("graphlit")) {
+    const color = vendorColor("graphlit");
+    return (
+      <Image
+        alt="Graphlit Logo"
+        src="/graphlit-icon.png"
         width={30}
         height={30}
         className={cn(

@@ -490,6 +490,8 @@ export function parseNestedJsonFields(obj: string) {
     "llm.responses",
     "langchain.inputs",
     "langchain.outputs",
+    "graphlit.inputs",
+    "graphlit.outputs",
     "crewai.crew.config",
     "crewai.agent.config",
     "crewai.task.config",
@@ -808,6 +810,11 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("langchain core")
   ) {
     vendor = "langchain core";
+  } else if (
+    span.name.includes("graphlit") ||
+    serviceName.includes("graphlit")
+  ) {
+    vendor = "graphlit";
   } else if (
     span.name.includes("langchain") ||
     serviceName.includes("langchain")
