@@ -220,6 +220,10 @@ Langtrace automatically captures traces from the following vendors and framework
 | VertexAI | ✅ | ✅ |
 | Vercel AI | ✅ | ❌ |
 | GuardrailsAI | ❌ | ✅ |
+| Arch | ❌ | ✅ |
+| Graphlit | ❌ | ✅ |
+| Agno | ❌ | ✅ |
+| Phidata | ❌ | ✅ |
 
 ### Vector Databases
 | Database | TypeScript SDK | Python SDK |
