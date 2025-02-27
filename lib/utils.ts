@@ -10,7 +10,6 @@ import { twMerge } from "tailwind-merge";
 import { Span } from "./clients/scale3_clickhouse/models/span";
 import {
   ANTHROPIC_PRICING,
-  AZURE_PRICING,
   COHERE_PRICING,
   CostTableEntry,
   DEEPSEEK_PRICING,
@@ -594,14 +593,10 @@ export function calculatePriceFromUsage(
     } else if (model.includes("deepseek")) {
       costTable = DEEPSEEK_PRICING[model];
     }
-  } else if (vendor === "openai") {
+  } else if (vendor === "openai" || vendor === "azure") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
-    if (
-      model.includes("gpt") ||
-      model.includes("o1") ||
-      model.includes("text-embedding")
-    ) {
+    if (!OPENAI_PRICING.hasOwnProperty(model)) {
       if (model.includes("gpt-4o-mini")) {
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
@@ -612,6 +607,8 @@ export function calculatePriceFromUsage(
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o3-mini")) {
+        correctModel = "o3-mini";
       }
     }
     costTable = OPENAI_PRICING[correctModel];
@@ -637,23 +634,6 @@ export function calculatePriceFromUsage(
     costTable = COHERE_PRICING[model];
   } else if (vendor === "groq") {
     costTable = GROQ_PRICING[model];
-  } else if (vendor === "azure") {
-    // check if model is present as key in AZURE_PRICING
-    let correctModel = model;
-    if (!AZURE_PRICING.hasOwnProperty(model)) {
-      if (model.includes("gpt-4o-mini")) {
-        correctModel = "gpt-4o-mini";
-      } else if (model.includes("gpt-4o")) {
-        correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
-        correctModel = "gpt-4";
-      } else if (model.includes("o1-preview")) {
-        correctModel = "o1-preview";
-      } else if (model.includes("o1-mini")) {
-        correctModel = "o1-mini";
-      }
-    }
-    costTable = AZURE_PRICING[correctModel];
   } else if (vendor === "gemini") {
     costTable = GEMINI_PRICING[model];
   } else if (vendor === "xai") {
@@ -815,6 +795,11 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("graphlit")
   ) {
     vendor = "graphlit";
+  } else if (
+    span.name.includes("agno") ||
+    serviceName.includes("agno")
+  ) {
+    vendor = "agno";
   } else if (
     span.name.includes("langchain") ||
     serviceName.includes("langchain")
