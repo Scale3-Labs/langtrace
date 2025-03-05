@@ -61,27 +61,7 @@ export interface CostTableEntry {
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
-  "o3-mini": {
-    input: 0.0011,
-    cached_input: 0.00055,
-    output: 0.0044,
-  },
-  "o3-mini-2025-01-31": {
-    input: 0.0011,
-    cached_input: 0.00055,
-    output: 0.0044,
-  },
-  "o1": {
-    input: 0.015,
-    cached_input: 0.0075,
-    output: 0.06,
-  },
-  "o1-2024-12-17": {
-    input: 0.015,
-    cached_input: 0.0075,
-    output: 0.06,
-  },
-  "o1-preview-2024-09-12": {
+  "o1-preview": {
     input: 0.015,
     cached_input: 0.0075,
     output: 0.06,
@@ -91,10 +71,20 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     cached_input: 0.00055,
     output: 0.0044,
   },
-  "o1-mini-2024-09-12": {
+  o1: {
+    input: 0.015,
+    cached_input: 0.0075,
+    output: 0.06,
+  },
+  "o3-mini": {
     input: 0.0011,
     cached_input: 0.00055,
     output: 0.0044,
+  },
+  "gpt-4.5": {
+    input: 0.075,
+    cached_input: 0.0375,
+    output: 0.15,
   },
   "gpt-4o-mini": {
     input: 0.00015,
@@ -313,29 +303,29 @@ export const XAI_PRICING: Record<string, CostTableEntry> = {
 
 export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
   "claude-3-7-sonnet": {
-    "input": 0.003,
-    "output": 0.015
+    input: 0.003,
+    output: 0.015,
   },
   "claude-3-5-haiku": {
-    "input": 0.0008,
-    "output": 0.004
+    input: 0.0008,
+    output: 0.004,
   },
   "claude-3-opus": {
-    "input": 0.015,
-    "output": 0.075
+    input: 0.015,
+    output: 0.075,
   },
   "claude-3-5-sonnet": {
-    "input": 0.003,
-    "output": 0.015
+    input: 0.003,
+    output: 0.015,
   },
   "claude-3-haiku": {
-    "input": 0.00025,
-    "output": 0.00125
+    input: 0.00025,
+    output: 0.00125,
   },
   "claude-3-sonnet": {
-    "input": 0.003,
-    "output": 0.015
-  }
+    input: 0.003,
+    output: 0.015,
+  },
 };
 
 export const DEEPSEEK_PRICING: Record<string, CostTableEntry> = {
