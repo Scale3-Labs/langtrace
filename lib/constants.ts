@@ -61,11 +61,6 @@ export interface CostTableEntry {
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
-  "o3-mini": {
-    input: 0.0011,
-    cached_input: 0.00055,
-    output: 0.0044,
-  },
   "o1-preview": {
     input: 0.015,
     cached_input: 0.0075,
@@ -75,6 +70,21 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     input: 0.0011,
     cached_input: 0.00055,
     output: 0.0044,
+  },
+  o1: {
+    input: 0.015,
+    cached_input: 0.0075,
+    output: 0.06,
+  },
+  "o3-mini": {
+    input: 0.0011,
+    cached_input: 0.00055,
+    output: 0.0044,
+  },
+  "gpt-4.5": {
+    input: 0.075,
+    cached_input: 0.0375,
+    output: 0.15,
   },
   "gpt-4o-mini": {
     input: 0.00015,
@@ -86,9 +96,37 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     cached_input: 0.000075,
     output: 0.0006,
   },
+  "gpt-4o-mini-audio-preview": {
+    input: 0.00015,
+    output: 0.0006,
+  },
+  "gpt-4o-mini-audio-preview-2024-12-17": {
+    input: 0.00015,
+    output: 0.0006,
+  },
+  "gpt-4o-mini-realtime-preview": {
+    input: 0.0006,
+    cached_input: 0.0003,
+    output: 0.0024,
+  },
+  "gpt-4o-mini-realtime-preview-2024-12-17": {
+    input: 0.0006,
+    cached_input: 0.0003,
+    output: 0.0024,
+  },
   "gpt-4o": {
     input: 0.0025,
-    cached_input: 0.000125,
+    cached_input: 0.00125,
+    output: 0.01,
+  },
+  "gpt-4o-2024-11-20": {
+    input: 0.0025,
+    cached_input: 0.00125,
+    output: 0.01,
+  },
+  "gpt-4o-2024-08-06": {
+    input: 0.0025,
+    cached_input: 0.00125,
     output: 0.01,
   },
   "gpt-4o-2024-05-13": {
@@ -96,10 +134,37 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     cached_input: 0.000125,
     output: 0.01,
   },
-  "gpt-4o-2024-08-06": {
+  "gpt-4o-audio-preview": {
     input: 0.0025,
     cached_input: 0.000125,
     output: 0.01,
+  },
+  "gpt-4o-audio-preview-2024-12-17": {
+    input: 0.0025,
+    output: 0.01,
+  },
+  "gpt-4o-audio-preview-2024-10-01": {
+    input: 0.0025,
+    output: 0.01,
+  },
+  "gpt-4o-realtime-preview": {
+    input: 0.005,
+    cached_input: 0.0025,
+    output: 0.02,
+  },
+  "gpt-4o-realtime-preview-2024-12-17": {
+    input: 0.005,
+    cached_input: 0.0025,
+    output: 0.02,
+  },
+  "gpt-4o-realtime-preview-2024-10-01": {
+    input: 0.005,
+    cached_input: 0.0025,
+    output: 0.02,
+  },
+  "chatgpt-4o-latest": {
+    input: 0.005,
+    output: 0.015,
   },
   "gpt-4-turbo": {
     input: 0.01,
@@ -110,6 +175,14 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     output: 0.03,
   },
   "gpt-4": {
+    input: 0.03,
+    output: 0.06,
+  },
+  "gpt-4-0613": {
+    input: 0.03,
+    output: 0.06,
+  },
+  "gpt-4-0314": {
     input: 0.03,
     output: 0.06,
   },
@@ -130,7 +203,6 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     output: 0.03,
   },
   "gpt-3.5-turbo": {
-    // Temporary workaround. Gotta figure out if it's 0125 or instruct through the SDK.
     input: 0.0005,
     output: 0.0015,
   },
@@ -138,13 +210,33 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     input: 0.0005,
     output: 0.0015,
   },
+  "gpt-3.5-turbo-1106": {
+    input: 0.001,
+    output: 0.002,
+  },
   "gpt-3.5-turbo-0613": {
-    input: 0.0005,
-    output: 0.0015,
+    input: 0.0015,
+    output: 0.002,
+  },
+  "gpt-3.5-0301": {
+    input: 0.0015,
+    output: 0.002,
   },
   "gpt-3.5-turbo-instruct": {
     input: 0.0015,
     output: 0.002,
+  },
+  "gpt-3.5-turbo-16k-0613": {
+    input: 0.003,
+    output: 0.004,
+  },
+  "davinci-002": {
+    input: 0.002,
+    output: 0.002,
+  },
+  "babbage-002": {
+    input: 0.0004,
+    output: 0.0004,
   },
   // embedding models
   "text-embedding-ada-002": {
@@ -212,13 +304,21 @@ export const XAI_PRICING: Record<string, CostTableEntry> = {
 };
 
 export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
-  "claude-3-5-sonnet": {
+  "claude-3-7-sonnet": {
     input: 0.003,
     output: 0.015,
   },
   "claude-3-5-haiku": {
-    input: 0.001,
-    output: 0.005,
+    input: 0.0008,
+    output: 0.004,
+  },
+  "claude-3-opus": {
+    input: 0.015,
+    output: 0.075,
+  },
+  "claude-3-5-sonnet": {
+    input: 0.003,
+    output: 0.015,
   },
   "claude-3-haiku": {
     input: 0.00025,
@@ -227,10 +327,6 @@ export const ANTHROPIC_PRICING: Record<string, CostTableEntry> = {
   "claude-3-sonnet": {
     input: 0.003,
     output: 0.015,
-  },
-  "claude-3-opus": {
-    input: 0.015,
-    output: 0.075,
   },
 };
 

@@ -77,9 +77,7 @@ export function UserCombobox({
                   key={id}
                   value={id}
                   onSelect={(currentValue) => {
-                    setSelectedUser(
-                      currentValue === selectedUser ? "" : currentValue
-                    );
+                    setSelectedUser(currentValue === selectedUser ? "" : id);
                     setOpen(false);
                   }}
                 >
@@ -88,7 +86,7 @@ export function UserCombobox({
                       selectedUser === id ? "opacity-100" : "opacity-0"
                     }`}
                   />
-                  {id}
+                  <span className="truncate">{id}</span>
                 </CommandItem>
               ))
             ) : (
