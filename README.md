@@ -224,6 +224,7 @@ Langtrace automatically captures traces from the following vendors and framework
 | Graphlit | ❌ | ✅ |
 | Agno | ❌ | ✅ |
 | Phidata | ❌ | ✅ |
+| Cleanlab | ❌ | ✅ |
 
 ### Vector Databases
 | Database | TypeScript SDK | Python SDK |
