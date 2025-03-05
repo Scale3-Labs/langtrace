@@ -881,6 +881,8 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("deepseek")
   ) {
     vendor = "deepseek";
+  } else if (span.name.includes("tlm") || serviceName.includes("cleanlab")) {
+    vendor = "cleanlab";
   }
   return vendor;
 }

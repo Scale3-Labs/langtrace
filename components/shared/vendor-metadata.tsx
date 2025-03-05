@@ -266,7 +266,7 @@ export function VendorLogo({
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
-        )}    
+        )}
       />
     );
   }
@@ -663,6 +663,22 @@ export function VendorLogo({
         src="/deepseek.jpeg"
         width={30}
         height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("cleanlab")) {
+    const color = vendorColor("cleanlab");
+    return (
+      <Image
+        alt="Cleanlab Logo"
+        src="/cleanlab.png"
+        width={80}
+        height={80}
         className={cn(
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
