@@ -5,6 +5,7 @@ export interface Trace {
   id: string;
   status: string;
   session_id: string;
+  type: string;
   namespace: string;
   user_ids: string[];
   prompt_ids: string[];
@@ -14,9 +15,11 @@ export interface Trace {
   inputs: Record<string, string[]>[];
   outputs: Record<string, string[]>[];
   input_tokens: number;
+  cached_input_tokens: number;
   output_tokens: number;
   total_tokens: number;
   input_cost: number;
+  cached_input_cost: number;
   output_cost: number;
   total_cost: number;
   start_time: number;
@@ -41,7 +44,8 @@ export function processTrace(trace: any): Trace {
   let messages: Record<string, string[]>[] = [];
   let allEvents: any[] = [];
   let attributes: any = {};
-  let cost = { total: 0, input: 0, output: 0 };
+  let cost = { total: 0, input: 0, output: 0, cached_input: 0 };
+  let type: string = "session";
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
@@ -56,6 +60,11 @@ export function processTrace(trace: any): Trace {
       // parse the attributes of the span
       attributes = JSON.parse(span.attributes);
       let vendor = "";
+
+      // get the type of the span
+      if (attributes["langtrace.service.type"]) {
+        type = attributes["langtrace.service.type"];
+      }
 
       // get session.id from the attributes
       if (attributes["session.id"]) {
@@ -89,7 +98,9 @@ export function processTrace(trace: any): Trace {
           attributes["gen_ai.response.model"] ||
           attributes["llm.model"] ||
           attributes["gen_ai.request.model"];
-        models.push(model);
+        if (!models.includes(model)) {
+          models.push(model);
+        }
       }
       // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
       if (attributes["llm.prompts"] && attributes["llm.responses"]) {
@@ -109,6 +120,10 @@ export function processTrace(trace: any): Trace {
             ? Number(tokenCounts.input_tokens) +
               Number(attributes["gen_ai.usage.prompt_tokens"])
             : Number(attributes["gen_ai.usage.prompt_tokens"]),
+          cached_input_tokens: tokenCounts.cached_input_tokens
+            ? Number(tokenCounts.cached_input_tokens) +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0)
+            : Number(attributes["gen_ai.usage.cached_tokens"] || 0),
           output_tokens: tokenCounts.output_tokens
             ? Number(tokenCounts.output_tokens) +
               Number(attributes["gen_ai.usage.completion_tokens"])
@@ -116,9 +131,11 @@ export function processTrace(trace: any): Trace {
           total_tokens: tokenCounts.total_tokens
             ? Number(tokenCounts.total_tokens) +
               Number(attributes["gen_ai.usage.prompt_tokens"]) +
-              Number(attributes["gen_ai.usage.completion_tokens"])
+              Number(attributes["gen_ai.usage.completion_tokens"]) +
+              Number(attributes["gen_ai.usage.cached_tokens"])
             : Number(attributes["gen_ai.usage.prompt_tokens"]) +
-              Number(attributes["gen_ai.usage.completion_tokens"]),
+              Number(attributes["gen_ai.usage.completion_tokens"]) +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0),
         };
 
         // calculate the cost of the current span
@@ -128,6 +145,7 @@ export function processTrace(trace: any): Trace {
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       } else if (
         attributes["gen_ai.usage.input_tokens"] ||
         attributes["gen_ai.usage.output_tokens"]
@@ -137,6 +155,10 @@ export function processTrace(trace: any): Trace {
             ? Number(tokenCounts.input_tokens) +
               Number(attributes["gen_ai.usage.input_tokens"])
             : Number(attributes["gen_ai.usage.input_tokens"]),
+          cached_input_tokens: tokenCounts.cached_input_tokens
+            ? Number(tokenCounts.cached_input_tokens) +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0)
+            : Number(attributes["gen_ai.usage.cached_tokens"] || 0),
           output_tokens: tokenCounts.output_tokens
             ? Number(tokenCounts.output_tokens) +
               Number(attributes["gen_ai.usage.output_tokens"])
@@ -146,13 +168,15 @@ export function processTrace(trace: any): Trace {
               Number(attributes["gen_ai.usage.input_tokens"]) +
               Number(attributes["gen_ai.usage.output_tokens"])
             : Number(attributes["gen_ai.usage.input_tokens"]) +
-              Number(attributes["gen_ai.usage.output_tokens"]),
+              Number(attributes["gen_ai.usage.output_tokens"]) +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0),
         };
         const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       } else if (attributes["llm.token.counts"]) {
         // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
@@ -160,6 +184,9 @@ export function processTrace(trace: any): Trace {
           input_tokens: tokenCounts.input_tokens
             ? tokenCounts.input_tokens + currentcounts.input_tokens
             : currentcounts.input_tokens,
+          cached_input_tokens: tokenCounts.cached_input_tokens
+            ? tokenCounts.cached_input_tokens + currentcounts.cached_tokens
+            : currentcounts.cached_tokens,
           output_tokens: tokenCounts.output_tokens
             ? tokenCounts.output_tokens + currentcounts.output_tokens
             : currentcounts.output_tokens,
@@ -178,6 +205,7 @@ export function processTrace(trace: any): Trace {
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       }
     }
 
@@ -256,6 +284,7 @@ export function processTrace(trace: any): Trace {
   // construct the response object
   const result: Trace = {
     id: trace[0]?.trace_id,
+    type: type,
     status: status,
     session_id: session_id,
     namespace: traceHierarchy[0].name,
@@ -269,8 +298,10 @@ export function processTrace(trace: any): Trace {
     all_events: allEvents,
     input_tokens: tokenCounts.input_tokens,
     output_tokens: tokenCounts.output_tokens,
+    cached_input_tokens: tokenCounts.cached_input_tokens,
     total_tokens: tokenCounts.total_tokens,
     input_cost: cost.input,
+    cached_input_cost: cost.cached_input,
     output_cost: cost.output,
     total_cost: cost.total,
     total_duration: totalTime,

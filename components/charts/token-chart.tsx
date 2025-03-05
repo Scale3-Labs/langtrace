@@ -61,6 +61,9 @@ export function TokenChart({
               <p className="text-sm font-semibold text-start">
                 Total Output Tokens: {tokenUsage?.outputTokens || 0}
               </p>
+              <p className="text-sm font-semibold text-start">
+                Total Cached Input Tokens: {tokenUsage?.cachedTokens || 0}
+              </p>
             </div>
             <p className="text-sm font-semibold text-start">
               Total Tokens: {tokenUsage?.totalTokens || 0}
@@ -73,9 +76,15 @@ export function TokenChart({
               "Total Tokens": parseInt(data?.totalTokens),
               "Input Tokens": parseInt(data?.inputTokens),
               "Output Tokens": parseInt(data?.outputTokens),
+              "Cached Input Tokens": parseInt(data?.cachedTokens),
             }))}
             index="date"
-            categories={["Total Tokens", "Input Tokens", "Output Tokens"]}
+            categories={[
+              "Total Tokens",
+              "Input Tokens",
+              "Output Tokens",
+              "Cached Input Tokens",
+            ]}
             colors={["purple", "blue", "green"]}
             showAnimation={true}
             showTooltip={true}
@@ -154,6 +163,13 @@ export function CostChart({
                   maximumFractionDigits: 6,
                 })}
               </p>
+              <p className="text-sm font-semibold text-start">
+                Cached Input Tokens Cost: $
+                {costUsage.cached_input?.toLocaleString(undefined, {
+                  minimumFractionDigits: 6,
+                  maximumFractionDigits: 6,
+                })}
+              </p>
             </div>
             <p className="text-sm font-semibold text-start">
               Total Cost: $
@@ -179,12 +195,20 @@ export function CostChart({
                 minimumFractionDigits: 6,
                 maximumFractionDigits: 6,
               }),
+              "Cached Input Tokens Cost": data.cached_input?.toLocaleString(
+                undefined,
+                {
+                  minimumFractionDigits: 6,
+                  maximumFractionDigits: 6,
+                }
+              ),
             }))}
             index="date"
             categories={[
               "Total Cost",
               "Input Tokens Cost",
               "Output Tokens Cost",
+              "Cached Input Tokens Cost",
             ]}
             colors={["purple", "blue", "green"]}
             showAnimation={true}

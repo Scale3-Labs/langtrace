@@ -12,9 +12,9 @@ import {
   ANTHROPIC_PRICING,
   AZURE_PRICING,
   COHERE_PRICING,
+  CostTableEntry,
   DEEPSEEK_PRICING,
   GEMINI_PRICING,
-  CostTableEntry,
   GROQ_PRICING,
   LangTraceAttributes,
   MISTRAL_PRICING,
@@ -207,28 +207,29 @@ export function convertToDateTime64(dateTime: [number, number]): string {
 }
 
 function determineStatusCode(inputData: any): SpanStatusCode {
-
-  // Check if inputData is a number
-  if (typeof inputData === "number") {
-    const code = inputData;
-
-    if (code === 0) return "UNSET";
-    if (code === 1) return "OK";
-    if (code === 2) return "ERROR";
-
-    return "UNSET";
+  // Handle direct input
+  if (typeof inputData === "number" || typeof inputData === "string") {
+    if (inputData === 1 || inputData === "1" || inputData === "OK") return "OK";
+    if (inputData === 2 || inputData === "2" || inputData === "ERROR")
+      return "ERROR";
+    if (inputData === "UNSET" || inputData === 0 || inputData === "0")
+      return "UNSET";
+    return (inputData as SpanStatusCode) || "UNSET";
   }
 
-  // Existing logic if inputData is not a number
-  const code = inputData.status?.code;
-  const statusCode = inputData.status?.status_code || inputData.status?.code;
-  if (statusCode) return statusCode;
+  // Extract status code from object
+  const statusCode = inputData?.status?.status_code || inputData?.status?.code;
+  if (!statusCode) return "UNSET";
 
-  if (code === 0) return "UNSET";
-  if (code === 1) return "OK";
-  if (code === 2) return "ERROR";
+  // Handle extracted status
+  if (statusCode === 1 || statusCode === "1" || statusCode === "OK")
+    return "OK";
+  if (statusCode === 2 || statusCode === "2" || statusCode === "ERROR")
+    return "ERROR";
+  if (statusCode === "UNSET" || statusCode === 0 || statusCode === "0")
+    return "UNSET";
 
-  return "UNSET";
+  return (statusCode as SpanStatusCode) || "UNSET";
 }
 
 function getDurationInMicroseconds(startTime: string, endTime: string): number {
@@ -489,6 +490,8 @@ export function parseNestedJsonFields(obj: string) {
     "llm.responses",
     "langchain.inputs",
     "langchain.outputs",
+    "graphlit.inputs",
+    "graphlit.outputs",
     "crewai.crew.config",
     "crewai.agent.config",
     "crewai.task.config",
@@ -518,9 +521,10 @@ export function calculatePriceFromUsage(
   usage: {
     input_tokens: number;
     output_tokens: number;
+    cached_input_tokens?: number;
   }
 ): any {
-  if (!model) return { total: 0, input: 0, output: 0 };
+  if (!model) return { total: 0, input: 0, output: 0, cached_input: 0 };
   let costTable: CostTableEntry | undefined = undefined;
   // set vendor correctly if vendor is ai
   if (vendor === "ai") {
@@ -555,12 +559,16 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
       costTable = OPENAI_PRICING[correctModel];
     } else if (model.includes("claude")) {
@@ -590,20 +598,24 @@ export function calculatePriceFromUsage(
     } else if (model.includes("deepseek")) {
       costTable = DEEPSEEK_PRICING[model];
     }
-  } else if (vendor === "openai") {
+  } else if (vendor === "openai" || vendor === "azure") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
-    if (model.includes("gpt") || model.includes("o1") || model.includes("text-embedding")) {
+    if (!OPENAI_PRICING.hasOwnProperty(model)) {
       if (model.includes("gpt-4o-mini")) {
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
     }
     costTable = OPENAI_PRICING[correctModel];
@@ -637,12 +649,16 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
     }
     costTable = AZURE_PRICING[correctModel];
@@ -658,13 +674,17 @@ export function calculatePriceFromUsage(
   if (costTable) {
     const total =
       (costTable.input * usage?.input_tokens +
-        costTable.output * usage?.output_tokens) /
+        costTable.output * usage?.output_tokens +
+        (costTable?.cached_input || 0) * (usage?.cached_input_tokens || 0)) /
       1000;
     const input = (costTable.input * usage?.input_tokens) / 1000;
     const output = (costTable.output * usage?.output_tokens) / 1000;
-    return { total, input, output };
+    const cached_input =
+      ((costTable?.cached_input || 0) * (usage?.cached_input_tokens || 0)) /
+      1000;
+    return { total, input, output, cached_input };
   }
-  return { total: 0, input: 0, output: 0 };
+  return { total: 0, input: 0, output: 0, cached_input: 0 };
 }
 
 export function extractSystemPromptFromLlmInputs(inputs: any[]): string {
@@ -775,11 +795,10 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("perplexity")
   ) {
     vendor = "perplexity";
-  } else if (
-    span.name.includes("xai") ||
-    serviceName.includes("xai")
-  ) {
+  } else if (span.name.includes("xai") || serviceName.includes("xai")) {
     vendor = "xai";
+  } else if (span.name.includes("arch") || serviceName.includes("arch")) {
+    vendor = "arch";
   } else if (span.name.includes("openai") || serviceName.includes("openai")) {
     vendor = "openai";
   } else if (
@@ -799,6 +818,13 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("langchain core")
   ) {
     vendor = "langchain core";
+  } else if (
+    span.name.includes("graphlit") ||
+    serviceName.includes("graphlit")
+  ) {
+    vendor = "graphlit";
+  } else if (span.name.includes("agno") || serviceName.includes("agno")) {
+    vendor = "agno";
   } else if (
     span.name.includes("langchain") ||
     serviceName.includes("langchain")

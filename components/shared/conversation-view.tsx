@@ -41,11 +41,6 @@ export default function ConversationView({
       responses = responseEvent["attributes"]["gen_ai.completion"];
     }
   }
-  if (attributes["llm.prompts"] && attributes["llm.responses"]) {
-    // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
-    prompts = attributes["llm.prompts"];
-    responses = attributes["llm.responses"];
-  }
 
   if (!prompts && !responses) return <p className="text-md">No data found</p>;
 
@@ -94,40 +89,56 @@ export default function ConversationView({
           );
         })}
       {responses?.length > 0 &&
-        JSON.parse(responses).map((response: any, i: number) => {
-          const role =
-            response?.role?.toLowerCase() ||
-            response?.message?.role ||
-            "Assistant";
-          const content = response?.content
-            ? safeStringify(response?.content)
-            : response?.function_call
-              ? safeStringify(response?.function_call)
-              : response?.message?.content
-                ? safeStringify(response?.message?.content)
-                : response?.text
-                  ? safeStringify(response?.text)
-                  : "No output found";
-          const vendor = getVendorFromSpan(span);
-          return (
-            <div className="flex flex-col gap-2 whitespace-pre-wrap" key={i}>
-              <div className="flex gap-2 items-center">
-                {role === "user" ? (
-                  <UserLogo />
-                ) : (
-                  <VendorLogo variant="circular" vendor={vendor} />
-                )}
-                <p className="font-semibold text-md capitalize">{role}</p>
+        (typeof responses === "string" && responses.startsWith("[") ? (
+          JSON.parse(responses).map((response: any, i: number) => {
+            const role =
+              response?.role?.toLowerCase() ||
+              response?.message?.role ||
+              "Assistant";
+            const content = response?.content
+              ? safeStringify(response?.content)
+              : response?.function_call
+                ? safeStringify(response?.function_call)
+                : response?.message?.content
+                  ? safeStringify(response?.message?.content)
+                  : response?.text
+                    ? safeStringify(response?.text)
+                    : "No output found";
+            const vendor = getVendorFromSpan(span);
+            return (
+              <div className="flex flex-col gap-2 whitespace-pre-wrap" key={i}>
+                <div className="flex gap-2 items-center">
+                  {role === "user" ? (
+                    <UserLogo />
+                  ) : (
+                    <VendorLogo variant="circular" vendor={vendor} />
+                  )}
+                  <p className="font-semibold text-md capitalize">{role}</p>
+                </div>
+                <div
+                  className="text-sm bg-muted rounded-md px-2 py-4 break-all whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{
+                    __html: content,
+                  }}
+                />
               </div>
-              <div
-                className="text-sm bg-muted rounded-md px-2 py-4 break-all whitespace-pre-wrap"
-                dangerouslySetInnerHTML={{
-                  __html: content,
-                }}
-              />
+            );
+          })
+        ) : (
+          // Handle case where responses is a plain string
+          <div className="flex flex-col gap-2 whitespace-pre-wrap">
+            <div className="flex gap-2 items-center">
+              <VendorLogo variant="circular" vendor={getVendorFromSpan(span)} />
+              <p className="font-semibold text-md capitalize">Assistant</p>
             </div>
-          );
-        })}
+            <div
+              className="text-sm bg-muted rounded-md px-2 py-4 break-all whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{
+                __html: safeStringify(responses),
+              }}
+            />
+          </div>
+        ))}
     </div>
   );
 }

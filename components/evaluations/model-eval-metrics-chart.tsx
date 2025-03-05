@@ -56,7 +56,7 @@ export default function ModelEvalMetricsChart({
         </CardHeader>
         <CardContent className="pb-0">
           {chartType === "radar" && (
-            <ChartContainer config={samplesConfig} className="w-[500px]">
+            <ChartContainer config={samplesConfig} className="w-[450px]">
               <RadarChart data={data}>
                 <ChartTooltip
                   cursor={false}
@@ -77,7 +77,7 @@ export default function ModelEvalMetricsChart({
             </ChartContainer>
           )}
           {chartType === "bar" && (
-            <ChartContainer config={samplesConfig} className="w-[500px]">
+            <ChartContainer config={samplesConfig} className="w-[450px]">
               <BarChart
                 accessibilityLayer
                 data={data}
@@ -124,7 +124,7 @@ export default function ModelEvalMetricsChart({
         </CardHeader>
         <CardContent className="pb-0">
           {chartType === "radar" && (
-            <ChartContainer config={runsConfig} className="w-[500px]">
+            <ChartContainer config={runsConfig} className="w-[450px]">
               <RadarChart data={data}>
                 <ChartTooltip
                   cursor={false}
@@ -145,7 +145,7 @@ export default function ModelEvalMetricsChart({
             </ChartContainer>
           )}
           {chartType === "bar" && (
-            <ChartContainer config={runsConfig} className="w-[500px]">
+            <ChartContainer config={runsConfig} className="w-[450px]">
               <BarChart
                 accessibilityLayer
                 data={data}

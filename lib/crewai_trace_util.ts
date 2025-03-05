@@ -7,6 +7,7 @@ import { calculatePriceFromUsage, formatDateTime } from "./utils";
 
 export interface CrewAITrace {
   id: string;
+  type: string;
   session_id: string;
   status: string;
   crew: CrewAICrew;
@@ -24,9 +25,11 @@ export interface CrewAITrace {
   inputs: Record<string, string[]>[];
   outputs: Record<string, string[]>[];
   input_tokens: number;
+  cached_input_tokens: number;
   output_tokens: number;
   total_tokens: number;
   input_cost: number;
+  cached_input_cost: number;
   output_cost: number;
   total_cost: number;
   start_time: number;
@@ -118,12 +121,13 @@ export function processCrewAITrace(trace: any): CrewAITrace {
   let messages: Record<string, string[]>[] = [];
   let allEvents: any[] = [];
   let attributes: any = {};
-  let cost = { total: 0, input: 0, output: 0 };
+  let cost = { total: 0, input: 0, output: 0, cached_input: 0 };
   let crew = {} as CrewAICrew;
   let agents: CrewAIAgent[] = [];
   let tasks: CrewAITask[] = [];
   let crewTools: CrewAITool[] = [];
   const memory: CrewAIMemory[] = [];
+  let type: string = "session";
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
@@ -139,6 +143,11 @@ export function processCrewAITrace(trace: any): CrewAITrace {
       attributes = JSON.parse(span.attributes);
       let vendor = "";
       let vendorVersion = "";
+
+      // get the type of the span
+      if (attributes["langtrace.service.type"]) {
+        type = attributes["langtrace.service.type"];
+      }
 
       // get the service name from the attributes
       if (attributes["langtrace.service.name"]) {
@@ -253,7 +262,8 @@ export function processCrewAITrace(trace: any): CrewAITrace {
       if (attributes["crewai.memory.storage.rag_storage.inputs"]) {
         const memo: CrewAIMemory = {
           inputs: attributes["crewai.memory.storage.rag_storage.inputs"],
-          outputs: attributes["crewai.memory.storage.rag_storage.outputs"] || "",
+          outputs:
+            attributes["crewai.memory.storage.rag_storage.outputs"] || "",
         };
         memo.inputs = memo.inputs.replace(/\\n/g, "\n");
         memo.outputs = memo.outputs.replace(/\\n/g, "\n");
@@ -301,6 +311,10 @@ export function processCrewAITrace(trace: any): CrewAITrace {
             ? tokenCounts.input_tokens +
               Number(attributes["gen_ai.usage.prompt_tokens"])
             : Number(attributes["gen_ai.usage.prompt_tokens"]),
+          cached_input_tokens: tokenCounts.cached_input_tokens
+            ? tokenCounts.cached_input_tokens +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0)
+            : Number(attributes["gen_ai.usage.cached_tokens"] || 0),
           output_tokens: tokenCounts.output_tokens
             ? tokenCounts.output_tokens +
               Number(attributes["gen_ai.usage.completion_tokens"])
@@ -308,9 +322,11 @@ export function processCrewAITrace(trace: any): CrewAITrace {
           total_tokens: tokenCounts.total_tokens
             ? tokenCounts.total_tokens +
               Number(attributes["gen_ai.usage.prompt_tokens"]) +
-              Number(attributes["gen_ai.usage.completion_tokens"])
+              Number(attributes["gen_ai.usage.completion_tokens"]) +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0)
             : Number(attributes["gen_ai.usage.prompt_tokens"]) +
-              Number(attributes["gen_ai.usage.completion_tokens"]),
+              Number(attributes["gen_ai.usage.completion_tokens"]) +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0),
         };
 
         // calculate the cost of the current span
@@ -320,6 +336,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       } else if (
         attributes["gen_ai.usage.input_tokens"] &&
         attributes["gen_ai.usage.output_tokens"]
@@ -329,6 +346,10 @@ export function processCrewAITrace(trace: any): CrewAITrace {
             ? tokenCounts.input_tokens +
               Number(attributes["gen_ai.usage.input_tokens"])
             : Number(attributes["gen_ai.usage.input_tokens"]),
+          cached_input_tokens: tokenCounts.cached_input_tokens
+            ? tokenCounts.cached_input_tokens +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0)
+            : Number(attributes["gen_ai.usage.cached_tokens"] || 0),
           output_tokens: tokenCounts.output_tokens
             ? tokenCounts.output_tokens +
               Number(attributes["gen_ai.usage.output_tokens"])
@@ -336,15 +357,18 @@ export function processCrewAITrace(trace: any): CrewAITrace {
           total_tokens: tokenCounts.total_tokens
             ? tokenCounts.total_tokens +
               Number(attributes["gen_ai.usage.input_tokens"]) +
-              Number(attributes["gen_ai.usage.output_tokens"])
+              Number(attributes["gen_ai.usage.output_tokens"]) +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0)
             : Number(attributes["gen_ai.usage.input_tokens"]) +
-              Number(attributes["gen_ai.usage.output_tokens"]),
+              Number(attributes["gen_ai.usage.output_tokens"]) +
+              Number(attributes["gen_ai.usage.cached_tokens"] || 0),
         };
         const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       } else if (attributes["llm.token.counts"]) {
         // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
@@ -352,6 +376,10 @@ export function processCrewAITrace(trace: any): CrewAITrace {
           input_tokens: tokenCounts.input_tokens
             ? tokenCounts.input_tokens + currentcounts.input_tokens
             : currentcounts.input_tokens,
+          cached_input_tokens: tokenCounts.cached_input_tokens
+            ? tokenCounts.cached_input_tokens +
+              currentcounts.cached_input_tokens
+            : currentcounts.cached_input_tokens,
           output_tokens: tokenCounts.output_tokens
             ? tokenCounts.output_tokens + currentcounts.output_tokens
             : currentcounts.output_tokens,
@@ -370,6 +398,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       }
     }
 
@@ -448,6 +477,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
   // construct the response object
   const result: CrewAITrace = {
     id: trace[0]?.trace_id,
+    type: type,
     session_id: session_id,
     status: status,
     namespace: traceHierarchy[0].name,
@@ -466,10 +496,12 @@ export function processCrewAITrace(trace: any): CrewAITrace {
     outputs: messages,
     all_events: allEvents,
     input_tokens: tokenCounts.input_tokens,
+    cached_input_tokens: tokenCounts.cached_input_tokens,
     output_tokens: tokenCounts.output_tokens,
     total_tokens: tokenCounts.total_tokens,
     input_cost: cost.input,
     output_cost: cost.output,
+    cached_input_cost: cost.cached_input,
     total_cost: cost.total,
     total_duration: totalTime,
     start_time: startTime,

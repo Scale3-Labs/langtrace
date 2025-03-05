@@ -15,8 +15,9 @@ import { Trace } from "@/lib/trace_util";
 import {
   calculateTotalTime,
   convertTracesToHierarchy,
+  correctTimestampFormat,
 } from "@/lib/trace_utils";
-import { getVendorFromSpan } from "@/lib/utils";
+import { formatDateTime, getVendorFromSpan } from "@/lib/utils";
 import {
   ChevronLeft,
   CodeIcon,
@@ -24,6 +25,7 @@ import {
   NetworkIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { EvaluateSession } from "./evaluate-session";
 
 interface CheckedData {
   input: string;
@@ -53,6 +55,8 @@ export function TraceSheet({
     "SPANS" | "ATTRIBUTES" | "CONVERSATION" | "LANGGRAPH"
   >("SPANS");
   const [span, setSpan] = useState<any | null>(null);
+  const [spanDate, setSpanDate] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
   const [attributes, setAttributes] = useState<any | null>(null);
   const [events, setEvents] = useState<any | null>(null);
   const [selectedData, setSelectedData] = useState<CheckedData | null>(null);
@@ -74,6 +78,7 @@ export function TraceSheet({
 
       let prompt: string = "";
       let response: string = "";
+      let model: string = "";
       if (span.events) {
         const events: any[] = JSON.parse(span.events);
 
@@ -104,18 +109,57 @@ export function TraceSheet({
         response = attributes["llm.responses"];
       }
 
+      if (attributes["langtrace.service.type"]) {
+        setType(attributes["langtrace.service.type"]);
+      } else {
+        setType(null);
+      }
+
+      if (span.start_time) {
+        setSpanDate(
+          formatDateTime(correctTimestampFormat(span.start_time), true)
+        );
+      } else {
+        setSpanDate(null);
+      }
+
+      if (
+        attributes["gen_ai.response.model"] ||
+        attributes["llm.model"] ||
+        attributes["gen_ai.request.model"]
+      ) {
+        model =
+          attributes["gen_ai.response.model"] ||
+          attributes["llm.model"] ||
+          attributes["gen_ai.request.model"] ||
+          "";
+      }
+
       const inputData = prompt ? JSON.parse(prompt) : [];
       const outputData = response ? JSON.parse(response) : [];
 
       const input = inputData.length > 0 ? inputData[0].content : "";
       const output = outputData.length > 0 ? outputData[0].content : "";
 
-      const checkedData = {
-        spanId,
-        input,
-        output,
-      };
-      setSelectedData(checkedData);
+      if (input && output) {
+        const checkedData = {
+          spanId,
+          input,
+          output,
+          model,
+        };
+        setSelectedData(checkedData);
+      } else {
+        setSelectedData(null);
+      }
+    } else {
+      setSelectedData(null);
+      setType(null);
+      setEvents(null);
+      setAttributes(null);
+      setSpansView("SPANS");
+      setSpan(null);
+      setSpanDate(null);
     }
   }, [span]);
 
@@ -126,19 +170,18 @@ export function TraceSheet({
         <SheetHeader>
           <SheetTitle>Trace Details</SheetTitle>
           {spansView === "SPANS" && (
-            <div className="">
-              <SpansView
-                trace={trace}
-                selectedTrace={selectedTrace}
-                setSelectedTrace={setSelectedTrace}
-                selectedVendors={selectedVendors}
-                setSelectedVendors={setSelectedVendors}
-                setSpansView={setSpansView}
-                setSpan={setSpan}
-                setAttributes={setAttributes}
-                setEvents={setEvents}
-              />
-            </div>
+            <SpansView
+              project_id={project_id}
+              trace={trace}
+              selectedTrace={selectedTrace}
+              setSelectedTrace={setSelectedTrace}
+              selectedVendors={selectedVendors}
+              setSelectedVendors={setSelectedVendors}
+              setSpansView={setSpansView}
+              setSpan={setSpan}
+              setAttributes={setAttributes}
+              setEvents={setEvents}
+            />
           )}
           {(spansView === "ATTRIBUTES" ||
             spansView === "CONVERSATION" ||
@@ -147,7 +190,7 @@ export function TraceSheet({
             attributes &&
             events && (
               <div className="flex flex-col gap-3">
-                <div className="flex gap-2 items-center justify-between w-full">
+                <div className="flex gap-2 items-center justify-between w-full flex-wrap">
                   <Button
                     className="w-fit"
                     size={"sm"}
@@ -157,16 +200,7 @@ export function TraceSheet({
                     <ChevronLeft size={16} className="mr-2" />
                     Back
                   </Button>
-                  <div className="flex gap-2 items-center">
-                    <AddtoDataset
-                      projectId={project_id}
-                      selectedData={selectedData ? [selectedData] : []}
-                      disabled={
-                        selectedData === null ||
-                        (selectedData.input === "" &&
-                          selectedData.output === "")
-                      }
-                    />
+                  <div className="flex gap-2 items-center flex-wrap">
                     <Button
                       className="w-fit"
                       size={"sm"}
@@ -197,6 +231,21 @@ export function TraceSheet({
                         Langgraph
                       </Button>
                     )}
+                    <AddtoDataset
+                      projectId={project_id}
+                      selectedData={selectedData ? [selectedData] : []}
+                      disabled={
+                        selectedData === null ||
+                        (selectedData.input === "" &&
+                          selectedData.output === "")
+                      }
+                    />
+                    <EvaluateSession
+                      span={span}
+                      projectId={project_id}
+                      sessionName={span.name}
+                      type={type}
+                    />
                   </div>
                 </div>
                 <div
@@ -229,6 +278,7 @@ export function TraceSheet({
 }
 
 function SpansView({
+  project_id,
   trace,
   selectedTrace,
   setSelectedTrace,
@@ -239,6 +289,7 @@ function SpansView({
   setAttributes,
   setEvents,
 }: {
+  project_id: string;
   trace: Trace;
   selectedTrace: any[];
   setSelectedTrace: (trace: any[]) => void;
@@ -254,16 +305,25 @@ function SpansView({
   return (
     <>
       <div className="flex flex-col gap-3 pb-3">
-        <ul className="flex flex-col gap-2">
-          <li className="text-xs font-semibold text-muted-foreground">
-            Tip 1: Hover over any span line to see additional attributes and
-            events. Attributes contain the request parameters and events contain
-            logs and errors.
-          </li>
-          <li className="text-xs font-semibold text-muted-foreground">
-            Tip 2: Click on attributes or events to copy them to your clipboard.
-          </li>
-        </ul>
+        <div className="flex justify-between items-center">
+          <ul className="flex flex-col gap-2">
+            <li className="text-xs font-semibold text-muted-foreground">
+              Tip 1: Hover over any span line to see additional attributes and
+              events. Attributes contain the request parameters and events
+              contain logs and errors.
+            </li>
+            <li className="text-xs font-semibold text-muted-foreground">
+              Tip 2: Click on attributes or events to copy them to your
+              clipboard.
+            </li>
+          </ul>
+          <EvaluateSession
+            span={selectedTrace[0]}
+            projectId={project_id}
+            sessionName="Session"
+            type="session"
+          />
+        </div>
         <div className="flex gap-2 items-center flex-wrap">
           {trace.vendors.map((vendor, i) => (
             <div className="flex items-center space-x-2 py-3" key={i}>

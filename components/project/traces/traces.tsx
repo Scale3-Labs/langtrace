@@ -1,15 +1,15 @@
 "use client";
 
 import { HoverCell } from "@/components/shared/hover-cell";
-import { Info } from "@/components/shared/info";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import { formatDateTime } from "@/lib/utils";
-import FilterListIcon from "@mui/icons-material/FilterList";
+import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -17,13 +17,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { Checkbox } from "../../ui/checkbox";
-import { Switch } from "../../ui/switch";
-import TraceFilter from "./trace-filter";
+import { FilterSheet } from "./filter-sheet";
 import { TracesTable } from "./traces-table";
-import { Input } from "@/components/ui/input";
 
-export default function Traces({ email }: { email: string }) {
+export default function Traces() {
   const project_id = useParams()?.project_id as string;
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -33,7 +30,6 @@ export default function Traces({ email }: { email: string }) {
   const [filters, setFilters] = useState<PropertyFilter[]>([]);
   const [enableFetch, setEnableFetch] = useState(false);
   const [utcTime, setUtcTime] = useState(false);
-  const [isTraceFilterOpen, setIsTraceFilterOpen] = useState(false);
   const [userId, setUserId] = useState<string>("");
   const [promptId, setPromptId] = useState<string>("");
   const [model, setModel] = useState<string>("");
@@ -60,7 +56,9 @@ export default function Traces({ email }: { email: string }) {
       // Default group to true if not set
       setGroup(group === "false" ? false : true);
 
-      const pageSize = window.localStorage.getItem("preferences.traces.page-size");
+      const pageSize = window.localStorage.getItem(
+        "preferences.traces.page-size"
+      );
       setPageSize(pageSize || PAGE_SIZE.toString());
     }
   }, [filters]);
@@ -207,7 +205,11 @@ export default function Traces({ email }: { email: string }) {
         const models = row.getValue("models") as string[];
         // deduplicate models
         const uniqueModels = Array.from(
-          new Set(models.map((model) => model.toLowerCase()).filter((model) => model !== ""))
+          new Set(
+            models
+              .map((model) => model.toLowerCase())
+              .filter((model) => model !== "")
+          )
         );
         const length = uniqueModels.length;
         const firstModel = uniqueModels.find((model) => model !== "");
@@ -219,9 +221,7 @@ export default function Traces({ email }: { email: string }) {
               </Badge>
             )}
             {length > 1 && (
-              <p className="text-xs font-semibold mt-2">
-                {length - 1} more...
-              </p>
+              <p className="text-xs font-semibold mt-2">{length - 1} more...</p>
             )}
           </div>
         );
@@ -239,8 +239,8 @@ export default function Traces({ email }: { email: string }) {
         }
         const length = messages.length;
         // get the first message with a prompt
-        const firstMessage = messages.find((message) =>
-          message.prompts && message.prompts.length > 0
+        const firstMessage = messages.find(
+          (message) => message.prompts && message.prompts.length > 0
         );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
@@ -273,20 +273,20 @@ export default function Traces({ email }: { email: string }) {
           return null;
         }
         // get the first message with a response
-        const firstMessage = messages.find((message) =>
-          message.responses && message.responses.length > 0
+        const firstMessage = messages.find(
+          (message) => message.responses && message.responses.length > 0
         );
         return (
           <div className="flex flex-col gap-3 flex-wrap">
             {firstMessage
               ? firstMessage.responses.map((response, j) => (
-                    <HoverCell
-                      key={j}
-                      values={JSON.parse(response)}
-                      expand={expandedView}
-                    />
-                  ))
-                : null}
+                  <HoverCell
+                    key={j}
+                    values={JSON.parse(response)}
+                    expand={expandedView}
+                  />
+                ))
+              : null}
             {length - (firstMessage?.responses?.length || 0) > 0 && (
               <p className="text-xs font-semibold mt-2">
                 {length - (firstMessage?.responses?.length || 0)} more...
@@ -301,6 +301,14 @@ export default function Traces({ email }: { email: string }) {
       header: "Input Tokens",
       cell: ({ row }) => {
         const count = row.getValue("input_tokens") as number;
+        return <p className="text-xs font-semibold">{count}</p>;
+      },
+    },
+    {
+      accessorKey: "cached_input_tokens",
+      header: "Cached Input Tokens",
+      cell: ({ row }) => {
+        const count = row.getValue("cached_input_tokens") as number;
         return <p className="text-xs font-semibold">{count}</p>;
       },
     },
@@ -325,6 +333,21 @@ export default function Traces({ email }: { email: string }) {
       header: "Input Cost",
       cell: ({ row }) => {
         const cost = row.getValue("input_cost") as number;
+        if (!cost) {
+          return null;
+        }
+        return (
+          <p className="text-xs font-semibold">
+            {cost.toFixed(6) !== "0.000000" ? `\$${cost.toFixed(6)}` : ""}
+          </p>
+        );
+      },
+    },
+    {
+      accessorKey: "cached_input_cost",
+      header: "Cached Input Cost",
+      cell: ({ row }) => {
+        const cost = row.getValue("cached_input_cost") as number;
         if (!cost) {
           return null;
         }
@@ -420,6 +443,7 @@ export default function Traces({ email }: { email: string }) {
       }
       return await response.json();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [project_id, filters]
   );
 
@@ -429,7 +453,6 @@ export default function Traces({ email }: { email: string }) {
     onSuccess: (data) => {
       const newData = data?.traces?.result || [];
       const metadata = data?.traces?.metadata || {};
-
       setTotalPages(parseInt(metadata?.total_pages) || 1);
       if (parseInt(metadata?.page) <= parseInt(metadata?.total_pages)) {
         setPage(parseInt(metadata?.page) + 1);
@@ -471,178 +494,61 @@ export default function Traces({ email }: { email: string }) {
     enabled: enableFetch,
   });
 
-  const FILTERS: { key: string; value: string; info: string }[] = [
-    {
-      key: "llm",
-      value: "LLM Requests",
-      info: "Requests made to a LLM. This includes requests like text embedding, text generation, text completion, etc.",
-    },
-    {
-      key: "vectordb",
-      value: "VectorDB Requests",
-      info: "Requests made to a VectorDB. This includes requests like vector search, vector similarity, etc.",
-    },
-    {
-      key: "framework",
-      value: "Framework Requests",
-      info: "This includes traces from Framework calls like langchain, CrewAI, DSPy etc.",
-    },
-  ];
-
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
-      <div className="flex justify-between items-center px-12 bg-muted py-4 rounded-md">
-        <div className="flex gap-8 items-center">
-          {FILTERS.map((item, i) => (
-            <div key={i} className="flex items-center space-x-2">
-              <Checkbox
-                disabled={showBottomLoader}
-                id={item.key}
-                checked={filters.some((filter) => filter.value === item.key)}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setFilters([
-                      ...filters,
-                      {
-                        key: "langtrace.service.type",
-                        operation: "EQUALS",
-                        value: item.key,
-                        type: "attribute",
-                      },
-                    ]);
-                  } else {
-                    setFilters(
-                      filters.filter((filter) => filter.value !== item.key)
-                    );
-                  }
-                }}
-              />
-              <label htmlFor={item.key} className="text-xs font-semibold">
-                {item.value}
-              </label>
-              <Info information={item.info} />
-            </div>
-          ))}
-          <div className="flex items-center gap-1">
-            <Button
-              variant={"outline"}
-              size={"icon"}
-              onClick={() => setIsTraceFilterOpen(true)}
-            >
-              <FilterListIcon className="cursor-pointer" />
-            </Button>
-            <p className="text-xs font-semibold">Advanced Filters</p>
-          </div>
-          {filters.length > 0 && (
-            <Button
-              size={"sm"}
-              variant={"destructive"}
-              onClick={() => {
-                setFilters([]);
-                setUserId("");
-                setPromptId("");
-                setModel("");
-              }}
-            >
-              <XIcon className="w-4 h-4 mr-1" />
-              Clear All
-            </Button>
-          )}
-        </div>
-        <div className="flex flex-col gap-2">
-          <p className="text-xs text-muted-foreground font-semibold">
-            Preferences
-          </p>
-          <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Local time</p>
-            <Switch
-              className="text-start"
-              id="timestamp"
-              checked={utcTime}
-              onCheckedChange={(check) => {
-                setUtcTime(check);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.timestamp.utc",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">UTC</p>
-              <Info information="By default all the spans are recorded in UTC timezone for the sake of standardization. By toggling this setting, you can visualize the spans in your local timezone." />
-            </div>
-          </div>
-          <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Compress</p>
-            <Switch
-              className="text-start"
-              id="expanded"
-              checked={expandedView}
-              onCheckedChange={(check) => {
-                setExpandedView(check);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.expanded",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">Expand</p>
-              <Info information="By default, the input and output messages are compressed to fit the table. By toggling this setting, you can expand the input and output messages to view the complete content." />
-            </div>
-          </div>
-          <div className="flex gap-2 items-center w-full">
-            <p className="text-xs font-semibold">Don&apos;t group</p>
-            <Switch
-              className="text-start"
-              id="group"
-              checked={group}
-              onCheckedChange={(check) => {
-                setGroup(check);
+      <div className="flex gap-2 items-center w-full">
+        <FilterSheet
+          utcTime={utcTime}
+          setUtcTime={setUtcTime}
+          expandedView={expandedView}
+          setExpandedView={setExpandedView}
+          group={group}
+          setGroup={setGroup}
+          setPage={setPage}
+          setEnableFetch={setEnableFetch}
+          filters={filters}
+          setFilters={setFilters}
+          showBottomLoader={showBottomLoader}
+          userId={userId}
+          setUserId={setUserId}
+          promptId={promptId}
+          setPromptId={setPromptId}
+          model={model}
+          setModel={setModel}
+        />
+        {filters.length > 0 && (
+          <Button
+            size={"sm"}
+            variant={"destructive"}
+            onClick={() => {
+              setFilters([]);
+              setUserId("");
+              setPromptId("");
+              setModel("");
+            }}
+          >
+            <XIcon className="w-4 h-4 mr-1" />
+            Clear All
+          </Button>
+        )}
+        <div className="relative w-full">
+          <MagnifyingGlassIcon className="absolute top-2 left-2 text-muted-foreground h-5 w-5" />
+          <Input
+            className="w-full border-muted rounded-md pl-8"
+            placeholder="Search for anything in your traces (Hit Enter to search)"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                // reset everything
                 setPage(1);
+                setFilters([]);
                 setEnableFetch(true);
-
-                // Save the preference in local storage
-                if (typeof window !== "undefined") {
-                  window.localStorage.setItem(
-                    "preferences.group",
-                    check ? "true" : "false"
-                  );
-                  toast.success("Preferences updated.");
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <p className="text-xs font-semibold">Group</p>
-              <Info information="By default, the spans are grouped if they are part of a single trace with a common parent. By toggling this setting, you can view spans individually without any relationships." />
-            </div>
-          </div>
+              }
+            }}
+          />
         </div>
       </div>
-      <Input
-        className="w-full border-muted-foreground rounded-md"
-        placeholder="Search for anything in your traces (Hit Enter to search)"
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            // reset everything
-            setPage(1);
-            setFilters([]);
-            setEnableFetch(true);
-        }
-        }}
-      />
       <TracesTable
         pageSize={pageSize}
         setPageSize={setPageSize}
@@ -661,18 +567,6 @@ export default function Traces({ email }: { email: string }) {
         scrollableDivRef={scrollableDivRef}
         filters={filters}
         setFilters={setFilters}
-      />
-      <TraceFilter
-        open={isTraceFilterOpen}
-        onClose={() => setIsTraceFilterOpen(false)}
-        filters={filters}
-        setFilters={setFilters}
-        userId={userId}
-        setUserId={setUserId}
-        promptId={promptId}
-        setPromptId={setPromptId}
-        model={model}
-        setModel={setModel}
       />
     </div>
   );

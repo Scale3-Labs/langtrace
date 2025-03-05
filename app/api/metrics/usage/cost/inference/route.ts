@@ -50,10 +50,12 @@ export async function GET(req: NextRequest) {
         output_tokens: string;
         vendor: string;
         model: string;
+        cached_input_tokens: string;
       }) => {
         const usage = {
           input_tokens: parseInt(item.input_tokens),
           output_tokens: parseInt(item.output_tokens),
+          cached_input_tokens: parseInt(item.cached_input_tokens),
         };
 
         const price = calculatePriceFromUsage(

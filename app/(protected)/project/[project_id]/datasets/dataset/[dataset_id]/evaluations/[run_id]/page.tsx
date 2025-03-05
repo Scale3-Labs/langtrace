@@ -121,41 +121,41 @@ export default function Evaluation() {
   const columns: ColumnDef<RunSample>[] = [
     {
       accessorKey: "input",
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: "Input",
       cell: ({ row }) => {
         const input = row.getValue("input") as string;
-        return <p className="text-sm font-semibold">{input}</p>;
+        return <p className="text-sm">{input}</p>;
       },
     },
     {
       accessorKey: "target",
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: "Target",
       cell: ({ row }) => {
         const target = row.getValue("target") as string;
-        return <p className="text-sm font-semibold">{target}</p>;
+        return <p className="text-sm">{target}</p>;
       },
     },
     {
       accessorKey: "output",
-      size: 500,
+      size: 400,
       enableResizing: true,
       header: "Output",
       cell: ({ row }) => {
         const output = row.getValue("output") as string;
-        return <p className="text-sm font-semibold">{output}</p>;
+        return <p className="text-sm">{output}</p>;
       },
     },
     {
       accessorKey: "model",
-      size: 200,
+      size: 150,
       enableResizing: true,
       header: "Model",
       cell: ({ row }) => {
-        return <p className="text-sm font-semibold">{run?.model}</p>;
+        return <p className="text-sm">{run?.model}</p>;
       },
     },
     {
@@ -174,14 +174,10 @@ export default function Evaluation() {
             {scores.map((score, idx) => {
               // remove underscore from scorer
               let scorer = score?.scorer?.replace(/_/g, " ") || "";
-              // capitalize the entire scorer
-              if (scorer) {
-                scorer = scorer.toUpperCase();
-              }
               return (
                 <Badge key={idx} className="flex gap-2">
                   <p className="text-xs">{scorer}:</p>
-                  <p className="text-xl font-bold">{score.value}</p>
+                  <p className="text-xs">{score.value}</p>
                 </Badge>
               );
             })}
@@ -242,7 +238,11 @@ export default function Evaluation() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="px-12 py-12 flex justify-between bg-muted">
+      <Button variant="outline" onClick={() => router.back()} className="w-fit">
+        <ChevronLeft className="text-muted-foreground" size={20} />
+        Back
+      </Button>
+      <div className="flex justify-between">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-semibold">Run ID</h1>
@@ -271,43 +271,25 @@ export default function Evaluation() {
             </Badge>
           )}
         </div>
-        <Link href={EVALUATIONS_DOCS_URL} target="_blank">
-          <Button
-            variant={run && run?.samples?.length > 0 ? "outline" : "default"}
-          >
-            New Evaluation
-            <FlaskConical className="ml-1 h-4 w-4" />
-            <ArrowTopRightIcon className="ml-1 h-4 w-4" />
-          </Button>
-        </Link>
+        {run?.scores?.map((score, i) => (
+          <div className="flex flex-col" key={i}>
+            <p className="text-md font-semibold">{score.scorer}</p>
+            {score?.metrics.map((metric, j) => (
+              <div className="flex gap-2" key={j}>
+                <p className="text-sm font-semibold capitalize">
+                  {metric.name}:
+                </p>
+                <p className="text-sm font-semibold">
+                  {parseFloat(metric.value).toFixed(2)}
+                </p>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
-      <div className="flex flex-col gap-6 w-full px-12">
-        <div className="flex gap-2">
-          {run?.scores?.map((score, i) => (
-            <div
-              className="flex flex-col gap-0 p-2 border rounded-md border-muted bg-muted shadow-md"
-              key={i}
-            >
-              <p className="text-md font-semibold mb-3">{score.scorer}</p>
-              {score?.metrics.map((metric, j) => (
-                <div className="flex gap-2" key={j}>
-                  <p className="text-sm font-semibold capitalize">
-                    {metric.name}:
-                  </p>
-                  <p className="text-sm font-semibold">
-                    {parseFloat(metric.value).toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+      <div className="flex flex-col gap-6 w-full">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => router.back()}>
-              <ChevronLeft className="text-muted-foreground" size={20} />
-              Back
-            </Button>
             <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">

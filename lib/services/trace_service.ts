@@ -73,7 +73,7 @@ export interface ITraceService {
     page: number,
     pageSize: number,
     filters?: Filter,
-    group?: boolean
+    keyword?: string
   ) => Promise<PaginationResult<Span[]>>;
   GetTokensUsedPerProject: (project_id: string) => Promise<any>;
   GetTokensUsedPerAccount: (project_ids: string[]) => Promise<number>;
@@ -101,6 +101,11 @@ export interface ITraceService {
     project_id: string,
     attribute_filters?: { [key: string]: string }
   ) => Promise<any>;
+  GetTotalSpansOfTypeInLastXDays: (
+    project_id: string,
+    type: string,
+    lastXDays: string
+  ) => Promise<number>;
 }
 
 export class TraceService implements ITraceService {
@@ -168,6 +173,9 @@ export class TraceService implements ITraceService {
             JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
           )
         ) AS output_tokens`,
+          `SUM(
+          JSONExtractInt(attributes, 'gen_ai.usage.cached_tokens')
+        ) AS cached_input_tokens`,
         ])
         .from(project_id)
         .where(...conditions)
@@ -660,7 +668,6 @@ export class TraceService implements ITraceService {
     page: number,
     pageSize: number,
     filters: Filter = { operation: "AND", filters: [] },
-    group: boolean = true,
     keyword?: string
   ): Promise<PaginationResult<Span[]>> {
     try {
@@ -672,8 +679,6 @@ export class TraceService implements ITraceService {
           metadata: { page, page_size: pageSize, total_pages: 1 },
         };
       }
-
-      // Query strategy: get page offset, get trace ids, get the traces
 
       // build the pagination metadata
       const getTotalTracesPerProjectQuery = sql.select(
@@ -695,53 +700,19 @@ export class TraceService implements ITraceService {
         page = totalPages;
       }
 
-      // get all span IDs grouped by trace_id and sort by start_time in descending order
-      const getTraceIdsQuery = sql.select(
-        this.queryBuilderService.GetFilteredTraceAttributesQuery(
-          project_id,
-          filters,
-          pageSize,
-          (page - 1) * pageSize,
-          keyword
-        )
+      // get the traces with filters for the page
+      const queryStr = this.queryBuilderService.GetTracesWithFilters(
+        project_id,
+        filters,
+        pageSize,
+        (page - 1) * pageSize,
+        keyword
       );
-      const spans: Span[] = await this.client.find<Span[]>(getTraceIdsQuery);
+      const query = sql.select("*").from(`(${queryStr})`);
+      const results = await this.client.find<any>(query);
 
-      // get all traces
-      const traces: Span[][] = [];
-      for (const span of spans) {
-        if (group && filters.filters.length > 0) {
-          filters.filters.push({
-            key: "parent_id",
-            operation: "EQUALS",
-            value: "",
-            type: "property",
-          } as any);
-        }
-
-        const getTraceByIdQuery = sql.select(
-          this.queryBuilderService.GetFilteredTraceAttributesTraceById(
-            project_id,
-            span.trace_id,
-            filters,
-            keyword
-          )
-        );
-        let trace = await this.client.find<Span[]>(getTraceByIdQuery);
-        // if group is false, remove the span with span_id equal to the parent_id of all the other spans
-        if (!group) {
-          // find the parent_id from one of the spans where the parent_id is not ""
-          const parent_id = trace.find((s) => s.parent_id !== "")?.parent_id;
-
-          // remove the span with span_id equal to the parent_id
-          if (parent_id !== undefined) {
-            trace = trace.filter((s) => s.span_id !== parent_id);
-          }
-        }
-        if (trace.length > 0) {
-          traces.push(trace);
-        }
-      }
+      // Extract the arrays and remove all wrapping
+      const traces: Span[][] = results.map((r: any) => r.result);
       return { result: traces, metadata: md };
     } catch (error) {
       throw new Error(
@@ -874,14 +845,16 @@ export class TraceService implements ITraceService {
       }
 
       const nHoursAgo = getFormattedTime(lastNHours);
+
+      // Build conditions array
       const conditions = [
         sql.or(
-          sql.like("attributes", "%total_tokens%"),
           sql.like("attributes", "%gen_ai.usage.input_tokens%"),
           sql.like("attributes", "%gen_ai.usage.prompt_tokens%")
         ),
         sql.gte("start_time", nHoursAgo),
       ];
+
       if (userId) {
         conditions.push(
           sql.eq("JSONExtractString(attributes, 'user_id')", userId)
@@ -891,7 +864,6 @@ export class TraceService implements ITraceService {
       if (model) {
         conditions.push(
           sql.or(
-            sql.eq("JSONExtractString(attributes, 'llm.model')", model),
             sql.eq(
               "JSONExtractString(attributes, 'gen_ai.response.model')",
               model
@@ -906,75 +878,45 @@ export class TraceService implements ITraceService {
 
       const query = sql
         .select([
-          `toDate(parseDateTimeBestEffort(start_time)) AS date`,
-          `groupArray(attributes) AS attributes_list`,
+          "toDate(parseDateTimeBestEffort(start_time)) AS date",
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'total_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.total_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.request.total_tokens'), 0
+          )
+        ) AS totalTokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'input_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.input_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.prompt_tokens'), 0
+          )
+        ) AS inputTokens`,
+          `SUM(
+          JSONExtractInt(
+            JSONExtractString(attributes, 'llm.token.counts'), 'output_tokens'
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.output_tokens'), 0
+          ) + COALESCE(
+            JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
+          )
+        ) AS outputTokens`,
+          `SUM(
+          JSONExtractInt(attributes, 'gen_ai.usage.cached_tokens')
+        ) AS cachedTokens`,
         ])
         .from(project_id)
         .where(...conditions)
         .groupBy("date")
         .orderBy("date");
+
       const result = await this.client.find<any>(query);
-
-      // calculate total tokens used per day
-      const tokensUsedPerHour = result.map((row: any) => {
-        let totalTokens = 0;
-        let inputTokens = 0;
-        let outputTokens = 0;
-        row.attributes_list.forEach((attributes: any) => {
-          const parsedAttributes = JSON.parse(attributes);
-          if ("llm.token.counts" in parsedAttributes) {
-            const llmTokenCounts = JSON.parse(
-              parsedAttributes["llm.token.counts"]
-            );
-            const token_count = Number(llmTokenCounts.total_tokens || 0);
-            totalTokens += token_count;
-
-            const input_token_count = Number(
-              "input_tokens" in llmTokenCounts
-                ? llmTokenCounts.input_tokens
-                : "prompt_tokens" in llmTokenCounts
-                  ? llmTokenCounts.prompt_tokens
-                  : 0
-            );
-            inputTokens += input_token_count;
-
-            const output_token_count = Number(
-              "output_tokens" in llmTokenCounts
-                ? llmTokenCounts.output_tokens
-                : "completion_tokens" in llmTokenCounts
-                  ? llmTokenCounts.completion_tokens
-                  : 0
-            );
-            outputTokens += output_token_count;
-          } else if ("gen_ai.usage.prompt_tokens" in parsedAttributes) {
-            const prompt_tokens = Number(
-              parsedAttributes["gen_ai.usage.prompt_tokens"]
-            );
-            const completion_tokens = Number(
-              parsedAttributes["gen_ai.usage.completion_tokens"]
-            );
-            inputTokens += prompt_tokens;
-            outputTokens += completion_tokens;
-            totalTokens += prompt_tokens + completion_tokens;
-          } else if ("gen_ai.usage.input_tokens" in parsedAttributes) {
-            const prompt_tokens = Number(parsedAttributes["gen_ai.usage.input_tokens"]);
-            const completion_tokens = Number(
-              parsedAttributes["gen_ai.usage.output_tokens"]
-            );
-            inputTokens += prompt_tokens;
-            outputTokens += completion_tokens;
-            totalTokens += prompt_tokens + completion_tokens;
-          }
-        });
-        return {
-          date: row.date,
-          totalTokens,
-          inputTokens,
-          outputTokens,
-        };
-      });
-
-      return tokensUsedPerHour;
+      return result;
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the tokens used ${error}`
@@ -1065,6 +1007,9 @@ export class TraceService implements ITraceService {
             JSONExtractInt(attributes, 'gen_ai.usage.completion_tokens'), 0
           )
         ) AS output_tokens`,
+          `SUM(
+          JSONExtractInt(attributes, 'gen_ai.usage.cached_tokens')
+        ) AS cached_input_tokens`,
         ])
         .from(project_id)
         .where(...conditions)
@@ -1076,8 +1021,9 @@ export class TraceService implements ITraceService {
       const costPerHour = result.map((row: any) => {
         const llmTokenCounts = {
           total_tokens: Number(row.total_tokens),
-          input_tokens: Number(row.input_tokens), 
+          input_tokens: Number(row.input_tokens),
           output_tokens: Number(row.output_tokens),
+          cached_input_tokens: Number(row.cached_input_tokens),
         };
         const model = row.model;
         const vendor = row.vendor.toLowerCase();
@@ -1087,6 +1033,7 @@ export class TraceService implements ITraceService {
           total: cost.total,
           input: cost.input,
           output: cost.output,
+          cached_input: cost.cached_input,
         };
       });
 
@@ -1286,6 +1233,62 @@ export class TraceService implements ITraceService {
     } catch (error) {
       throw new Error(
         `An error occurred while trying to get the span latency per model ${error}`
+      );
+    }
+  }
+
+  async GetTotalSpansOfTypeInLastXDays(
+    project_id: string,
+    type: string,
+    lastXDays: string
+  ): Promise<number> {
+    try {
+      // check if the table exists
+      const tableExists = await this.client.checkTableExists(project_id);
+      if (!tableExists) {
+        return 0;
+      }
+
+      if (type !== "session") {
+        const getSpanCountQuery = sql.select(
+          this.queryBuilderService.CountFilteredSpanAttributesQuery(
+            project_id,
+            {
+              filters: [
+                {
+                  key: "langtrace.service.type",
+                  operation: "EQUALS",
+                  type: "attribute",
+                  value: type,
+                },
+              ],
+              operation: "OR",
+            },
+            "",
+            lastXDays
+          )
+        );
+        const result = await this.client.find<any>(getSpanCountQuery);
+        const totalLen = parseInt(result[0]["total_spans"], 10);
+        return totalLen;
+      }
+      const getTraceCountQuery = sql.select(
+        this.queryBuilderService.CountFilteredTraceAttributesQuery(
+          project_id,
+          {
+            filters: [],
+            operation: "OR",
+          },
+          "",
+          lastXDays
+        )
+      );
+      const result = await this.client.find<any>(getTraceCountQuery);
+      const totalLen = parseInt(result[0]["total_traces"], 10);
+      return totalLen;
+    } catch (error) {
+      throw new Error(
+        `An error occurred while trying to get the total spans ${error}`
       );
     }
   }

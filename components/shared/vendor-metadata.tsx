@@ -78,6 +78,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
+  if (vendor.includes("arch")) {
+    return "bg-white";
+  }
+
   return "bg-gray-500";
 }
 
@@ -96,6 +100,10 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("perplexity")) {
     return "bg-slate-200";
+  }
+
+  if (vendor.includes("arch")) {
+    return "bg-green-200";
   }
 
   if (vendor.includes("openai")) {
@@ -132,6 +140,14 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("qdrant")) {
     return "bg-grey-200";
+  }
+
+  if (vendor.includes("graphlit")) {
+    return "bg-white";
+  }
+
+  if (vendor.includes("agno")) {
+    return "bg-white";
   }
 
   if (vendor.includes("groq")) {
@@ -176,6 +192,14 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("deepseek")) {
     return "bg-blue-200";
+  }
+
+  if (vendor.includes("xai")) {
+    return "bg-blue-200";
+  }
+
+  if (vendor.includes("litellm")) {
+    return "bg-blue-100";
   }
 
   return "bg-gray-800";
@@ -227,6 +251,22 @@ export function VendorLogo({
           `${color} p-[3px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
         )}
+      />
+    );
+  }
+
+  if (vendor.includes("arch")) {
+    const color = vendorColor("arch");
+    return (
+      <Image
+        alt="Arch Logo"
+        src="/arch-icon.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}    
       />
     );
   }
@@ -375,8 +415,6 @@ export function VendorLogo({
     );
   }
 
-
-
   if (vendor.includes("xai")) {
     const color = vendorColor("vercel");
     return (
@@ -495,6 +533,38 @@ export function VendorLogo({
       <Image
         alt="Gemini Logo"
         src="/gemini.jpeg"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("graphlit")) {
+    const color = vendorColor("graphlit");
+    return (
+      <Image
+        alt="Graphlit Logo"
+        src="/graphlit-icon.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("agno") || vendor.includes("phidata")) {
+    const color = vendorColor("agno");
+    return (
+      <Image
+        alt="Agno Logo"
+        src="/agno.png"
         width={30}
         height={30}
         className={cn(

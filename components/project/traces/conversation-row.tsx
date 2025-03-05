@@ -37,7 +37,7 @@ export const ConversationRow = ({
   let userId: string = "";
   let prompts: any[] = [];
   let responses: any[] = [];
-  let cost = { total: 0, input: 0, output: 0 };
+  let cost = { total: 0, input: 0, output: 0, cached_input: 0 };
   for (const span of trace) {
     if (span.attributes) {
       const attributes = JSON.parse(span.attributes);
@@ -79,7 +79,10 @@ export const ConversationRow = ({
       }
       if (!model) {
         model =
-          attributes["gen_ai.response.model"] || attributes["gen_ai.request.model"] ||  attributes["llm.model"] || "";
+          attributes["gen_ai.response.model"] ||
+          attributes["gen_ai.request.model"] ||
+          attributes["llm.model"] ||
+          "";
       }
       if (
         attributes["gen_ai.usage.prompt_tokens"] &&
@@ -100,20 +103,23 @@ export const ConversationRow = ({
               attributes["gen_ai.usage.completion_tokens"]
             : attributes["gen_ai.usage.prompt_tokens"] +
               attributes["gen_ai.usage.completion_tokens"],
+          cached_input_tokens: attributes["gen_ai.usage.cached_tokens"]
+            ? attributes["gen_ai.usage.cached_tokens"]
+            : 0,
         };
         const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       } else if (
         attributes["gen_ai.usage.input_tokens"] &&
         attributes["gen_ai.usage.output_tokens"]
       ) {
         tokenCounts = {
           input_tokens: tokenCounts.input_tokens
-            ? tokenCounts.input_tokens +
-              attributes["gen_ai.usage.input_tokens"]
+            ? tokenCounts.input_tokens + attributes["gen_ai.usage.input_tokens"]
             : attributes["gen_ai.usage.input_tokens"],
           output_tokens: tokenCounts.output_tokens
             ? tokenCounts.output_tokens +
@@ -125,12 +131,16 @@ export const ConversationRow = ({
               attributes["gen_ai.usage.output_tokens"]
             : attributes["gen_ai.usage.input_tokens"] +
               attributes["gen_ai.usage.output_tokens"],
+          cached_input_tokens: attributes["gen_ai.usage.cached_tokens"]
+            ? attributes["gen_ai.usage.cached_tokens"]
+            : 0,
         };
         const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
         // add the cost of the current span to the total cost
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       } else if (attributes["llm.token.counts"]) {
         const currentcounts = JSON.parse(attributes["llm.token.counts"]);
         tokenCounts = {
@@ -143,6 +153,9 @@ export const ConversationRow = ({
           total_tokens: tokenCounts.total_tokens
             ? tokenCounts.total_tokens + currentcounts.total_tokens
             : currentcounts.total_tokens,
+          cached_input_tokens: attributes["gen_ai.usage.cached_tokens"]
+            ? attributes["gen_ai.usage.cached_tokens"]
+            : 0,
         };
 
         const currentcost = calculatePriceFromUsage(
@@ -154,6 +167,7 @@ export const ConversationRow = ({
         cost.total += currentcost.total;
         cost.input += currentcost.input;
         cost.output += currentcost.output;
+        cost.cached_input += currentcost.cached_input;
       }
     }
   }

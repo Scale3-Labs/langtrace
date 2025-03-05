@@ -138,7 +138,7 @@ export default function Page() {
                   {prompt.live && (
                     <p
                       className={cn(
-                        "text-white font-semibold text-xs p-1 rounded-md w-fit bg-green-500"
+                        "text-white font-semibold text-sm px-2 py-1 rounded-md w-fit dark:bg-green-600 bg-green-500"
                       )}
                     >
                       Live
@@ -151,7 +151,28 @@ export default function Page() {
               </div>
             ))}
           </div>
-          <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col gap-6 w-full">
+            <div className="flex flex-col gap-2">
+              <Label>Prompt Registry ID</Label>
+              <div className="flex items-center border-2 border-muted p-2 rounded-md cursor-pointer font-semibold text-sm">
+                <p
+                  onClick={() => {
+                    navigator.clipboard.writeText(promptsetId);
+                    toast.success("Copied to clipboard");
+                  }}
+                  className="flex-grow"
+                >
+                  {promptsetId}
+                </p>
+                <ClipboardIcon
+                  className="h-4 w-4 cursor-pointer text-muted-foreground"
+                  onClick={() => {
+                    navigator.clipboard.writeText(promptsetId);
+                    toast.success("Copied to clipboard");
+                  }}
+                />
+              </div>
+            </div>
             <div className="flex flex-col gap-2">
               <Label>Go Live</Label>
               <div className="flex items-center gap-2 w-fit">
@@ -195,27 +216,6 @@ export default function Page() {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Prompt Registry ID</Label>
-              <div className="flex items-center border-2 border-muted p-2 rounded-md cursor-pointer font-semibold text-md">
-                <p
-                  onClick={() => {
-                    navigator.clipboard.writeText(promptsetId);
-                    toast.success("Copied to clipboard");
-                  }}
-                  className="flex-grow"
-                >
-                  {promptsetId}
-                </p>
-                <ClipboardIcon
-                  className="h-4 w-4 cursor-pointer text-muted-foreground"
-                  onClick={() => {
-                    navigator.clipboard.writeText(promptsetId);
-                    toast.success("Copied to clipboard");
-                  }}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
               <Label>Prompt</Label>
               <CodeEditor
                 readOnly
@@ -247,13 +247,13 @@ export default function Page() {
                 ))}
               </div>
             </div>
-            <div className="flex flex-col gap-2">
+            {/* <div className="flex flex-col gap-2">
               <Label>Model</Label>
               <p className="p-2 rounded-md border-2 border-muted text-sm font-semibold h-10">
                 {selectedPrompt.model ?? "None"}
               </p>
-            </div>
-            <div className="flex flex-col gap-2">
+            </div> */}
+            {/* <div className="flex flex-col gap-2">
               <Label>Model Settings</Label>
               <CodeEditor
                 readOnly
@@ -266,7 +266,7 @@ export default function Page() {
                     "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
                 }}
               />
-            </div>
+            </div> */}
             <div className="flex flex-col gap-2">
               <Label>Use the Live prompt directly in your code</Label>
               <PromptInstructions id={promptsetId} />
