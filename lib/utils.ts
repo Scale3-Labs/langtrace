@@ -490,6 +490,8 @@ export function parseNestedJsonFields(obj: string) {
     "llm.responses",
     "langchain.inputs",
     "langchain.outputs",
+    "graphlit.inputs",
+    "graphlit.outputs",
     "crewai.crew.config",
     "crewai.agent.config",
     "crewai.task.config",
@@ -557,12 +559,16 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
       costTable = OPENAI_PRICING[correctModel];
     } else if (model.includes("claude")) {
@@ -592,24 +598,24 @@ export function calculatePriceFromUsage(
     } else if (model.includes("deepseek")) {
       costTable = DEEPSEEK_PRICING[model];
     }
-  } else if (vendor === "openai") {
+  } else if (vendor === "openai" || vendor === "azure") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
-    if (
-      model.includes("gpt") ||
-      model.includes("o1") ||
-      model.includes("text-embedding")
-    ) {
+    if (!OPENAI_PRICING.hasOwnProperty(model)) {
       if (model.includes("gpt-4o-mini")) {
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
     }
     costTable = OPENAI_PRICING[correctModel];
@@ -643,12 +649,16 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
     }
     costTable = AZURE_PRICING[correctModel];
@@ -808,6 +818,13 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("langchain core")
   ) {
     vendor = "langchain core";
+  } else if (
+    span.name.includes("graphlit") ||
+    serviceName.includes("graphlit")
+  ) {
+    vendor = "graphlit";
+  } else if (span.name.includes("agno") || serviceName.includes("agno")) {
+    vendor = "agno";
   } else if (
     span.name.includes("langchain") ||
     serviceName.includes("langchain")
