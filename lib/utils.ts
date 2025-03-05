@@ -598,14 +598,10 @@ export function calculatePriceFromUsage(
     } else if (model.includes("deepseek")) {
       costTable = DEEPSEEK_PRICING[model];
     }
-  } else if (vendor === "openai") {
+  } else if (vendor === "openai" || vendor === "azure") {
     // check if model is present as key in OPENAI_PRICING
     let correctModel = model;
-    if (
-      model.includes("gpt") ||
-      model.includes("o1") ||
-      model.includes("text-embedding")
-    ) {
+    if (!OPENAI_PRICING.hasOwnProperty(model)) {
       if (model.includes("gpt-4o-mini")) {
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
@@ -827,6 +823,8 @@ export function getVendorFromSpan(span: Span): string {
     serviceName.includes("graphlit")
   ) {
     vendor = "graphlit";
+  } else if (span.name.includes("agno") || serviceName.includes("agno")) {
+    vendor = "agno";
   } else if (
     span.name.includes("langchain") ||
     serviceName.includes("langchain")

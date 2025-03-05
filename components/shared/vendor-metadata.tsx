@@ -146,6 +146,10 @@ export function vendorColor(vendor: string) {
     return "bg-white";
   }
 
+  if (vendor.includes("agno")) {
+    return "bg-white";
+  }
+
   if (vendor.includes("groq")) {
     return "bg-slate-200";
   }
@@ -545,6 +549,22 @@ export function VendorLogo({
       <Image
         alt="Graphlit Logo"
         src="/graphlit-icon.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("agno") || vendor.includes("phidata")) {
+    const color = vendorColor("agno");
+    return (
+      <Image
+        alt="Agno Logo"
+        src="/agno.png"
         width={30}
         height={30}
         className={cn(
