@@ -559,12 +559,16 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
       costTable = OPENAI_PRICING[correctModel];
     } else if (model.includes("claude")) {
@@ -606,12 +610,16 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
     }
     costTable = OPENAI_PRICING[correctModel];
@@ -645,12 +653,16 @@ export function calculatePriceFromUsage(
         correctModel = "gpt-4o-mini";
       } else if (model.includes("gpt-4o")) {
         correctModel = "gpt-4o";
-      } else if (model.includes("gpt-4")) {
+      } else if (model.includes("gpt-4.5-")) {
+        correctModel = "gpt-4.5";
+      } else if (model.includes("gpt-4-")) {
         correctModel = "gpt-4";
       } else if (model.includes("o1-preview")) {
         correctModel = "o1-preview";
       } else if (model.includes("o1-mini")) {
         correctModel = "o1-mini";
+      } else if (model.includes("o1-")) {
+        correctModel = "o1";
       }
     }
     costTable = AZURE_PRICING[correctModel];
