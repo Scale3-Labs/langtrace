@@ -61,11 +61,6 @@ export interface CostTableEntry {
 
 // cost per 1000 tokens
 export const OPENAI_PRICING: Record<string, CostTableEntry> = {
-  "o3-mini": {
-    input: 0.0011,
-    cached_input: 0.00055,
-    output: 0.0044,
-  },
   "o1-preview": {
     input: 0.015,
     cached_input: 0.0075,
@@ -75,6 +70,21 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     input: 0.0011,
     cached_input: 0.00055,
     output: 0.0044,
+  },
+  o1: {
+    input: 0.015,
+    cached_input: 0.0075,
+    output: 0.06,
+  },
+  "o3-mini": {
+    input: 0.0011,
+    cached_input: 0.00055,
+    output: 0.0044,
+  },
+  "gpt-4.5": {
+    input: 0.075,
+    cached_input: 0.0375,
+    output: 0.15,
   },
   "gpt-4o-mini": {
     input: 0.00015,
