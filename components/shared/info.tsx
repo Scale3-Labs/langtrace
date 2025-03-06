@@ -19,6 +19,7 @@ export function Info({
       <Popover onOpenChange={setOpen} open={open}>
         <PopoverTrigger asChild>
           <button
+            title="Info"
             className="rounded-full"
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}

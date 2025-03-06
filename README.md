@@ -171,20 +171,7 @@ docker compose down -v
 
 ## Telemetry
 
-Langtrace collects basic, non-sensitive usage data from self-hosted instances by default, which is sent to a central server (via PostHog).
-
-The following telemetry data is collected by us:
-- Project name and type
-- Team name
-
-This data helps us to:
-
-- Understand how the platform is being used to improve key features.
-- Monitor overall usage for internal analysis and reporting.
-
-No sensitive information is gathered, and the data is not shared with third parties.
-
-If you prefer to disable telemetry, you can do so by setting TELEMETRY_ENABLED=false in your configuration.
+Langtrace does NOT collect any Telemetry if you are self hosting the OSS client. None of your data leaves your servers.
 
 ---
 
