@@ -284,24 +284,48 @@ export class QueryBuilderService implements IQueryBuilderService {
       }
     });
 
-    // Construct the base query with filters
+    // Construct the filter clause
     let filterClause = "";
     if (whereConditions.length > 0) {
-      filterClause = ` WHERE (${whereConditions.join(` ${filters.operation} `)})`;
-    }
-
-    // Add keyword search if provided
-    if (keyword && keyword !== "") {
-      filterClause += filterClause.includes("WHERE")
-        ? ` AND (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`
-        : ` WHERE (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
+      filterClause = `WHERE (${whereConditions.join(` ${filters.operation} `)})`;
     }
 
     const rawQuery = `
-      WITH latest_traces AS (
-        SELECT DISTINCT trace_id
+      WITH processed AS (
+        SELECT
+          trace_id,
+          start_time,
+          end_time,
+          name,
+          span_id,
+          trace_state,
+          kind,
+          parent_id,
+          attributes,
+          lower(CAST(attributes AS String)) AS lower_attributes,
+          status_code,
+          events,
+          JSONExtractArrayRaw(events) AS json_events,
+          links,
+          duration
         FROM ${tableName}
+      ),
+      filtered AS (
+        SELECT *
+        FROM processed
         ${filterClause}
+        ${
+          keyword && keyword !== ""
+            ? `${filterClause ? "AND" : "WHERE"} (
+              position(lower_attributes, '${keyword}') > 0
+              OR arrayExists(x -> position(lower(x), '${keyword}') > 0, json_events)
+            )`
+            : ""
+        }
+      ),
+      latest_traces AS (
+        SELECT trace_id
+        FROM filtered
         GROUP BY trace_id
         ORDER BY min(start_time) DESC
         LIMIT ${pageSize}
@@ -326,22 +350,22 @@ export class QueryBuilderService implements IQueryBuilderService {
       ) AS result
       FROM (
         SELECT 
-          s.name,
-          s.trace_id,
-          s.span_id,
-          s.trace_state,
-          s.kind,
-          s.parent_id,
-          s.start_time,
-          s.end_time,
-          s.attributes,
-          s.status_code,
-          s.events,
-          s.links,
-          s.duration
-        FROM ${tableName} s
-        INNER JOIN latest_traces lt ON s.trace_id = lt.trace_id
-        ORDER BY s.trace_id, s.start_time ASC
+          f.name,
+          f.trace_id,
+          f.span_id,
+          f.trace_state,
+          f.kind,
+          f.parent_id,
+          f.start_time,
+          f.end_time,
+          f.attributes,
+          f.status_code,
+          f.events,
+          f.links,
+          f.duration
+        FROM filtered f
+        INNER JOIN latest_traces lt ON f.trace_id = lt.trace_id
+        ORDER BY f.trace_id, f.start_time ASC
       )
       GROUP BY trace_id
       ORDER BY max(end_time) DESC`;
