@@ -1,7 +1,6 @@
 import { User } from "@prisma/client";
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { captureEvent } from "../services/posthog";
 
 export default async function AppMiddleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
@@ -53,11 +52,6 @@ export default async function AppMiddleware(req: NextRequest) {
           }),
         }).then((res) => res.json());
         teamName = team?.data?.name;
-      }
-      if (teamName) {
-        await captureEvent(user.id, "team_created", {
-          team_name: teamName,
-        });
       }
     }
 

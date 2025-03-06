@@ -1,7 +1,6 @@
 import { authOptions } from "@/lib/auth/options";
 import { DEFAULT_TESTS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
-import { captureEvent } from "@/lib/services/posthog";
 import { authApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -88,12 +87,6 @@ export async function POST(req: NextRequest) {
         },
       });
     }
-
-    await captureEvent(project.id, "project_created", {
-      project_name: name,
-      project_description: description,
-      project_type: projectType,
-    });
   }
 
   const { apiKeyHash, ...projectWithoutApiKeyHash } = project;
