@@ -1,6 +1,6 @@
 import { authOptions } from "@/lib/auth/options";
 import prisma from "@/lib/prisma";
-import { generateApiKey, hashApiKey, authApiKey } from "@/lib/utils";
+import { authApiKey, generateApiKey, hashApiKey } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";

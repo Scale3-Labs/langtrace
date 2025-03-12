@@ -168,7 +168,8 @@ const SpanItem: React.FC<SpanItemProps> = ({
           </span>
           <span
             className={`w-2 h-2 rounded-full ${
-              span.status_code === "ERROR"
+              span.status_code === "ERROR" ||
+              span.status_code === "STATUS_CODE_ERROR"
                 ? "bg-destructive animate-pulse"
                 : "bg-teal-400"
             }`}
@@ -185,7 +186,10 @@ const SpanItem: React.FC<SpanItemProps> = ({
               }}
               className={cn(
                 "h-4 absolute ml-[500px] flex items-center justify-center z-0 cursor-pointer",
-                span.status_code === "ERROR" ? "bg-destructive" : color
+                span.status_code === "ERROR" ||
+                  span.status_code === "STATUS_CODE_ERROR"
+                  ? "bg-destructive"
+                  : color
               )}
               style={{ left: `${startX}px`, width: `${spanLength}px` }}
             >

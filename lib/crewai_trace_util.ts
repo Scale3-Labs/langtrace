@@ -131,7 +131,10 @@ export function processCrewAITrace(trace: any): CrewAITrace {
   // set status to ERROR if any span has an error
   let status = "success";
   for (const span of trace) {
-    if (span.status_code === "ERROR") {
+    if (
+      span.status_code === "ERROR" ||
+      span.status_code === "STATUS_CODE_ERROR"
+    ) {
       status = "error";
       break;
     }
