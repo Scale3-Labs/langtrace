@@ -242,6 +242,7 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
 };
 
 export const GROQ_PRICING: Record<string, CostTableEntry> = {
+  // Existing models - keep with updated pricing if needed
   "llama3-70b-8192": {
     input: 0.00059,
     output: 0.00079,
@@ -261,6 +262,35 @@ export const GROQ_PRICING: Record<string, CostTableEntry> = {
   "mixtral-8x7b-32768": {
     input: 0.00024,
     output: 0.00024,
+  },
+  // New models from Groq pricing page
+  "llama3-1-8b-instant-128k": {
+    input: 0.00005,
+    output: 0.00008,
+  },
+  "llama3-3-70b-versatile-128k": {
+    input: 0.00059,
+    output: 0.00079,
+  },
+  "llama3-2-1b-preview-8k": {
+    input: 0.00004,
+    output: 0.00004,
+  },
+  "llama3-2-3b-preview-8k": {
+    input: 0.00006,
+    output: 0.00006,
+  },
+  "llama3-3-70b-specdec-8k": {
+    input: 0.00059,
+    output: 0.00099,
+  },
+  "gemma-2-9b-8k": {
+    input: 0.00020,
+    output: 0.00020,
+  },
+  "llama-guard-3-8b-8k": {
+    input: 0.00020,
+    output: 0.00020,
   },
 };
 

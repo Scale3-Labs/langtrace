@@ -147,6 +147,7 @@ export const cohereModels = [
 ];
 
 export const groqModels = [
+  // Existing models
   {
     value: "llama3-70b-8192",
     label: "Llama 3 70B 8192",
@@ -166,6 +167,35 @@ export const groqModels = [
   {
     value: "mixtral-8x7b-32768",
     label: "Mixtral 8x7B 32768",
+  },
+  // New models
+  {
+    value: "llama3-1-8b-instant-128k",
+    label: "Llama 3.1 8B Instant 128k",
+  },
+  {
+    value: "llama3-3-70b-versatile-128k",
+    label: "Llama 3.3 70B Versatile 128k",
+  },
+  {
+    value: "llama3-2-1b-preview-8k",
+    label: "Llama 3.2 1B Preview 8k",
+  },
+  {
+    value: "llama3-2-3b-preview-8k",
+    label: "Llama 3.2 3B Preview 8k",
+  },
+  {
+    value: "llama3-3-70b-specdec-8k",
+    label: "Llama 3.3 70B SpecDec 8k",
+  },
+  {
+    value: "gemma-2-9b-8k",
+    label: "Gemma 2 9B 8k",
+  },
+  {
+    value: "llama-guard-3-8b-8k",
+    label: "Llama Guard 3 8B 8k",
   },
 ];
 
