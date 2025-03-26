@@ -24,6 +24,8 @@ export const OTEL_GENAI_ATTRIBUTES =
   "https://opentelemetry.io/docs/specs/semconv/gen-ai/llm-spans/#llm-request-attributes";
 export const USER_FEEDBACK_LINK =
   "https://docs.langtrace.ai/tracing/trace_user_feedback#example-user-score";
+export const BOOKING_LINK =
+  "https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ37ERnY56gsTyg0--eIyt2I8qxw2ZyUawIuKnA8ae_J93yhq9qO5wx_UblUJDGB9VNWSvBQbFpn";
 
 // TODO: Add more models
 // https://github.com/dqbd/tiktoken/blob/74c147e19584a3a1acea0c8e0da4d39415cd33e0/wasm/src/lib.rs#L328
@@ -415,26 +417,78 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
 };
 
 export const GROQ_PRICING: Record<string, CostTableEntry> = {
-  "llama3-70b-8192": {
-    input: 0.00059,
-    output: 0.00079,
+  "deepseek-r1-distill-llama-70b": {
+    "input": 0.00075,
+    "output": 0.00099
   },
-  "llama3-8b-8192": {
-    input: 0.00005,
-    output: 0.00008,
+  "deepseek-r1-distill-qwen-32b": {
+    "input": 0.00069,
+    "output": 0.00069
   },
-  "llama3-groq-70b-8192-tool-use-preview": {
-    input: 0.00089,
-    output: 0.00089,
+  "qwen-2.5-32b-instruct": {
+    "input": 0.00079,
+    "output": 0.00079
   },
-  "llama3-groq-8b-8192-tool-use-preview": {
-    input: 0.00019,
-    output: 0.00019,
+  "qwen-2.5-coder-32b-instruct": {
+    "input": 0.00079,
+    "output": 0.00079
   },
-  "mixtral-8x7b-32768": {
-    input: 0.00024,
-    output: 0.00024,
+  "qwen-qwq-32b": {
+    "input": 0.00029,
+    "output": 0.00039
   },
+  "mistral-saba-24b": {
+    "input": 0.00079,
+    "output": 0.00079
+  },
+  "llama-3.2-1b": {
+    "input": 0.00004,
+    "output": 0.00004
+  },
+  "llama-3.2-3b": {
+    "input": 0.00006,
+    "output": 0.00006
+  },
+  "llama-3.3-70b-versatile": {
+    "input": 0.00059,
+    "output": 0.00079
+  },
+  "llama-3.1-8b-instant": {
+    "input": 0.00005,
+    "output": 0.00008
+  },
+  "llama-3-70b": {
+    "input": 0.00059,
+    "output": 0.00079
+  },
+  "llama-3-8b": {
+    "input": 0.00005,
+    "output": 0.00008
+  },
+  "mixtral-8x7b-instruct": {
+    "input": 0.00024,
+    "output": 0.00024
+  },
+  "gemma-2-9b": {
+    "input": 0.00020,
+    "output": 0.00020
+  },
+  "llama-guard-3-8b": {
+    "input": 0.00020,
+    "output": 0.00020
+  },
+  "llama-3.3-70b-specdec": {
+    "input": 0.00059,
+    "output": 0.00099
+  },
+  "llama-3.2-11b-vision": {
+    "input": 0.00018,
+    "output": 0.00018
+  },
+  "llama-3.2-90b-vision": {
+    "input": 0.00090,
+    "output": 0.00090
+  }
 };
 
 export const AZURE_PRICING: Record<string, CostTableEntry> = {

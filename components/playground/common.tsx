@@ -93,6 +93,7 @@ export function ExpandingTextArea({
   return (
     <div className={cn("relative min-w-[350px]", className)}>
       <textarea
+        aria-label="Message input"
         disabled={busy}
         className="rounded-md text-sm w-[350px] bg-background pr-10 pt-5"
         ref={textAreaRef}
