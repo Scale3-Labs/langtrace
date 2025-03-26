@@ -1,3 +1,4 @@
+import { PaginationDropdown } from "@/components/shared/pagination-dropdown";
 import { SetupInstructions } from "@/components/shared/setup-instructions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -38,7 +38,6 @@ import RowSkeleton from "../../shared/row-skeleton";
 import { TableSkeleton } from "./table-skeleton";
 import { TraceSheet } from "./trace-sheet";
 import { TracesDownload } from "./traces-download";
-import { PaginationDropdown } from "@/components/shared/pagination-dropdown";
 
 interface TracesTableProps<TData, TValue> {
   project_id: string;
@@ -225,30 +224,6 @@ export function TracesTable<TData, TValue>({
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 rounded-md border border-muted px-2 py-1">
-              <p className="text-sm font-semibold text-orange-600">I am</p>
-              <p
-                className={cn(
-                  "text-sm font-semibold",
-                  !profileMode ? "text-orange-600" : "text-muted-foreground"
-                )}
-              >
-                debugging
-              </p>
-              <Switch
-                checked={profileMode}
-                onCheckedChange={(checked) => setProfileMode(checked)}
-                className="relative inline-flex items-center cursor-pointer"
-              />
-              <p
-                className={cn(
-                  "text-sm font-semibold",
-                  profileMode ? "text-orange-500" : "text-muted-foreground"
-                )}
-              >
-                prompt engineering
-              </p>
-            </div>
             <Badge variant={"outline"} className="text-sm">
               Project ID: {project_id}
             </Badge>
@@ -299,9 +274,7 @@ export function TracesTable<TData, TValue>({
                 // store this to local storage
                 localStorage.setItem("preferences.traces.page-size", value);
                 if (value !== pageSize) {
-                  setFilters([
-                    ...filters,
-                  ]);
+                  setFilters([...filters]);
                 }
               }}
             />
