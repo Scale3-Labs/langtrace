@@ -30,253 +30,233 @@ export interface Trace {
   raw_attributes: any;
 }
 
+interface TraceAttributes {
+  sessionId: string;
+  vendor: string;
+  userId: string | undefined;
+  promptId: string | undefined;
+  promptVersion: string | undefined;
+  model: string;
+  type: string;
+  llmPrompts?: string;
+  llmResponses?: string;
+  tokenUsage: {
+    promptTokens?: number;
+    completionTokens?: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    cachedTokens?: number;
+    totalTokens?: number;
+  };
+  llmTokenCounts?: any;
+}
+
+function parseTraceAttributes(attributesStr: string): TraceAttributes {
+  const attrs = JSON.parse(attributesStr);
+  return {
+    sessionId: attrs["session.id"] || "",
+    vendor: (attrs["langtrace.service.name"] || "").toLowerCase(),
+    userId: attrs["user_id"],
+    promptId: attrs["prompt_id"],
+    promptVersion: attrs["prompt_version"],
+    model:
+      attrs["gen_ai.response.model"] ||
+      attrs["llm.model"] ||
+      attrs["gen_ai.request.model"] ||
+      "",
+    type: attrs["langtrace.service.type"] || "session",
+    llmPrompts: attrs["llm.prompts"],
+    llmResponses: attrs["llm.responses"],
+    tokenUsage: {
+      promptTokens: Number(attrs["gen_ai.usage.prompt_tokens"]) || 0,
+      completionTokens: Number(attrs["gen_ai.usage.completion_tokens"]) || 0,
+      inputTokens: Number(attrs["gen_ai.usage.input_tokens"]) || 0,
+      outputTokens: Number(attrs["gen_ai.usage.output_tokens"]) || 0,
+      cachedTokens: Number(attrs["gen_ai.usage.cached_tokens"]) || 0,
+    },
+    llmTokenCounts: attrs["llm.token.counts"]
+      ? JSON.parse(attrs["llm.token.counts"])
+      : undefined,
+  };
+}
+
+function processTokenCounts(
+  currentCounts: any,
+  attrs: TraceAttributes,
+  vendor: string,
+  model: string
+): { tokenCounts: any; cost: any } {
+  let tokenCounts = { ...currentCounts };
+  let cost = { total: 0, input: 0, output: 0, cached_input: 0 };
+
+  if (attrs.tokenUsage.promptTokens && attrs.tokenUsage.completionTokens) {
+    tokenCounts = {
+      input_tokens:
+        (tokenCounts.input_tokens || 0) + attrs.tokenUsage.promptTokens,
+      cached_input_tokens:
+        (tokenCounts.cached_input_tokens || 0) +
+        (attrs.tokenUsage.cachedTokens || 0),
+      output_tokens:
+        (tokenCounts.output_tokens || 0) + attrs.tokenUsage.completionTokens,
+      total_tokens:
+        (tokenCounts.total_tokens || 0) +
+        attrs.tokenUsage.promptTokens +
+        attrs.tokenUsage.completionTokens +
+        (attrs.tokenUsage.cachedTokens || 0),
+    };
+  } else if (attrs.tokenUsage.inputTokens || attrs.tokenUsage.outputTokens) {
+    tokenCounts = {
+      input_tokens:
+        (tokenCounts.input_tokens || 0) + attrs.tokenUsage.inputTokens,
+      cached_input_tokens:
+        (tokenCounts.cached_input_tokens || 0) +
+        (attrs.tokenUsage.cachedTokens || 0),
+      output_tokens:
+        (tokenCounts.output_tokens || 0) + attrs.tokenUsage.outputTokens,
+      total_tokens:
+        (tokenCounts.total_tokens || 0) +
+        attrs.tokenUsage.inputTokens +
+        attrs.tokenUsage.outputTokens +
+        (attrs.tokenUsage.cachedTokens || 0),
+    };
+  } else if (attrs.llmTokenCounts) {
+    tokenCounts = {
+      input_tokens:
+        (tokenCounts.input_tokens || 0) + attrs.llmTokenCounts.input_tokens,
+      cached_input_tokens:
+        (tokenCounts.cached_input_tokens || 0) +
+        attrs.llmTokenCounts.cached_tokens,
+      output_tokens:
+        (tokenCounts.output_tokens || 0) + attrs.llmTokenCounts.output_tokens,
+      total_tokens:
+        (tokenCounts.total_tokens || 0) + attrs.llmTokenCounts.total_tokens,
+    };
+  }
+
+  const currentCost = calculatePriceFromUsage(vendor, model, tokenCounts);
+  cost.total += currentCost.total;
+  cost.input += currentCost.input;
+  cost.output += currentCost.output;
+  cost.cached_input += currentCost.cached_input;
+
+  return { tokenCounts, cost };
+}
+
+function processEvents(events: string): {
+  messages: Record<string, string[]>[];
+  allEvents: any[];
+} {
+  if (!events || events === "[]") {
+    return { messages: [], allEvents: [] };
+  }
+
+  const parsedEvents = JSON.parse(events);
+  const inputs: string[] = [];
+  const outputs: string[] = [];
+
+  const promptEvent = parsedEvents.find(
+    (event: any) => event.name === "gen_ai.content.prompt"
+  );
+  if (promptEvent?.attributes?.["gen_ai.prompt"]) {
+    inputs.push(promptEvent.attributes["gen_ai.prompt"]);
+  }
+
+  const responseEvent = parsedEvents.find(
+    (event: any) => event.name === "gen_ai.content.completion"
+  );
+  if (responseEvent?.attributes?.["gen_ai.completion"]) {
+    outputs.push(responseEvent.attributes["gen_ai.completion"]);
+  }
+
+  const messages: Record<string, string[]>[] = [];
+  if (inputs.length > 0 || outputs.length > 0) {
+    messages.push({ prompts: inputs, responses: outputs });
+  }
+
+  return { messages, allEvents: [parsedEvents] };
+}
+
 export function processTrace(trace: any): Trace {
+  if (!trace?.length) {
+    throw new Error("Invalid trace data");
+  }
+
   const traceHierarchy = convertTracesToHierarchy(trace);
   const totalTime = calculateTotalTime(trace);
   const startTime = trace[0].start_time;
-  let session_id = "";
+
+  // Initialize collectors
+  const uniqueModels = new Set<string>();
+  const uniqueVendors = new Set<string>();
+  const userIds: string[] = [];
+  const promptIds: string[] = [];
+  const promptVersions: string[] = [];
+  const messages: Record<string, string[]>[] = [];
+  const allEvents: any[] = [];
+
   let tokenCounts: any = {};
-  let models: string[] = [];
-  let vendors: string[] = [];
-  let userIds: string[] = [];
-  let promptIds: string[] = [];
-  let promptVersions: string[] = [];
-  let messages: Record<string, string[]>[] = [];
-  let allEvents: any[] = [];
-  let attributes: any = {};
-  let cost = { total: 0, input: 0, output: 0, cached_input: 0 };
-  let type: string = "session";
-  // set status to ERROR if any span has an error
-  let status = "success";
+  let totalCost = { total: 0, input: 0, output: 0, cached_input: 0 };
+  let type = "session";
+  let session_id = "";
+  let lastParsedAttributes: any = {};
+
+  // Check for error status
+  const status = trace.some(
+    (span: any) =>
+      span.status_code === "ERROR" || span.status_code === "STATUS_CODE_ERROR"
+  )
+    ? "error"
+    : "success";
+
+  // Process each span
   for (const span of trace) {
-    if (
-      span.status_code === "ERROR" ||
-      span.status_code === "STATUS_CODE_ERROR"
-    ) {
-      status = "error";
-      break;
+    if (!span.attributes) continue;
+
+    const attrs = parseTraceAttributes(span.attributes);
+    lastParsedAttributes = JSON.parse(span.attributes); // Keep for backward compatibility
+
+    // Update collectors
+    session_id = attrs.sessionId || session_id;
+    type = attrs.type || type;
+
+    if (attrs.vendor) uniqueVendors.add(attrs.vendor);
+    if (attrs.model) uniqueModels.add(attrs.model);
+    if (attrs.userId) userIds.push(attrs.userId);
+    if (attrs.promptId) promptIds.push(attrs.promptId);
+    if (attrs.promptVersion) promptVersions.push(attrs.promptVersion);
+
+    // Process token counts and costs
+    const { tokenCounts: newTokenCounts, cost } = processTokenCounts(
+      tokenCounts,
+      attrs,
+      attrs.vendor,
+      attrs.model
+    );
+    tokenCounts = newTokenCounts;
+    totalCost.total += cost.total;
+    totalCost.input += cost.input;
+    totalCost.output += cost.output;
+    totalCost.cached_input += cost.cached_input;
+
+    // Process messages
+    if (attrs.llmPrompts || attrs.llmResponses) {
+      messages.push({
+        prompts: attrs.llmPrompts ? [attrs.llmPrompts] : [],
+        responses: attrs.llmResponses ? [attrs.llmResponses] : [],
+      });
+    }
+
+    // Process events
+    if (span.events) {
+      const { messages: eventMessages, allEvents: newEvents } = processEvents(
+        span.events
+      );
+      messages.push(...eventMessages);
+      allEvents.push(...newEvents);
     }
   }
 
-  for (const span of trace) {
-    if (span.attributes) {
-      // parse the attributes of the span
-      attributes = JSON.parse(span.attributes);
-      let vendor = "";
-
-      // get the type of the span
-      if (attributes["langtrace.service.type"]) {
-        type = attributes["langtrace.service.type"];
-      }
-
-      // get session.id from the attributes
-      if (attributes["session.id"]) {
-        session_id = attributes["session.id"];
-      }
-
-      // get the service name from the attributes
-      if (attributes["langtrace.service.name"]) {
-        vendor = attributes["langtrace.service.name"].toLowerCase();
-        if (!vendors.includes(vendor)) vendors.push(vendor);
-      }
-
-      // get the user_id, prompt_id, prompt_version, and model from the attributes
-      if (attributes["user_id"]) {
-        userIds.push(attributes["user_id"]);
-      }
-      if (attributes["prompt_id"]) {
-        promptIds.push(attributes["prompt_id"]);
-      }
-      if (attributes["prompt_version"]) {
-        promptVersions.push(attributes["prompt_version"]);
-      }
-
-      let model = "";
-      if (
-        attributes["gen_ai.response.model"] ||
-        attributes["llm.model"] ||
-        attributes["gen_ai.request.model"]
-      ) {
-        model =
-          attributes["gen_ai.response.model"] ||
-          attributes["llm.model"] ||
-          attributes["gen_ai.request.model"];
-        if (!models.includes(model)) {
-          models.push(model);
-        }
-      }
-      // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
-      if (attributes["llm.prompts"] && attributes["llm.responses"]) {
-        const message = {
-          prompt: attributes["llm.prompts"],
-          response: attributes["llm.responses"],
-        };
-        messages.push(message);
-      }
-
-      if (
-        attributes["gen_ai.usage.prompt_tokens"] &&
-        attributes["gen_ai.usage.completion_tokens"]
-      ) {
-        tokenCounts = {
-          input_tokens: tokenCounts.input_tokens
-            ? Number(tokenCounts.input_tokens) +
-              Number(attributes["gen_ai.usage.prompt_tokens"])
-            : Number(attributes["gen_ai.usage.prompt_tokens"]),
-          cached_input_tokens: tokenCounts.cached_input_tokens
-            ? Number(tokenCounts.cached_input_tokens) +
-              Number(attributes["gen_ai.usage.cached_tokens"] || 0)
-            : Number(attributes["gen_ai.usage.cached_tokens"] || 0),
-          output_tokens: tokenCounts.output_tokens
-            ? Number(tokenCounts.output_tokens) +
-              Number(attributes["gen_ai.usage.completion_tokens"])
-            : Number(attributes["gen_ai.usage.completion_tokens"]),
-          total_tokens: tokenCounts.total_tokens
-            ? Number(tokenCounts.total_tokens) +
-              Number(attributes["gen_ai.usage.prompt_tokens"]) +
-              Number(attributes["gen_ai.usage.completion_tokens"]) +
-              Number(attributes["gen_ai.usage.cached_tokens"])
-            : Number(attributes["gen_ai.usage.prompt_tokens"]) +
-              Number(attributes["gen_ai.usage.completion_tokens"]) +
-              Number(attributes["gen_ai.usage.cached_tokens"] || 0),
-        };
-
-        // calculate the cost of the current span
-        const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
-
-        // add the cost of the current span to the total cost
-        cost.total += currentcost.total;
-        cost.input += currentcost.input;
-        cost.output += currentcost.output;
-        cost.cached_input += currentcost.cached_input;
-      } else if (
-        attributes["gen_ai.usage.input_tokens"] ||
-        attributes["gen_ai.usage.output_tokens"]
-      ) {
-        tokenCounts = {
-          input_tokens: tokenCounts.input_tokens
-            ? Number(tokenCounts.input_tokens) +
-              Number(attributes["gen_ai.usage.input_tokens"])
-            : Number(attributes["gen_ai.usage.input_tokens"]),
-          cached_input_tokens: tokenCounts.cached_input_tokens
-            ? Number(tokenCounts.cached_input_tokens) +
-              Number(attributes["gen_ai.usage.cached_tokens"] || 0)
-            : Number(attributes["gen_ai.usage.cached_tokens"] || 0),
-          output_tokens: tokenCounts.output_tokens
-            ? Number(tokenCounts.output_tokens) +
-              Number(attributes["gen_ai.usage.output_tokens"])
-            : Number(attributes["gen_ai.usage.output_tokens"]),
-          total_tokens: tokenCounts.total_tokens
-            ? Number(tokenCounts.total_tokens) +
-              Number(attributes["gen_ai.usage.input_tokens"]) +
-              Number(attributes["gen_ai.usage.output_tokens"])
-            : Number(attributes["gen_ai.usage.input_tokens"]) +
-              Number(attributes["gen_ai.usage.output_tokens"]) +
-              Number(attributes["gen_ai.usage.cached_tokens"] || 0),
-        };
-        const currentcost = calculatePriceFromUsage(vendor, model, tokenCounts);
-        // add the cost of the current span to the total cost
-        cost.total += currentcost.total;
-        cost.input += currentcost.input;
-        cost.output += currentcost.output;
-        cost.cached_input += currentcost.cached_input;
-      } else if (attributes["llm.token.counts"]) {
-        // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
-        const currentcounts = JSON.parse(attributes["llm.token.counts"]);
-        tokenCounts = {
-          input_tokens: tokenCounts.input_tokens
-            ? tokenCounts.input_tokens + currentcounts.input_tokens
-            : currentcounts.input_tokens,
-          cached_input_tokens: tokenCounts.cached_input_tokens
-            ? tokenCounts.cached_input_tokens + currentcounts.cached_tokens
-            : currentcounts.cached_tokens,
-          output_tokens: tokenCounts.output_tokens
-            ? tokenCounts.output_tokens + currentcounts.output_tokens
-            : currentcounts.output_tokens,
-          total_tokens: tokenCounts.total_tokens
-            ? tokenCounts.total_tokens + currentcounts.total_tokens
-            : currentcounts.total_tokens,
-        };
-
-        // calculate the cost of the current span
-        const currentcost = calculatePriceFromUsage(
-          vendor,
-          model,
-          currentcounts
-        );
-        // add the cost of the current span to the total cost
-        cost.total += currentcost.total;
-        cost.input += currentcost.input;
-        cost.output += currentcost.output;
-        cost.cached_input += currentcost.cached_input;
-      }
-    }
-
-    // TODO(Karthik): This logic is for handling old traces that were not compatible with the gen_ai conventions.
-    const message: Record<string, string[]> = {
-      prompts: [],
-      responses: [],
-    };
-
-    if (attributes["llm.prompts"]) {
-      message.prompts.push(attributes["llm.prompts"]);
-    }
-
-    if (attributes["llm.responses"]) {
-      message.responses.push(attributes["llm.responses"]);
-    }
-
-    if (message.prompts.length > 0 || message.responses.length > 0) {
-      messages.push(message);
-    }
-
-    if (span.events && span.events !== "[]") {
-      const events = JSON.parse(span.events);
-      const inputs = [];
-      const outputs = [];
-      allEvents.push(events);
-
-      // find event with name 'gen_ai.content.prompt'
-      const promptEvent = events.find(
-        (event: any) => event.name === "gen_ai.content.prompt"
-      );
-      if (
-        promptEvent &&
-        promptEvent["attributes"] &&
-        promptEvent["attributes"]["gen_ai.prompt"]
-      ) {
-        inputs.push(promptEvent["attributes"]["gen_ai.prompt"]);
-      }
-
-      // find event with name 'gen_ai.content.completion'
-      const responseEvent = events.find(
-        (event: any) => event.name === "gen_ai.content.completion"
-      );
-      if (
-        responseEvent &&
-        responseEvent["attributes"] &&
-        responseEvent["attributes"]["gen_ai.completion"]
-      ) {
-        outputs.push(responseEvent["attributes"]["gen_ai.completion"]);
-      }
-
-      const message: Record<string, string[]> = {
-        prompts: [],
-        responses: [],
-      };
-      if (inputs.length > 0) {
-        message.prompts.push(...inputs);
-      }
-      if (outputs.length > 0) {
-        message.responses.push(...outputs);
-      }
-      if (message.prompts.length > 0 || message.responses.length > 0) {
-        messages.push(message);
-      }
-    }
-  }
-
-  // Sort the trace based on start_time, then end_time
+  // Sort trace by time
   trace.sort((a: any, b: any) => {
     if (a.start_time === b.start_time) {
       return a.end_time < b.end_time ? 1 : -1;
@@ -284,18 +264,18 @@ export function processTrace(trace: any): Trace {
     return a.start_time < b.start_time ? -1 : 1;
   });
 
-  // construct the response object
-  const result: Trace = {
+  // Construct and return result
+  return {
     id: trace[0]?.trace_id,
-    type: type,
-    status: status,
-    session_id: session_id,
+    type,
+    status,
+    session_id,
     namespace: traceHierarchy[0].name,
     user_ids: userIds,
     prompt_ids: promptIds,
     prompt_versions: promptVersions,
-    models: models,
-    vendors: vendors,
+    models: Array.from(uniqueModels),
+    vendors: Array.from(uniqueVendors),
     inputs: messages,
     outputs: messages,
     all_events: allEvents,
@@ -303,16 +283,14 @@ export function processTrace(trace: any): Trace {
     output_tokens: tokenCounts.output_tokens,
     cached_input_tokens: tokenCounts.cached_input_tokens,
     total_tokens: tokenCounts.total_tokens,
-    input_cost: cost.input,
-    cached_input_cost: cost.cached_input,
-    output_cost: cost.output,
-    total_cost: cost.total,
+    input_cost: totalCost.input,
+    cached_input_cost: totalCost.cached_input,
+    output_cost: totalCost.output,
+    total_cost: totalCost.total,
     total_duration: totalTime,
     start_time: startTime,
     sorted_trace: trace,
     trace_hierarchy: traceHierarchy,
-    raw_attributes: attributes,
+    raw_attributes: lastParsedAttributes,
   };
-
-  return result;
 }

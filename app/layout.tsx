@@ -25,9 +25,9 @@ export default function RootLayout({
       <body className={redHatDisplay.className}>
         <ThemeProvider attribute="class" defaultTheme="system">
           <QueryProvider>{children}</QueryProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
-      <Toaster />
     </html>
   );
 }

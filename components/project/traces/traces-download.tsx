@@ -30,6 +30,7 @@ export function TracesDownload({ project_id }: { project_id: string }) {
         </DialogHeader>
         <DialogFooter>
           <Button
+            className="w-full"
             type="submit"
             onClick={async () => {
               try {

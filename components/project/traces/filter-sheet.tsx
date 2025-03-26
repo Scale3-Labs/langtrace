@@ -25,24 +25,10 @@ import {
   HOW_TO_PROMPT_FETCHING,
   HOW_TO_USER_ID,
   OTEL_GENAI_ATTRIBUTES,
-  OTEL_GENAI_EVENTS,
-  SUPPORTED_VENDORS,
 } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
-import {
-  EventsLocal,
-  TracedFunctionsByVendorsLocal,
-  VendorsLocal,
-} from "@/lib/ts_sdk_constants";
-import { cn } from "@/lib/utils";
 import ClearIcon from "@mui/icons-material/Clear";
-import {
-  Check,
-  ChevronDown,
-  ListFilterIcon,
-  MinusCircle,
-  PlusCircle,
-} from "lucide-react";
+import { Check, ListFilterIcon, PlusCircle, Trash } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -435,7 +421,7 @@ export function FilterSheet({
             {filters.map((filter, index) => {
               if (filter.type !== "attribute") return null;
               return (
-                <div key={index} className="flex items-center mt-2 gap-2">
+                <div key={index} className="flex items-center mt-2 gap-1">
                   <AttributesCombobox
                     initialAttribute={filter.key}
                     setSelectedAttribute={(attribute) => {
@@ -466,7 +452,7 @@ export function FilterSheet({
                         false
                       );
                     }}
-                    className="mr-2 w-48"
+                    className="w-32"
                   />
                   <Button
                     size="icon"
@@ -475,7 +461,7 @@ export function FilterSheet({
                       handleFilterChange(filter, index, true);
                     }}
                   >
-                    <MinusCircle className="h-4 w-4" />
+                    <Trash className="h-4 w-4" />
                   </Button>
                 </div>
               );
@@ -501,7 +487,7 @@ export function FilterSheet({
             </Button>
             <Separator className="mt-4" />
           </div>
-          <AccordionItem value="vendors">
+          {/* <AccordionItem value="vendors">
             <AccordionTrigger>Filter by Vendor</AccordionTrigger>
             <AccordionContent>
               <div className="flex flex-row flex-wrap gap-4">
@@ -649,7 +635,7 @@ export function FilterSheet({
                 ))}
               </div>
             </AccordionContent>
-          </AccordionItem>
+          </AccordionItem>  */}
         </Accordion>
         <div className="sticky bottom-0 py-2 flex justify-end gap-4 mt-4">
           <Button

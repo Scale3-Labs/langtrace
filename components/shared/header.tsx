@@ -10,21 +10,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ArrowTopRightIcon } from "@radix-ui/react-icons";
-import { FileIcon, LogOutIcon } from "lucide-react";
+import { BOOKING_LINK } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+import {
+  CalendarIcon,
+  FileIcon,
+  Lightbulb,
+  LogOutIcon,
+  Monitor,
+  Moon,
+  SettingsIcon,
+  Sun,
+} from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useTheme } from "next-themes";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "react-query";
-import { ModeToggle } from "./mode-toggle";
 import Nav from "./nav";
 import { ProjectSwitcher } from "./project-switcher";
-
 export function Header({ email }: { email: string }) {
   const pathname = usePathname();
-
+  const { theme, setTheme } = useTheme();
   const fetchUser = useQuery({
-    queryKey: ["fetch-user-query"],
+    queryKey: ["fetch-user-query", email],
     queryFn: async () => {
       const response = await fetch(`/api/user?email=${email}`);
       const result = await response.json();
@@ -40,19 +50,17 @@ export function Header({ email }: { email: string }) {
             href="/projects"
             className="text-xl font-bold flex items-center gap-0"
           >
-            Langtrace AI
+            <Image
+              src="/langtrace.png"
+              alt="Langtrace AI"
+              width={40}
+              height={40}
+              className="transition-all duration-200 hover:drop-shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:dark:drop-shadow-[0_2px_8px_rgba(255,255,255,0.1)]"
+            />
           </Link>
           {pathname.includes("/project/") && <ProjectSwitcher email={email} />}
         </div>
         <div className="flex items-center gap-3">
-          <Link href={"https://docs.langtrace.ai/introduction"} target="_blank">
-            <Button variant={"secondary"} size={"sm"}>
-              <FileIcon className="mr-2 h-4 w-4" />
-              Docs
-              <ArrowTopRightIcon className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
-          <ModeToggle />
           <DropdownMenu>
             {!fetchUser.isLoading && fetchUser.data && (
               <DropdownMenuTrigger asChild>
@@ -82,8 +90,77 @@ export function Header({ email }: { email: string }) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem className="flex" onClick={() => signOut()}>
-                  <LogOutIcon className="h-4 w-4 mr-2" />
+                <DropdownMenuItem className="w-full flex justify-between hover:bg-transparent data-[highlighted]:bg-transparent">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    <span className="text-sm">Theme</span>
+                  </div>
+                  <div className="flex items-center gap-0 border rounded-md">
+                    <button
+                      className={cn(
+                        "py-1 px-2 hover:bg-muted text-muted-foreground hover:text-foreground",
+                        theme === "light" && "bg-muted text-foreground"
+                      )}
+                      onClick={() => setTheme("light")}
+                      title="Light"
+                    >
+                      <Sun className="w-4 h-4" />
+                    </button>
+                    <button
+                      className={cn(
+                        "py-1 px-2 hover:bg-muted text-muted-foreground hover:text-foreground",
+                        theme === "dark" && "bg-muted text-foreground"
+                      )}
+                      onClick={() => setTheme("dark")}
+                      title="Dark"
+                    >
+                      <Moon className="w-4 h-4" />
+                    </button>
+                    <button
+                      className={cn(
+                        "py-1 px-2 hover:bg-muted text-muted-foreground hover:text-foreground",
+                        theme === "system" && "bg-muted text-foreground"
+                      )}
+                      onClick={() => setTheme("system")}
+                      title="System"
+                    >
+                      <Monitor className="w-4 h-4" />
+                    </button>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="w-full flex"
+                  onClick={() => {
+                    window.open(
+                      "https://docs.langtrace.ai/introduction",
+                      "_blank"
+                    );
+                  }}
+                >
+                  <FileIcon className="h-4 w-4 mr-4" />
+                  <span className="text-sm">Documentation</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href="/settings/profile" className="w-full flex">
+                    <SettingsIcon className="h-4 w-4 mr-4" />
+                    <span className="text-sm">Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="w-full flex"
+                  onClick={() => {
+                    window.open(BOOKING_LINK, "_blank");
+                  }}
+                >
+                  <CalendarIcon className="h-4 w-4 mr-4" />
+                  <span className="text-sm">Missing a feature?</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="w-full flex"
+                  onClick={() => signOut()}
+                >
+                  <LogOutIcon className="h-4 w-4 mr-4" />
                   <span className="text-sm">Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>

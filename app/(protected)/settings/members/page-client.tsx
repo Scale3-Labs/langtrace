@@ -365,7 +365,7 @@ export default function MembersView({
   });
 
   const fetchUser = useQuery({
-    queryKey: ["fetch-user-query"],
+    queryKey: ["fetch-user-query", email],
     queryFn: async () => {
       const response = await fetch(`/api/user?email=${email}`);
       const result = await response.json();
