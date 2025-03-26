@@ -12,7 +12,6 @@ import { formatDateTime } from "@/lib/utils";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { ColumnDef } from "@tanstack/react-table";
 import { XIcon } from "lucide-react";
-import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
@@ -20,8 +19,11 @@ import { toast } from "sonner";
 import { FilterSheet } from "./filter-sheet";
 import { TracesTable } from "./traces-table";
 
-export default function Traces() {
-  const project_id = useParams()?.project_id as string;
+interface TracesProps {
+  project_id: string;
+}
+
+export default function Traces({ project_id }: TracesProps) {
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [currentData, setCurrentData] = useState<any>([]);
