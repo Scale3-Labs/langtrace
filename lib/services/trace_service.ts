@@ -10,7 +10,14 @@ import {
 
 export interface PaginationResult<T> {
   result: T[];
-  metadata?: { page?: number; page_size?: number; total_pages: number };
+  metadata?: {
+    page?: number;
+    page_size?: number;
+    total_pages: number;
+    query_time_ms?: number;
+    count_query_ms?: number;
+    main_query_ms?: number;
+  };
 }
 
 export interface ITraceService {
@@ -680,41 +687,63 @@ export class TraceService implements ITraceService {
         };
       }
 
-      // build the pagination metadata
-      const getTotalTracesPerProjectQuery = sql.select(
-        this.queryBuilderService.CountFilteredTraceAttributesQuery(
-          project_id,
-          filters,
-          keyword
-        )
-      );
-      const result = await this.client.find<any>(getTotalTracesPerProjectQuery);
-      const totalLen = parseInt(result[0]["total_traces"], 10);
+      // Combine count and data queries using WITH clause
+      const combinedQueryStr = `
+        WITH 
+          total_count AS (
+            SELECT COUNT(DISTINCT trace_id) AS total_traces 
+            FROM ${project_id}
+            ${this.queryBuilderService
+              .CountFilteredTraceAttributesQuery(project_id, filters, keyword)
+              .replace(/^COUNT.*FROM\s+\w+\s*/, "")}
+          ),
+          trace_data AS (
+            ${this.queryBuilderService.GetTracesWithFilters(
+              project_id,
+              filters,
+              pageSize,
+              (page - 1) * pageSize,
+              keyword
+            )}
+          )
+        SELECT 
+          *,
+          (SELECT total_traces FROM total_count) as total_count
+        FROM trace_data
+      `;
+
+      const query = sql.select("*").from(`(${combinedQueryStr})`);
+      const results = await this.client.find<any>(query);
+
+      // Extract total count and traces from results
+      const totalLen =
+        results.length > 0 ? parseInt(results[0].total_count, 10) : 0;
       const totalPages =
         Math.ceil(totalLen / pageSize) === 0
           ? 1
           : Math.ceil(totalLen / pageSize);
 
-      const md = { page, page_size: pageSize, total_pages: totalPages };
+      const md = {
+        page,
+        page_size: pageSize,
+        total_pages: totalPages,
+      };
+
       if (page! > totalPages) {
         page = totalPages;
       }
 
-      // get the traces with filters for the page
-      const queryStr = this.queryBuilderService.GetTracesWithFilters(
-        project_id,
-        filters,
-        pageSize,
-        (page - 1) * pageSize,
-        keyword
-      );
-      const query = sql.select("*").from(`(${queryStr})`);
-      const results = await this.client.find<any>(query);
-
       // Extract the arrays and remove all wrapping
       const traces: Span[][] = results.map((r: any) => r.result);
-      return { result: traces, metadata: md };
+
+      return {
+        result: traces,
+        metadata: {
+          ...md,
+        },
+      };
     } catch (error) {
+      console.error("Query execution failed:", error);
       throw new Error(
         `An error occurred while trying to get the trace ${error}`
       );

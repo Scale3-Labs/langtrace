@@ -73,7 +73,7 @@ export function Create({
             onSubmit={CreateProjectForm.handleSubmit(async (data) => {
               try {
                 setBusy(true);
-                const result = await fetch("/api/project", {
+                await fetch("/api/project", {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",

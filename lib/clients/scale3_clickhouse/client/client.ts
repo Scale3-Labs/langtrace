@@ -34,6 +34,12 @@ export interface IBaseChClient {
 }
 export class ClickhouseBaseClient implements IBaseChClient {
   client: ClickHouseClient;
+  private tableExistenceCache: Map<
+    string,
+    { exists: boolean; timestamp: number }
+  > = new Map();
+  private readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes TTL
+
   constructor(database = CLICK_HOUSE_CONSTANTS.database) {
     this.client = createClient({
       database,
@@ -47,6 +53,12 @@ export class ClickhouseBaseClient implements IBaseChClient {
         async_insert: 1,
         wait_for_async_insert: 1,
       },
+      request_timeout: 10000, // Request timeout in milliseconds
+      keep_alive: {
+        enabled: true,
+        idle_socket_ttl: 300000, // 5 minutes idle timeout
+      },
+      session_id: "langtrace_pool", // Session identifier for the connection pool
     });
   }
 
@@ -95,12 +107,11 @@ export class ClickhouseBaseClient implements IBaseChClient {
 
   async find<T>(filter: SelectStatement): Promise<T> {
     try {
-      return (await (
-        await this.client.query({
-          query: filter.toString(),
-          format: "JSONEachRow",
-        })
-      ).json()) as T;
+      const response = await this.client.query({
+        query: filter.toString(),
+        format: "JSONEachRow",
+      });
+      return (await response.json()) as T;
     } catch (err) {
       throw new Error(
         `An error occurred while trying to find the resource ${err}`
@@ -148,8 +159,26 @@ export class ClickhouseBaseClient implements IBaseChClient {
   }
 
   async checkTableExists(table: string): Promise<boolean> {
+    const now = Date.now();
+    const cached = this.tableExistenceCache.get(table);
+
+    if (cached && now - cached.timestamp < this.CACHE_TTL_MS) {
+      return cached.exists;
+    }
+
     const query = `SELECT name FROM system.tables WHERE name = '${table}'`;
     const res = await this.client.query({ query, format: "JSONEachRow" });
-    return ((await res.json()) as { name: string }[]).length > 0;
+    const exists = ((await res.json()) as { name: string }[]).length > 0;
+
+    this.tableExistenceCache.set(table, { exists, timestamp: now });
+    return exists;
+  }
+
+  clearTableExistenceCache(table?: string): void {
+    if (table) {
+      this.tableExistenceCache.delete(table);
+    } else {
+      this.tableExistenceCache.clear();
+    }
   }
 }

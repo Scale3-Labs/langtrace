@@ -98,6 +98,15 @@ export class QueryBuilderService implements IQueryBuilderService {
     return condition;
   }
 
+  private constructKeywordCondition(keyword: string): string {
+    // Escape special characters in the keyword
+    const escapedKeyword = keyword.replace(/[%_]/g, "\\$&");
+    return `
+      (lower(CAST(attributes AS String)) LIKE '%${escapedKeyword}%' OR
+       arrayExists(x -> lower(CAST(x AS String)) LIKE '%${escapedKeyword}%', JSONExtractArrayRaw(events)))
+    `;
+  }
+
   CountFilteredSpanAttributesQuery(
     tableName: string,
     filters: Filter,
@@ -161,12 +170,11 @@ export class QueryBuilderService implements IQueryBuilderService {
     let baseQuery = `COUNT(DISTINCT trace_id) AS total_traces FROM ${tableName}`;
     let whereConditions: string[] = [];
     keyword = keyword?.toLowerCase();
+
     filters.filters.forEach((filter) => {
-      // if it's a property filter
       if ("key" in filter) {
         whereConditions.push(`(${this.constructCondition(filter)})`);
       } else {
-        // if it's a filter item
         let subConditions: string[] = [];
         filter.filters.forEach((subFilter) => {
           subConditions.push(
@@ -184,24 +192,21 @@ export class QueryBuilderService implements IQueryBuilderService {
     }
 
     if (keyword !== "" && keyword !== undefined) {
-      if (baseQuery.includes("WHERE")) {
-        baseQuery += ` AND (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      } else {
-        baseQuery += ` WHERE (position(lower(CAST(attributes AS String)), '${keyword}') > 0 OR arrayExists(x -> position(lower(x), '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      }
+      const keywordCondition = this.constructKeywordCondition(keyword);
+      baseQuery += baseQuery.includes("WHERE")
+        ? ` AND (${keywordCondition})`
+        : ` WHERE (${keywordCondition})`;
     }
 
     if (lastXDays) {
-      // convert lastXDays to lastNHours
       const lastNHours = Number(lastXDays) * 24;
       const startTime = getFormattedTime(lastNHours);
-      if (baseQuery.includes("WHERE")) {
-        baseQuery += ` AND start_time >= '${startTime}'`;
-      } else {
-        baseQuery += ` WHERE start_time >= '${startTime}'`;
-      }
+      baseQuery += baseQuery.includes("WHERE")
+        ? ` AND start_time >= '${startTime}'`
+        : ` WHERE start_time >= '${startTime}'`;
     }
 
+    baseQuery = baseQuery.replace("WHERE", "PREWHERE");
     return baseQuery;
   }
 
@@ -216,12 +221,11 @@ export class QueryBuilderService implements IQueryBuilderService {
     let baseQuery = `* FROM ${tableName}`;
     let whereConditions: string[] = [];
     keyword = keyword?.toLowerCase();
+
     filters.filters.forEach((filter) => {
-      // if it's a property filter
       if ("key" in filter) {
         whereConditions.push(`(${this.constructCondition(filter)})`);
       } else {
-        // if it's a filter item
         let subConditions: string[] = [];
         filter.filters.forEach((subFilter) => {
           subConditions.push(
@@ -239,11 +243,10 @@ export class QueryBuilderService implements IQueryBuilderService {
     }
 
     if (keyword !== "" && keyword !== undefined) {
-      if (baseQuery.includes("WHERE")) {
-        baseQuery += ` AND (match(CAST(attributes AS String), '${keyword}') OR arrayExists(x -> position(x, '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      } else {
-        baseQuery += ` WHERE (match(CAST(attributes AS String), '${keyword}') OR arrayExists(x -> position(x, '${keyword}') > 0, JSONExtractArrayRaw(events)))`;
-      }
+      const keywordCondition = this.constructKeywordCondition(keyword);
+      baseQuery += baseQuery.includes("WHERE")
+        ? ` AND (${keywordCondition})`
+        : ` WHERE (${keywordCondition})`;
     }
 
     if (lastNHours) {
@@ -264,7 +267,6 @@ export class QueryBuilderService implements IQueryBuilderService {
     offset: number,
     keyword?: string
   ): string {
-    // Build the filter conditions
     const whereConditions: string[] = [];
     keyword = keyword?.toLowerCase();
 
@@ -284,92 +286,52 @@ export class QueryBuilderService implements IQueryBuilderService {
       }
     });
 
-    // Construct the filter clause
-    let filterClause = "";
-    if (whereConditions.length > 0) {
-      filterClause = `WHERE (${whereConditions.join(` ${filters.operation} `)})`;
+    let filterClause =
+      whereConditions.length > 0
+        ? `WHERE (${whereConditions.join(` ${filters.operation} `)})`
+        : "";
+
+    if (keyword && keyword !== "") {
+      const keywordCondition = this.constructKeywordCondition(keyword);
+      filterClause += `${filterClause ? " AND" : "WHERE"} (${keywordCondition})`;
     }
 
-    const rawQuery = `
-      WITH processed AS (
-        SELECT
+    const query = `
+      WITH latest_traces AS (
+        SELECT 
           trace_id,
-          start_time,
-          end_time,
-          name,
-          span_id,
-          trace_state,
-          kind,
-          parent_id,
-          attributes,
-          lower(CAST(attributes AS String)) AS lower_attributes,
-          status_code,
-          events,
-          JSONExtractArrayRaw(events) AS json_events,
-          links,
-          duration
+          min(start_time) as trace_start
         FROM ${tableName}
-      ),
-      filtered AS (
-        SELECT *
-        FROM processed
         ${filterClause}
-        ${
-          keyword && keyword !== ""
-            ? `${filterClause ? "AND" : "WHERE"} (
-              position(lower_attributes, '${keyword}') > 0
-              OR arrayExists(x -> position(lower(x), '${keyword}') > 0, json_events)
-            )`
-            : ""
-        }
-      ),
-      latest_traces AS (
-        SELECT trace_id
-        FROM filtered
         GROUP BY trace_id
-        ORDER BY min(start_time) DESC
+        ORDER BY trace_start DESC
         LIMIT ${pageSize}
         OFFSET ${offset}
       )
-      SELECT groupArray(
-        map(
-          'name', name,
-          'trace_id', trace_id,
-          'span_id', span_id,
-          'trace_state', trace_state,
-          'kind', toString(kind),
-          'parent_id', parent_id,
-          'start_time', start_time,
-          'end_time', end_time,
-          'attributes', attributes,
-          'status_code', status_code,
-          'events', events,
-          'links', links,
-          'duration', toString(duration)
-        )
-      ) AS result
-      FROM (
-        SELECT 
-          f.name,
-          f.trace_id,
-          f.span_id,
-          f.trace_state,
-          f.kind,
-          f.parent_id,
-          f.start_time,
-          f.end_time,
-          f.attributes,
-          f.status_code,
-          f.events,
-          f.links,
-          f.duration
-        FROM filtered f
-        INNER JOIN latest_traces lt ON f.trace_id = lt.trace_id
-        ORDER BY f.trace_id, f.start_time ASC
-      )
-      GROUP BY trace_id
-      ORDER BY max(end_time) DESC`;
+      SELECT 
+        groupArray(
+          map(
+            'name', name,
+            'trace_id', trace_id,
+            'span_id', span_id,
+            'trace_state', trace_state,
+            'kind', toString(kind),
+            'parent_id', parent_id,
+            'start_time', start_time,
+            'end_time', end_time,
+            'attributes', attributes,
+            'status_code', status_code,
+            'events', events,
+            'links', links,
+            'duration', toString(duration)
+          )
+        ) AS result
+      FROM ${tableName} t
+      INNER JOIN latest_traces lt ON t.trace_id = lt.trace_id
+      ${filterClause}
+      GROUP BY t.trace_id
+      ORDER BY max(t.end_time) DESC`;
 
-    return rawQuery;
+    return query;
   }
 }
