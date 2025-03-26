@@ -1,6 +1,4 @@
-import { PaginationDropdown } from "@/components/shared/pagination-dropdown";
 import { SetupInstructions } from "@/components/shared/setup-instructions";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,10 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { HOW_TO_GROUP_RELATED_OPERATIONS } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { Trace } from "@/lib/trace_util";
-import { cn } from "@/lib/utils";
 import { CircularProgress } from "@mui/material";
 import { ResetIcon } from "@radix-ui/react-icons";
 import {
@@ -31,13 +27,11 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ChevronDown, RefreshCwIcon } from "lucide-react";
-import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import RowSkeleton from "../../shared/row-skeleton";
 import { TableSkeleton } from "./table-skeleton";
 import { TraceSheet } from "./trace-sheet";
-import { TracesDownload } from "./traces-download";
 
 interface TracesTableProps<TData, TValue> {
   project_id: string;
@@ -50,8 +44,8 @@ interface TracesTableProps<TData, TValue> {
   scrollableDivRef?: React.RefObject<HTMLElement>;
   filters: PropertyFilter[];
   setFilters: (filters: PropertyFilter[]) => void;
-  pageSize: string;
-  setPageSize: (pageSize: string) => void;
+  pageSize: number;
+  setPageSize: (value: string) => void;
 }
 
 export function TracesTable<TData, TValue>({
@@ -194,47 +188,16 @@ export function TracesTable<TData, TValue>({
   return (
     <>
       {!loading && data && data.length > 0 && (
-        <div className="flex justify-between items-center z-99">
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-3 items-center">
-              <Button variant="outline" size={"icon"} onClick={() => refetch()}>
-                <RefreshCwIcon className="w-4 h-4" />
-              </Button>
-              <p
-                className={cn(
-                  "text-xs font-semibold",
-                  fetching ? "text-orange-500" : "text-muted-foreground"
-                )}
-              >
-                {fetching
-                  ? "Fetching traces..."
-                  : `Fetched the last ${data.length} traces`}
-              </p>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Seeing related spans as separate rows?{" "}
-              <Link
-                className="text-blue-500 underline"
-                href={HOW_TO_GROUP_RELATED_OPERATIONS}
-                target="_blank"
-              >
-                Learn how to group spans
-              </Link>
-            </div>
-          </div>
-
+        <div className="flex items-center z-99">
           <div className="flex items-center gap-2">
-            <Badge variant={"outline"} className="text-sm">
-              Project ID: {project_id}
-            </Badge>
             <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
+                <Button size={"sm"} variant="outline" className="ml-auto">
                   Columns
                   <ChevronDown size={16} className="ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="h-72 overflow-y-visible">
+              <DropdownMenuContent className="h-72 overflow-y-visible ml-6">
                 {table
                   .getAllColumns()
                   .filter((column) => column.getCanHide())
@@ -256,28 +219,17 @@ export function TracesTable<TData, TValue>({
               </DropdownMenuContent>
             </DropdownMenu>
             <Button
-              size={"icon"}
-              variant={"destructive"}
+              size={"sm"}
+              variant={"outline"}
               onClick={() => {
                 setColumnVisibility({});
                 setTableState({});
                 localStorage.removeItem("preferences.traces.table-view");
               }}
             >
-              <ResetIcon className="w-4 h-4" />
+              Reset
+              <ResetIcon className="w-3 h-3 ml-2" />
             </Button>
-            <TracesDownload project_id={project_id} />
-            <PaginationDropdown
-              value={pageSize}
-              setValue={(value) => {
-                setPageSize(value);
-                // store this to local storage
-                localStorage.setItem("preferences.traces.page-size", value);
-                if (value !== pageSize) {
-                  setFilters([...filters]);
-                }
-              }}
-            />
           </div>
         </div>
       )}

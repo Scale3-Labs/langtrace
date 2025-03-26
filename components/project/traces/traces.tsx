@@ -1,22 +1,23 @@
 "use client";
 
 import { HoverCell } from "@/components/shared/hover-cell";
+import { PaginationDropdown } from "@/components/shared/pagination-dropdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PAGE_SIZE } from "@/lib/constants";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
 import { processTrace, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
-import { formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { ColumnDef } from "@tanstack/react-table";
-import { XIcon } from "lucide-react";
+import { RefreshCwIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useBottomScrollListener } from "react-bottom-scroll-listener";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 import { FilterSheet } from "./filter-sheet";
+import { TracesDownload } from "./traces-download";
 import { TracesTable } from "./traces-table";
 
 interface TracesProps {
@@ -38,7 +39,7 @@ export default function Traces({ project_id }: TracesProps) {
   const [expandedView, setExpandedView] = useState(false);
   const [group, setGroup] = useState(true);
   const [keyword, setKeyword] = useState<string>("");
-  const [pageSize, setPageSize] = useState<string>(PAGE_SIZE.toString());
+  const [pageSize, setPageSize] = useState<string>("10");
 
   useEffect(() => {
     setCurrentData([]);
@@ -58,10 +59,12 @@ export default function Traces({ project_id }: TracesProps) {
       // Default group to true if not set
       setGroup(group === "false" ? false : true);
 
-      const pageSize = window.localStorage.getItem(
+      const storedPageSize = localStorage.getItem(
         "preferences.traces.page-size"
       );
-      setPageSize(pageSize || PAGE_SIZE.toString());
+      if (storedPageSize) {
+        setPageSize(storedPageSize);
+      }
     }
   }, [filters]);
 
@@ -498,61 +501,99 @@ export default function Traces({ project_id }: TracesProps) {
 
   return (
     <div className="w-full py-6 px-6 flex flex-col gap-4">
-      <div className="flex gap-2 items-center w-full">
-        <FilterSheet
-          utcTime={utcTime}
-          setUtcTime={setUtcTime}
-          expandedView={expandedView}
-          setExpandedView={setExpandedView}
-          group={group}
-          setGroup={setGroup}
-          setPage={setPage}
-          setEnableFetch={setEnableFetch}
-          filters={filters}
-          setFilters={setFilters}
-          showBottomLoader={showBottomLoader}
-          userId={userId}
-          setUserId={setUserId}
-          promptId={promptId}
-          setPromptId={setPromptId}
-          model={model}
-          setModel={setModel}
-        />
-        {filters.length > 0 && (
+      <div className="flex justify-between items-center w-full">
+        <div className="flex gap-2 items-center w-full">
           <Button
-            size={"sm"}
-            variant={"destructive"}
-            onClick={() => {
-              setFilters([]);
-              setUserId("");
-              setPromptId("");
-              setModel("");
-            }}
+            variant="outline"
+            size={"icon"}
+            onClick={() => fetchTraces.refetch()}
           >
-            <XIcon className="w-4 h-4 mr-1" />
-            Clear All
+            <RefreshCwIcon className="w-4 h-4" />
           </Button>
-        )}
-        <div className="relative w-full">
-          <MagnifyingGlassIcon className="absolute top-2 left-2 text-muted-foreground h-5 w-5" />
-          <Input
-            className="w-full border-muted rounded-md pl-8"
-            placeholder="Search for anything in your traces (Hit Enter to search)"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                // reset everything
-                setPage(1);
+          <FilterSheet
+            utcTime={utcTime}
+            setUtcTime={setUtcTime}
+            expandedView={expandedView}
+            setExpandedView={setExpandedView}
+            group={group}
+            setGroup={setGroup}
+            setPage={setPage}
+            setEnableFetch={setEnableFetch}
+            filters={filters}
+            setFilters={setFilters}
+            showBottomLoader={showBottomLoader}
+            userId={userId}
+            setUserId={setUserId}
+            promptId={promptId}
+            setPromptId={setPromptId}
+            model={model}
+            setModel={setModel}
+          />
+          {filters.length > 0 && (
+            <Button
+              size={"sm"}
+              variant={"destructive"}
+              onClick={() => {
                 setFilters([]);
-                setEnableFetch(true);
+                setUserId("");
+                setPromptId("");
+                setModel("");
+              }}
+            >
+              <XIcon className="w-4 h-4 mr-1" />
+              Clear All
+            </Button>
+          )}
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute top-2 left-2 text-muted-foreground h-5 w-5" />
+            <Input
+              className="w-[700px] border-muted rounded-md pl-8"
+              placeholder="Search for anything in your traces (Hit Enter to search)"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setPage(1);
+                  setFilters([]);
+                  setEnableFetch(true);
+                }
+              }}
+            />
+          </div>
+          <TracesDownload project_id={project_id} />
+          <PaginationDropdown
+            value={pageSize}
+            setValue={(value) => {
+              setPageSize(value);
+              localStorage.setItem("preferences.traces.page-size", value);
+              if (value !== pageSize) {
+                setFilters([...filters]);
               }
             }}
           />
         </div>
+        <div className="flex items-center gap-2">
+          <Badge variant={"outline"} className="text-xs text-muted-foreground">
+            Project ID: {project_id}
+          </Badge>
+          <Badge
+            variant={"outline"}
+            className={cn(
+              "text-xs font-semibold",
+              fetchTraces.isFetching
+                ? "text-orange-500"
+                : "text-muted-foreground"
+            )}
+          >
+            {fetchTraces.isFetching
+              ? "Fetching traces..."
+              : `Fetched the latest ${currentData.length} traces`}
+          </Badge>
+        </div>
       </div>
+
       <TracesTable
-        pageSize={pageSize}
+        pageSize={parseInt(pageSize)}
         setPageSize={setPageSize}
         project_id={project_id}
         columns={columns}

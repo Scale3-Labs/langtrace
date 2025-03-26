@@ -1,48 +1,30 @@
-import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
+import { Button } from "@/components/ui/button";
+import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useState } from "react";
 
-const pageSizes = [
-  {
-    value: "1",
-    label: "1 trace/page",
-  },
-  {
-    value: "5",
-    label: "5 traces/page",
-  },
-  {
-    value: "10",
-    label: "10 traces/page",
-  },
-  {
-    value: "15",
-    label: "15 traces/page",
-  },
-]
+const PAGE_SIZE_OPTIONS = [
+  { value: "10", label: "10 per page" },
+  { value: "25", label: "25 per page" },
+  { value: "50", label: "50 per page" },
+  { value: "100", label: "100 per page" },
+];
+
+interface PaginationDropdownProps {
+  value: string;
+  setValue: (value: string) => void;
+}
 
 export function PaginationDropdown({
   value,
   setValue,
-}: {
-  value: string;
-  setValue: (value: string) => void;
-}) {
-  const [open, setOpen] = React.useState(false);
+}: PaginationDropdownProps) {
+  const [open, setOpen] = useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,39 +35,36 @@ export function PaginationDropdown({
           aria-expanded={open}
           className="w-[150px] justify-between"
         >
-          {value
-            ? pageSizes.find((pageSize) => pageSize.value === value)?.label
-            : "Select page size..."}
-          <ChevronsUpDown className="opacity-50" />
+          <span className="truncate">
+            {PAGE_SIZE_OPTIONS.find((option) => option.value === value)
+              ?.label || "10 per page"}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[150px] p-0">
         <Command>
-          <CommandList>
-            <CommandEmpty>No page size found.</CommandEmpty>
-            <CommandGroup>
-              {pageSizes.map((pageSize) => (
-                <CommandItem
-                  key={pageSize.value}
-                  value={pageSize.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? value : currentValue)
-                    setOpen(false)
-                  }}
-                >
-                  {pageSize.label}
-                  <Check
-                    className={cn(
-                      "ml-auto",
-                      value === pageSize.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
+          <CommandGroup>
+            {PAGE_SIZE_OPTIONS.map((option) => (
+              <CommandItem
+                key={option.value}
+                value={option.value}
+                onSelect={(currentValue) => {
+                  setValue(currentValue);
+                  setOpen(false);
+                }}
+              >
+                <Check
+                  className={`mr-2 h-4 w-4 ${
+                    value === option.value ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+                {option.label}
+              </CommandItem>
+            ))}
+          </CommandGroup>
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
