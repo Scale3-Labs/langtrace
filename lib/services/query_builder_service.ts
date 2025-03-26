@@ -54,13 +54,13 @@ export class QueryBuilderService implements IQueryBuilderService {
       const attributeName = `JSONExtractString(attributes, '${filter.key}')`;
       switch (filter.operation) {
         case "EQUALS":
-          condition = `${attributeName} = '${filter.value}'`;
+          condition = `COALESCE(${attributeName}, '') = '${filter.value}'`;
           break;
         case "CONTAINS":
           condition = `${attributeName} LIKE '%${filter.value}%'`;
           break;
         case "NOT_EQUALS":
-          condition = `${attributeName} != '${filter.value}'`;
+          condition = `COALESCE(${attributeName}, '') != '${filter.value}'`;
           break;
         default:
           throw new Error(`Unsupported filter operation: ${filter.operation}`);

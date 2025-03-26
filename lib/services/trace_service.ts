@@ -118,8 +118,9 @@ export interface ITraceService {
 export class TraceService implements ITraceService {
   private readonly client: ClickhouseBaseClient;
   private readonly queryBuilderService: IQueryBuilderService;
+
   constructor() {
-    this.client = new ClickhouseBaseClient();
+    this.client = ClickhouseBaseClient.getInstance();
     this.queryBuilderService = new QueryBuilderService();
   }
 
