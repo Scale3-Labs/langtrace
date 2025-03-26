@@ -271,6 +271,7 @@ export function Edit({
                   {apiKey}
                 </p>
                 <button
+                  aria-label="Copy to clipboard"
                   className="bg-primary-foreground rounded-md"
                   onClick={() => {
                     navigator.clipboard.writeText(apiKey);

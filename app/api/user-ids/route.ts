@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (error) {
+    console.error(error);
     return NextResponse.json(JSON.stringify({ error }), {
       status: 400,
     });

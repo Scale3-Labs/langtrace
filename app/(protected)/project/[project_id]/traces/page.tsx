@@ -9,11 +9,17 @@ export const metadata: Metadata = {
   description: "View all traces for a project.",
 };
 
-export default async function Page() {
+interface PageProps {
+  params: {
+    project_id: string;
+  };
+}
+
+export default async function Page({ params }: PageProps) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
     redirect("/login");
   }
 
-  return <Traces />;
+  return <Traces project_id={params.project_id} />;
 }

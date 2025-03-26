@@ -33,8 +33,16 @@ export interface IBaseChClient {
   checkTableExists: (table: string) => Promise<boolean>;
 }
 export class ClickhouseBaseClient implements IBaseChClient {
-  client: ClickHouseClient;
-  constructor(database = CLICK_HOUSE_CONSTANTS.database) {
+  private static instance: ClickhouseBaseClient;
+  private client: ClickHouseClient;
+  private tableExistenceCache: Map<
+    string,
+    { exists: boolean; timestamp: number }
+  > = new Map();
+  private readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes TTL
+  private isConnected: boolean = false;
+
+  private constructor(database = CLICK_HOUSE_CONSTANTS.database) {
     this.client = createClient({
       database,
       url: process.env.CLICK_HOUSE_HOST,
@@ -46,8 +54,38 @@ export class ClickhouseBaseClient implements IBaseChClient {
       clickhouse_settings: {
         async_insert: 1,
         wait_for_async_insert: 1,
+        max_execution_time: 30,
+        max_threads: 2,
       },
+      request_timeout: 30000,
+      keep_alive: {
+        enabled: true,
+        idle_socket_ttl: 60000,
+      },
+      max_open_connections: 10,
+      application: "langtrace_app",
     });
+  }
+
+  public static getInstance(
+    database = CLICK_HOUSE_CONSTANTS.database
+  ): ClickhouseBaseClient {
+    if (!ClickhouseBaseClient.instance) {
+      ClickhouseBaseClient.instance = new ClickhouseBaseClient(database);
+    }
+    return ClickhouseBaseClient.instance;
+  }
+
+  private async ensureConnection(): Promise<void> {
+    if (!this.isConnected) {
+      try {
+        await this.client.ping();
+        this.isConnected = true;
+      } catch (error) {
+        this.isConnected = false;
+        throw new Error(`Failed to connect to ClickHouse: ${error}`);
+      }
+    }
   }
 
   async createFromSchema<T extends ChSchema>(
@@ -80,6 +118,7 @@ export class ClickhouseBaseClient implements IBaseChClient {
     data: T
   ): Promise<T> {
     try {
+      await this.ensureConnection();
       const res = await this.client.insert({
         table,
         values: data,
@@ -87,6 +126,7 @@ export class ClickhouseBaseClient implements IBaseChClient {
       });
       return { ...data, query_id: res.query_id };
     } catch (err) {
+      this.isConnected = false; // Reset connection state on error
       throw new Error(
         `An error occurred while trying to insert the resource ${err}`
       );
@@ -95,13 +135,14 @@ export class ClickhouseBaseClient implements IBaseChClient {
 
   async find<T>(filter: SelectStatement): Promise<T> {
     try {
-      return (await (
-        await this.client.query({
-          query: filter.toString(),
-          format: "JSONEachRow",
-        })
-      ).json()) as T;
+      await this.ensureConnection();
+      const response = await this.client.query({
+        query: filter.toString(),
+        format: "JSONEachRow",
+      });
+      return (await response.json()) as T;
     } catch (err) {
+      this.isConnected = false; // Reset connection state on error
       throw new Error(
         `An error occurred while trying to find the resource ${err}`
       );
@@ -148,8 +189,33 @@ export class ClickhouseBaseClient implements IBaseChClient {
   }
 
   async checkTableExists(table: string): Promise<boolean> {
+    const now = Date.now();
+    const cached = this.tableExistenceCache.get(table);
+
+    if (cached && now - cached.timestamp < this.CACHE_TTL_MS) {
+      return cached.exists;
+    }
+
     const query = `SELECT name FROM system.tables WHERE name = '${table}'`;
     const res = await this.client.query({ query, format: "JSONEachRow" });
-    return ((await res.json()) as { name: string }[]).length > 0;
+    const exists = ((await res.json()) as { name: string }[]).length > 0;
+
+    this.tableExistenceCache.set(table, { exists, timestamp: now });
+    return exists;
+  }
+
+  clearTableExistenceCache(table?: string): void {
+    if (table) {
+      this.tableExistenceCache.delete(table);
+    } else {
+      this.tableExistenceCache.clear();
+    }
+  }
+
+  async close(): Promise<void> {
+    if (this.client) {
+      await this.client.close();
+      this.isConnected = false;
+    }
   }
 }
