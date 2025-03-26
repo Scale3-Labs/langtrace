@@ -19,114 +19,25 @@ import Link from "next/link";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
 
-export default function PageClient({ email }: { email: string }) {
-  const {
-    data: projects,
-    isLoading: projectsLoading,
-    error: projectsError,
-  } = useQuery({
-    queryKey: ["fetch-projects-query"],
-    queryFn: async () => {
-      const response = await fetch(`/api/projects?email=${email}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error?.message || "Failed to fetch projects");
-      }
-      const result = await response.json();
-      return result;
-    },
-    onError: (error) => {
-      toast.error("Failed to fetch projects", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-    },
-  });
-
-  const {
-    data: user,
-    isLoading: userLoading,
-    error: userError,
-  } = useQuery({
-    queryKey: ["fetch-user-query"],
-    queryFn: async () => {
-      const response = await fetch(`/api/user?email=${email}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error?.message || "Failed to fetch user");
-      }
-      const result = await response.json();
-      return result;
-    },
-    onError: (error) => {
-      toast.error("Failed to fetch user", {
-        description: error instanceof Error ? error.message : String(error),
-      });
-    },
-  });
-
-  if (projectsLoading || userLoading) {
-    return <PageSkeleton />;
-  }
-
-  if (projectsError || userError) {
-    return (
-      <div className="w-full flex flex-col">
-        <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
-          <h1 className="text-3xl font-semibold">Projects</h1>
-          <Create teamId={user?.data?.Team?.id} />
-        </div>
-        <div className="md:px-52 px-12 py-12 flex flex-col items-center justify-center">
-          <RabbitIcon size={80} />
-          <p className="text-lg text-destructive font-semibold">
-            An error occurred while fetching data. Please try again later.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // sort projects by created date
-  projects?.projects?.sort((a: Project, b: Project) => {
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-
+export function PageSkeleton() {
   return (
     <div className="w-full flex flex-col">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Projects</h1>
-        <Create teamId={user?.data?.Team?.id} />
+        <Create disabled={true} />
       </div>
       <div
         className={cn(
-          "md:px-24 px-12 py-12 flex md:flex-row flex-col gap-2 items-center",
-          projects?.projects?.length === 0
-            ? "md:items-center"
-            : "md:items-start"
+          "md:px-24 px-12 py-12 flex md:flex-row flex-col gap-2 items-center md:items-start"
         )}
       >
         <div
           className={cn(
-            "flex w-full gap-12 flex-wrap",
-            projects?.projects?.length === 0
-              ? "flex-col items-center"
-              : "md:flex-row flex-wrap flex-col md:items-start items-center"
+            "flex w-full gap-12 flex-wrap md:flex-row flex-col md:items-start items-center"
           )}
         >
-          {projects?.projects?.length === 0 && (
-            <div className="flex flex-col gap-2 items-center">
-              <p className="text-2xl text-muted-foreground">Welcome!</p>
-              <p className="text-lg text-muted-foreground mb-2">
-                Create a new project to get started
-              </p>
-              <Create teamId={user?.data?.Team?.id} />
-            </div>
-          )}
-          {projects?.projects?.map((project: Project, i: number) => (
-            <ProjectCard
-              key={i}
-              project={project}
-              teamId={user?.data?.Team?.id}
-            />
+          {Array.from({ length: 3 }).map((_, index) => (
+            <CardSkeleton key={index} />
           ))}
         </div>
       </div>
@@ -161,6 +72,8 @@ function ProjectCard({
         description: error instanceof Error ? error.message : String(error),
       });
     },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   return (
@@ -261,25 +174,118 @@ function ProjectCard({
   );
 }
 
-export function PageSkeleton() {
+export default function PageClient({ email }: { email: string }) {
+  const {
+    data: projects,
+    isLoading: projectsLoading,
+    error: projectsError,
+  } = useQuery({
+    queryKey: ["fetch-projects-query"],
+    queryFn: async () => {
+      const response = await fetch(`/api/projects?email=${email}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch projects");
+      }
+      const result = await response.json();
+      return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch projects", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+
+  const {
+    data: user,
+    isLoading: userLoading,
+    error: userError,
+  } = useQuery({
+    queryKey: ["fetch-user-query", email],
+    queryFn: async () => {
+      const response = await fetch(`/api/user?email=${email}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error?.message || "Failed to fetch user");
+      }
+      const result = await response.json();
+      return result;
+    },
+    onError: (error) => {
+      toast.error("Failed to fetch user", {
+        description: error instanceof Error ? error.message : String(error),
+      });
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+  });
+
+  if (projectsLoading || userLoading) {
+    return <PageSkeleton />;
+  }
+
+  if (projectsError || userError) {
+    return (
+      <div className="w-full flex flex-col">
+        <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
+          <h1 className="text-3xl font-semibold">Projects</h1>
+          <Create teamId={user?.data?.Team?.id} />
+        </div>
+        <div className="md:px-52 px-12 py-12 flex flex-col items-center justify-center">
+          <RabbitIcon size={80} />
+          <p className="text-lg text-destructive font-semibold">
+            An error occurred while fetching data. Please try again later.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // sort projects by created date
+  projects?.projects?.sort((a: Project, b: Project) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
   return (
     <div className="w-full flex flex-col">
       <div className="md:px-24 px-12 py-12 flex justify-between bg-muted">
         <h1 className="text-3xl font-semibold">Projects</h1>
-        <Create disabled={true} />
+        <Create teamId={user?.data?.Team?.id} />
       </div>
       <div
         className={cn(
-          "md:px-24 px-12 py-12 flex md:flex-row flex-col gap-2 items-center md:items-start"
+          "md:px-24 px-12 py-12 flex md:flex-row flex-col gap-2 items-center",
+          projects?.projects?.length === 0
+            ? "md:items-center"
+            : "md:items-start"
         )}
       >
         <div
           className={cn(
-            "flex w-full gap-12 flex-wrap md:flex-row flex-col md:items-start items-center"
+            "flex w-full gap-12 flex-wrap",
+            projects?.projects?.length === 0
+              ? "flex-col items-center"
+              : "md:flex-row flex-wrap flex-col md:items-start items-center"
           )}
         >
-          {Array.from({ length: 3 }).map((_, index) => (
-            <CardSkeleton key={index} />
+          {projects?.projects?.length === 0 && (
+            <div className="flex flex-col gap-2 items-center">
+              <p className="text-2xl text-muted-foreground">Welcome!</p>
+              <p className="text-lg text-muted-foreground mb-2">
+                Create a new project to get started
+              </p>
+              <Create teamId={user?.data?.Team?.id} />
+            </div>
+          )}
+          {projects?.projects?.map((project: Project, i: number) => (
+            <ProjectCard
+              key={i}
+              project={project}
+              teamId={user?.data?.Team?.id}
+            />
           ))}
         </div>
       </div>

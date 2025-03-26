@@ -24,6 +24,8 @@ export const OTEL_GENAI_ATTRIBUTES =
   "https://opentelemetry.io/docs/specs/semconv/gen-ai/llm-spans/#llm-request-attributes";
 export const USER_FEEDBACK_LINK =
   "https://docs.langtrace.ai/tracing/trace_user_feedback#example-user-score";
+export const BOOKING_LINK =
+  "https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ37ERnY56gsTyg0--eIyt2I8qxw2ZyUawIuKnA8ae_J93yhq9qO5wx_UblUJDGB9VNWSvBQbFpn";
 
 // TODO: Add more models
 // https://github.com/dqbd/tiktoken/blob/74c147e19584a3a1acea0c8e0da4d39415cd33e0/wasm/src/lib.rs#L328
