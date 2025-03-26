@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { toast } from "sonner";
-import { Button } from "../ui/button";
 
 const DashboardNavLinks = [
   {
@@ -20,12 +19,12 @@ const DashboardNavLinks = [
 const ProjectNavLinks = (id: string, type = "default") => {
   const result = [
     {
-      name: "Metrics",
-      href: `/project/${id}/metrics`,
-    },
-    {
       name: "Traces",
       href: `/project/${id}/traces`,
+    },
+    {
+      name: "Metrics",
+      href: `/project/${id}/metrics`,
     },
     {
       name: "Human Evaluations",
@@ -109,37 +108,43 @@ export default function Nav({}: {}) {
 
   if (projectLoading) {
     return (
-      <nav className="flex items-end gap-4">
-        {[1, 2, 3, 4, 5, 6, 7].map((link, i) => (
-          <Button
-            key={i}
-            className={cn("text-muted-foreground hover:text-primary")}
-            variant="ghost"
-          >
-            <div className="animate-pulse flex items-center gap-2">
-              <div className="w-20 h-6 bg-muted rounded-md"></div>
-            </div>
-          </Button>
+      <nav className="relative flex items-end">
+        <div className="absolute bottom-0 h-[1px] bg-border w-full" />
+        {[1, 2, 3, 4, 5, 6, 7].map((_, i) => (
+          <div key={i} className="relative px-4 py-2 -mb-[1px]">
+            <div className="h-5 w-20 bg-muted rounded-sm animate-pulse" />
+          </div>
         ))}
       </nav>
     );
   }
 
   return (
-    <nav className="flex items-end gap-4">
+    <nav className="relative flex items-end">
+      <div className="absolute bottom-0 h-[1px] bg-border w-full" />
       {navlinks.map((link, i) => (
-        <Link key={i} href={link.href}>
-          <Button
+        <Link key={i} href={link.href} className="relative">
+          <div
             className={cn(
-              pathname.includes(link.name.toLowerCase().replace(" ", "-"))
-                ? "text-primary border-b border-primary rounded-b-none"
-                : "text-muted-foreground",
-              "hover:text-primary"
+              "relative px-4 py-2 -mb-[1px] group",
+              "hover:bg-muted",
+              pathname.includes(link.name.toLowerCase().replace(" ", "-")) && [
+                "border-b-2 border-primary",
+              ]
             )}
-            variant="ghost"
           >
-            {link.name}
-          </Button>
+            <span
+              className={cn(
+                "relative text-sm font-medium",
+                pathname.includes(link.name.toLowerCase().replace(" ", "-"))
+                  ? "text-foreground"
+                  : "text-muted-foreground",
+                "group-hover:text-foreground"
+              )}
+            >
+              {link.name}
+            </span>
+          </div>
         </Link>
       ))}
     </nav>

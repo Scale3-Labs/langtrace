@@ -93,7 +93,7 @@ function ProjectCard({
         <Edit teamId={teamId} project={project} />
       </div>
       <Link href={`/project/${project.id}/traces`}>
-        <Card className="w-full md:w-[380px] h-[190px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out border-muted hover:border-muted-foreground border hover:shadow-lg">
+        <Card className="w-full md:w-[380px] h-[190px] shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out hover:border-muted border hover:shadow-lg">
           <CardHeader>
             {project.type === "crewai" && (
               <CardTitle className="capitalize w-full truncate flex items-center gap-1">
