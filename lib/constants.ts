@@ -415,26 +415,78 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
 };
 
 export const GROQ_PRICING: Record<string, CostTableEntry> = {
-  "llama3-70b-8192": {
-    input: 0.00059,
-    output: 0.00079,
+  "deepseek-r1-distill-llama-70b": {
+    "input": 0.00075,
+    "output": 0.00099
   },
-  "llama3-8b-8192": {
-    input: 0.00005,
-    output: 0.00008,
+  "deepseek-r1-distill-qwen-32b": {
+    "input": 0.00069,
+    "output": 0.00069
   },
-  "llama3-groq-70b-8192-tool-use-preview": {
-    input: 0.00089,
-    output: 0.00089,
+  "qwen-2.5-32b-instruct": {
+    "input": 0.00079,
+    "output": 0.00079
   },
-  "llama3-groq-8b-8192-tool-use-preview": {
-    input: 0.00019,
-    output: 0.00019,
+  "qwen-2.5-coder-32b-instruct": {
+    "input": 0.00079,
+    "output": 0.00079
   },
-  "mixtral-8x7b-32768": {
-    input: 0.00024,
-    output: 0.00024,
+  "qwen-qwq-32b": {
+    "input": 0.00029,
+    "output": 0.00039
   },
+  "mistral-saba-24b": {
+    "input": 0.00079,
+    "output": 0.00079
+  },
+  "llama-3.2-1b": {
+    "input": 0.00004,
+    "output": 0.00004
+  },
+  "llama-3.2-3b": {
+    "input": 0.00006,
+    "output": 0.00006
+  },
+  "llama-3.3-70b-versatile": {
+    "input": 0.00059,
+    "output": 0.00079
+  },
+  "llama-3.1-8b-instant": {
+    "input": 0.00005,
+    "output": 0.00008
+  },
+  "llama-3-70b": {
+    "input": 0.00059,
+    "output": 0.00079
+  },
+  "llama-3-8b": {
+    "input": 0.00005,
+    "output": 0.00008
+  },
+  "mixtral-8x7b-instruct": {
+    "input": 0.00024,
+    "output": 0.00024
+  },
+  "gemma-2-9b": {
+    "input": 0.00020,
+    "output": 0.00020
+  },
+  "llama-guard-3-8b": {
+    "input": 0.00020,
+    "output": 0.00020
+  },
+  "llama-3.3-70b-specdec": {
+    "input": 0.00059,
+    "output": 0.00099
+  },
+  "llama-3.2-11b-vision": {
+    "input": 0.00018,
+    "output": 0.00018
+  },
+  "llama-3.2-90b-vision": {
+    "input": 0.00090,
+    "output": 0.00090
+  }
 };
 
 export const AZURE_PRICING: Record<string, CostTableEntry> = {
