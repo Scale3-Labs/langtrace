@@ -150,6 +150,10 @@ export function vendorColor(vendor: string) {
     return "bg-white";
   }
 
+  if (vendor.includes("neo4j")) {
+    return "bg-white";
+  }
+
   if (vendor.includes("groq")) {
     return "bg-slate-200";
   }
@@ -565,6 +569,22 @@ export function VendorLogo({
       <Image
         alt="Agno Logo"
         src="/agno.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("neo4j")) {
+    const color = vendorColor("neo4j");
+    return (
+      <Image
+        alt="Neo4j Logo"
+        src="/neo4j-icon.svg"
         width={30}
         height={30}
         className={cn(
