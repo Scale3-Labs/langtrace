@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PropertyFilter } from "@/lib/services/query_builder_service";
-import { processTrace, Trace } from "@/lib/trace_util";
+import { processTrace, ToolCall, Trace } from "@/lib/trace_util";
 import { correctTimestampFormat } from "@/lib/trace_utils";
 import { cn, formatDateTime } from "@/lib/utils";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
@@ -402,6 +402,55 @@ export default function Traces({ project_id }: TracesProps) {
           return null;
         }
         return <p className="text-xs font-semibold">{duration}ms</p>;
+      },
+    },
+    {
+      accessorKey: "tool_calls",
+      header: "Tool Calls",
+      size: 300,
+      minSize: 150,
+      cell: ({ row }) => {
+        const toolCalls = row.getValue("tool_calls") as ToolCall[];
+        if (!toolCalls || toolCalls.length === 0) {
+          return null;
+        }
+
+        const firstToolCall = toolCalls[0];
+
+        return (
+          <div className="flex flex-col gap-3">
+            {/* Show the first tool call details */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="w-fit">
+                  {firstToolCall.name}
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {firstToolCall.count || 1}x
+                </Badge>
+              </div>
+              <HoverCell
+                values={JSON.parse(firstToolCall.arguments)}
+                expand={expandedView}
+              />
+            </div>
+
+            {/* Show summary of other tool calls */}
+            {toolCalls.slice(1).map((call) => (
+              <div
+                key={`${call.name}-${call.arguments}`}
+                className="flex items-center gap-2"
+              >
+                <Badge variant="outline" className="w-fit">
+                  {call.name}
+                </Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {call.count || 1}x
+                </Badge>
+              </div>
+            ))}
+          </div>
+        );
       },
     },
   ];
