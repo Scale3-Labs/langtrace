@@ -1,6 +1,15 @@
 import { calculateTotalTime, convertTracesToHierarchy } from "./trace_utils";
 import { calculatePriceFromUsage } from "./utils";
 
+export interface ToolCall {
+  id: string;
+  type: string;
+  name: string;
+  arguments: string;
+  timestamp?: number;
+  count?: number;
+}
+
 export interface Trace {
   id: string;
   status: string;
@@ -28,6 +37,7 @@ export interface Trace {
   sorted_trace: any[];
   trace_hierarchy: any[];
   raw_attributes: any;
+  tool_calls: ToolCall[];
 }
 
 interface TraceAttributes {
@@ -89,47 +99,51 @@ function processTokenCounts(
   let tokenCounts = { ...currentCounts };
   let cost = { total: 0, input: 0, output: 0, cached_input: 0 };
 
-  if (attrs.tokenUsage.promptTokens && attrs.tokenUsage.completionTokens) {
+  const tokenUsage = attrs.tokenUsage || {};
+
+  if (tokenUsage.promptTokens || tokenUsage.completionTokens) {
     tokenCounts = {
       input_tokens:
-        (tokenCounts.input_tokens || 0) + attrs.tokenUsage.promptTokens,
+        (tokenCounts.input_tokens || 0) + Number(tokenUsage.promptTokens || 0),
       cached_input_tokens:
         (tokenCounts.cached_input_tokens || 0) +
-        (attrs.tokenUsage.cachedTokens || 0),
+        Number(tokenUsage.cachedTokens || 0),
       output_tokens:
-        (tokenCounts.output_tokens || 0) + attrs.tokenUsage.completionTokens,
+        (tokenCounts.output_tokens || 0) +
+        Number(tokenUsage.completionTokens || 0),
       total_tokens:
         (tokenCounts.total_tokens || 0) +
-        attrs.tokenUsage.promptTokens +
-        attrs.tokenUsage.completionTokens +
-        (attrs.tokenUsage.cachedTokens || 0),
+        Number(tokenUsage.promptTokens || 0) +
+        Number(tokenUsage.completionTokens || 0) +
+        Number(tokenUsage.cachedTokens || 0),
     };
-  } else if (attrs.tokenUsage.inputTokens || attrs.tokenUsage.outputTokens) {
+  } else if (tokenUsage.inputTokens || tokenUsage.outputTokens) {
     tokenCounts = {
       input_tokens:
-        (tokenCounts.input_tokens || 0) + attrs.tokenUsage.inputTokens,
+        (tokenCounts.input_tokens || 0) + Number(tokenUsage.inputTokens || 0),
       cached_input_tokens:
         (tokenCounts.cached_input_tokens || 0) +
-        (attrs.tokenUsage.cachedTokens || 0),
+        Number(tokenUsage.cachedTokens || 0),
       output_tokens:
-        (tokenCounts.output_tokens || 0) + attrs.tokenUsage.outputTokens,
+        (tokenCounts.output_tokens || 0) + Number(tokenUsage.outputTokens || 0),
       total_tokens:
         (tokenCounts.total_tokens || 0) +
-        attrs.tokenUsage.inputTokens +
-        attrs.tokenUsage.outputTokens +
-        (attrs.tokenUsage.cachedTokens || 0),
+        Number(tokenUsage.inputTokens || 0) +
+        Number(tokenUsage.outputTokens || 0) +
+        Number(tokenUsage.cachedTokens || 0),
     };
   } else if (attrs.llmTokenCounts) {
+    const llmCounts = attrs.llmTokenCounts || {};
     tokenCounts = {
       input_tokens:
-        (tokenCounts.input_tokens || 0) + attrs.llmTokenCounts.input_tokens,
+        (tokenCounts.input_tokens || 0) + Number(llmCounts.input_tokens || 0),
       cached_input_tokens:
         (tokenCounts.cached_input_tokens || 0) +
-        attrs.llmTokenCounts.cached_tokens,
+        Number(llmCounts.cached_tokens || 0),
       output_tokens:
-        (tokenCounts.output_tokens || 0) + attrs.llmTokenCounts.output_tokens,
+        (tokenCounts.output_tokens || 0) + Number(llmCounts.output_tokens || 0),
       total_tokens:
-        (tokenCounts.total_tokens || 0) + attrs.llmTokenCounts.total_tokens,
+        (tokenCounts.total_tokens || 0) + Number(llmCounts.total_tokens || 0),
     };
   }
 
@@ -142,12 +156,136 @@ function processTokenCounts(
   return { tokenCounts, cost };
 }
 
-function processEvents(events: string): {
+function extractToolCalls(events: string, timestamp: number): ToolCall[] {
+  if (!events || events === "[]") {
+    return [];
+  }
+
+  try {
+    const parsedEvents = JSON.parse(events);
+    if (!Array.isArray(parsedEvents)) {
+      return [];
+    }
+
+    const allToolCalls: ToolCall[] = [];
+
+    for (const event of parsedEvents) {
+      if (!event?.attributes) continue;
+
+      if (
+        event.name === "gen_ai.content.prompt" &&
+        event.attributes["gen_ai.prompt"]
+      ) {
+        try {
+          const promptHistory = JSON.parse(event.attributes["gen_ai.prompt"]);
+          if (Array.isArray(promptHistory)) {
+            for (const message of promptHistory) {
+              if (message?.tool_calls && Array.isArray(message.tool_calls)) {
+                message.tool_calls.forEach((tool: any) => {
+                  if (tool?.function?.name && tool?.function?.arguments) {
+                    allToolCalls.push({
+                      id: tool.id || "",
+                      type: tool.type || "function",
+                      name: tool.function.name,
+                      arguments: tool.function.arguments,
+                      timestamp,
+                      count: 1,
+                    });
+                  }
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing prompt history:", e);
+        }
+      }
+
+      if (
+        event.name === "gen_ai.content.completion" &&
+        event.attributes["gen_ai.completion"]
+      ) {
+        try {
+          const completion = JSON.parse(event.attributes["gen_ai.completion"]);
+          if (!completion) continue;
+
+          const messages = Array.isArray(completion)
+            ? completion
+            : [completion];
+
+          for (const message of messages) {
+            if (!message) continue;
+
+            if (message.tool_calls && Array.isArray(message.tool_calls)) {
+              message.tool_calls.forEach((tool: any) => {
+                if (tool?.function?.name && tool?.function?.arguments) {
+                  allToolCalls.push({
+                    id: tool.id || "",
+                    type: tool.type || "function",
+                    name: tool.function.name,
+                    arguments: tool.function.arguments,
+                    timestamp,
+                    count: 1,
+                  });
+                }
+              });
+            }
+
+            if (
+              message.function_call?.name &&
+              message.function_call?.arguments
+            ) {
+              allToolCalls.push({
+                id: message.id || "",
+                type: "function",
+                name: message.function_call.name,
+                arguments: message.function_call.arguments,
+                timestamp,
+                count: 1,
+              });
+            }
+
+            if (typeof message.content === "string") {
+              try {
+                const parsedContent = JSON.parse(message.content);
+                if (Array.isArray(parsedContent)) {
+                  parsedContent.forEach((item: any) => {
+                    if (item?.function?.name && item?.function?.arguments) {
+                      allToolCalls.push({
+                        id: item.id || "",
+                        type: item.type || "function",
+                        name: item.function.name,
+                        arguments: item.function.arguments,
+                        timestamp,
+                        count: 1,
+                      });
+                    }
+                  });
+                }
+              } catch (e) {
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing completion:", e);
+        }
+      }
+    }
+
+    return allToolCalls.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+  } catch (e) {
+    console.error("Error parsing events:", e);
+    return [];
+  }
+}
+
+function processEvents(events: string, timestamp: number): {
   messages: Record<string, string[]>[];
   allEvents: any[];
+  toolCalls: ToolCall[];
 } {
   if (!events || events === "[]") {
-    return { messages: [], allEvents: [] };
+    return { messages: [], allEvents: [], toolCalls: [] };
   }
 
   const parsedEvents = JSON.parse(events);
@@ -173,7 +311,9 @@ function processEvents(events: string): {
     messages.push({ prompts: inputs, responses: outputs });
   }
 
-  return { messages, allEvents: [parsedEvents] };
+  const toolCalls = extractToolCalls(events, timestamp);
+
+  return { messages, allEvents: [parsedEvents], toolCalls };
 }
 
 export function processTrace(trace: any): Trace {
@@ -193,6 +333,7 @@ export function processTrace(trace: any): Trace {
   const promptVersions: string[] = [];
   const messages: Record<string, string[]>[] = [];
   const allEvents: any[] = [];
+  const allToolCalls: ToolCall[] = [];
 
   let tokenCounts: any = {};
   let totalCost = { total: 0, input: 0, output: 0, cached_input: 0 };
@@ -248,11 +389,13 @@ export function processTrace(trace: any): Trace {
 
     // Process events
     if (span.events) {
-      const { messages: eventMessages, allEvents: newEvents } = processEvents(
-        span.events
+      const { messages: eventMessages, allEvents: newEvents, toolCalls: newToolCalls } = processEvents(
+        span.events,
+        span.start_time || startTime
       );
       messages.push(...eventMessages);
       allEvents.push(...newEvents);
+      allToolCalls.push(...newToolCalls);
     }
   }
 
@@ -263,6 +406,28 @@ export function processTrace(trace: any): Trace {
     }
     return a.start_time < b.start_time ? -1 : 1;
   });
+
+  const toolNameCounts = new Map<string, number>();
+  const firstToolCallByName = new Map<string, ToolCall>();
+
+  for (const call of allToolCalls) {
+    toolNameCounts.set(
+      call.name,
+      (toolNameCounts.get(call.name) || 0) + 1
+    );
+    if (!firstToolCallByName.has(call.name)) {
+      firstToolCallByName.set(call.name, { ...call });
+    }
+  }
+
+  const finalToolCalls = Array.from(firstToolCallByName.entries()).map(
+    ([name, call]) => ({
+      ...call,
+      count: toolNameCounts.get(name),
+    })
+  );
+
+  finalToolCalls.sort((a, b) => (a?.timestamp || 0) - (b?.timestamp || 0));
 
   // Construct and return result
   return {
@@ -292,5 +457,6 @@ export function processTrace(trace: any): Trace {
     sorted_trace: trace,
     trace_hierarchy: traceHierarchy,
     raw_attributes: lastParsedAttributes,
+    tool_calls: finalToolCalls,
   };
 }

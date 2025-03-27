@@ -4,6 +4,7 @@ import {
   correctTimestampFormat,
 } from "./trace_utils";
 import { calculatePriceFromUsage, formatDateTime } from "./utils";
+import { ToolCall } from "./trace_util";
 
 export interface CrewAITrace {
   id: string;
@@ -39,6 +40,7 @@ export interface CrewAITrace {
   sorted_trace: any[];
   trace_hierarchy: any[];
   raw_attributes: any;
+  tool_calls: ToolCall[];
 }
 
 export interface CrewAICrew {
@@ -515,6 +517,7 @@ export function processCrewAITrace(trace: any): CrewAITrace {
     sorted_trace: trace,
     trace_hierarchy: traceHierarchy,
     raw_attributes: attributes,
+    tool_calls: [],
   };
 
   return result;

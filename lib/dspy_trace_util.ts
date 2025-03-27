@@ -1,6 +1,8 @@
 import { calculateTotalTime, convertTracesToHierarchy } from "./trace_utils";
 import { calculatePriceFromUsage } from "./utils";
 
+import { ToolCall } from "./trace_util";
+
 export interface DspyTrace {
   id: string;
   type: string;
@@ -34,6 +36,7 @@ export interface DspyTrace {
   result: any;
   checkpoint: any;
   evaluated_score?: number;
+  tool_calls: ToolCall[];
 }
 
 export function processDspyTrace(trace: any): DspyTrace {
@@ -370,6 +373,7 @@ export function processDspyTrace(trace: any): DspyTrace {
     result: spanResult,
     checkpoint: checkpoint,
     evaluated_score: evaluated_score,
+    tool_calls: [],
   };
 
   return result;
