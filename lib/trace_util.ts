@@ -216,7 +216,50 @@ function extractToolCalls(events: string, timestamp: number): ToolCall[] {
           for (const message of messages) {
             if (!message) continue;
 
-            if (message.tool_calls && Array.isArray(message.tool_calls)) {
+            if (
+              message?.role === "tool" &&
+              message?.content &&
+              message?.tool_call_id
+            ) {
+              try {
+                const parsedContent = JSON.parse(message.content);
+                if (Array.isArray(parsedContent)) {
+                  allToolCalls.push({
+                    id: message.tool_call_id,
+                    type: "function",
+                    name: "tool_response",
+                    arguments: message.content,
+                    timestamp,
+                    count: 1,
+                  });
+                }
+              } catch (e) {
+              }
+            }
+
+            if (
+              message?.role === "assistant" &&
+              Array.isArray(message.content)
+            ) {
+              message.content.forEach((item: any) => {
+                if (
+                  item?.type === "function" &&
+                  item?.function?.name &&
+                  item?.function?.arguments
+                ) {
+                  allToolCalls.push({
+                    id: item.id || "",
+                    type: item.type,
+                    name: item.function.name,
+                    arguments: item.function.arguments,
+                    timestamp,
+                    count: 1,
+                  });
+                }
+              });
+            }
+
+            if (message?.tool_calls && Array.isArray(message.tool_calls)) {
               message.tool_calls.forEach((tool: any) => {
                 if (tool?.function?.name && tool?.function?.arguments) {
                   allToolCalls.push({
@@ -245,25 +288,18 @@ function extractToolCalls(events: string, timestamp: number): ToolCall[] {
               });
             }
 
-            if (typeof message.content === "string") {
-              try {
-                const parsedContent = JSON.parse(message.content);
-                if (Array.isArray(parsedContent)) {
-                  parsedContent.forEach((item: any) => {
-                    if (item?.function?.name && item?.function?.arguments) {
-                      allToolCalls.push({
-                        id: item.id || "",
-                        type: item.type || "function",
-                        name: item.function.name,
-                        arguments: item.function.arguments,
-                        timestamp,
-                        count: 1,
-                      });
-                    }
-                  });
-                }
-              } catch (e) {
-              }
+            if (
+              message.function_call?.name &&
+              message.function_call?.arguments
+            ) {
+              allToolCalls.push({
+                id: message.id || "",
+                type: "function",
+                name: message.function_call.name,
+                arguments: message.function_call.arguments,
+                timestamp,
+                count: 1,
+              });
             }
           }
         } catch (e) {
