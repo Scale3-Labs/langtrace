@@ -591,6 +591,8 @@ export function calculatePriceFromUsage(
       costTable = COHERE_PRICING[model];
     } else if (model.includes("gemini")) {
       costTable = GEMINI_PRICING[model];
+    } else if (vendor === "google_genai") {
+      costTable = GEMINI_PRICING[model];
     } else if (model.includes("grok")) {
       costTable = XAI_PRICING[model];
     } else if (model.includes("tral")) {
@@ -858,6 +860,8 @@ export function getVendorFromSpan(span: Span): string {
   } else if (span.name.includes("vertex") || serviceName.includes("vertex")) {
     vendor = "vertex";
   } else if (span.name.includes("gemini") || serviceName.includes("gemini")) {
+    vendor = "gemini";
+  } else if (span.name.includes("google_genai") || serviceName.includes("google_genai")) {
     vendor = "gemini";
   } else if (span.name.includes("vercel") || serviceName.includes("vercel")) {
     vendor = "vercel";
