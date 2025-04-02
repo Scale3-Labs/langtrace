@@ -29,8 +29,10 @@ export const RenderSpanAttributeValue = ({
         </div>
       );
     } else if (typeof item === "string") {
-      // Replace line breaks with <br /> for better formatting
-      return item.split("\n").map((line, index) => (
+      const decodedText = item.replace(/\\u([a-fA-F0-9]{4})/g, (_, hex) =>
+        String.fromCharCode(parseInt(hex, 16))
+      );
+      return decodedText.split("\n").map((line, index) => (
         <React.Fragment key={index}>
           {line}
           <br />
