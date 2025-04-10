@@ -527,6 +527,14 @@ export const GEMINI_PRICING: Record<string, CostTableEntry> = {
     input: 0.0000375, // $0.0375 per 1M tokens = $0.0000375 per 1K tokens
     output: 0.00015, // $0.15 per 1M tokens = $0.00015 per 1K tokens
   },
+  "gemini-2.0-flash": {
+    input: 0.0001, // $0.10 per 1M tokens = $0.0001 per 1K tokens
+    output: 0.0004, // $0.40 per 1M tokens = $0.0004 per 1K tokens
+  },
+  "gemini-2.0-flash-lite": {
+    input: 0.000075, // $0.075 per 1M tokens = $0.000075 per 1K tokens
+    output: 0.0003, // $0.30 per 1M tokens = $0.0003 per 1K tokens
+  },
   "gemini-1.0-pro": {
     input: 0.0005, // $0.50 per 1M tokens = $0.0005 per 1K tokens
     output: 0.0015, // $1.50 per 1M tokens = $0.0015 per 1K tokens
