@@ -131,12 +131,12 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     cached_input: 0.00125,
     output: 0.01,
   },
-  "gpt-4o-2024-05-13": {
+  "gpt-4o-audio-preview": {
     input: 0.0025,
-    cached_input: 0.000125,
+    cached_input: 0.00125,
     output: 0.01,
   },
-  "gpt-4o-audio-preview": {
+  "gpt-4o-2024-05-13": {
     input: 0.0025,
     cached_input: 0.000125,
     output: 0.01,
@@ -418,77 +418,77 @@ export const COHERE_PRICING: Record<string, CostTableEntry> = {
 
 export const GROQ_PRICING: Record<string, CostTableEntry> = {
   "deepseek-r1-distill-llama-70b": {
-    "input": 0.00075,
-    "output": 0.00099
+    input: 0.00075,
+    output: 0.00099,
   },
   "deepseek-r1-distill-qwen-32b": {
-    "input": 0.00069,
-    "output": 0.00069
+    input: 0.00069,
+    output: 0.00069,
   },
   "qwen-2.5-32b-instruct": {
-    "input": 0.00079,
-    "output": 0.00079
+    input: 0.00079,
+    output: 0.00079,
   },
   "qwen-2.5-coder-32b-instruct": {
-    "input": 0.00079,
-    "output": 0.00079
+    input: 0.00079,
+    output: 0.00079,
   },
   "qwen-qwq-32b": {
-    "input": 0.00029,
-    "output": 0.00039
+    input: 0.00029,
+    output: 0.00039,
   },
   "mistral-saba-24b": {
-    "input": 0.00079,
-    "output": 0.00079
+    input: 0.00079,
+    output: 0.00079,
   },
   "llama-3.2-1b": {
-    "input": 0.00004,
-    "output": 0.00004
+    input: 0.00004,
+    output: 0.00004,
   },
   "llama-3.2-3b": {
-    "input": 0.00006,
-    "output": 0.00006
+    input: 0.00006,
+    output: 0.00006,
   },
   "llama-3.3-70b-versatile": {
-    "input": 0.00059,
-    "output": 0.00079
+    input: 0.00059,
+    output: 0.00079,
   },
   "llama-3.1-8b-instant": {
-    "input": 0.00005,
-    "output": 0.00008
+    input: 0.00005,
+    output: 0.00008,
   },
   "llama-3-70b": {
-    "input": 0.00059,
-    "output": 0.00079
+    input: 0.00059,
+    output: 0.00079,
   },
   "llama-3-8b": {
-    "input": 0.00005,
-    "output": 0.00008
+    input: 0.00005,
+    output: 0.00008,
   },
   "mixtral-8x7b-instruct": {
-    "input": 0.00024,
-    "output": 0.00024
+    input: 0.00024,
+    output: 0.00024,
   },
   "gemma-2-9b": {
-    "input": 0.00020,
-    "output": 0.00020
+    input: 0.0002,
+    output: 0.0002,
   },
   "llama-guard-3-8b": {
-    "input": 0.00020,
-    "output": 0.00020
+    input: 0.0002,
+    output: 0.0002,
   },
   "llama-3.3-70b-specdec": {
-    "input": 0.00059,
-    "output": 0.00099
+    input: 0.00059,
+    output: 0.00099,
   },
   "llama-3.2-11b-vision": {
-    "input": 0.00018,
-    "output": 0.00018
+    input: 0.00018,
+    output: 0.00018,
   },
   "llama-3.2-90b-vision": {
-    "input": 0.00090,
-    "output": 0.00090
-  }
+    input: 0.0009,
+    output: 0.0009,
+  },
 };
 
 export const AZURE_PRICING: Record<string, CostTableEntry> = {
