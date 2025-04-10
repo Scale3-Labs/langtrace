@@ -793,6 +793,11 @@ export function getVendorFromSpan(span: Span): string {
   if (span.name.includes("groq") || serviceName.includes("groq")) {
     vendor = "groq";
   } else if (
+    span.name.includes("neo4j") ||
+    serviceName.includes("neo4j")
+  ) {
+    vendor = "neo4j";
+  } else if (
     span.name.includes("perplexity") ||
     serviceName.includes("perplexity")
   ) {
