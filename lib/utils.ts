@@ -861,7 +861,10 @@ export function getVendorFromSpan(span: Span): string {
     vendor = "vertex";
   } else if (span.name.includes("gemini") || serviceName.includes("gemini")) {
     vendor = "gemini";
-  } else if (span.name.includes("google_genai") || serviceName.includes("google_genai")) {
+  } else if (
+    span.name.includes("google_genai") ||
+    serviceName.includes("google_genai")
+  ) {
     vendor = "gemini";
   } else if (span.name.includes("vercel") || serviceName.includes("vercel")) {
     vendor = "vercel";

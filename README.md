@@ -34,7 +34,40 @@
 
 Langtrace is an open source observability software which lets you capture, debug and analyze traces and metrics from all your applications that leverages LLM APIs, Vector Databases and LLM based Frameworks.
 
-![image](https://github.com/Scale3-Labs/langtrace/assets/105607645/6825158c-39bb-4270-b1f9-446c36c066ee)
+![image](/public/langtrace-tracing-ss.png)
+
+## ✨ Features
+
+- 📊 **Open Telemetry Support**: Built on OTEL standards for comprehensive tracing
+- 🔄 **Real-time Monitoring**: Track LLM API calls, vector operations, and framework usage
+- 🎯 **Performance Insights**: Analyze latency, costs, and usage patterns
+- 🔍 **Debug Tools**: Trace and debug your LLM application workflows
+- 📈 **Analytics**: Get detailed metrics and visualizations
+- 🏠 **Self-hosting Option**: Deploy on your own infrastructure
+
+## 🚀 Quick Start
+
+```bash
+# For TypeScript/JavaScript
+npm i @langtrase/typescript-sdk
+
+# For Python
+pip install langtrace-python-sdk
+```
+
+Initialize in your code:
+```typescript
+// TypeScript
+import * as Langtrace from '@langtrase/typescript-sdk'
+Langtrace.init({ api_key: '<your_api_key>' }) // Get your API key at langtrace.ai
+```
+```python
+# Python
+from langtrace_python_sdk import langtrace
+langtrace.init(api_key='<your_api_key>') # Get your API key at langtrace.ai
+```
+
+For detailed setup instructions, see [Getting Started](#-getting-started).
 
 ## ✨ Features
 
