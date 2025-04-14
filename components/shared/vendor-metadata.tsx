@@ -78,7 +78,7 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
-  if (vendor.includes("arch")) {
+  if (vendor.startsWith("arch")) {
     return "bg-white";
   }
 
@@ -102,7 +102,7 @@ export function vendorColor(vendor: string) {
     return "bg-slate-200";
   }
 
-  if (vendor.includes("arch")) {
+  if (vendor.startsWith("arch")) {
     return "bg-green-200";
   }
 
@@ -259,7 +259,7 @@ export function VendorLogo({
     );
   }
 
-  if (vendor.includes("arch")) {
+  if (vendor.startsWith("arch")) {
     const color = vendorColor("arch");
     return (
       <Image
