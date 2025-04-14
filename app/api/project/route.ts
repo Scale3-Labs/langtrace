@@ -7,6 +7,21 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+  // If api key is provided, return the project as it's used by the Python SDK.
+  const apiKey = req.headers.get("x-api-key");
+  if (apiKey) {
+    const response = await authApiKey(apiKey, false);
+    if (response.status !== 200) {
+      return response;
+    }
+
+    const data = await response.json();
+    return NextResponse.json({
+      project: data.data.project,
+    });
+  }
+
+  // If no api key is provided, return the project as it's used by the web app.
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
     redirect("/login");
