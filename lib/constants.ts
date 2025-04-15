@@ -83,6 +83,36 @@ export const OPENAI_PRICING: Record<string, CostTableEntry> = {
     cached_input: 0.00055,
     output: 0.0044,
   },
+  "gpt-4.1": {
+    input: 0.002,
+    cached_input: 0.0005,
+    output: 0.008,
+  },
+  "gpt-4.1-2025-04-14": {
+    input: 0.002,
+    cached_input: 0.0005,
+    output: 0.008,
+  },
+  "gpt-4.1-mini": {
+    input: 0.0004,
+    cached_input: 0.0001,
+    output: 0.0016,
+  },
+  "gpt-4.1-mini-2025-04-14": {
+    input: 0.0004,
+    cached_input: 0.0001,
+    output: 0.0016,
+  },
+  "gpt-4.1-nano": {
+    input: 0.0001,
+    cached_input: 0.000025,
+    output: 0.0004,
+  },
+  "gpt-4.1-nano-2025-04-14": {
+    input: 0.0001,
+    cached_input: 0.000025,
+    output: 0.0004,
+  },
   "gpt-4.5": {
     input: 0.075,
     cached_input: 0.0375,

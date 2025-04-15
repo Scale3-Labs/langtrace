@@ -793,13 +793,18 @@ export function getVendorFromSpan(span: Span): string {
   if (span.name.includes("groq") || serviceName.includes("groq")) {
     vendor = "groq";
   } else if (
+    span.name.includes("neo4j") ||
+    serviceName.includes("neo4j")
+  ) {
+    vendor = "neo4j";
+  } else if (
     span.name.includes("perplexity") ||
     serviceName.includes("perplexity")
   ) {
     vendor = "perplexity";
   } else if (span.name.includes("xai") || serviceName.includes("xai")) {
     vendor = "xai";
-  } else if (span.name.includes("arch") || serviceName.includes("arch")) {
+  } else if (span.name.startsWith("arch") || serviceName.startsWith("arch")) {
     vendor = "arch";
   } else if (span.name.includes("openai") || serviceName.includes("openai")) {
     vendor = "openai";
