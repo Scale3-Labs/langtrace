@@ -94,6 +94,7 @@ export function TracesTable<TData, TValue>({
       output_cost: newMode === "trace",
       total_cost: newMode === "trace",
       total_duration: newMode === "trace",
+      cleanlab_tlm_score: false,
     });
     if (newMode === "prompt") {
       setFilters([

@@ -700,7 +700,7 @@ export function VendorLogo({
         width={80}
         height={80}
         className={cn(
-          `${color} p-[3px]`,
+          `${color} p-[0.5px]`,
           variant === "circular" ? "rounded-full" : "rounded-md"
         )}
       />
