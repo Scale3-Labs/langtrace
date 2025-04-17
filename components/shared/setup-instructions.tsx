@@ -22,7 +22,7 @@ langtrace.init(api_key = '${apiKey ?? "<LANGTRACE_API_KEY>"}')`;
 const typescriptCodeTemplate = (apiKey: string) =>
   `// Must precede any llm module imports
 
-import * as Langtrace from '@langtrace/typescript-sdk'
+import * as Langtrace from '@langtrase/typescript-sdk'
 
 Langtrace.init({ api_key: '${apiKey ?? "<LANGTRACE_API_KEY>"}' })`;
 

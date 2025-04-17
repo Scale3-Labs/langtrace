@@ -78,7 +78,7 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
-  if (vendor.includes("arch")) {
+  if (vendor.startsWith("arch")) {
     return "bg-white";
   }
 
@@ -102,7 +102,7 @@ export function vendorColor(vendor: string) {
     return "bg-slate-200";
   }
 
-  if (vendor.includes("arch")) {
+  if (vendor.startsWith("arch")) {
     return "bg-green-200";
   }
 
@@ -147,6 +147,10 @@ export function vendorColor(vendor: string) {
   }
 
   if (vendor.includes("agno")) {
+    return "bg-white";
+  }
+
+  if (vendor.includes("neo4j")) {
     return "bg-white";
   }
 
@@ -255,7 +259,7 @@ export function VendorLogo({
     );
   }
 
-  if (vendor.includes("arch")) {
+  if (vendor.startsWith("arch")) {
     const color = vendorColor("arch");
     return (
       <Image
@@ -565,6 +569,22 @@ export function VendorLogo({
       <Image
         alt="Agno Logo"
         src="/agno.png"
+        width={30}
+        height={30}
+        className={cn(
+          `${color} p-[3px]`,
+          variant === "circular" ? "rounded-full" : "rounded-md"
+        )}
+      />
+    );
+  }
+
+  if (vendor.includes("neo4j")) {
+    const color = vendorColor("neo4j");
+    return (
+      <Image
+        alt="Neo4j Logo"
+        src="/neo4j-icon.svg"
         width={30}
         height={30}
         className={cn(
