@@ -28,6 +28,7 @@ export interface Trace {
   sorted_trace: any[];
   trace_hierarchy: any[];
   raw_attributes: any;
+  cleanlab_tlm_score?: number;
 }
 
 interface TraceAttributes {
@@ -193,6 +194,7 @@ export function processTrace(trace: any): Trace {
   const promptVersions: string[] = [];
   const messages: Record<string, string[]>[] = [];
   const allEvents: any[] = [];
+  let cleanlab_tlm_score: number | undefined;
 
   let tokenCounts: any = {};
   let totalCost = { total: 0, input: 0, output: 0, cached_input: 0 };
@@ -214,6 +216,14 @@ export function processTrace(trace: any): Trace {
 
     const attrs = parseTraceAttributes(span.attributes);
     lastParsedAttributes = JSON.parse(span.attributes); // Keep for backward compatibility
+
+    // Check for CleanLab trustworthiness score
+    if (
+      attrs.vendor === "cleanlab" &&
+      lastParsedAttributes["tlm.trustworthiness_score"]
+    ) {
+      cleanlab_tlm_score = lastParsedAttributes["tlm.trustworthiness_score"];
+    }
 
     // Update collectors
     session_id = attrs.sessionId || session_id;
@@ -292,5 +302,6 @@ export function processTrace(trace: any): Trace {
     sorted_trace: trace,
     trace_hierarchy: traceHierarchy,
     raw_attributes: lastParsedAttributes,
+    cleanlab_tlm_score,
   };
 }
