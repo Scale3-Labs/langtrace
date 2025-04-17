@@ -394,6 +394,14 @@ export default function Traces({ project_id }: TracesProps) {
       },
     },
     {
+      accessorKey: "cleanlab_tlm_score",
+      header: "Cleanlab TLM Score",
+      cell: ({ row }) => {
+        const score = row.getValue("cleanlab_tlm_score") as number;
+        return <p className="text-xs font-semibold">{score}</p>;
+      },
+    },
+    {
       accessorKey: "total_duration",
       header: "Total Duration",
       cell: ({ row }) => {
