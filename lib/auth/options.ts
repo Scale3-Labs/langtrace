@@ -45,6 +45,22 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
+        // Check if the user has a team, if not create one
+        if (resp && !resp.teamId) {
+          // Create a team for the admin
+          const team = await prisma.team.create({
+            data: {
+              name: "Admin Team",
+            },
+          });
+
+          // Update the user with the teamId
+          await prisma.user.update({
+            where: { id: resp.id },
+            data: { teamId: team.id },
+          });
+        }
+
         if (resp) {
           // Any object returned will be saved in `user` property of the JWT
           const user = {
