@@ -6,7 +6,7 @@ PRISMA_MIGRATIONS_TABLE="_prisma_migrations"
 
 # Extract DB_HOST and DB_PORT from POSTGRES_HOST
 DB_HOST=$(echo $POSTGRES_HOST | cut -d':' -f1)
-DB_PORT=$(echo $POSTGRES_HOST | cut -d':' -f2)
+DB_PORT=$(echo $POSTGRES_HOST | cut -s -d':' -f2)
 
 # Default to port 5432 if DB_PORT is not set
 if [ -z "$DB_PORT" ]; then
