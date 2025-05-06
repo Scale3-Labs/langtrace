@@ -313,3 +313,35 @@ Programming Languages: Typescript and Python.
 Framework knowledge: NextJS.
 Database: Postgres and Prisma ORM.
 Nice to haves: Opentelemetry instrumentation framework, experience with distributed tracing.
+
+---
+
+## 📲 Cloning the Repository on an iPad
+
+To clone this repository on an iPad, follow these steps:
+
+### Using a Git Client on iPad
+
+1. **Install a Git Client**: Download and install a Git client app from the App Store. Some popular options include:
+   - [Working Copy](https://apps.apple.com/us/app/working-copy-git-client/id896694807)
+   - [Git2Go](https://apps.apple.com/us/app/git2go/id1032925040)
+
+2. **Set Up the Git Client**:
+   - Open the Git client app.
+   - Sign in with your GitHub account or add your SSH key if required.
+
+3. **Clone the Repository**:
+   - In the Git client app, find the option to clone a repository.
+   - Enter the repository URL: `https://github.com/Scale3-Labs/langtrace.git`
+   - Choose a local directory on your iPad to clone the repository into.
+
+4. **Access the Repository**:
+   - Once the cloning process is complete, you can access the repository files directly from the Git client app.
+   - You can make changes, commit, and push updates back to the repository.
+
+### Specific Tools or Apps Required
+
+- **Git Client App**: As mentioned above, you will need a Git client app like Working Copy or Git2Go.
+- **Text Editor**: For editing files, you can use a text editor app like [Textastic](https://apps.apple.com/us/app/textastic-code-editor/id1049254261) or [iA Writer](https://apps.apple.com/us/app/ia-writer/id775737590).
+
+By following these steps, you can easily clone and work with this repository on your iPad.
