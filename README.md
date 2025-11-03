@@ -15,6 +15,7 @@
   [![PyPI Downloads](https://static.pepy.tech/badge/langtrace-python-sdk/month)](https://pepy.tech/project/langtrace-python-sdk)
   [![Total PyPI Downloads](https://static.pepy.tech/badge/langtrace-python-sdk)](https://static.pepy.tech/badge/langtrace-python-sdk)
   [![Deploy](https://railway.app/button.svg)](https://railway.app/template/8dNq1c?referralCode=MA2S9H)
+  [![Deploy to Northflank](https://assets.northflank.com/deploy_to_northflank_smm_36700fb050.svg)](https://northflank.com/stacks/deploy-calcom)
 </div>
 
 ---
