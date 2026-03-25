@@ -2,6 +2,7 @@ import {
   AnthropicChatInterface,
   CohereChatInterface,
   GroqChatInterface,
+  MiniMaxChatInterface,
   OpenAIChatInterface,
   PerplexityChatInterface,
 } from "@/lib/types/playground_types";
@@ -337,6 +338,47 @@ export async function perplexityHandler(
   body.apiKey = apiKey;
 
   const response = await fetch("/api/chat/perplexity", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  return response;
+}
+
+export async function minimaxHandler(
+  llm: MiniMaxChatInterface,
+  apiKey: string
+): Promise<any> {
+  const body: any = {};
+  if (llm.settings.messages.length > 0) {
+    body.messages = llm.settings.messages.map((m) => {
+      return { content: m.content, role: m.role };
+    });
+  }
+  if (llm.settings.model) {
+    body.model = llm.settings.model;
+  }
+  if (llm.settings.temperature !== undefined) {
+    // MiniMax temperature range is [0, 1]
+    body.temperature = Math.min(Math.max(llm.settings.temperature, 0), 1);
+  }
+  if (llm.settings.max_tokens) {
+    body.max_tokens = llm.settings.max_tokens;
+  }
+  if (llm.settings.stream !== undefined) {
+    body.stream = llm.settings.stream;
+  }
+  if (llm.settings.top_p) {
+    body.top_p = llm.settings.top_p;
+  }
+
+  // Get the API key from the browser store
+  body.apiKey = apiKey;
+
+  const response = await fetch("/api/chat/minimax", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

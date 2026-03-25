@@ -544,6 +544,26 @@ export const AZURE_PRICING: Record<string, CostTableEntry> = {
   },
 };
 
+// https://platform.minimaxi.com/document/Price
+export const MINIMAX_PRICING: Record<string, CostTableEntry> = {
+  "MiniMax-M2.7": {
+    input: 0.0011,
+    output: 0.0055,
+  },
+  "MiniMax-M2.7-highspeed": {
+    input: 0.00044,
+    output: 0.0022,
+  },
+  "MiniMax-M2.5": {
+    input: 0.0011,
+    output: 0.0055,
+  },
+  "MiniMax-M2.5-highspeed": {
+    input: 0.00044,
+    output: 0.0022,
+  },
+};
+
 export const GEMINI_PRICING: Record<string, CostTableEntry> = {
   "gemini-1.5-pro": {
     input: 0.00125, // $1.25 per 1M tokens = $0.00125 per 1K tokens
@@ -607,6 +627,10 @@ export const LLM_VENDOR_APIS = [
     value: "PERPLEXITY_API_KEY",
     label: "Perplexity",
   },
+  {
+    value: "MINIMAX_API_KEY",
+    label: "MiniMax",
+  },
 ];
 
 export const LLM_VENDORS = [
@@ -629,6 +653,10 @@ export const LLM_VENDORS = [
   {
     value: "perplexity",
     label: "Perplexity",
+  },
+  {
+    value: "minimax",
+    label: "MiniMax",
   },
 ];
 
@@ -658,6 +686,7 @@ export const SUPPORTED_VENDORS: Record<string, string> = {
   GEMINI: "Gemini",
   EMBEDCHAIN: "Embedchain",
   VERCEL: "Vercel",
+  MINIMAX: "MiniMax",
 };
 
 export const jsontheme = {

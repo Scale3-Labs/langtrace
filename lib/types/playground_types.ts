@@ -202,6 +202,25 @@ export const perplexityModels = [
   },
 ];
 
+export const minimaxModels = [
+  {
+    value: "MiniMax-M2.7",
+    label: "MiniMax M2.7",
+  },
+  {
+    value: "MiniMax-M2.7-highspeed",
+    label: "MiniMax M2.7 Highspeed",
+  },
+  {
+    value: "MiniMax-M2.5",
+    label: "MiniMax M2.5",
+  },
+  {
+    value: "MiniMax-M2.5-highspeed",
+    label: "MiniMax M2.5 Highspeed (204K)",
+  },
+];
+
 export enum OpenAIRole {
   "user" = "user",
   "assistant" = "assistant",
@@ -304,6 +323,15 @@ export interface PerplexitySettings {
   frequency_penalty?: number;
 }
 
+export interface MiniMaxSettings {
+  messages: Conversation[];
+  model: string;
+  max_tokens?: number;
+  temperature?: number;
+  top_p?: number;
+  stream?: boolean;
+}
+
 export interface ChatInterface {
   id: string;
   vendor: string;
@@ -312,7 +340,8 @@ export interface ChatInterface {
     | AnthropicSettings
     | CohereSettings
     | GroqSettings
-    | PerplexitySettings;
+    | PerplexitySettings
+    | MiniMaxSettings;
 }
 
 export interface OpenAIChatInterface extends ChatInterface {
@@ -333,4 +362,8 @@ export interface GroqChatInterface extends ChatInterface {
 
 export interface PerplexityChatInterface extends ChatInterface {
   settings: PerplexitySettings;
+}
+
+export interface MiniMaxChatInterface extends ChatInterface {
+  settings: MiniMaxSettings;
 }

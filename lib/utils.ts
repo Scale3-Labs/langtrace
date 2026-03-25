@@ -17,6 +17,7 @@ import {
   GEMINI_PRICING,
   GROQ_PRICING,
   LangTraceAttributes,
+  MINIMAX_PRICING,
   MISTRAL_PRICING,
   OPENAI_PRICING,
   PERPLEXITY_PRICING,
@@ -549,6 +550,8 @@ export function calculatePriceFromUsage(
       vendor = "groq";
     } else if (model.includes("deepseek")) {
       vendor = "deepseek";
+    } else if (model.includes("MiniMax")) {
+      vendor = "minimax";
     }
   }
 
@@ -599,6 +602,8 @@ export function calculatePriceFromUsage(
       costTable = MISTRAL_PRICING[model];
     } else if (model.includes("deepseek")) {
       costTable = DEEPSEEK_PRICING[model];
+    } else if (model.includes("MiniMax")) {
+      costTable = MINIMAX_PRICING[model];
     }
   } else if (vendor === "openai" || vendor === "azure") {
     // check if model is present as key in OPENAI_PRICING
@@ -672,6 +677,8 @@ export function calculatePriceFromUsage(
     costTable = MISTRAL_PRICING[model];
   } else if (vendor === "deepseek") {
     costTable = DEEPSEEK_PRICING[model];
+  } else if (vendor === "minimax") {
+    costTable = MINIMAX_PRICING[model];
   }
   if (costTable) {
     const total =

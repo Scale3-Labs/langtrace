@@ -191,6 +191,7 @@ Langtrace automatically captures traces from the following vendors and framework
 | xAI | ✅ | ✅ |
 | Groq | ✅ | ✅ |
 | Perplexity | ✅ | ✅ |
+| MiniMax | ✅ | ❌ |
 | Gemini | ✅ | ✅ |
 | AWS Bedrock | ✅ | ✅ |
 | Mistral | ❌ | ✅ |

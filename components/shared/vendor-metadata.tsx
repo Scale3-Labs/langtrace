@@ -78,6 +78,10 @@ export function vendorBadgeColor(vendor: string) {
     return "bg-blue-500";
   }
 
+  if (vendor.includes("minimax")) {
+    return "bg-indigo-500";
+  }
+
   if (vendor.startsWith("arch")) {
     return "bg-white";
   }
@@ -200,6 +204,10 @@ export function vendorColor(vendor: string) {
 
   if (vendor.includes("xai")) {
     return "bg-blue-200";
+  }
+
+  if (vendor.includes("minimax")) {
+    return "bg-indigo-200";
   }
 
   if (vendor.includes("litellm")) {
@@ -688,6 +696,21 @@ export function VendorLogo({
           variant === "circular" ? "rounded-full" : "rounded-md"
         )}
       />
+    );
+  }
+
+  if (vendor.includes("minimax")) {
+    const color = vendorColor("minimax");
+    return (
+      <div
+        className={cn(
+          `${color} p-[3px] flex items-center justify-center`,
+          variant === "circular" ? "rounded-full" : "rounded-md",
+          "w-[30px] h-[30px] text-[10px] font-bold text-white"
+        )}
+      >
+        MM
+      </div>
     );
   }
 
