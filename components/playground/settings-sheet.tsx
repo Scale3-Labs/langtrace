@@ -21,6 +21,7 @@ import {
   AnthropicSettings,
   CohereSettings,
   GroqSettings,
+  MiniMaxSettings,
   OpenAISettings,
   PerplexitySettings,
 } from "@/lib/types/playground_types";
@@ -2895,6 +2896,261 @@ export function PerplexitySettingsSheet({
                             }}
                             type="number"
                             placeholder="Top K"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </>
+            )}
+            <SheetFooter>
+              <Button type="submit">Save changes</Button>
+            </SheetFooter>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+export function MiniMaxSettingsSheet({
+  settings,
+  setSettings,
+}: {
+  settings: MiniMaxSettings;
+  setSettings: any;
+}) {
+  const [open, setOpen] = useState(false);
+  const [advancedSettings, setAdvancedSettings] = useState(false);
+  const schema = z.object({
+    model: z.string(),
+    stream: z.boolean().optional(),
+    max_tokens: z.union([z.number().positive(), z.nan()]).optional(),
+    temperature: z
+      .union([
+        z.number().min(0),
+        z.number().max(1),
+        z.nan(),
+      ])
+      .optional(),
+    top_p: z.union([z.number(), z.nan()]).optional(),
+  });
+
+  const SettingsForm = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      model: settings.model ?? "MiniMax-M2.7",
+      stream: settings.stream ?? false,
+      max_tokens: settings.max_tokens ?? undefined,
+      temperature: settings.temperature ?? 0.7,
+      top_p: settings.top_p ?? 1,
+    },
+  });
+
+  return (
+    <Sheet onOpenChange={setOpen} open={open}>
+      <SheetTrigger asChild>
+        <Button variant="outline" size={"lg"}>
+          <div className="flex gap-2 items-center">
+            <SettingsIcon className="h-5 w-5" />
+            <div className="flex flex-col">
+              <p className="text-xs font-semibold">MiniMax</p>
+              <p className="text-xs font-semibold">{settings.model}</p>
+            </div>
+          </div>
+        </Button>
+      </SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Chat Settings</SheetTitle>
+          <SheetDescription>
+            Configure the settings for the MiniMax chat.
+          </SheetDescription>
+        </SheetHeader>
+        <Form {...SettingsForm}>
+          <form
+            onSubmit={SettingsForm.handleSubmit(async (data) => {
+              try {
+                const newSettings: any = {};
+                if (data.stream !== undefined) {
+                  newSettings["stream"] = data.stream;
+                }
+                if (data.model !== undefined && (data.model as string) !== "") {
+                  newSettings["model"] = data.model;
+                } else {
+                  throw new Error("Model is required");
+                }
+                if (data.max_tokens !== undefined && !isNaN(data.max_tokens)) {
+                  newSettings["max_tokens"] = data.max_tokens;
+                }
+                if (
+                  data.temperature !== undefined &&
+                  !isNaN(data.temperature)
+                ) {
+                  if (!(data.temperature >= 0 && data.temperature <= 1)) {
+                    throw new Error("Temperature must be between 0 and 1");
+                  }
+                  newSettings["temperature"] = data.temperature;
+                }
+                if (data.top_p !== undefined && !isNaN(data.top_p)) {
+                  newSettings["top_p"] = data.top_p;
+                }
+                setSettings({ ...settings, ...newSettings });
+                toast.success("Settings saved");
+                setOpen(false);
+              } catch (error: any) {
+                toast.error("Error saving settings", {
+                  description: error?.message,
+                });
+              }
+            })}
+            className="mt-6 px-2 flex flex-col gap-4 overflow-y-scroll h-screen pb-48"
+          >
+            <FormField
+              control={SettingsForm.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Model
+                    <Info
+                      information="The model to use for generating responses."
+                      className="inline-block ml-2"
+                    />
+                  </FormLabel>
+                  <FormControl>
+                    <ModelsDropDown
+                      value={field.value}
+                      setValue={field.onChange}
+                      vendor="minimax"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={SettingsForm.control}
+              name="stream"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        onCheckedChange={(checked) => field.onChange(checked)}
+                        checked={field.value}
+                      />
+                      <div className="flex items-center">
+                        <Label>Stream</Label>
+                        <Info
+                          information="Stream the response as it is being generated."
+                          className="inline-block ml-2"
+                        />
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={SettingsForm.control}
+                name="max_tokens"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Max Tokens
+                      <Info
+                        information="The maximum number of tokens to generate."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        min={0}
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        type="number"
+                        placeholder="Max Tokens"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={SettingsForm.control}
+                name="temperature"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Temperature
+                      <Info
+                        information="What sampling temperature to use, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic."
+                        className="inline-block ml-2"
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        min={0}
+                        max={1}
+                        step={0.1}
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                        type="number"
+                        placeholder="Temperature"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <Button
+              className="w-fit min-h-[40px]"
+              type="button"
+              variant={"ghost"}
+              size={"sm"}
+              onClick={() => setAdvancedSettings(!advancedSettings)}
+            >
+              Advanced settings{" "}
+              {advancedSettings ? (
+                <ChevronUp className="ml-2 h-4 w-4" />
+              ) : (
+                <ChevronDown className="ml-2 h-4 w-4" />
+              )}
+            </Button>
+            {advancedSettings && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={SettingsForm.control}
+                    name="top_p"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Top P
+                          <Info
+                            information="An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or temperature but not both."
+                            className="inline-block ml-2"
+                          />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            step={0.1}
+                            value={field.value}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                            type="number"
+                            placeholder="Top P"
                           />
                         </FormControl>
                         <FormMessage />

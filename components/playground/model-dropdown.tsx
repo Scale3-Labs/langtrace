@@ -18,6 +18,7 @@ import {
   anthropicModels,
   cohereModels,
   groqModels,
+  minimaxModels,
   openAIModels,
   perplexityModels,
 } from "@/lib/types/playground_types";
@@ -42,6 +43,8 @@ export function ModelsDropDown({
     models = groqModels;
   } else if (vendor === "perplexity") {
     models = perplexityModels;
+  } else if (vendor === "minimax") {
+    models = minimaxModels;
   }
   return (
     <Popover open={open} onOpenChange={setOpen}>
