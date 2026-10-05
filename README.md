@@ -1,4 +1,6 @@
 <div align="center">
+
+[![Deploy to Railyard](https://app.railyard.run/deploy/badge)](https://app.railyard.run/deploy?repo=https://github.com/Scale3-Labs/langtrace)
   <h1>
     <img src="https://github.com/Scale3-Labs/langtrace/assets/105607645/6825158c-39bb-4270-b1f9-446c36c066ee" alt="Langtrace" width="400"/>
     <br/>
